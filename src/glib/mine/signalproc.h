@@ -1154,6 +1154,11 @@ public:
     /// Set parameters with a JSON
     void SetParams(const PJsonVal& Params);
 
+    /// returns the current number of centroids
+    uint GetSummarySize() const;
+    /// returns the current memory footprint
+    uint64 GetMemUsed() const;
+
 private:
     void MergeValues();
 

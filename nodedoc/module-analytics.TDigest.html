@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.4.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.6.0</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">TDigest</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1911">analyticsdoc.<wbr>js:1911</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2151">analyticsdoc.<wbr>js:2151</a></p>
             <div class="symbol-classdesc">
               <p>TDigest is a methods that approximates the CDF function of streaming measurements. Data structure useful for percentile and quantile estimation for online data streams. It can be added to any anomaly detector to set the number of alarms
                 triggered as a percentage of the total samples. Adding new samples to the distribution is achieved through <code>partialFit</code> and querying the model (computing quantiles) is implemented by <code>predict</code> function.
@@ -37,18 +37,28 @@
           </header>
           <section id="summary">
             <div class="summary-callout">
-              <h2 class="summary-callout-heading">Property</h2>
+              <h2 class="summary-callout-heading">Properties</h2>
               <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.TDigest.html#.memory">memory</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.TDigest.html#.size">size</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
                     <dt><a href="module-analytics.TDigest.html#init">init</a></dt>
                     <dd>
                     </dd>
                   </dl>
-                </div>
-                <div class="summary-column">
-                </div>
-                <div class="summary-column">
                 </div>
               </div>
             </div>
@@ -147,8 +157,16 @@ var tdigest2 = new analytics.TDigest(fs.openRead(&#x27;tdigest.bin&#x27;));</cod
             </dl>
           </section>
           <section>
-            <h2>Property</h2>
+            <h2>Properties</h2>
             <section>
+              <h3 id=".memory"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">memory</span></h3>
+              <p>Returns the models current memory consumption.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id=".size"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">size</span></h3>
+              <p>Returns the current size of the algorithms summary in number of tuples.</p>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="init"><span class="symbol-name">init</span></h3>
               <p>Returns true when the model has enough data to initialize. Type <code>boolean</code>.</p>
               <section>

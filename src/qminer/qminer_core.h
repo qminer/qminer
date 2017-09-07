@@ -28,6 +28,24 @@ class TRecFilter; typedef TPt<TRecFilter> PRecFilter;
 class TFtrExt; typedef TPt<TFtrExt> PFtrExt;
 class TFtrSpace; typedef TPt<TFtrSpace> PFtrSpace;
 
+typedef void(*TVoidVoidF)();
+struct TExternalAggr {
+    static TFunRouter<TVoidVoidF>& CreateOnce() {
+        static TFunRouter<TVoidVoidF> * NewRouter = new TFunRouter<TVoidVoidF>;
+        return *NewRouter;
+    }
+};
+
+#define INIT_EXTERN_AGGR(Name) \
+class Autogen ## Name { \
+public: \
+    Autogen ## Name() { \
+        TFunRouter<TQm::TVoidVoidF>& Router = TQm::TExternalAggr::CreateOnce(); \
+        Router.Register(#Name, Name); \
+    } \
+}; \
+Autogen ## Name Autogen_ ## Name; \
+
 ///////////////////////////////
 /// Store windowing type
 typedef enum {
@@ -183,6 +201,9 @@ public:
     static void Init();
     /// Checks if initialization done
     static bool IsInit() { return InitP; }
+
+    /// Calls init functions for external aggregates
+    static void InitExternalAggr();
 
     /// Initialize logger.
     /// @param FPath        Specify logger output (standard output `std'; No output `null')
@@ -1370,7 +1391,7 @@ private:
     /// New constructor delegate
     typedef PRecFilter(*TNewF)(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     /// Filter New constructor router
-    static TFunRouter<PRecFilter, TNewF> NewRouter;
+    static TFunRouter<TNewF> NewRouter;
 
 public:
     /// Register default record filters
@@ -3421,7 +3442,7 @@ private:
     typedef PAggr (*TNewF)(const TWPt<TBase>& Base, const TStr& AggrNm,
         const PRecSet& RecSet, const PJsonVal& ParamVal);
     /// Stream aggregate descriptions
-    static TFunRouter<PAggr, TNewF> NewRouter;
+    static TFunRouter<TNewF> NewRouter;
 public:
     /// Register default aggregates
     static void Init();
@@ -3465,7 +3486,7 @@ private:
     /// New constructor delegate
     typedef PStreamAggr (*TNewF)(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     /// Stream aggregate New constructor router
-    static TFunRouter<PStreamAggr, TNewF> NewRouter;
+    static TFunRouter<TNewF> NewRouter;
 
 public:
     /// Register default stream aggregates
@@ -3523,7 +3544,7 @@ public:
     virtual bool IsInit() const { return true; }
 
     /// Reset the state of the aggregate
-    virtual void Reset() = 0;
+    virtual void Reset() {};
 
     /// Update state of the aggregate
     virtual void OnStep(const TWPt<TStreamAggr>& CallerAggr) { }
@@ -3542,7 +3563,7 @@ public:
     /// Print latest statistics to logger
     virtual void PrintStat() const { }
     /// Serialization current status to JSon
-    virtual PJsonVal SaveJson(const int& Limit) const = 0;
+    virtual PJsonVal SaveJson(const int& Limit) const { return TJsonVal::NewNull(); };
     /// Returns the memory footprint (the number of bytes) of the aggregate
     virtual uint64 GetMemUsed() const;
     /// Get access to the timmer

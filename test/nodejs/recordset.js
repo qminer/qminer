@@ -60,7 +60,19 @@ function TStore() {
         "name": "TestStore",
         "fields": [
             { "name": "Name", "type": "string", "primary": true },
-            { "name": "Tm", "type": "datetime" }
+            { "name": "Tm", "type": "datetime" },
+            { "name": "Id1", "type": "int", "null": true },
+            { "name": "Id2", "type": "int16", "null": true },
+            { "name": "Id3", "type": "int64", "null": true },
+            { "name": "Id4", "type": "byte", "null": true },
+            { "name": "Id5", "type": "uint", "null": true },
+            { "name": "Id6", "type": "uint16", "null": true },
+            { "name": "Id7", "type": "uint64", "null": true },
+            { "name": "Id8", "type": "string", "null": true },
+            { "name": "Id9", "type": "bool", "null": true },
+            { "name": "Id10", "type": "float", "null": true },
+            { "name": "Id11", "type": "sfloat", "null": true },
+            { "name": "Id12", "type": "datetime", "null": true }
         ]
     }]);
     // adding two persons
@@ -85,6 +97,7 @@ function TStore() {
     this.base.store("TestStore").push({ "Name": "Goran Dragic", "Tm": "2015-06-01T00:00:00" });
 	this.base.store("TestStore").push({ "Name": "Michael Jordan", "Tm": "2015-06-01T00:00:01" });
 	this.base.store("TestStore").push({ "Name": "Marko Milic", "Tm": "2015-06-01T00:00:05" });
+    this.base.store("TestStore").push({ "Name": "Marko Aznur", "Tm": "2015-06-01T00:00:05", "Id1": 5, "Id2": 5, "Id3": 5, "Id4": 5, "Id5": 5, "Id6": 5, "Id7": 5, "Id8": "5", "Id9": true, "Id10": 5, "Id11": 5, "Id12": 1503696242914});
 
     this.close = function () {
         this.base.close();
@@ -439,11 +452,11 @@ describe('Record Set Tests', function () {
         })
         it('should handle request if the second parameter is missing - datetime', function () {
             recSet5.filterByField("Tm", "2015-06-01T00:00:01");
-            assert.equal(recSet5.length, 2);
+            assert.equal(recSet5.length, 3);
         })
         it('should handle request if the second parameter is null - datetime', function () {
             recSet5.filterByField("Tm", "2015-06-01T00:00:01", null);
-            assert.equal(recSet5.length, 2);
+            assert.equal(recSet5.length, 3);
         })
         it('should handle request if the first parameter is null - datetime', function () {
             recSet5.filterByField("Tm", null, "2015-06-01T00:00:01");
@@ -695,6 +708,12 @@ describe('Record Set Tests', function () {
             assert.equal(arr.length, 2);
             assert.equal(arr[0], 2010);
             assert.equal(arr[1], 2006);
+        })
+        it('should return the vector with only non-null elements', function () {
+            for (var i = 1; i < 13; i++) {
+                var arr = recSet5.getVector("Id" + i);
+                assert.equal(arr.length, 1);
+            }
         })
         it('should throw an exception, if parameter is not a legit field', function () {
             assert.throws(function () {

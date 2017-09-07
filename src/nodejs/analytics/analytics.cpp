@@ -233,6 +233,18 @@ void TNodeJsSvmModel::weights(v8::Local<v8::String> Name, const v8::PropertyCall
     }
 }
 
+void TNodeJsSvmModel::bias(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    try {
+        TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Info.Holder());
+        Info.GetReturnValue().Set(v8::Number::New(Isolate, JsModel->Model.GetBias()));
+    } catch (const PExcept& Except) {
+        throw TExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::bias");
+    }
+}
+
 void TNodeJsSvmModel::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
@@ -412,6 +424,7 @@ void TNodeJsSVC::Init(v8::Handle<v8::Object> exports) {
 
     // properties
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "bias"), _bias);
 
     exports->Set(v8::String::NewFromUtf8(Isolate, "SVC"), tpl->GetFunction());
 }
@@ -443,7 +456,7 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
             }
             else if (JsModel->Algorithm == "LIBSVM") {
-                JsModel->Model = TSvm::LibSvmSolveClassify(VecV, ClsV, JsModel->SvmCost,
+                JsModel->Model = TSvm::LibSvmSolveClassify(VecV, ClsV, JsModel->SvmCost, JsModel->SvmUnbalance,
                     TQm::TEnv::Debug, TQm::TEnv::Error);
             }
             else {
@@ -464,7 +477,7 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
                 JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
             }
             else if (JsModel->Algorithm == "LIBSVM") {
-                JsModel->Model = TSvm::LibSvmSolveClassify(VecV, ClsV, JsModel->SvmCost,
+                JsModel->Model = TSvm::LibSvmSolveClassify(VecV, ClsV, JsModel->SvmCost, JsModel->SvmUnbalance,
                     TQm::TEnv::Debug, TQm::TEnv::Error);
             }
             else {
@@ -503,6 +516,7 @@ void TNodeJsSVR::Init(v8::Handle<v8::Object> exports) {
 
     // properties
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "bias"), _bias);
 
     exports->Set(v8::String::NewFromUtf8(Isolate, "SVR"), tpl->GetFunction());
 }
@@ -2246,6 +2260,7 @@ TNodeJsKMeans::TNodeJsKMeans(TSIn& SIn) :
         Iter(TInt(SIn)),
         K(TInt(SIn)),
         AllowEmptyP(SIn),
+        CalcDistQualP(SIn),
         AssignV(SIn),
         Medoids(SIn),
         FitIdx(SIn),
@@ -2284,6 +2299,7 @@ void TNodeJsKMeans::UpdateParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("k")) { K = ParamVal->GetObjInt("k"); }
     if (ParamVal->IsObjKey("fitIdx")) { ParamVal->GetObjIntV("fitIdx", FitIdx); }
     if (ParamVal->IsObjKey("allowEmpty")) { AllowEmptyP = ParamVal->GetObjBool("allowEmpty"); }
+    if (ParamVal->IsObjKey("calcDistQual")) { CalcDistQualP = ParamVal->GetObjBool("calcDistQual"); }
     if (ParamVal->IsObjKey("distanceType")) {
         TStr dist = ParamVal->GetObjStr("distanceType");
         if (dist == "Euclid") {
@@ -2323,6 +2339,7 @@ void TNodeJsKMeans::Save(TSOut& SOut) const {
     TInt(Iter).Save(SOut);
     TInt(K).Save(SOut);
     AllowEmptyP.Save(SOut);
+    CalcDistQualP.Save(SOut);
     AssignV.Save(SOut);
     Medoids.Save(SOut);
     FitIdx.Save(SOut);
@@ -2374,6 +2391,7 @@ void TNodeJsKMeans::Init(v8::Handle<v8::Object> exports) {
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "centroids"), _centroids);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "medoids"), _medoids);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "idxv"), _idxv);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "relMeanCentroidDist"), _relMeanCentroidDist);
 
     // properties
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
@@ -2448,6 +2466,7 @@ void TNodeJsKMeans::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "k")), v8::Integer::New(Isolate, JsKMeans->K));
         JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "verbose")), v8::Boolean::New(Isolate, JsKMeans->Verbose));
         JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "allowEmpty")), v8::Boolean::New(Isolate, JsKMeans->AllowEmptyP));
+        JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "calcDistQual")), v8::Boolean::New(Isolate, JsKMeans->CalcDistQualP));
 
         if (!JsKMeans->FitIdx.Empty()) {
             v8::Handle<v8::Array> FitIdx = v8::Array::New(Isolate, JsKMeans->FitIdx.Len());
@@ -2580,9 +2599,12 @@ void TNodeJsKMeans::TFitTask::Run() {
     try {
        // delete the previous model
        JsKMeans->CleanUp();
+
+       const bool CalcDistQualP = JsKMeans->CalcDistQualP;
+
        // create a new model
        if (JsKMeans->CentType == TCentroidType::ctDense) {
-           TClustering::TDenseKMeans* KMeans = new TClustering::TDenseKMeans(JsKMeans->K, TRnd(0), JsKMeans->Dist);
+           TClustering::TDenseKMeans* KMeans = new TClustering::TDenseKMeans(JsKMeans->K, TRnd(0), JsKMeans->Dist, CalcDistQualP);
 
            JsKMeans->Model = (void*) KMeans;
 
@@ -2590,11 +2612,11 @@ void TNodeJsKMeans::TFitTask::Run() {
            if (JsFltVV != nullptr) {
                if (!JsKMeans->DenseFitMatrix.Empty()) {
                    EAssertR(JsKMeans->DenseFitMatrix.GetCols() == JsKMeans->K, "Number of columns must be equal to number of centroids!");
-                   KMeans->Apply(JsFltVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify, JsKMeans->DenseFitMatrix);
+                   KMeans->Apply(JsFltVV->Mat, JsKMeans->DenseFitMatrix, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
                }
                else if (!JsKMeans->SparseFitMatrix.Empty()) {
                    EAssertR(JsKMeans->SparseFitMatrix.Len() == JsKMeans->K, "Number of columns must be equal to number of centroids!");
-                   KMeans->Apply(JsFltVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify, JsKMeans->SparseFitMatrix);
+                   KMeans->Apply(JsFltVV->Mat, JsKMeans->SparseFitMatrix, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
                }
                else if (!JsKMeans->FitIdx.Empty()) {
                    EAssertR(JsKMeans->FitIdx.Len() == JsKMeans->K, "Length of fitIdx must be equal to number of centroids!");
@@ -2602,7 +2624,7 @@ void TNodeJsKMeans::TFitTask::Run() {
 
                    TFltVV InitCentroidMat;
                    TLinAlg::SubMat(JsFltVV->Mat, JsKMeans->FitIdx, InitCentroidMat);
-                   KMeans->Apply(JsFltVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify, InitCentroidMat);
+                   KMeans->Apply(JsFltVV->Mat, InitCentroidMat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
                }
                else {
                    KMeans->Apply(JsFltVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
@@ -2633,11 +2655,11 @@ void TNodeJsKMeans::TFitTask::Run() {
            else if (JsSpVV != nullptr) {
                if (!JsKMeans->DenseFitMatrix.Empty()) {
                    EAssertR(JsKMeans->DenseFitMatrix.GetCols() == JsKMeans->K, "Number of columns must be equal to number of centroids!");
-                   KMeans->Apply(JsSpVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify, JsKMeans->DenseFitMatrix);
+                   KMeans->Apply(JsSpVV->Mat, JsKMeans->DenseFitMatrix, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
                }
                else if (!JsKMeans->SparseFitMatrix.Empty()) {
                    EAssertR(JsKMeans->SparseFitMatrix.Len() == JsKMeans->K, "Number of columns must be equal to number of centroids!");
-                   KMeans->Apply(JsSpVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify, JsKMeans->SparseFitMatrix);
+                   KMeans->Apply(JsSpVV->Mat, JsKMeans->SparseFitMatrix, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
                }
                else if (!JsKMeans->FitIdx.Empty()) {
                    EAssertR(JsKMeans->FitIdx.Len() == JsKMeans->K, "Length of fitIdx must be equal to number of centroids!");
@@ -2654,7 +2676,7 @@ void TNodeJsKMeans::TFitTask::Run() {
                            InitCentroidMat.PutXY(JsSpVV->Mat[ColN][ElN].Key, ColN, JsSpVV->Mat[ColN][ElN].Dat);
                        }
                    }
-                   KMeans->Apply(JsSpVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify, InitCentroidMat);
+                   KMeans->Apply(JsSpVV->Mat, InitCentroidMat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
                }
                else {
                    KMeans->Apply(JsSpVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
@@ -2689,18 +2711,18 @@ void TNodeJsKMeans::TFitTask::Run() {
            }
        }
        else if (JsKMeans->CentType == TCentroidType::ctSparse) {
-           TClustering::TSparseKMeans* KMeans = new TClustering::TSparseKMeans(JsKMeans->K, TRnd(0), JsKMeans->Dist);
+           TClustering::TSparseKMeans* KMeans = new TClustering::TSparseKMeans(JsKMeans->K, TRnd(0), JsKMeans->Dist, CalcDistQualP);
            JsKMeans->Model = (void*) KMeans;
 
            // input dense matrix
            if (JsFltVV != nullptr) {
                if (!JsKMeans->SparseFitMatrix.Empty()) {
                    EAssertR(JsKMeans->SparseFitMatrix.Len() == JsKMeans->K, "Number of columns must be equal to number of centroids!");
-                   KMeans->Apply(JsFltVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify, JsKMeans->SparseFitMatrix);
+                   KMeans->Apply(JsFltVV->Mat, JsKMeans->SparseFitMatrix, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
                }
                 else if (!JsKMeans->DenseFitMatrix.Empty()) {
                    EAssertR(JsKMeans->DenseFitMatrix.GetCols() == JsKMeans->K, "Number of columns must be equal to number of centroids!");
-                   KMeans->Apply(JsFltVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify, JsKMeans->DenseFitMatrix);
+                   KMeans->Apply(JsFltVV->Mat, JsKMeans->DenseFitMatrix, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
                }
                else if (!JsKMeans->FitIdx.Empty()) {
                    EAssertR(JsKMeans->FitIdx.Len() == JsKMeans->K, "Length of fitIdx must be equal to number of centroids!");
@@ -2716,7 +2738,7 @@ void TNodeJsKMeans::TFitTask::Run() {
                            if (JsFltVV->Mat(RowN, ColN) != 0.0) { InitCentroidMat[i].Add(TIntFltKd(RowN, JsFltVV->Mat(RowN, ColN))); }
                        }
                    }
-                   KMeans->Apply(JsFltVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify, InitCentroidMat);
+                   KMeans->Apply(JsFltVV->Mat, InitCentroidMat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
                }
                else {
                    KMeans->Apply(JsFltVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
@@ -2750,11 +2772,11 @@ void TNodeJsKMeans::TFitTask::Run() {
            else if (JsSpVV != nullptr) {
                if (!JsKMeans->SparseFitMatrix.Empty()) {
                    EAssertR(JsKMeans->SparseFitMatrix.Len() == JsKMeans->K, "Number of columns must be equal to number of centroids!");
-                   KMeans->Apply(JsSpVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify, JsKMeans->SparseFitMatrix);
+                   KMeans->Apply(JsSpVV->Mat, JsKMeans->SparseFitMatrix, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
                }
                else if (!JsKMeans->DenseFitMatrix.Empty()) {
                    EAssertR(JsKMeans->DenseFitMatrix.GetCols() == JsKMeans->K, "Number of columns must be equal to number of centroids!");
-                   KMeans->Apply(JsSpVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify, JsKMeans->DenseFitMatrix);
+                   KMeans->Apply(JsSpVV->Mat, JsKMeans->DenseFitMatrix, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
                }
                else if (!JsKMeans->FitIdx.Empty()) {
                    EAssertR(JsKMeans->FitIdx.Len() == JsKMeans->K, "Length of fitIdx must be equal to number of centroids!");
@@ -2768,7 +2790,7 @@ void TNodeJsKMeans::TFitTask::Run() {
                        const int ClustN = JsKMeans->FitIdx[i];
                        InitCentroidMat[i] = JsSpVV->Mat[ClustN];
                    }
-                   KMeans->Apply(JsSpVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify, InitCentroidMat);
+                   KMeans->Apply(JsSpVV->Mat, InitCentroidMat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
                }
                else {
                    KMeans->Apply(JsSpVV->Mat, JsKMeans->AllowEmptyP, JsKMeans->Iter, JsKMeans->Notify);
@@ -3014,6 +3036,933 @@ void TNodeJsKMeans::idxv(v8::Local<v8::String> Name, const v8::PropertyCallbackI
     }
 }
 
+void TNodeJsKMeans::relMeanCentroidDist(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsKMeans* JsKMeans = ObjectWrap::Unwrap<TNodeJsKMeans>(Info.Holder());
+
+    if (JsKMeans->Model == nullptr) {
+        Info.GetReturnValue().Set(v8::Undefined(Isolate));
+    }
+    else {
+        switch (JsKMeans->CentType) {
+            case ctDense: {
+                const TClustering::TDenseKMeans* KMeans = static_cast<TClustering::TDenseKMeans*>(JsKMeans->Model);
+                const double RelMeanDist = KMeans->GetRelMeanCentroidDist();
+                Info.GetReturnValue().Set(v8::Number::New(Isolate, RelMeanDist));
+                break;
+            }
+            case ctSparse: {
+                const TClustering::TSparseKMeans* KMeans = static_cast<TClustering::TSparseKMeans*>(JsKMeans->Model);
+                const double RelMeanDist = KMeans->GetRelMeanCentroidDist();
+                Info.GetReturnValue().Set(v8::Number::New(Isolate, RelMeanDist));
+                break;
+            }
+            default: {
+                throw TExcept::New("Unknown centroid type: " + TInt::GetStr(static_cast<int>(JsKMeans->CentType)));
+            }
+        }
+    }
+}
+
+/////////////////////////////////////////////
+// DpMeans
+
+TNodeJsDpMeans::TNodeJsDpMeans(const PJsonVal& ParamVal) :
+        Iter(10000),
+        AllowEmptyP(true),
+        AssignV(),
+        Medoids(),
+        FitIdx(),
+        DenseFitMatrix(),
+        SparseFitMatrix(),
+        DistType(TDistanceType::dtEuclid),
+        Dist(nullptr),
+        CentType(TCentroidType::ctDense),
+        DpMeansModel(nullptr),
+        Verbose(false) {
+    UpdateParams(ParamVal);
+}
+
+TNodeJsDpMeans::TNodeJsDpMeans(const PJsonVal& ParamVal, const TFltVV& Mat) :
+        Iter(10000),
+        AllowEmptyP(true),
+        AssignV(),
+        Medoids(),
+        FitIdx(),
+        DenseFitMatrix(Mat),
+        SparseFitMatrix(),
+        DistType(TDistanceType::dtEuclid),
+        Dist(nullptr),
+        CentType(TCentroidType::ctDense),
+        DpMeansModel(nullptr),
+        Verbose(false) {
+    UpdateParams(ParamVal);
+}
+
+TNodeJsDpMeans::TNodeJsDpMeans(const PJsonVal& ParamVal, const TVec<TIntFltKdV>& Mat) :
+        Iter(10000),
+        AllowEmptyP(true),
+        AssignV(),
+        Medoids(),
+        FitIdx(),
+        DenseFitMatrix(),
+        SparseFitMatrix(Mat),
+        DistType(TDistanceType::dtEuclid),
+        Dist(nullptr),
+        CentType(TCentroidType::ctDense),
+        DpMeansModel(nullptr),
+        Verbose(false) {
+    UpdateParams(ParamVal);
+}
+
+TNodeJsDpMeans::TNodeJsDpMeans(TSIn& SIn) :
+        Iter(TInt(SIn)),
+        Lambda(SIn),
+        MnClusts(SIn),
+        MxClusts(SIn),
+        AllowEmptyP(SIn),
+        CalcDistQualP(SIn),
+        AssignV(SIn),
+        Medoids(SIn),
+        FitIdx(SIn),
+        DenseFitMatrix(SIn),
+        SparseFitMatrix(SIn),
+        DistType(LoadEnum<TDistanceType>(SIn)),
+        CentType(LoadEnum<TCentroidType>(SIn)),
+        Verbose(TBool(SIn)) {
+    if (DistType == TDistanceType::dtEuclid) {
+        Dist = new TClustering::TEuclDist;
+    } else if (DistType == TDistanceType::dtCos) {
+        Dist = new TClustering::TCosDist;
+    } else {
+        throw TExcept::New("DpMeans load constructor: distance type not valid!");
+    }
+
+    if (CentType == TCentroidType::ctDense) {
+        DpMeansModel = TClustering::TAbsKMeans<TFltVV>::LoadPtr(SIn);
+    } else if (CentType == TCentroidType::ctSparse) {
+        DpMeansModel = TClustering::TAbsKMeans<TVec<TIntFltKdV>>::LoadPtr(SIn);
+    } else {
+        throw TExcept::New("DpMeans load constructor: loading invalid DpMeans model!");
+    }
+
+    Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+}
+
+TNodeJsDpMeans::~TNodeJsDpMeans() {
+    TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++;
+    TNodeJsUtil::ObjCount.Val3++;
+    CleanUp();
+}
+
+void TNodeJsDpMeans::UpdateParams(const PJsonVal& ParamVal) {
+    if (ParamVal->IsObjKey("iter")) { Iter = ParamVal->GetObjInt("iter"); }
+    if (ParamVal->IsObjKey("lambda")) { Lambda = ParamVal->GetObjNum("lambda"); }
+    if (ParamVal->IsObjKey("minClusters")) { MnClusts = ParamVal->GetObjInt("minClusters"); }
+    if (ParamVal->IsObjKey("maxClusters")) { MxClusts = ParamVal->GetObjInt("maxClusters"); }
+    if (ParamVal->IsObjKey("fitIdx")) { ParamVal->GetObjIntV("fitIdx", FitIdx); }
+    if (ParamVal->IsObjKey("allowEmpty")) { AllowEmptyP = ParamVal->GetObjBool("allowEmpty"); }
+    if (ParamVal->IsObjKey("calcDistQual")) { CalcDistQualP = ParamVal->GetObjBool("calcDistQual"); }
+    if (ParamVal->IsObjKey("distanceType")) {
+        TStr dist = ParamVal->GetObjStr("distanceType");
+        if (dist == "Euclid") {
+            DistType = TDistanceType::dtEuclid;
+        } else if (dist == "Cos") {
+            DistType = TDistanceType::dtCos;
+        } else {
+            throw TExcept::New("Update KMeans Exception: distanceType must be Euclid or Cos!");
+        }
+    }
+    if (ParamVal->IsObjKey("centroidType")) {
+        TStr clust = ParamVal->GetObjStr("centroidType");
+        if (clust == "Dense") {
+            CentType = TCentroidType::ctDense;
+        } else if (clust == "Sparse") {
+            CentType = TCentroidType::ctSparse;
+        } else {
+            throw TExcept::New("Update KMeans Exception: centroidType must be Dense or Sparse!");
+        }
+    }
+    if (ParamVal->IsObjKey("verbose")) { Verbose = ParamVal->GetObjBool("verbose"); }
+
+    if (DistType == TDistanceType::dtEuclid) {
+        Dist = new TClustering::TEuclDist;
+    }
+    else if (DistType == TDistanceType::dtCos) {
+        Dist = new TClustering::TCosDist;
+    }
+    else {
+        throw TExcept::New("Update KMeans Exception: distance type is not valid " + TInt::GetStr((int)DistType));
+    }
+
+    Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+}
+
+void TNodeJsDpMeans::Save(TSOut& SOut) const {
+    TInt(Iter).Save(SOut);
+    Lambda.Save(SOut);
+    MnClusts.Save(SOut);
+    MxClusts.Save(SOut);
+    AllowEmptyP.Save(SOut);
+    CalcDistQualP.Save(SOut);
+    AssignV.Save(SOut);
+    Medoids.Save(SOut);
+    FitIdx.Save(SOut);
+    DenseFitMatrix.Save(SOut);
+    SparseFitMatrix.Save(SOut);
+    SaveEnum<TDistanceType>(SOut, DistType);
+    SaveEnum<TCentroidType>(SOut, CentType);
+    TBool(Verbose).Save(SOut);
+    if (CentType == TCentroidType::ctDense) {
+        GetDenseModel()->Save(SOut);
+    } else if (CentType == TCentroidType::ctSparse) {
+        GetSparseModel()->Save(SOut);
+    }
+}
+
+void TNodeJsDpMeans::CleanUp() {
+    if (DpMeansModel != nullptr) {
+        if (CentType == TCentroidType::ctDense) {
+            delete GetDenseModel();
+        }
+        else if (CentType == TCentroidType::ctSparse) {
+            delete GetSparseModel();
+        }
+        else {
+            throw TExcept::New("KMeans.fit: CentroidType not recognized!");
+        }
+    }
+}
+
+void TNodeJsDpMeans::Init(v8::Handle<v8::Object> exports) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsDpMeans>);
+    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+    // ObjectWrap uses the first internal field to store the wrapped pointer.
+    tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+    // Add all methods, getters and setters here.
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "fitAsync", _fitAsync);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "transform", _transform);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "permuteCentroids", _permuteCentroids);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "centroids"), _centroids);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "medoids"), _medoids);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "idxv"), _idxv);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "relMeanCentroidDist"), _relMeanCentroidDist);
+
+    // properties
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+}
+
+TNodeJsDpMeans* TNodeJsDpMeans::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    if (Args.Length() == 0) {
+        // create new model with default parameters
+        return new TNodeJsDpMeans(TJsonVal::NewObj());
+    }
+    else if (Args.Length() == 1 && TNodeJsUtil::IsArgWrapObj<TNodeJsFIn>(Args, 0)) {
+        // load the model from the input stream
+        TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
+        return new TNodeJsDpMeans(*JsFIn->SIn);
+    }
+    else if (Args.Length() == 1 && TNodeJsUtil::IsArgObj(Args, 0)) {
+        // create new model from given parameters
+        if (TNodeJsUtil::IsObjFld(Args[0]->ToObject(), "fitStart")) {
+            PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0, true, true);
+            v8::Local<v8::Object> FitStart = TNodeJsUtil::GetFldObj(Args[0]->ToObject(), "fitStart");
+            if (TNodeJsUtil::IsObjFld(FitStart, "C")) {
+                if (TNodeJsUtil::IsFldClass<TNodeJsFltVV>(FitStart, "C")) {
+                    TFltVV JsMat = TNodeJsUtil::GetUnwrapFld<TNodeJsFltVV>(FitStart, "C")->Mat;
+                    return new TNodeJsDpMeans(ParamVal, JsMat);
+                }
+                else if (TNodeJsUtil::IsFldClass<TNodeJsSpMat>(FitStart, "C")) {
+                    TVec<TIntFltKdV> JsMat = TNodeJsUtil::GetUnwrapFld<TNodeJsSpMat>(FitStart, "C")->Mat;
+                    return new TNodeJsDpMeans(ParamVal, JsMat);
+                }
+                else {
+                    throw TExcept::New("new KMeans: value at fitStart.C is not a dense or sparse matrix!");
+                }
+            }
+            else {
+                throw TExcept::New("new KMeans: fitStart argument C not specified!");
+            }
+        }
+        else {
+            PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+            return new TNodeJsDpMeans(ParamVal);
+        }
+    }
+    else {
+        throw TExcept::New("new KMeans: wrong arguments in constructor!");
+    }
+}
+
+void TNodeJsDpMeans::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    EAssertR(Args.Length() == 0, "KMeans.getParams: takes 0 argument!");
+
+    try {
+        v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result
+
+        TNodeJsDpMeans* JsDpMeans = TNodeJsDpMeans::Unwrap<TNodeJsDpMeans>(Args.Holder());
+
+        if (!JsDpMeans->DenseFitMatrix.Empty() || !JsDpMeans->SparseFitMatrix.Empty()) {
+            v8::Local<v8::Object> FitStart = v8::Object::New(Isolate);
+            if (!JsDpMeans->DenseFitMatrix.Empty()) {
+                FitStart->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "C")), TNodeJsFltVV::New(JsDpMeans->DenseFitMatrix));
+            }
+            else {
+                FitStart->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "C")), TNodeJsSpMat::New(JsDpMeans->SparseFitMatrix));
+            }
+            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "fitStart")), FitStart);
+        }
+        JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "iter")), v8::Integer::New(Isolate, JsDpMeans->Iter));
+        JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "lambda")), v8::Number::New(Isolate, JsDpMeans->Lambda));
+        JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "minClusters")), v8::Integer::New(Isolate, JsDpMeans->MnClusts));
+        if (JsDpMeans->MxClusts != TInt::Mx) {
+            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "maxClusters")), v8::Integer::New(Isolate, JsDpMeans->MxClusts));
+        }
+        JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "verbose")), v8::Boolean::New(Isolate, JsDpMeans->Verbose));
+        JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "allowEmpty")), v8::Boolean::New(Isolate, JsDpMeans->AllowEmptyP));
+        JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "calcDistQual")), v8::Boolean::New(Isolate, JsDpMeans->CalcDistQualP));
+
+        if (!JsDpMeans->FitIdx.Empty()) {
+            v8::Handle<v8::Array> FitIdx = v8::Array::New(Isolate, JsDpMeans->FitIdx.Len());
+            for (int ElN = 0; ElN < JsDpMeans->FitIdx.Len(); ElN++) {
+                FitIdx->Set(ElN, v8::Integer::New(Isolate, JsDpMeans->FitIdx.GetVal(ElN).Val));
+            }
+            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "fitIdx")), FitIdx);
+        }
+
+        switch (JsDpMeans->DistType) {
+        case TDistanceType::dtEuclid:
+            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "distanceType")), v8::String::NewFromUtf8(Isolate, "Euclid"));
+            break;
+        case TDistanceType::dtCos:
+            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "distanceType")), v8::String::NewFromUtf8(Isolate, "Cos"));
+            break;
+        default:
+            throw TExcept::New("DpMeans.GetParams: unsupported distance type " + TInt::GetStr((int)JsDpMeans->DistType));
+        }
+        switch (JsDpMeans->CentType) {
+        case TCentroidType::ctDense:
+            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "centroidType")), v8::String::NewFromUtf8(Isolate, "Dense"));
+            break;
+        case TCentroidType::ctSparse:
+            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "centroidType")), v8::String::NewFromUtf8(Isolate, "Sparse"));
+            break;
+        default:
+            throw TExcept::New("DpMeans.GetParams: unsupported centroid type " + TInt::GetStr((int)JsDpMeans->CentType));
+        }
+
+        return Args.GetReturnValue().Set(JsObj);
+    }
+    catch (const PExcept& Except) {
+        throw TExcept::New(Except->GetMsgStr(), "DpMeans::getParams");
+    }
+}
+
+void TNodeJsDpMeans::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    EAssertR(Args.Length() == 1, "DpMeans.setParams: takes 1 argument!");
+    EAssertR(TNodeJsUtil::IsArgJson(Args, 0), "DpMeans.setParams: first argument should be a Javascript object!");
+
+    try {
+        TNodeJsDpMeans* JsDpMeans = ObjectWrap::Unwrap<TNodeJsDpMeans>(Args.Holder());
+
+        // create new model from given parameters
+        if (TNodeJsUtil::IsObjFld(Args[0]->ToObject(), "fitStart")) {
+            PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0, true, true);
+
+            v8::Local<v8::Object> FitStart = TNodeJsUtil::GetFldObj(Args[0]->ToObject(), "fitStart");
+            if (TNodeJsUtil::IsObjFld(FitStart, "C")) {
+                if (TNodeJsUtil::IsFldClass<TNodeJsFltVV>(FitStart, "C")) {
+                    JsDpMeans->SparseFitMatrix.Clr();
+                    JsDpMeans->DenseFitMatrix = TNodeJsUtil::GetUnwrapFld<TNodeJsFltVV>(FitStart, "C")->Mat;
+                    JsDpMeans->UpdateParams(ParamVal);
+                }
+                else if (TNodeJsUtil::IsFldClass<TNodeJsSpMat>(FitStart, "C")) {
+                    JsDpMeans->SparseFitMatrix = TNodeJsUtil::GetUnwrapFld<TNodeJsSpMat>(FitStart, "C")->Mat;
+                    JsDpMeans->DenseFitMatrix.Clr();
+                    JsDpMeans->UpdateParams(ParamVal);
+                }
+                else {
+                    throw TExcept::New("new DpMeans: value at fitStart.C is not a dense or sparse matrix!");
+                }
+            }
+            else {
+                throw TExcept::New("new DpMeans: fitStart argument C not specified!");
+            }
+        }
+        else {
+            PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+            JsDpMeans->UpdateParams(ParamVal);
+        }
+        Args.GetReturnValue().Set(Args.Holder());
+    }
+    catch (const PExcept& Except) {
+        throw TExcept::New(Except->GetMsgStr(), "DpMeans::setParams");
+    }
+}
+
+TNodeJsDpMeans::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args) :
+        TNodeTask(Args) {
+
+    JsDpMeans = ObjectWrap::Unwrap<TNodeJsDpMeans>(Args.Holder());
+
+    if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
+        JsFltVV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0);
+    }
+    else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
+        JsSpVV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0);
+    }
+    else {
+        throw TExcept::New("DpMeans.fit: argument not a sparse or dense matrix!");
+    }
+
+    if (Args.Length() >= 2 && !TNodeJsUtil::IsArgFun(Args, 1)) {
+        if (TNodeJsUtil::IsArgWrapObj<TNodeJsIntV>(Args, 1)) {
+            JsIntV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsIntV>(Args, 1);
+        }
+        else if (Args[1]->IsArray()) {
+            v8::Handle<v8::Array> Arr = v8::Handle<v8::Array>::Cast(Args[1]);
+            const int Len = Arr->Length();
+            JsArr = new TNodeJsIntV(Len);
+
+            for (int ElN = 0; ElN < Len; ElN++) { JsArr->Vec[ElN] = Arr->Get(ElN)->ToInt32()->Value(); }
+        }
+        else {
+            throw TExcept::New("DpMeans.fit: second argument expected to be an IntVector or Array!");
+        }
+    }
+}
+
+v8::Handle<v8::Function> TNodeJsDpMeans::TFitTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    if (TNodeJsUtil::IsArgFun(Args, 1)) {
+        return TNodeJsUtil::GetArgFun(Args, 1);
+    }
+    else {
+        return TNodeJsUtil::GetArgFun(Args, 2);
+    }
+}
+
+void TNodeJsDpMeans::TFitTask::Run() {
+    try {
+       // delete the previous model
+       JsDpMeans->CleanUp();
+
+       const bool CalcDistQualP = JsDpMeans->CalcDistQualP;
+
+       // create a new model
+       if (JsDpMeans->CentType == TCentroidType::ctDense) {
+           TDenseModel* DpMeans = new TDenseModel(JsDpMeans->Lambda, JsDpMeans->MnClusts, JsDpMeans->MxClusts, TRnd(0), JsDpMeans->Dist, CalcDistQualP);
+           JsDpMeans->DpMeansModel = (void*) DpMeans;
+
+           // input dense matrix
+           if (JsFltVV != nullptr) {
+               if (!JsDpMeans->DenseFitMatrix.Empty()) {
+                   EAssertR(JsDpMeans->MnClusts <= JsDpMeans->DenseFitMatrix.GetCols() && JsDpMeans->DenseFitMatrix.GetCols() <= JsDpMeans->MxClusts, "Number of columns must be in range [minClusters, maxClusters]!");
+                   DpMeans->Apply(JsFltVV->Mat, JsDpMeans->DenseFitMatrix, JsDpMeans->AllowEmptyP, JsDpMeans->Iter, JsDpMeans->Notify);
+               }
+               else if (!JsDpMeans->SparseFitMatrix.Empty()) {
+                   EAssertR(JsDpMeans->MnClusts <= JsDpMeans->SparseFitMatrix.Len() && JsDpMeans->SparseFitMatrix.Len() <= JsDpMeans->MxClusts, "Number of columns must be in range [minClusters, maxClusters]!");
+                   DpMeans->Apply(JsFltVV->Mat, JsDpMeans->SparseFitMatrix, JsDpMeans->AllowEmptyP, JsDpMeans->Iter, JsDpMeans->Notify);
+               }
+               else if (!JsDpMeans->FitIdx.Empty()) {
+                   EAssertR(JsDpMeans->MnClusts <= JsDpMeans->FitIdx.Len() && JsDpMeans->FitIdx.Len() <= JsDpMeans->MxClusts, "Length of fitIdx must be in range [minClusters, maxClusters]!");
+                   EAssertR(JsDpMeans->FitIdx.GetMxVal() < JsFltVV->Mat.GetCols(), "Maximum index in fitIdx must not be greater to the number of columns!");
+
+                   TFltVV InitCentroidMat;
+                   TLinAlg::SubMat(JsFltVV->Mat, JsDpMeans->FitIdx, InitCentroidMat);
+                   DpMeans->Apply(JsFltVV->Mat, InitCentroidMat, JsDpMeans->AllowEmptyP, JsDpMeans->Iter, JsDpMeans->Notify);
+               }
+               else {
+                   DpMeans->Apply(JsFltVV->Mat, JsDpMeans->AllowEmptyP, JsDpMeans->Iter, JsDpMeans->Notify);
+               }
+               DpMeans->Assign(JsFltVV->Mat, JsDpMeans->AssignV);
+               TFltVV D;
+               JsDpMeans->Dist->GetQuasiDistVV(JsFltVV->Mat, DpMeans->GetCentroidVV(), D);
+               TLinAlg::MultiplyScalar(-1, D, D);
+               TLinAlgSearch::GetColMaxIdxV(D, JsDpMeans->Medoids);
+               if (JsIntV != nullptr) {
+                   EAssertR(JsIntV->Vec.Len() == JsFltVV->Mat.GetCols(), "DpMeans.fit: IntVector RecordIds.length must be equal to number of columns of X!");
+
+                   const TIntV& ColIdV = JsDpMeans->Medoids;
+                   for (int MedN = 0; MedN < ColIdV.Len(); MedN++) {
+                       JsDpMeans->Medoids[MedN] = JsIntV->Vec[ColIdV[MedN]];
+                   }
+               }
+               else if (JsArr != nullptr) {
+                   EAssertR(JsArr->Vec.Len() == JsFltVV->Mat.GetCols(), "DpMeans.fit: Array RecordIds.length must be equal to number of columns of X!");
+
+                   const TIntV& ColIdV = JsDpMeans->Medoids;
+                   for (int MedN = 0; MedN < ColIdV.Len(); MedN++) {
+                       JsDpMeans->Medoids[MedN] = JsArr->Vec[ColIdV[MedN]];
+                   }
+               }
+           }
+           // input sparse matrix
+           else if (JsSpVV != nullptr) {
+               if (!JsDpMeans->DenseFitMatrix.Empty()) {
+                   EAssertR(JsDpMeans->MnClusts <= JsDpMeans->DenseFitMatrix.GetCols() && JsDpMeans->DenseFitMatrix.GetCols() <= JsDpMeans->MxClusts, "Number of columns must be in [minClusters, maxClusters] range!");
+                   DpMeans->Apply(JsSpVV->Mat, JsDpMeans->DenseFitMatrix, JsDpMeans->AllowEmptyP, JsDpMeans->Iter, JsDpMeans->Notify);
+               }
+               else if (!JsDpMeans->SparseFitMatrix.Empty()) {
+                   EAssertR(JsDpMeans->MnClusts <= JsDpMeans->SparseFitMatrix.Len() && JsDpMeans->SparseFitMatrix.Len() <= JsDpMeans->MxClusts, "Number of columns must be in [minClusters, maxClusters] range!");
+                   DpMeans->Apply(JsSpVV->Mat, JsDpMeans->SparseFitMatrix, JsDpMeans->AllowEmptyP, JsDpMeans->Iter, JsDpMeans->Notify);
+               }
+               else if (!JsDpMeans->FitIdx.Empty()) {
+                   EAssertR(JsDpMeans->MnClusts <= JsDpMeans->FitIdx.Len() && JsDpMeans->FitIdx.Len() <= JsDpMeans->MxClusts, "Length of fitIdx must be in [minClusters, maxClusters] range!");
+                   EAssertR(JsDpMeans->FitIdx.GetMxVal() < JsSpVV->Mat.Len(), "Maximum index in fitIdx must not be greater to the number of columns!");
+
+                   TFltVV InitCentroidMat;
+                   int Rows = TLinAlgSearch::GetMaxDimIdx(JsSpVV->Mat) + 1;
+                   int Cols = JsDpMeans->MnClusts;
+
+                   InitCentroidMat.Gen(Rows, Cols);
+                   for (int ColN = 0; ColN < Cols; ColN++) {
+                       const int Els = JsSpVV->Mat[ColN].Len();
+                       for (int ElN = 0; ElN < Els; ElN++) {
+                           InitCentroidMat.PutXY(JsSpVV->Mat[ColN][ElN].Key, ColN, JsSpVV->Mat[ColN][ElN].Dat);
+                       }
+                   }
+                   DpMeans->Apply(JsSpVV->Mat, InitCentroidMat, JsDpMeans->AllowEmptyP, JsDpMeans->Iter, JsDpMeans->Notify);
+               }
+               else {
+                   DpMeans->Apply(JsSpVV->Mat, JsDpMeans->AllowEmptyP, JsDpMeans->Iter, JsDpMeans->Notify);
+               }
+               DpMeans->Assign(JsSpVV->Mat, JsDpMeans->AssignV);
+
+               TFltVV D;
+               JsDpMeans->Dist->GetQuasiDistVV(JsSpVV->Mat, DpMeans->GetCentroidVV(), D);
+
+               TLinAlg::MultiplyScalar(-1, D, D);
+               TLinAlgSearch::GetColMaxIdxV(D, JsDpMeans->Medoids);
+
+               if (JsIntV != nullptr) {
+                   EAssertR(JsIntV->Vec.Len() == JsSpVV->Mat.Len(), "DpMeans.fit: IntVector RecordIds.length must be equal to number of columns of X!");
+
+                   const TIntV& ColIdV = JsDpMeans->Medoids;
+                   for (int MedN = 0; MedN < ColIdV.Len(); MedN++) {
+                       JsDpMeans->Medoids[MedN] = JsIntV->Vec[ColIdV[MedN]];
+                   }
+               }
+               else if (JsArr != nullptr) {
+                   EAssertR(JsArr->Vec.Len() == JsSpVV->Mat.Len(), "DpMeans.fit: Array RecordIds.length must be equal to number of columns of X!");
+
+                   const TIntV& ColIdV = JsDpMeans->Medoids;
+                   for (int MedN = 0; MedN < ColIdV.Len(); MedN++) {
+                       JsDpMeans->Medoids[MedN] = JsArr->Vec[ColIdV[MedN]];
+                   }
+               }
+           }
+           else {
+               throw TExcept::New("DpMeans.fit: first argument expected to be an dense or sparse matrix!");
+           }
+       }
+       else if (JsDpMeans->CentType == TCentroidType::ctSparse) {
+           TSparseModel* DpMeans = new TSparseModel(JsDpMeans->Lambda, JsDpMeans->MnClusts, JsDpMeans->MxClusts, TRnd(0), JsDpMeans->Dist, CalcDistQualP);
+           JsDpMeans->DpMeansModel = (void*) DpMeans;
+
+           // input dense matrix
+           if (JsFltVV != nullptr) {
+               if (!JsDpMeans->SparseFitMatrix.Empty()) {
+                   EAssertR(JsDpMeans->MnClusts <= JsDpMeans->SparseFitMatrix.Len() && JsDpMeans->SparseFitMatrix.Len() <= JsDpMeans->MxClusts, "Number of columns must be in range [minClusters, maxClusters]!");
+                   DpMeans->Apply(JsFltVV->Mat, JsDpMeans->SparseFitMatrix, JsDpMeans->AllowEmptyP, JsDpMeans->Iter, JsDpMeans->Notify);
+               }
+                else if (!JsDpMeans->DenseFitMatrix.Empty()) {
+                   EAssertR(JsDpMeans->MnClusts <= JsDpMeans->DenseFitMatrix.GetCols() && JsDpMeans->DenseFitMatrix.GetCols() <= JsDpMeans->MxClusts, "Number of columns must be in range [minClusters, maxClusters]!");
+                   DpMeans->Apply(JsFltVV->Mat, JsDpMeans->DenseFitMatrix, JsDpMeans->AllowEmptyP, JsDpMeans->Iter, JsDpMeans->Notify);
+               }
+               else if (!JsDpMeans->FitIdx.Empty()) {
+                   EAssertR(JsDpMeans->MnClusts <= JsDpMeans->FitIdx.Len() && JsDpMeans->FitIdx.Len() <= JsDpMeans->MxClusts, "Length of fitIdx must be in range [minClusters, maxClusters]!");
+                   EAssertR(JsDpMeans->FitIdx.GetMxVal() < JsFltVV->Mat.GetCols(), "Maximum index in fitIdx must not be greater to the number of columns!");
+
+                   TVec<TIntFltKdV> InitCentroidMat;
+                   int Rows = JsFltVV->Mat.GetRows();
+                   int K = JsDpMeans->MnClusts;
+                   InitCentroidMat.Gen(K);
+                   for (int i = 0; i < K; i++) {
+                       const int ColN = JsDpMeans->FitIdx[i];
+                       for (int RowN = 0; RowN < Rows; RowN++) {
+                           if (JsFltVV->Mat(RowN, ColN) != 0.0) { InitCentroidMat[i].Add(TIntFltKd(RowN, JsFltVV->Mat(RowN, ColN))); }
+                       }
+                   }
+                   DpMeans->Apply(JsFltVV->Mat, InitCentroidMat, JsDpMeans->AllowEmptyP, JsDpMeans->Iter, JsDpMeans->Notify);
+               }
+               else {
+                   DpMeans->Apply(JsFltVV->Mat, JsDpMeans->AllowEmptyP, JsDpMeans->Iter, JsDpMeans->Notify);
+               }
+
+               DpMeans->Assign(JsFltVV->Mat, JsDpMeans->AssignV);
+
+               TFltVV D;
+               JsDpMeans->Dist->GetQuasiDistVV(JsFltVV->Mat, DpMeans->GetCentroidVV(), D);
+               TLinAlg::MultiplyScalar(-1, D, D);
+               TLinAlgSearch::GetColMaxIdxV(D, JsDpMeans->Medoids);
+
+               if (JsIntV != nullptr) {
+                   EAssertR(JsIntV->Vec.Len() == JsFltVV->Mat.GetCols(), "DpMeans.fit: IntVector RecordIds.length must be equal to number of columns of X!");
+
+                   const TIntV& ColIdV = JsDpMeans->Medoids;
+                   for (int MedN = 0; MedN < ColIdV.Len(); MedN++) {
+                       JsDpMeans->Medoids[MedN] = JsIntV->Vec[ColIdV[MedN]];
+                   }
+               }
+               else if (JsArr != nullptr) {
+                   EAssertR(JsArr->Vec.Len() == JsFltVV->Mat.GetCols(), "DpMeans.fit: Array RecordIds.length must be equal to number of columns of X!");
+
+                   const TIntV& ColIdV = JsDpMeans->Medoids;
+                   for (int MedN = 0; MedN < ColIdV.Len(); MedN++) {
+                       JsDpMeans->Medoids[MedN] = JsArr->Vec[ColIdV[MedN]];
+                   }
+               }
+           }
+           // input sparse matrix
+           else if (JsSpVV != nullptr) {
+               if (!JsDpMeans->SparseFitMatrix.Empty()) {
+                   EAssertR(JsDpMeans->MnClusts <= JsDpMeans->SparseFitMatrix.Len() && JsDpMeans->SparseFitMatrix.Len() <= JsDpMeans->MxClusts, "Number of columns must be in range [minClusters, maxClusters]!");
+                   DpMeans->Apply(JsSpVV->Mat, JsDpMeans->SparseFitMatrix, JsDpMeans->AllowEmptyP, JsDpMeans->Iter, JsDpMeans->Notify);
+               }
+               else if (!JsDpMeans->DenseFitMatrix.Empty()) {
+                   EAssertR(JsDpMeans->MnClusts <= JsDpMeans->DenseFitMatrix.GetCols() && JsDpMeans->DenseFitMatrix.GetCols() <= JsDpMeans->MxClusts, "Number of columns must be in range [minClusters, maxClusters]!");
+                   DpMeans->Apply(JsSpVV->Mat, JsDpMeans->DenseFitMatrix, JsDpMeans->AllowEmptyP, JsDpMeans->Iter, JsDpMeans->Notify);
+               }
+               else if (!JsDpMeans->FitIdx.Empty()) {
+                   EAssertR(JsDpMeans->MnClusts <= JsDpMeans->FitIdx.Len() && JsDpMeans->FitIdx.Len() <= JsDpMeans->MxClusts, "Length of fitIdx must be in range [minClusters, maxClusters]!");
+                   EAssertR(JsDpMeans->FitIdx.GetMxVal() < JsSpVV->Mat.Len(), "Maximum index in fitIdx must not be greater to the number of columns!");
+
+                   TVec<TIntFltKdV> InitCentroidMat;
+                   int Dim = JsDpMeans->MnClusts;
+
+                   InitCentroidMat.Gen(Dim);
+                   for (int i = 0; i < Dim; i++) {
+                       const int ClustN = JsDpMeans->FitIdx[i];
+                       InitCentroidMat[i] = JsSpVV->Mat[ClustN];
+                   }
+                   DpMeans->Apply(JsSpVV->Mat, InitCentroidMat, JsDpMeans->AllowEmptyP, JsDpMeans->Iter, JsDpMeans->Notify);
+               }
+               else {
+                   DpMeans->Apply(JsSpVV->Mat, JsDpMeans->AllowEmptyP, JsDpMeans->Iter, JsDpMeans->Notify);
+               }
+
+               DpMeans->Assign(JsSpVV->Mat, JsDpMeans->AssignV);
+
+               TFltVV D;
+               JsDpMeans->Dist->GetQuasiDistVV(JsSpVV->Mat, DpMeans->GetCentroidVV(), D);
+               TLinAlg::MultiplyScalar(-1, D, D);
+               TLinAlgSearch::GetColMaxIdxV(D, JsDpMeans->Medoids);
+
+               if (JsIntV != nullptr) {
+                   EAssertR(JsIntV->Vec.Len() == JsSpVV->Mat.Len(), "DpMeans.fit: IntVector RecordIds.length must be equal to number of columns of X!");
+
+                   const TIntV& ColIdV = JsDpMeans->Medoids;
+                   for (int MedN = 0; MedN < ColIdV.Len(); MedN++) {
+                       JsDpMeans->Medoids[MedN] = JsIntV->Vec[ColIdV[MedN]];
+                   }
+               }
+               else if (JsArr != nullptr) {
+                   EAssertR(JsArr->Vec.Len() == JsSpVV->Mat.Len(), "DpMeans.fit: Array RecordIds.length must be equal to number of columns of X!");
+
+                   const TIntV& ColIdV = JsDpMeans->Medoids;
+                   for (int MedN = 0; MedN < ColIdV.Len(); MedN++) {
+                       JsDpMeans->Medoids[MedN] = JsArr->Vec[ColIdV[MedN]];
+                   }
+               }
+           }
+           else {
+               throw TExcept::New("DpMeans.fit: first argument expected to be an dense or sparse matrix!");
+           }
+       }
+       // clean up
+       if (JsArr != nullptr) { delete JsArr; }
+    }
+    catch (const PExcept& Except) {
+        // clean up
+        if (JsArr != nullptr) { delete JsArr; }
+        SetExcept(Except);
+    }
+}
+
+void TNodeJsDpMeans::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    EAssertR(Args.Length() == 1, "DpMeans.predict: expects 1 argument!");
+    TNodeJsDpMeans* JsDpMeans = ObjectWrap::Unwrap<TNodeJsDpMeans>(Args.Holder());
+
+    if (JsDpMeans->DpMeansModel == nullptr) {
+        throw TExcept::New("KMeans.predict: Model not initialized. First call fit!");
+    }
+
+    TIntV AssignV;
+    if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
+        const TFltVV& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0)->Mat;
+        if (JsDpMeans->CentType == TCentroidType::ctDense) {
+            JsDpMeans->GetDenseModel()->Assign(Mat, AssignV);
+        }
+        else if (JsDpMeans->CentType == TCentroidType::ctSparse) {
+            JsDpMeans->GetSparseModel()->Assign(Mat, AssignV);
+        }
+        else {
+            throw TExcept::New("KMeans.predict: invalid centroid type " + TInt::GetStr((int) JsDpMeans->CentType));
+        }
+    }
+    else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
+        const TVec<TIntFltKdV>& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0)->Mat;
+        if (JsDpMeans->CentType == TCentroidType::ctDense) {
+            JsDpMeans->GetDenseModel()->Assign(Mat, AssignV);
+        }
+        else if (JsDpMeans->CentType == TCentroidType::ctSparse) {
+            JsDpMeans->GetSparseModel()->Assign(Mat, AssignV);
+        }
+        else {
+            throw TExcept::New("KMeans.predict: invalid centroid type " + TInt::GetStr((int) JsDpMeans->CentType));
+        }
+    }
+    else {
+        throw TExcept::New("KMeans.predict: Argument expected to be a dense or sparse matrix!");
+    }
+
+    Args.GetReturnValue().Set(TNodeJsIntV::New(AssignV));
+}
+
+void TNodeJsDpMeans::transform(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    EAssertR(Args.Length() == 1, "DpMeans.explain: Should have 1 argument!");
+
+    TNodeJsDpMeans* JsDpMeans = ObjectWrap::Unwrap<TNodeJsDpMeans>(Args.Holder());
+    if (JsDpMeans->DpMeansModel == nullptr) {
+        throw TExcept::New("DpMeans.explain: centroids not initialized!");
+    }
+
+    TFltVV D;
+    // if argument is a dense matrix
+    if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
+        TFltVV& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0)->Mat;
+        // if centroids are dense
+        if (JsDpMeans->CentType == TCentroidType::ctDense) {
+            JsDpMeans->Dist->GetDistVV(JsDpMeans->GetDenseModel()->GetCentroidVV(), Mat, D);
+        }
+        // if centroids are sparse
+        else if (JsDpMeans->CentType == TCentroidType::ctSparse) {
+            JsDpMeans->Dist->GetDistVV(JsDpMeans->GetSparseModel()->GetCentroidVV(), Mat, D);
+        }
+        else {
+            throw TExcept::New("DpMeans.explain: centroid type invalid " + TInt::GetStr((int) JsDpMeans->CentType));
+        }
+    }
+    // if the argument is a sparse matrix
+    else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
+        TVec<TIntFltKdV>& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0)->Mat;
+        // if centroids are dense
+        if (JsDpMeans->CentType == TCentroidType::ctDense) {
+            JsDpMeans->Dist->GetDistVV(JsDpMeans->GetDenseModel()->GetCentroidVV(), Mat, D);
+        }
+        // if centroids are sparse
+        else if (JsDpMeans->CentType == TCentroidType::ctSparse) {
+            JsDpMeans->Dist->GetDistVV(JsDpMeans->GetSparseModel()->GetCentroidVV(), Mat, D);
+        }
+        else {
+            throw TExcept::New("DpMeans.explain: centroid type invalid " + TInt::GetStr((int) JsDpMeans->CentType));
+        }
+    }
+    else {
+        throw TExcept::New("DpMeans.explain: Argument must be a dense or sparse matrix!");
+    }
+    Args.GetReturnValue().Set(TNodeJsFltVV::New(D));
+}
+
+void TNodeJsDpMeans::permuteCentroids(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    EAssertR(Args.Length() == 1, "DpMeans.permuteCentroids: Should have 1 argument!");
+
+    TNodeJsDpMeans* JsDpMeans = ObjectWrap::Unwrap<TNodeJsDpMeans>(Args.Holder());
+
+    if (JsDpMeans->DpMeansModel == nullptr) {
+        throw TExcept::New("DpMeans.permuteCentroids: centroids not initialized!");
+    }
+
+    if (TNodeJsUtil::IsArgWrapObj<TNodeJsIntV>(Args, 0)) {
+
+        TIntV& Mapping = TNodeJsUtil::GetArgUnwrapObj<TNodeJsIntV>(Args, 0)->Vec;
+        EAssertR(Mapping.Len() == JsDpMeans->GetClusts(), "DpMeans.permuteCentroids: Length of parameter must be equal to the number of clusters!");
+        EAssertR(TLinAlgSearch::GetMaxVal(Mapping) + 1 == JsDpMeans->GetClusts(), "DpMeans.permuteCentroids: maximum index of parameter must be equal to number of centroids!");
+
+        if (JsDpMeans->CentType == TCentroidType::ctDense) {
+            JsDpMeans->GetDenseModel()->PermutateCentroids(Mapping);
+        }
+        else if (JsDpMeans->CentType == TCentroidType::ctSparse) {
+            JsDpMeans->GetSparseModel()->PermutateCentroids(Mapping);
+        }
+        else {
+            throw TExcept::New("DpMeans.permuteCentroids: centroid type invalid " + TInt::GetStr((int)JsDpMeans->CentType));
+        }
+
+        TIntV AssignTemp = JsDpMeans->AssignV;
+        TIntV MedoidsTemp = JsDpMeans->Medoids;
+        for (int Idx = 0; Idx < JsDpMeans->GetClusts(); Idx++) {
+            JsDpMeans->AssignV[Idx] = AssignTemp[Mapping[Idx]];
+            JsDpMeans->Medoids[Idx] = MedoidsTemp[Mapping[Idx]];
+        }
+    }
+    else {
+        throw TExcept::New("DpMeans.permuteCentroids: first argument should be an IntVector!");
+    }
+    Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsDpMeans::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    EAssertR(Args.Length() == 1, "DpMeans.save: Should have 1 argument!");
+
+    try {
+        TNodeJsDpMeans* JsDpMeans = ObjectWrap::Unwrap<TNodeJsDpMeans>(Args.Holder());
+        // get output stream from argumetns
+        TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+        // save model
+        JsDpMeans->Save(*JsFOut->SOut);
+        // return output stream for convenience
+        Args.GetReturnValue().Set(Args[0]);
+    }
+    catch (const PExcept& Except) {
+        throw TExcept::New(Except->GetMsgStr(), "DpMeans::save");
+    }
+}
+
+void TNodeJsDpMeans::centroids(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsDpMeans* JsDpMeans = ObjectWrap::Unwrap<TNodeJsDpMeans>(Info.Holder());
+
+    if (JsDpMeans->DpMeansModel == nullptr) {
+        Info.GetReturnValue();
+    } else {
+        if (JsDpMeans->CentType == TCentroidType::ctDense) {
+            Info.GetReturnValue().Set(TNodeJsFltVV::New(JsDpMeans->GetDenseModel()->GetCentroidVV()));
+        }
+        else if (JsDpMeans->CentType == TCentroidType::ctSparse) {
+            Info.GetReturnValue().Set(TNodeJsSpMat::New(JsDpMeans->GetSparseModel()->GetCentroidVV()));
+        }
+        else {
+            throw TExcept::New("DpMeans.centroids: Centroid type not valid " + TInt::GetStr((int)JsDpMeans->CentType));
+        }
+    }
+}
+
+void TNodeJsDpMeans::medoids(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsDpMeans* JsDpMeans = ObjectWrap::Unwrap<TNodeJsDpMeans>(Info.Holder());
+
+    if (JsDpMeans->DpMeansModel == nullptr) {
+        Info.GetReturnValue();
+    }
+    else {
+        Info.GetReturnValue().Set(TNodeJsIntV::New(JsDpMeans->Medoids));
+    }
+}
+
+void TNodeJsDpMeans::idxv(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsDpMeans* JsDpMeans = ObjectWrap::Unwrap<TNodeJsDpMeans>(Info.Holder());
+
+    if (JsDpMeans->DpMeansModel == nullptr) {
+        Info.GetReturnValue();
+    }
+    else {
+        Info.GetReturnValue().Set(TNodeJsIntV::New(JsDpMeans->AssignV));
+    }
+}
+
+void TNodeJsDpMeans::relMeanCentroidDist(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsDpMeans* JsDpMeans = ObjectWrap::Unwrap<TNodeJsDpMeans>(Info.Holder());
+
+    if (JsDpMeans->DpMeansModel == nullptr) {
+        Info.GetReturnValue().Set(v8::Undefined(Isolate));
+    }
+    else {
+        switch (JsDpMeans->CentType) {
+            case TCentroidType::ctDense: {
+                const double RelMeanDist = JsDpMeans->GetDenseModel()->GetRelMeanCentroidDist();
+                Info.GetReturnValue().Set(v8::Number::New(Isolate, RelMeanDist));
+                break;
+            }
+            case TCentroidType::ctSparse: {
+                const double RelMeanDist = JsDpMeans->GetSparseModel()->GetRelMeanCentroidDist();
+                Info.GetReturnValue().Set(v8::Number::New(Isolate, RelMeanDist));
+                break;
+            }
+            default: {
+                throw TExcept::New("Unknown centroid type: " + TInt::GetStr(static_cast<int>(JsDpMeans->CentType)));
+            }
+        }
+    }
+}
+
+const typename TNodeJsDpMeans::TDenseModel* TNodeJsDpMeans::GetDenseModel() const {
+    EAssert(CentType == TCentroidType::ctDense);
+    EAssert(DpMeansModel != nullptr);
+    return static_cast<TDenseModel*>(DpMeansModel);
+}
+
+const typename TNodeJsDpMeans::TSparseModel* TNodeJsDpMeans::GetSparseModel() const {
+    EAssert(CentType == TCentroidType::ctSparse);
+    EAssert(DpMeansModel != nullptr);
+    return static_cast<TSparseModel*>(DpMeansModel);
+}
+
+typename TNodeJsDpMeans::TDenseModel* TNodeJsDpMeans::GetDenseModel() {
+    EAssert(CentType == TCentroidType::ctDense);
+    EAssert(DpMeansModel != nullptr);
+    return static_cast<TDenseModel*>(DpMeansModel);
+}
+
+typename TNodeJsDpMeans::TSparseModel* TNodeJsDpMeans::GetSparseModel() {
+    EAssert(CentType == TCentroidType::ctSparse);
+    EAssert(DpMeansModel != nullptr);
+    return static_cast<TSparseModel*>(DpMeansModel);
+}
+
+int TNodeJsDpMeans::GetClusts() const {
+    switch (CentType) {
+        case TCentroidType::ctDense:
+            return GetDenseModel()->GetClusts();
+        case TCentroidType::ctSparse:
+            return GetSparseModel()->GetClusts();
+        default:
+            throw TExcept::New("DpMeans: Invalid centroid type!");
+    }
+}
+
 /////////////////////////////////////////////
 // TDigest
 
@@ -3034,6 +3983,8 @@ void TNodeJsTDigest::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "init"), _init);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "size"), _size);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "memory"), _memory);
 
     // properties
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
@@ -3135,6 +4086,368 @@ void TNodeJsTDigest::init(v8::Local<v8::String> Name, const v8::PropertyCallback
     Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Model.IsInit()));
 }
 
+void TNodeJsTDigest::size(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsTDigest* JsModel = ObjectWrap::Unwrap<TNodeJsTDigest>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Model.GetSummarySize()));
+}
+
+void TNodeJsTDigest::memory(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsTDigest* JsModel = ObjectWrap::Unwrap<TNodeJsTDigest>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, (int)JsModel->Model.GetMemUsed()));
+}
+
+///////////////////////////////////////////////////////
+// Greenwald-Khanna quantile estimation algorithm
+void TNodeJsGk::Init(v8::Handle<v8::Object> exports) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(
+            Isolate,
+            TNodeJsUtil::_NewJs<TNodeJsGk>
+    );
+    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+    // ObjectWrap uses the first internal field to store the wrapped pointer.
+    tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+    // Add all methods, getters and setters here.
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "partialFit", _partialFit);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "compress", _compress);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+
+    // properties
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "size"), _size);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "memory"), _memory);
+
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+}
+
+TNodeJsGk::TNodeJsGk(const PJsonVal& ParamVal):
+    Gk(
+            ParamVal->GetObjNum("eps", .01),
+            ParamVal->GetObjBool("autoCompress", true) ?
+                TQuant::TGk::TCompressStrategy::csAuto :
+                TQuant::TGk::TCompressStrategy::csManual
+    ) {}
+
+TNodeJsGk::TNodeJsGk(TSIn& SIn): Gk(SIn) {}
+
+TNodeJsGk* TNodeJsGk::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    if (Args.Length() == 0) {
+        // create new model with default parameters
+        return new TNodeJsGk(TJsonVal::NewObj());
+    } else if (Args.Length() == 1 && TNodeJsUtil::IsArgWrapObj<TNodeJsFIn>(Args, 0)) {
+        // load the model from the input stream
+        TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
+        return new TNodeJsGk(*JsFIn->SIn);
+    } else if (Args.Length() == 1 && TNodeJsUtil::IsArgObj(Args, 0)) {
+        // create new model from given parameters
+        PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+        return new TNodeJsGk(ParamVal);
+    } else {
+        throw TExcept::New("new Gk: wrong arguments in constructor!");
+    }
+}
+
+void TNodeJsGk::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsGk* JsGk = ObjectWrap::Unwrap<TNodeJsGk>(Args.Holder());
+    const TQuant::TGk& Gk = JsGk->Gk;
+
+    PJsonVal ParamVal = TJsonVal::NewObj();
+    ParamVal->AddToObj("eps", Gk.GetEps());
+    ParamVal->AddToObj("autoCompress", Gk.GetCompressStrategy() == TQuant::TGk::TCompressStrategy::csAuto);
+
+    v8::Local<v8::Value> JsParamVal = TNodeJsUtil::ParseJson(Isolate, ParamVal);
+    Args.GetReturnValue().Set(JsParamVal);
+}
+
+void TNodeJsGk::partialFit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsGk* JsGk = ObjectWrap::Unwrap<TNodeJsGk>(Args.Holder());
+    TQuant::TGk& Gk = JsGk->Gk;
+
+    const double Val = TNodeJsUtil::GetArgFlt(Args, 0);
+    Gk.Insert(Val);
+
+    // return self
+    Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsGk::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsGk* JsGk = ObjectWrap::Unwrap<TNodeJsGk>(Args.Holder());
+    const TQuant::TGk& Gk = JsGk->Gk;
+
+    if (TNodeJsUtil::IsArgFlt(Args, 0)) {
+        const double PVal = TNodeJsUtil::GetArgFlt(Args, 0);
+        const double Quant = Gk.Query(PVal);
+
+        Args.GetReturnValue().Set(v8::Number::New(Isolate, Quant));
+    } else {
+        TFltV PValV; TNodeJsUtil::GetArgFltV(Args, 0, PValV);
+        TFltV QuantV; Gk.Query(PValV, QuantV);
+
+        v8::Handle<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
+        for (int QuantN = 0; QuantN < QuantV.Len(); ++QuantN) {
+            QuantArr->Set(QuantN, v8::Number::New(Isolate, QuantV[QuantN]));
+        }
+
+        Args.GetReturnValue().Set(QuantArr);
+    }
+}
+
+void TNodeJsGk::compress(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsGk* JsGk = ObjectWrap::Unwrap<TNodeJsGk>(Args.Holder());
+    TQuant::TGk& Gk = JsGk->Gk;
+
+    Gk.Compress();
+
+    Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsGk* JsGk = ObjectWrap::Unwrap<TNodeJsGk>(Args.Holder());
+    const TQuant::TGk& Gk = JsGk->Gk;
+
+    TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+    Gk.Save(*JsFOut->SOut);
+
+    // return the output stream
+    Args.GetReturnValue().Set(Args[0]);
+}
+
+void TNodeJsGk::size(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsGk* JsModel = ObjectWrap::Unwrap<TNodeJsGk>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Gk.GetSummarySize()));
+}
+
+void TNodeJsGk::memory(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsGk* JsModel = ObjectWrap::Unwrap<TNodeJsGk>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, (int)JsModel->Gk.GetMemUsed()));
+}
+
+////////////////////////////////////////////
+// CKMS algorithm for biased quantiles
+void TNodeJsBiasedGk::Init(v8::Handle<v8::Object> exports) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(
+            Isolate,
+            TNodeJsUtil::_NewJs<TNodeJsBiasedGk>
+    );
+    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+    // ObjectWrap uses the first internal field to store the wrapped pointer.
+    tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+    // Add all methods, getters and setters here.
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "partialFit", _partialFit);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "compress", _compress);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+
+    // properties
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "size"), _size);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "memory"), _memory);
+
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+}
+
+TNodeJsBiasedGk::TNodeJsBiasedGk(const PJsonVal& ParamVal):
+        Gk(
+                ParamVal->GetObjNum("targetProb", 0.01),
+                ParamVal->GetObjNum("eps", 0.1),
+                ExtractCompressStrategy(ParamVal),
+                ParamVal->GetObjBool("useBands", true)
+        ) {}
+
+TNodeJsBiasedGk::TNodeJsBiasedGk(TSIn& SIn): Gk(SIn) {}
+
+TNodeJsBiasedGk* TNodeJsBiasedGk::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    if (Args.Length() == 0) {
+        // create new model with default parameters
+        return new TNodeJsBiasedGk(TJsonVal::NewObj());
+    } else if (Args.Length() == 1 && TNodeJsUtil::IsArgWrapObj<TNodeJsFIn>(Args, 0)) {
+        // load the model from the input stream
+        TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
+        return new TNodeJsBiasedGk(*JsFIn->SIn);
+    } else if (Args.Length() == 1 && TNodeJsUtil::IsArgObj(Args, 0)) {
+        // create new model from given parameters
+        PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+        return new TNodeJsBiasedGk(ParamVal);
+    } else {
+        throw TExcept::New("new BiasedGk: wrong arguments in constructor!");
+    }
+}
+
+void TNodeJsBiasedGk::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsBiasedGk* JsGk = ObjectWrap::Unwrap<TNodeJsBiasedGk>(Args.Holder());
+    const TQuant::TBiasedGk& Gk = JsGk->Gk;
+
+    PJsonVal ParamVal = TJsonVal::NewObj();
+    ParamVal->AddToObj("eps", Gk.GetEps());
+    ParamVal->AddToObj("targetProb", Gk.GetPVal0());
+    ParamVal->AddToObj("useBands", Gk.GetUseBands());
+
+    switch (Gk.GetCompressStrategy()) {
+    case TQuant::TBiasedGk::TCompressStrategy::csManual: {
+        ParamVal->AddToObj("compression", "manual");
+        break;
+    }
+    case TQuant::TBiasedGk::TCompressStrategy::csAggressive: {
+        ParamVal->AddToObj("compression", "aggressive");
+        break;
+    }
+    case TQuant::TBiasedGk::TCompressStrategy::csPeriodic: {
+        ParamVal->AddToObj("compression", "periodic");
+        break;
+    }
+    default: {
+        throw TExcept::New("BiasedGk: Unknown compression strategy!");
+    }
+    }
+
+    v8::Local<v8::Value> JsParamVal = TNodeJsUtil::ParseJson(Isolate, ParamVal);
+    Args.GetReturnValue().Set(JsParamVal);
+}
+
+void TNodeJsBiasedGk::partialFit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsBiasedGk* JsGk = ObjectWrap::Unwrap<TNodeJsBiasedGk>(Args.Holder());
+    TQuant::TBiasedGk& Gk = JsGk->Gk;
+
+    const double Val = TNodeJsUtil::GetArgFlt(Args, 0);
+    Gk.Insert(Val);
+
+    // return self
+    Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsBiasedGk::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsBiasedGk* JsGk = ObjectWrap::Unwrap<TNodeJsBiasedGk>(Args.Holder());
+    const TQuant::TBiasedGk& Gk = JsGk->Gk;
+
+    if (TNodeJsUtil::IsArgFlt(Args, 0)) {
+        const double PVal = TNodeJsUtil::GetArgFlt(Args, 0);
+        const double Quant = Gk.Query(PVal);
+
+        Args.GetReturnValue().Set(v8::Number::New(Isolate, Quant));
+    } else {
+        TFltV PValV; TNodeJsUtil::GetArgFltV(Args, 0, PValV);
+        TFltV QuantV; Gk.Query(PValV, QuantV);
+
+        v8::Handle<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
+        for (int QuantN = 0; QuantN < QuantV.Len(); ++QuantN) {
+            QuantArr->Set(QuantN, v8::Number::New(Isolate, QuantV[QuantN]));
+        }
+
+        Args.GetReturnValue().Set(QuantArr);
+    }
+}
+
+void TNodeJsBiasedGk::compress(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsBiasedGk* JsGk = ObjectWrap::Unwrap<TNodeJsBiasedGk>(Args.Holder());
+    TQuant::TBiasedGk& Gk = JsGk->Gk;
+
+    Gk.Compress();
+
+    Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsBiasedGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsBiasedGk* JsGk = ObjectWrap::Unwrap<TNodeJsBiasedGk>(Args.Holder());
+    const TQuant::TBiasedGk& Gk = JsGk->Gk;
+
+    TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+    Gk.Save(*JsFOut->SOut);
+
+    // return the output stream
+    Args.GetReturnValue().Set(Args[0]);
+}
+
+void TNodeJsBiasedGk::size(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsBiasedGk* JsModel = ObjectWrap::Unwrap<TNodeJsBiasedGk>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Gk.GetSummarySize()));
+}
+
+void TNodeJsBiasedGk::memory(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsBiasedGk* JsModel = ObjectWrap::Unwrap<TNodeJsBiasedGk>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, (int)JsModel->Gk.GetMemUsed()));
+}
+
+TQuant::TBiasedGk::TCompressStrategy TNodeJsBiasedGk::ExtractCompressStrategy(const PJsonVal& ParamVal) {
+    const TStr CompressStr = ParamVal->GetObjStr("compression", "periodic");
+    if (CompressStr == "manual") {
+        return TQuant::TBiasedGk::TCompressStrategy::csManual;
+    } else if (CompressStr == "aggressive") {
+        return TQuant::TBiasedGk::TCompressStrategy::csAggressive;
+    } else if (CompressStr == "periodic") {
+        return TQuant::TBiasedGk::TCompressStrategy::csPeriodic;
+    } else {
+        throw TExcept::New("BiasedGk: Invalid compression strategy string: " + CompressStr);
+    }
+}
+
 ///////////////////////////////////////////////////////
 // Greenwald-Khanna quantile estimation for fixed size window
 void TNodeJsCountWindowGk::Init(v8::Handle<v8::Object> exports) {
@@ -3157,8 +4470,11 @@ void TNodeJsCountWindowGk::Init(v8::Handle<v8::Object> exports) {
 }
 
 TNodeJsCountWindowGk::TNodeJsCountWindowGk(const PJsonVal& ParamVal):
-        Gk(ParamVal->GetObjUInt64("windowSize", 10000), ParamVal->GetObjNum("quantileEps", .01), ParamVal->GetObjNum("countEps", .005)) {
-}
+        Gk(
+                ParamVal->GetObjUInt64("windowSize", 10000),
+                ParamVal->GetObjNum("quantileEps", .01),
+                ParamVal->GetObjNum("countEps", .005)
+        ) {}
 
 TNodeJsCountWindowGk::TNodeJsCountWindowGk(TSIn& SIn): Gk(SIn) {}
 
@@ -3227,7 +4543,6 @@ void TNodeJsCountWindowGk::predict(const v8::FunctionCallbackInfo<v8::Value>& Ar
     const double Quant = TNodeJsUtil::GetArgFlt(Args, 0);
     const double Val = Gk.Query(Quant);
 
-    // return self
     Args.GetReturnValue().Set(v8::Number::New(Isolate, Val));
 }
 
@@ -3268,7 +4583,11 @@ void TNodeJsTimeWindowGk::Init(v8::Handle<v8::Object> exports) {
 }
 
 TNodeJsTimeWindowGk::TNodeJsTimeWindowGk(const PJsonVal& ParamVal):
-    Gk(ParamVal->GetObjUInt64("window", 1000*60*60), ParamVal->GetObjNum("quantileEps", .01), ParamVal->GetObjNum("countEps", .005)) {}
+    Gk(
+            ParamVal->GetObjUInt64("window", 1000*60*60),
+            ParamVal->GetObjNum("quantileEps", .01),
+            ParamVal->GetObjNum("countEps", .005)
+    ) {}
 
 TNodeJsTimeWindowGk::TNodeJsTimeWindowGk(TSIn& SIn): Gk(SIn) {}
 

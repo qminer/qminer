@@ -3221,94 +3221,129 @@ void TNodeJsRecSet::getVector(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     const TQm::TFieldDesc& Desc = Store->GetFieldDesc(FieldId);
 
     if (Desc.IsInt()) {
-        TIntV ColV(Recs);
+        TIntV ColV(Recs, 0);
         for (int RecN = 0; RecN < Recs; RecN++) {
-            ColV[RecN] = Store->GetFieldInt(RecSet()->GetRecId(RecN), FieldId);
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                ColV.Add(Store->GetFieldInt(RecId, FieldId));
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TInt, TAuxIntV>::New(ColV));
         return;
-    }
-    else if (Desc.IsInt16()) {
-        TIntV ColV(Recs);
+    } else if (Desc.IsInt16()) {
+        TIntV ColV(Recs, 0);
         for (int RecN = 0; RecN < Recs; RecN++) {
-            ColV[RecN] = Store->GetFieldInt16(RecSet()->GetRecId(RecN), FieldId);
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                ColV.Add(Store->GetFieldInt16(RecId, FieldId));
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TInt, TAuxIntV>::New(ColV));
         return;
     } else if (Desc.IsInt64()) {
-        TFltV ColV(Recs);
+        TFltV ColV(Recs, 0);
         for (int RecN = 0; RecN < Recs; RecN++) {
-            ColV[RecN] = (double)Store->GetFieldInt64(RecSet()->GetRecId(RecN), FieldId);
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                ColV.Add((double)Store->GetFieldInt64(RecId, FieldId));
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
         return;
     } else if (Desc.IsByte()) {
-        TIntV ColV(Recs);
+        TIntV ColV(Recs, 0);
         for (int RecN = 0; RecN < Recs; RecN++) {
-            ColV[RecN] = Store->GetFieldByte(RecSet()->GetRecId(RecN), FieldId);
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                ColV.Add(Store->GetFieldByte(RecId, FieldId));
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TInt, TAuxIntV>::New(ColV));
         return;
     } else if (Desc.IsUInt()) {
-        TFltV ColV(Recs);
+        TFltV ColV(Recs, 0);
         for (int RecN = 0; RecN < Recs; RecN++) {
-            ColV[RecN] = (double)Store->GetFieldUInt(RecSet()->GetRecId(RecN), FieldId);
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                ColV.Add((double)Store->GetFieldUInt(RecId, FieldId));
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
         return;
     } else if (Desc.IsUInt16()) {
-        TFltV ColV(Recs);
+        TFltV ColV(Recs, 0);
         for (int RecN = 0; RecN < Recs; RecN++) {
-            ColV[RecN] = (double)Store->GetFieldUInt16(RecSet()->GetRecId(RecN), FieldId);
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                ColV.Add((double)Store->GetFieldUInt16(RecId, FieldId));
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
         return;
     } else if (Desc.IsUInt64()) {
-        TFltV ColV(Recs);
+        TFltV ColV(Recs, 0);
         for (int RecN = 0; RecN < Recs; RecN++) {
-            ColV[RecN] = (double)Store->GetFieldUInt64(RecSet()->GetRecId(RecN), FieldId);
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                ColV.Add((double)Store->GetFieldUInt64(RecId, FieldId));
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
         return;
     }
     else if (Desc.IsStr()) {
-        TStrV ColV(Recs);
+        TStrV ColV(Recs, 0);
         for (int RecN = 0; RecN < Recs; RecN++) {
-            ColV[RecN] = Store->GetFieldStr(RecSet()->GetRecId(RecN), FieldId);
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                ColV.Add(Store->GetFieldStr(RecId, FieldId));
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TStr, TAuxStrV>::New(ColV));
         return;
     }
     else if (Desc.IsBool()) {
-        TIntV ColV(Recs);
+        TIntV ColV(Recs, 0);
         for (int RecN = 0; RecN < Recs; RecN++) {
-            ColV[RecN] = (int)Store->GetFieldBool(RecSet()->GetRecId(RecN), FieldId);
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                ColV.Add((int)Store->GetFieldBool(RecId, FieldId));
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TInt, TAuxIntV>::New(ColV));
         return;
     }
     else if (Desc.IsFlt()) {
-        TFltV ColV(Recs);
+        TFltV ColV(Recs, 0);
         for (int RecN = 0; RecN < Recs; RecN++) {
-            ColV[RecN] = Store->GetFieldFlt(RecSet()->GetRecId(RecN), FieldId);
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                ColV.Add(Store->GetFieldFlt(RecId, FieldId));
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
         return;
     }
     else if (Desc.IsSFlt()) {
-        TFltV ColV(Recs);
+        TFltV ColV(Recs, 0);
         for (int RecN = 0; RecN < Recs; RecN++) {
-            ColV[RecN] = Store->GetFieldSFlt(RecSet()->GetRecId(RecN), FieldId);
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                ColV.Add(Store->GetFieldSFlt(RecId, FieldId));
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
         return;
     }
     else if (Desc.IsTm()) {
-        TFltV ColV(Recs);
+        TFltV ColV(Recs, 0);
         TTm Tm;
         for (int RecN = 0; RecN < Recs; RecN++) {
-            Store->GetFieldTm(RecSet()->GetRecId(RecN), FieldId, Tm);
-            ColV[RecN] = (double)TTm::GetMSecsFromTm(Tm);   // TODO is this correct?? Shouldn't it be UNIX timestamp???
+            const uint64 RecId = RecSet()->GetRecId(RecN);
+            if (!Store->IsFieldNull(RecId, FieldId)) {
+                Store->GetFieldTm(RecSet()->GetRecId(RecN), FieldId, Tm);
+                ColV.Add((double)TTm::GetMSecsFromTm(Tm)); // TODO is this correct?? Shouldn't it be UNIX timestamp???
+            }
         }
         Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(ColV));
         return;

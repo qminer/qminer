@@ -19,8 +19,8 @@ private:
 	typedef PTokenizer (*TNewF)(const PJsonVal& JsonVal);
 	typedef PTokenizer (*TLoadF)(TSIn& SIn);
     /// Stream aggregate descriptions
-	static TFunRouter<PTokenizer, TNewF> NewRouter;   
-	static TFunRouter<PTokenizer, TLoadF> LoadRouter;   
+	static TFunRouter<TNewF> NewRouter;   
+	static TFunRouter<TLoadF> LoadRouter;   
 public:
     /// Register default aggregates
     static bool Init();
