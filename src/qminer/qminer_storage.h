@@ -816,7 +816,7 @@ public:
     void DeleteAllRecs() { };
     void DeleteFirstRecs(const int& DelRecs) { };
     // throw exception if somebody trys to delete specific record
-    void DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK = true) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void DeleteRecs(const TUInt64V& DelRecIdV, const int& MxTimeMSecs = -1, const bool& AssertOK = true) { throw TQmExcept::New("TStoreEmpty does not store records"); };
 
     // we do not store anything, throw exceptions if somebody trys to get any field
     bool IsFieldNull(const uint64& RecId, const int& FieldId) const { throw TQmExcept::New("TStoreEmpty does not store records"); }
@@ -1022,13 +1022,13 @@ public:
     void UpdateRec(const uint64& RecId, const PJsonVal& RecVal);
 
     /// Purge records that fall out of store window (when it has one)
-    void GarbageCollect();
+    void GarbageCollect(const int& MxTimeMSecs = -1);
     /// Deletes all records
     void DeleteAllRecs();
     /// Delete the first DelRecs records (the records that were inserted first)
     void DeleteFirstRecs(const int& Recs);
-    /// Delete specific record
-    void DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK = true);
+    /// Delete specific record.
+    void DeleteRecs(const TUInt64V& DelRecIdV, const int& MxTimeMSecs = -1, const bool& AssertOK = true);
 
     /// Check if the value of given field for a given record is NULL
     bool IsFieldNull(const uint64& RecId, const int& FieldId) const;
@@ -1314,13 +1314,13 @@ public:
     void UpdateRec(const uint64& RecId, const PJsonVal& RecVal);
 
     /// Purge records that fall out of store window (when it has one)
-    void GarbageCollect();
+    void GarbageCollect(const int& MxTimeMSecs = -1);
     /// Perform defragmentation
     void Defrag();
     /// Deletes all records
     void DeleteAllRecs();
     void DeleteFirstRecs(const int& Recs);
-    void DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK = true);
+    void DeleteRecs(const TUInt64V& DelRecIdV, const int& MxTimeMSecs = -1, const bool& AssertOK = true);
 
     /// Check if the value of given field for a given record is NULL
     bool IsFieldNull(const uint64& RecId, const int& FieldId) const;
@@ -1556,14 +1556,14 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonV
 ///////////////////////////////
 /// Create new base given a schema definition
 TWPt<TBase> NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize,
-    const uint64& DefStoreCacheSize, const bool& StrictNameP, 
+    const uint64& DefStoreCacheSize, const bool& StrictNameP,
     const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(), const TStrUInt64H& IndexTypeCacheSizeH = TStrUInt64H(),
     const bool& InitP = true, const int& SplitLen = 1024, bool UsePaged = true);
 
 ///////////////////////////////
 /// Load base created from a schema definition
 TWPt<TBase> LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize,
-    const uint64& StoreCacheSize, 
+    const uint64& StoreCacheSize,
     const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(), const TStrUInt64H& IndexTypeCacheSizeH = TStrUInt64H(),
     const bool& InitP = true, const int& SplitLen = 1024);
 
