@@ -525,26 +525,26 @@ typedef enum {vdtEucl, vdtCos, vdtSqrtCos, vdtDistMtx} TVizDistType;
 class TVizMapFactory {
 private:
     static void CG(const TMatrix& Matrix, const TFltV& b, TFltV& x,
-        TWPt<TNotify> Notify, const int& MaxStep = 200, const double& EpsTer = 1e-7);
+        const TWPt<TNotify>& Notify, const int& MaxStep = 200, const double& EpsTer = 1e-7);
 
 public:
     // the ultimate MDS...
     static void MakeFlat(const PSVMTrainSet& Set, const TVizDistType& DistType, 
         TVec<TFltV>& DocPointV, const int& MxStep, const int& MxSecs, 
-        const double& MnDiff, const bool& RndStartPos, TWPt<TNotify>& Notify);
+        const double& MnDiff, const bool& RndStartPos, const TWPt<TNotify>& Notify);
     static void NormalizePoints(TVec<TFltV>& PointV);
 
     // BowSpV->LSI->MDS->DocPointV
     // applys LSI and MDS to documents in DocSpV
     static void LsiMds(TVec<PBowSpV> DocSpV, PSemSpace SemSpace, TVec<TFltV>& DocPointV, 
         const double& SemSpaceThresh, const int& MxStep, const int& MxSecs, 
-        const double& MnDiff, TWPt<TNotify> Notify);
+        const double& MnDiff, const TWPt<TNotify>& Notify);
 
     // Bow->LSI->MDS->Viz
     // for smaller datasets
     static PVizMapFrame DocLsiMds(PBowDocWgtBs BowDocWgtBs, PSemSpace SemSpace,
         const TVec<TFltV>& _DocPointV, const double& SemSpaceThresh, 
-        const int& MxStep, const int& MxSecs, const double& MnDiff, TWPt<TNotify> Notify);
+        const int& MxStep, const int& MxSecs, const double& MnDiff, const TWPt<TNotify>& Notify);
 
     // adds metadata from BowDocBs and info for computing keywords to VizMap
     static void AddDocMetadata(PVizMapFrame VizMapFrame, PBowDocBs PointBowDocBs, 
@@ -556,17 +556,17 @@ public:
     // on positions ClustPointV of landmarks ClustSpV
     static void LndMrk(PBowDocWgtBs BowDocWgtBs, PBowSim BowSim,
         const TVec<PBowSpV>& ClustSpV, const TVec<TFltV>& ClustPointV, 
-        TVec<TFltV>& DocPointV, const int& LinCombNum, TWPt<TNotify> Notify);
+        TVec<TFltV>& DocPointV, const int& LinCombNum, const TWPt<TNotify>& Notify);
 
     // Bow->Landmarks->Viz
     static PVizMapFrame DocLndMrk(PBowDocWgtBs BowDocWgtBs, 
         const TVec<PBowSpV>& ClustSpV, const TVec<TFltV>& ClustPointV, 
-        const int& LinCombNum = 3, TWPt<TNotify> Notify = TNullNotify::New());
+        const int& LinCombNum = 3, const TWPt<TNotify>& Notify = TNullNotify::New());
     // Bow->KMeans->LSI->MDS->Viz -- for larger datasets
     static PVizMapFrame ClustLsiMdsDocLndMrk(PBowDocWgtBs BowDocWgtBs,
         PBowDocPart BowDocPart, PSemSpace SemSpace, const int& LinCombNum, 
         const double& SemSpaceThresh, const int& MxStep, const int& MxSecs, 
-        const double& MnDiff, TWPt<TNotify> Notify);
+        const double& MnDiff, const TWPt<TNotify>& Notify);
 
     // Bow->VizFrame
     static PVizMapFrame NewVizMapFrame(PBowDocBs BowDocBs, PBowDocWgtBs BowDocWgtBs,

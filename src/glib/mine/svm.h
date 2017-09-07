@@ -388,7 +388,7 @@ template <class TVecV>
 TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
         const TFltV& TargetV, const double& Cost, const double& UnbalanceWgt,
         const int& MxMSecs, const int& MxIter, const double& MnDiff, 
-        const int& SampleSize, const TWPt<TNotify>& Notify = TNotify::StdNotify()) {
+        const int& SampleSize, const TWPt<TNotify>& Notify) {
 
     // asserts for input parameters
     EAssertR(Dims > 0, "Dimensionality must be positive!");
