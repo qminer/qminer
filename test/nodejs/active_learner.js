@@ -77,6 +77,30 @@ describe("Active learning tests", function () {
             assert.deepEqual(qidx, [4, 1]);
             assert.deepEqual(qidx2, [4, 1]);
         });
+        it("should query the only example left", function () {
+            var al = new AL();
+
+            var X = new la.Matrix([
+                [-2, 1],
+                [-2, 0],
+                [-2, -1],
+                [0, 1],
+                [-0.9, 0],
+                [0, -1]
+            ]).transpose(); // column examples
+            al.setX(X);
+
+            var y = new Map();
+            y.set(0, -1);
+            y.set(2, -1);
+            y.set(3, 1);
+            y.set(5, 1);
+            al.sety(y);
+            al.setLabel(4, 1);
+
+            var qidx = al.getQueryIdx(2);
+            assert.deepEqual(qidx, [1]);
+        });
 
     });
 });

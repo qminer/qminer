@@ -1973,10 +1973,10 @@ module.exports = exports = function (pathQmBinary) {
         }
 
         _getLabIdxArr(y) {
-            return [...y.keys()];
+            return Array.from(y.keys());
         }
         _getLabArr(y) {
-            return [...y.values()];
+            return Array.from(y.values());
         }
 
         _getUnlabIdxArr(cols, y) {
