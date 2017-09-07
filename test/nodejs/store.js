@@ -1119,9 +1119,9 @@ describe('Schema Time Window Test', function () {
             // should not take less then give, since we assume there is to little time to delete what is needed
             assert((time2-time1) >= 10);
             assert((time3-time2) >= 20);
-            // we allow for max 10ms overhead
-            assert((time2-time1) < (10 + 10));
-            assert((time3-time2) < (20 + 10));
+            // we allow for max 20ms overhead
+            assert((time2-time1) < (10 + 20));
+            assert((time3-time2) < (20 + 20));
         });
 
         base.garbageCollect();
