@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.6.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.6.1</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">DpMeans</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1924">analyticsdoc.<wbr>js:1924</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1934">analyticsdoc.<wbr>js:1934</a></p>
             <div class="symbol-classdesc">
               <p>DpMeans Clustering is an iterative, data-partitioning algorithm that assigns observations into clusters with the nearest centroid according to some metric. The number of clusters is not known in advance, but can be upper and lower bounded.
                 Rather the parameter is the maximum radius of a cluster <code>lambda</code>.</p>
@@ -174,8 +174,13 @@ var prediction = dpmeans.predict(Y);</code></pre>
                 <div>
                   <pre class="prettyprint"><code>// import the modules
 var analytics = require(&#x27;qminer&#x27;).analytics;
+var la = require(&#x27;qminer&#x27;).la;
 // create a new DpMeans object
 var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+// create a matrix to be fitted
+var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+// create the model with the matrix X
+DpMeans.fit(X);
 // get the centroids
 var centroids = DpMeans.centroids;
 // print the first centroid
@@ -371,9 +376,9 @@ var dpmeans = new analytics.DpMeans({ iter: 1000 });
 // create a matrix to be fitted
 var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model
-DpMeans.fit(X);
+dpmeans.fit(X);
 // get the model
-var model = DpMeans.getModel();</code></pre>
+var model = dpmeans.getModel();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -423,10 +428,14 @@ var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
 var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model with the matrix X
 DpMeans.fit(X);
-// create the mapping vector
-var Mapping = new la.IntVector([1, 0, 2]);
-// permutate the clusters.
-DpMeans.permuteCentroids(Mapping);</code></pre>
+if (DpMeans.centroids.cols &gt; 1) {
+    // create the mapping vector: swap first two centroids
+    var Mapping = new la.IntVector([1, 0, 2, 3, 4, 5].splice(0,DpMeans.centroids.cols));
+    console.log(DpMeans.centroids.toString());
+    // permutate the clusters.
+    DpMeans.permuteCentroids(Mapping);
+    console.log(DpMeans.centroids.toString());
+}</code></pre>
                 </div>
               </section>
               <section>
@@ -461,7 +470,7 @@ DpMeans.permuteCentroids(Mapping);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.DpMeans.html">module:analytics.DpMeans</a></code>&nbsp;Self. The clusters has been permutated.</p>
+                  <p><code><a href="module-analytics.DpMeans.html">module:analytics.DpMeans</a></code>&nbsp;Self. The clusters have been permuted.</p>
                 </dd>
               </dl>
               <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(A)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.IntVector.html">module:la.IntVector</a></span></span></h3>

@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.6.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.6.1</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">BiasedGk</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2452">analyticsdoc.<wbr>js:2452</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2475">analyticsdoc.<wbr>js:2475</a></p>
             <div class="symbol-classdesc">
               <p>The CKMS (GK adapted for biased quantiles) algorithm for online biased quantile estimation. Given a probability p the algorithm returns the approximate value of the p-th quantile. The algorithm is most accurate in one of the extremes (which
                 extreme depends on the parameters).</p>
@@ -103,9 +103,10 @@
               <div>
                 <pre class="prettyprint"><code>// import modules
 var qm = require(&#x27;qminer&#x27;);
+var fs = require(&#x27;qminer&#x27;).fs;
 var analytics = qm.analytics;
 
-// create the default TDigest object
+// create the BiasedGk object
 var gk = new analytics.BiasedGk({
     eps: 0.1,
     targetProb: 0.99,
@@ -116,7 +117,7 @@ var gk = new analytics.BiasedGk({
 // create the data used for calculating quantiles
 var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
 
-// fit the TDigest model
+// fit the model
 for (var i = 0; i &lt; inputs.length; i++) {
     gk.partialFit(inputs[i]);
 }
@@ -126,7 +127,7 @@ var prediction = gk.predict(0.1);
 // save the model
 gk.save(fs.openWrite(&#x27;gk.bin&#x27;)).close();
 // open the gk model under a new variable
-var gk2 = new analytics.Gk(fs.openRead(&#x27;gk.bin&#x27;));</code></pre>
+var gk2 = new analytics.BiasedGk(fs.openRead(&#x27;gk.bin&#x27;));</code></pre>
               </div>
             </section>
             <section>
