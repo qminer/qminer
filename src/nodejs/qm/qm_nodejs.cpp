@@ -725,7 +725,11 @@ void TNodeJsBase::garbageCollect(const v8::FunctionCallbackInfo<v8::Value>& Args
     TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args.Holder());
     TWPt<TQm::TBase> Base = JsBase->Base;
 
-    Base->GarbageCollect();
+    // parse out optional max time parameter
+    const int MxTimeMSecs = TNodeJsUtil::GetArgInt32(Args, 0, -1);
+
+    Base->GarbageCollect(MxTimeMSecs);
+
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
