@@ -399,8 +399,9 @@ TLxSym TILx::GetSym(const TFSet& Expect){
               GetCh(); EAssertR(TCh::IsHex(Ch), "Invalid hexadecimal digit in unicode escape");
               UChCd = 16 * UChCd + TCh::GetHex(Ch);
               // get as UTF8 encoded characters
+              if (UChCd == 0) { UChCd = 32; }
               TUnicode::EncodeUtf8(UChCd, Str);
-			  TUnicode::EncodeUtf8(UChCd, UcStr); }
+              TUnicode::EncodeUtf8(UChCd, UcStr); }
               GetCh(); break;
             default: Sym=syUndef; break;
           }
