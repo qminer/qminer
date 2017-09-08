@@ -1,5 +1,19 @@
 # QMiner Change Log
 
+## 8 September 2017
+
+**Version 8.6.1**
+
+**Non-breaking with no new features**
+
+Bugfixes
+
+- Analytics PNotify segfault bug fixed (smartpoitners to static notify objects changed to weak pointers)
+- Unit testing silent failing fix + improved example unit test generation 
+- Several unit tests fixed that were failing
+- Division by zero fixed in bag-of-words feature extractor (unknown words + IDF weighting bug)
+- Fixed #550: frequency is computed correctly for tiny joins
+
 ## 1 September 2017
 
 **Version 8.6.0**
