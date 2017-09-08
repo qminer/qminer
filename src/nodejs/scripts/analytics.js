@@ -1923,8 +1923,45 @@ module.exports = exports = function (pathQmBinary) {
         return arg == undefined ? defaultval : arg;
     }
 
-    class ActiveLearner {
+    /**
+    * @typedef {Object} ActiveLearnerParam
+    * An object used for the construction of {@link module:analytics.ActiveLearner}.
+    * @property {Object} [learner] - Learner parameters
+    * @property {boolean} [learner.disableAsserts=false] - Disable input asserting
+    * @property {module:analytics~SVMParam} [SVC] - Support vector classifier parameters.
+    */
 
+    /**
+    * @classdesc Active learner. Uses a SVM model and implements an uncertainty measure (distance to the margin)
+    * to select which unlabelled example should be labelled next.
+    * @class
+    * @param {module:analytics~ActiveLearnerParam} [arg] - Construction arguments.
+    * @example
+    * // load libs
+    * var qm = require('qminer');
+    * var la = qm.la;
+    * // create model
+    * var al = new qm.analytics.ActiveLearner();
+    *
+    * // set data (4 labelled and 2 unlabelled examples)
+    * var X = new la.Matrix([
+    *     [-2, 1],
+    *     [-2, 0],
+    *     [-2, -1],
+    *     [0, 1],
+    *     [-0.9, 0],
+    *     [0, -1]
+    * ]).transpose(); // column examples
+    * al.setX(X);
+    *
+    * var y = [-1, 0, -1, 1, 0, 1];
+    * al.sety(y);
+    * // get the array containing 1 index of the unlabelled example
+    * // that is the closest to the hyperplane
+    * var qidx = al.getQueryIdx(1);
+    * console.log(qidx); // 4
+    */
+    class ActiveLearner {
         constructor(opts) {
             opts = opts || {};
             // SETTINGS
@@ -1938,6 +1975,9 @@ module.exports = exports = function (pathQmBinary) {
             this._SVC = new exports.SVC(this._settings.SVC);
         }
 
+        /**
+        * Returns default settings
+        */
         _getDefaultSettings() {
             return {
                 learner: {
@@ -1951,11 +1991,17 @@ module.exports = exports = function (pathQmBinary) {
             };
         }
 
+        /**
+        * Asserts if the object is a la matrix
+        */
         _assertMatrix(X) {
             if (this._settings.learner.disableAsserts) { return; }
             assert(X instanceof la.Matrix || X instanceof la.SparseMatrix, "X should be a dense or a sparse matrix (qm.la object)");
         }
 
+        /**
+        * Asserts if a label and the index are valid, given number of examples `cols`
+        */
         _assertLabel(cols, idx, label) {
             if (this._settings.learner.disableAsserts) { return; }
             if (cols == undefined) { throw new Error("Columns not defined"); }
@@ -1963,6 +2009,9 @@ module.exports = exports = function (pathQmBinary) {
             if ((label != -1) && (label != 1)) { throw new Error("Label should be either -1 or 1"); }
         }
 
+        /**
+        * Asserts if a Map with labels is valid
+        */
         _assertLabelSet(cols, y) {
             if (this._settings.learner.disableAsserts) { return; }
             assert(y instanceof Map, "y should be a map from data instance indices to +1 or -1");
@@ -1972,13 +2021,41 @@ module.exports = exports = function (pathQmBinary) {
             }
         }
 
+        /**
+        * Transforms an Array of labels to a Map from indices to labels
+        */
+        _getLabelMapFromArr(_y) {
+            assert(_y instanceof Array);
+            let y = new Map();
+            for (let i = 0; i < _y.length; i++) {
+                let lab = _y[i];
+                if (this._settings.learner.disableAsserts) {
+                    assert(lab === -1 || lab === 1 || lab === 0, "Label must be ither -1, 0 or 1");
+                }
+                if (lab !== 0) {
+                    y.set(i, lab);
+                }
+            }
+            return y;
+        }
+
+        /**
+        * Returns an array of indices of labelled examples
+        */
         _getLabIdxArr(y) {
             return Array.from(y.keys());
         }
+
+        /**
+        * Returns an array of label values corresponding to the labelled examples
+        */
         _getLabArr(y) {
             return Array.from(y.values());
         }
 
+        /**
+        * Returns an array of indices of unlabelled examples
+        */
         _getUnlabIdxArr(cols, y) {
             let unlabIdxArr = [];
             for (let idx = 0; idx < cols; idx++) {
@@ -1989,6 +2066,9 @@ module.exports = exports = function (pathQmBinary) {
             return unlabIdxArr;
         }
 
+        /**
+        * Retrains the SVC model
+        */
         _retrain(X, y, SVC) {
             // asert y indices and values
             this._assertMatrix(X);
@@ -2005,6 +2085,9 @@ module.exports = exports = function (pathQmBinary) {
             SVC.fit(Xsub, yVec);
         }
 
+        /**
+        * Retrains the SVC model
+        */
         retrain() {
             this._retrain(this._X, this._y, this._SVC);
         }
@@ -2031,39 +2114,72 @@ module.exports = exports = function (pathQmBinary) {
             return subVec.toArray();
         }
 
-        // return an array of indices (1 element by default)
+        /**
+        * Returns an array of 0 or more example indices sorted by uncertainty (first element is the closest to the hyperplane)
+        * @param {number} [num=1] - maximal length of the array
+        * @returns {Array<number>} array of unlabelled example indices
+        */
         getQueryIdx(num) {
             return this._getQueryIdx(this._X, this._y, this._SVC, num)
         }
 
+        /**
+        * Sets the label
+        * @param {number} idx - instance index
+        * @param {number} label - should be either 1 or -1
+        */
         setLabel(idx, label) {
             let cols = this._X.cols;
             this._assertLabel(cols, idx, label);
             this._y.set(idx, label);
         }
 
+        /**
+        * Sets the data matrix (column examples)
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} X - data matrix (column examples)
+        */
         setX(X) {
             this._assertMatrix(X);
             this._X = X
         }
 
-        // array of -1, 0 and 1 the same length as X.cols
-        // or Map from indices to +1 or -1
-        sety(y) {
+        /**
+        * Sets the labels
+        * @param {(Array<number> | module.la.Vector | module.la.IntVector | Map)} _y - array (like) object that encodes labels
+        *                                                                        (-1, 0 or 1) or a Map from indices to 1 or -1
+        */
+        sety(_y) {
+            let y = _y;
             this._assertMatrix(this._X);
             let cols = this._X.cols;
+            if (_y instanceof Array) { y = this._getLabelMapFromArr(_y); }
+            if (_y.toArray != undefined) { y = this._getLabelMapFromArr(_y.toArray()); }
             this._assertLabelSet(cols, y);
             this._y = y;
         }
 
-        getX() { return this._X }
+        /**
+        * Returns the SVC model
+        * @returns {module:analytics.SVC} SVC model
+        */
+        getSVC() { return this._SVC; }
 
+        /**
+        * Returns the data matrix (column examples)
+        * @returns {(module:la.Matrix | module:la.SparseMatrix)} data matrix (column examples)
+        */
+        getX() { return this._X; }
+
+        /**
+        * Returns the Map from example indices to labels (-1 or 1)
+        * @returns {Map} label map
+        */
         gety() { return this._y; }
 
 
     }
 
-    exports.AL = ActiveLearner;
+    exports.ActiveLearner = ActiveLearner;
 
     //!ENDJSDOC
 

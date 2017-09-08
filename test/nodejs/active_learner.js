@@ -9,7 +9,7 @@
 // JavaScript source code
 var qm = require('qminer');
 var la = qm.la;
-var AL = qm.analytics.AL;
+var AL = qm.analytics.ActiveLearner;
 var assert = require("../../src/nodejs/scripts/assert.js");
 
 describe("Active learning tests", function () {
@@ -65,11 +65,7 @@ describe("Active learning tests", function () {
             ]).transpose(); // column examples
             al.setX(X);
 
-            var y = new Map();
-            y.set(0, -1);
-            y.set(2, -1);
-            y.set(3, 1);
-            y.set(5, 1);
+            var y = new la.IntVector([-1, 0, -1, 1, 0, 1]);
             al.sety(y);
 
             var qidx = al.getQueryIdx(2);
@@ -90,11 +86,7 @@ describe("Active learning tests", function () {
             ]).transpose(); // column examples
             al.setX(X);
 
-            var y = new Map();
-            y.set(0, -1);
-            y.set(2, -1);
-            y.set(3, 1);
-            y.set(5, 1);
+            var y = [-1, 0, -1, 1, 0, 1];
             al.sety(y);
             al.setLabel(4, 1);
 
