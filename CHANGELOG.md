@@ -6,13 +6,15 @@
 
 **Non-breaking with no new features**
 
-Bugfixes
-
-- Analytics PNotify segfault bug fixed (smartpoitners to static notify objects changed to weak pointers)
+Bugfix:
+- Analytics `PNotify` segfault bug fixed (smartpoitners to static notify objects changed to weak pointers)
 - Unit testing silent failing fix + improved example unit test generation 
 - Several unit tests fixed that were failing
 - Division by zero fixed in bag-of-words feature extractor (unknown words + IDF weighting bug)
 - Fixed #550: frequency is computed correctly for tiny joins
+- Fixed #459 : `PJsonVal` returning temporary strings given as default value by reference
+- Fixed #446 : Added timeout parameter to `TStore::GarbageCollect()`
+- Fixes #455 : Fixed documentation and example for `fs.readLines(...)`
 
 ## 1 September 2017
 
