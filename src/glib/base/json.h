@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -26,8 +26,8 @@ public:
   friend class TPt<TJsonVal>;
 private:
   TJsonValType JsonValType;
-  TBool Bool; 
-  TFlt Num; 
+  TBool Bool;
+  TFlt Num;
   TStr Str;
   TJsonValV ValV;
   THash<TStr, PJsonVal> KeyValH;
@@ -76,7 +76,7 @@ public:
   void AddToObj(const TStr& KeyNm, const TJsonValV& ValV){ AddToObj(KeyNm, NewArr(ValV)); }
   void AddToObj(const PJsonVal& Val);
   void MergeObj(const PJsonVal& Val);
-  
+
   // simplified creation of basic elements
   static PJsonVal NewNull() { PJsonVal Val = TJsonVal::New(); Val->PutNull(); return Val; }
   static PJsonVal NewBool(const bool& Bool) { PJsonVal Val = TJsonVal::New(); Val->PutBool(Bool); return Val; }
@@ -172,8 +172,8 @@ public:
   void GetObjIntV(const TStr& Key, TIntV& IntV) const;
   void GetObjUInt64V(const TStr& Key, TUInt64V& UInt64V) const;
   void GetObjFltV(const TStr& Key, TFltV& FltV) const;
-  const TStr& GetObjStr(const TStr& Key, const TStr& DefStr) const;
-  const TStr& GetObjStr(const char *Key, const TStr& DefStr) const;
+  TStr GetObjStr(const TStr& Key, const TStr& DefStr) const;
+  TStr GetObjStr(const char *Key, const TStr& DefStr) const;
   void GetObjStrV(const TStr& Key, TStrV& StrV) const;
   void GetObjStrV(const char *Key, TStrV& StrV) const;
 
@@ -198,41 +198,41 @@ public:
   static PJsonVal GetValFromStr(const TStr& JsonStr, bool& Ok, TStr& MsgStr);
   static PJsonVal GetValFromStr(const TStr& JsonStr);
   static void AddEscapeChAFromStr(const TStr& Str, TChA& ChA);
-  static TStr AddEscapeStrFromStr(const TStr& Str) { 
+  static TStr AddEscapeStrFromStr(const TStr& Str) {
 	  TChA ChA; AddEscapeChAFromStr(Str, ChA); return ChA; }
   static void AddQChAFromStr(const TStr& Str, TChA& ChA);
   static void GetChAFromVal(const PJsonVal& Val, TChA& ChA);
   static TStr GetStrFromVal(const PJsonVal& Val);
-  
+
   // parsing json object to milliseconds from following supported formats:
   //  - 123  => milliseconds to milliseconds
   //  - {"value":12,"unit":"hour"} => parse out value and unit (second, minute, hour, day)
   //  - {"value":60} => assumes default unit second
-  static uint64 GetMSecsFromJsonVal(const PJsonVal& Val);  
+  static uint64 GetMSecsFromJsonVal(const PJsonVal& Val);
 };
 
 //////////////////////////////////////////////////////////////////////////////
 // Binary serialization of Json Value
 class TBsonObj {
 public:
-	static void Serialize(const TJsonVal& JsonVal, TSOut& SOut) { 
+	static void Serialize(const TJsonVal& JsonVal, TSOut& SOut) {
         CreateBsonRecursive(JsonVal, NULL, SOut); };
-	static void SerializeVoc(const TJsonVal& JsonVal, TStrHash<TInt, TBigStrPool>& Voc, TSOut& SOut) { 
+	static void SerializeVoc(const TJsonVal& JsonVal, TStrHash<TInt, TBigStrPool>& Voc, TSOut& SOut) {
         CreateBsonRecursive(JsonVal, &Voc, SOut); };
-	static int64 GetMemUsed(const TJsonVal& JsonVal) { 
+	static int64 GetMemUsed(const TJsonVal& JsonVal) {
         return GetMemUsedRecursive(JsonVal, false); };
-	static int64 GetMemUsedVoc(const TJsonVal& JsonVal) { 
+	static int64 GetMemUsedVoc(const TJsonVal& JsonVal) {
         return GetMemUsedRecursive(JsonVal, true); };
 
-	static PJsonVal GetJson(TSIn& SIn) { 
+	static PJsonVal GetJson(TSIn& SIn) {
         return GetJsonRecursive(SIn, NULL); };
-	static PJsonVal GetJsonVoc(TSIn& SIn, TStrHash<TInt, TBigStrPool>& Voc) { 
+	static PJsonVal GetJsonVoc(TSIn& SIn, TStrHash<TInt, TBigStrPool>& Voc) {
         return GetJsonRecursive(SIn, &Voc); };
 
 	static void UnitTest() { }
 
 private:
-	static void CreateBsonRecursive(const TJsonVal& JsonVal, 
+	static void CreateBsonRecursive(const TJsonVal& JsonVal,
         TStrHash<TInt, TBigStrPool> *Voc, TSOut& SOut);
 	static int64 GetMemUsedRecursive(const TJsonVal& JsonVal, bool UseVoc);
 	static PJsonVal GetJsonRecursive(TSIn& SIn, TStrHash<TInt, TBigStrPool>* Voc);

@@ -51,7 +51,7 @@ public:
 
 // LIBSVM for Eps-Support Vector Regression for sparse input
 inline TLinModel LibSvmSolveRegression(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV,
-        const double& Eps, const double& Cost, PNotify DebugNotify, PNotify ErrorNotify) {
+        const double& Eps, const double& Cost, const TWPt<TNotify>& DebugNotify, const TWPt<TNotify>& ErrorNotify) {
      // Asserts for input arguments
     EAssertR(Cost > 0.0, "Cost parameter has to be positive.");
 
@@ -128,7 +128,7 @@ inline TLinModel LibSvmSolveRegression(const TVec<TIntFltKdV>& VecV, const TFltV
 
 // LIBSVM for Eps-Support Vector Regression for TFltVV input
 inline TLinModel LibSvmSolveRegression(const TFltVV& VecV, const TFltV& TargetV,
-        const double& Eps, const double& Cost, PNotify DebugNotify, PNotify ErrorNotify) {
+        const double& Eps, const double& Cost, const TWPt<TNotify>& DebugNotify, const TWPt<TNotify>& ErrorNotify) {
 
     // Asserts for input arguments
     EAssertR(Cost > 0.0, "Cost parameter has to be positive.");
@@ -211,7 +211,7 @@ inline TLinModel LibSvmSolveRegression(const TFltVV& VecV, const TFltV& TargetV,
 
 // LIBSVM for C-Support Vector Classification for sparse input
 inline TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV, const double& Cost, const double& Unbalance,
-	PNotify DebugNotify, PNotify ErrorNotify) {
+    const TWPt<TNotify>& DebugNotify, const TWPt<TNotify>& ErrorNotify) {
 
     // Asserts for input arguments
     EAssertR(Cost > 0.0, "Cost parameter has to be positive.");
@@ -301,7 +301,7 @@ inline TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& 
 
 // Use LIBSVM for C-Support Vector Classification
 inline TLinModel LibSvmSolveClassify(const TFltVV& VecV, const TFltV& TargetV, const double& Cost, const double& Unbalance,
-	PNotify DebugNotify, PNotify ErrorNotify) {
+    const TWPt<TNotify>& DebugNotify, const TWPt<TNotify>& ErrorNotify) {
 
     // Asserts for input arguments
     EAssertR(Cost > 0.0, "Cost parameter has to be positive.");
@@ -388,7 +388,7 @@ template <class TVecV>
 TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
         const TFltV& TargetV, const double& Cost, const double& UnbalanceWgt,
         const int& MxMSecs, const int& MxIter, const double& MnDiff, 
-        const int& SampleSize, const PNotify& Notify = TStdNotify::New()) {
+        const int& SampleSize, const TWPt<TNotify>& Notify) {
 
     // asserts for input parameters
     EAssertR(Dims > 0, "Dimensionality must be positive!");
@@ -519,7 +519,7 @@ template <class TVecV>
 inline TLinModel SolveRegression(const TVecV& VecV, const int& Dims, const int& Vecs,
 	const TFltV& TargetV, const double& Cost, const double& Eps,
 	const int& MxMSecs, const int& MxIter, const double& MnDiff,
-	const int& SampleSize, const PNotify& Notify) {
+	const int& SampleSize, const TWPt<TNotify>& Notify) {
 
 	// asserts for input parameters
 	EAssertR(Dims > 0, "Dimensionality must be positive!");
