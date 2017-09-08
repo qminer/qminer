@@ -1078,6 +1078,61 @@ describe('Schema Time Window Test', function () {
         base.close();
     });
 
+    describe('Testing window garbage collection timeout', function () {
+        // generate store with window 3
+        base = new qm.Base({ mode: 'createClean' });
+        base.createStore({
+            "name": "TestStore",
+            "fields": [
+                { "name": "Measurement", "type": "float" }
+            ],
+            window: 3,
+        });
+
+        // push 100k records into created store
+        for (var i = 0; i < 100000; i++) {
+            base.store("TestStore").push({
+                "Measurement": i
+            });
+        }
+        // clean base with garbage collector giving it 10ms
+        var recs1 = base.store("TestStore").length;
+        var time1 = new Date().getTime();
+        base.garbageCollect(10);
+        var recs2 = base.store("TestStore").length;
+        var time2 = new Date().getTime();
+        base.garbageCollect(20);
+        var recs3 = base.store("TestStore").length;
+        var time3 = new Date().getTime();
+
+        // tests assume 30ms is to little time to delete 100000 records
+        it('should delete some records', function () {
+            assert(recs1 > recs2);
+            assert(recs2 > recs3);
+        });
+        it.skip('should delete twice as many records when given double time', function () {
+            var ratio = (recs3-recs2) / (recs2-recs1);
+            assert(ratio > 1.5);
+            assert(ratio < 2.5);
+        });
+        it.skip('should take approximatey as much time as give', function () {
+            // should not take less then give, since we assume there is to little time to delete what is needed
+            assert((time2-time1) >= 10);
+            assert((time3-time2) >= 20);
+            // we allow for max 20ms overhead
+            assert((time2-time1) < (10 + 20));
+            assert((time3-time2) < (20 + 20));
+        });
+
+        base.garbageCollect();
+        var recs4 = base.store("TestStore").length;
+        it('should delete all but 3 records when no timeout parameter given', function () {
+            assert.equal(3, recs4);
+        });
+
+        base.close();
+    });
+
     describe('Primary key test', function () {
         var base;
         beforeEach(function () {
