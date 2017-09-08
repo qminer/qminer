@@ -5599,19 +5599,18 @@ bool TIndex::DoQuerySmall(const TPt<TQmGixExpItemSmall>& ExpItem, TVec<TQmGixIte
     for (const TQmGixItemSmall& SmallRecIdFq : SmallRecIdFqV) {
         RecIdFqV.Add(TQmGixItemFull((uint64)SmallRecIdFq.Key, (int)SmallRecIdFq.Dat));
     }
+    // make sure we are sorted
+    Assert(RecIdFqV.IsSorted());
     // pass forward return result
     return Not;
 }
 
 bool TIndex::DoQueryTiny(const TPt<TQmGixExpItemTiny>& ExpItem, TVec<TQmGixItemFull>& RecIdFqV) const {
-    // execute query
-    TVec<TQmGixItemTiny> TinyRecIdV;
-    const bool Not = ExpItem->Eval(GixTiny, TinyRecIdV, MergerTiny);
-    // upgrade to full
-    RecIdFqV.Gen(TinyRecIdV.Len(), 0);
-    for (const TQmGixItemTiny& TinyRecId : TinyRecIdV) {
-        RecIdFqV.Add(TQmGixItemFull((uint64)TinyRecId, 1));
-    }
+    // clean if there is anything on the input
+    RecIdFqV.Clr();
+    const bool Not = ExpItem->Eval(GixTiny, RecIdFqV, MergerTiny);
+    // make sure we are sorted
+    Assert(RecIdFqV.IsSorted());
     // pass forward return result
     return Not;
 }
@@ -5700,21 +5699,25 @@ TIndex::TIndex(const TStr& _IndexFPath, const TFAccess& _Access, const PIndexVoc
     IndexFPath = _IndexFPath;
     Access = _Access;
     // initialize full invered index
-    SumMergerFull = new TQmGixSumMerger<TQmGixItemFull>;
+    SumItemHandlerFull = new TQmGixSumItemHandler<TQmGixItemFull>;
     GixFull = TGix<TQmGixKey, TQmGixItemFull>::New("Index.GixFull",
-        IndexFPath, Access, SumMergerFull, CacheSizeFull, SplitLen);
+        IndexFPath, Access, SumItemHandlerFull, CacheSizeFull, SplitLen);
+    SumMergerFull = new TQmGixSumWithFqMerger<TQmGixItemFull>;
     // initialize small inverted index
-    SumMergerSmall = new TQmGixSumMerger<TQmGixItemSmall>;
+    SumItemHandlerSmall = new TQmGixSumItemHandler<TQmGixItemSmall>;
     GixSmall = TGix<TQmGixKey, TQmGixItemSmall>::New("Index.GixSmall",
-        IndexFPath, Access, SumMergerSmall, CacheSizeSmall, SplitLen);
+        IndexFPath, Access, SumItemHandlerSmall, CacheSizeSmall, SplitLen);
+    SumMergerSmall = new TQmGixSumWithFqMerger<TQmGixItemSmall>;
     // initialize tiny inverted index
-    MergerTiny = new TGixDefMerger<TQmGixKey, TQmGixItemTiny>;
+    ItemHandlerTiny = new TGixDefItemHandler<TQmGixKey, TQmGixItemTiny>;
     GixTiny = TGix<TQmGixKey, TQmGixItemTiny>::New("Index.GixTiny",
-        IndexFPath, Access, MergerTiny, CacheSizeTiny, SplitLen);
+        IndexFPath, Access, ItemHandlerTiny, CacheSizeTiny, SplitLen);
+    MergerTiny = new TQmGixSumWithoutFqMerger<TQmGixItemTiny, TQmGixItemFull>;
     // initialize position inverted index
-    MergerPos = new TGixDefMerger<TQmGixKey, TQmGixItemPos>;
+    ItemHandlerPos = new TGixDefItemHandler<TQmGixKey, TQmGixItemPos>;
     GixPos = TGix<TQmGixKey, TQmGixItemPos>::New("Index.GixPos",
-        IndexFPath, Access, MergerPos, CacheSizePos, SplitLen);
+        IndexFPath, Access, ItemHandlerPos, CacheSizePos, SplitLen);
+    MergerPos = new TGixDefMerger<TQmGixKey, TQmGixItemPos, TQmGixItemPos>;
     // initialize location index
     TStr SphereFNm = IndexFPath + "Index.Geo";
     if (TFile::Exists(SphereFNm) && Access != faCreate) {
@@ -5752,15 +5755,19 @@ TIndex::~TIndex() {
         {
             TEnv::Logger->OnStatus("Saving and closing inverted index - full");
             GixFull.Clr();
+            delete SumItemHandlerFull;
             delete SumMergerFull;
             TEnv::Logger->OnStatus("Saving and closing inverted index - small");
             GixSmall.Clr();
+            delete SumItemHandlerSmall;
             delete SumMergerSmall;
             TEnv::Logger->OnStatus("Saving and closing inverted index - tiny");
             GixTiny.Clr();
+            delete ItemHandlerTiny;
             delete MergerTiny;
             TEnv::Logger->OnStatus("Saving and closing inverted index - position");
             GixPos.Clr();
+            delete ItemHandlerPos;
             delete MergerPos;
         }
         {
@@ -5784,6 +5791,15 @@ TIndex::~TIndex() {
         TEnv::Logger->OnStatus("Index closed");
     } else {
         TEnv::Logger->OnStatus("Index opened in read-only mode, no saving needed");
+        // we still need to delete all item handlers and mergers
+        delete SumItemHandlerFull;
+        delete SumMergerFull;
+        delete SumItemHandlerSmall;
+        delete SumMergerSmall;
+        delete ItemHandlerTiny;
+        delete MergerTiny;
+        delete ItemHandlerPos;
+        delete MergerPos;
     }
 }
 
@@ -6265,17 +6281,6 @@ void TIndex::SearchGixJoin(const int& KeyId, const uint64& RecId, TUInt64IntKdV&
     }
 }
 
-PRecSet TIndex::SearchTextPos(const TWPt<TBase>& Base, const int& KeyId,
-        const TUInt64V& WordIdV, const int& MaxDiff) const {
-
-    // execute query
-    TUInt64IntKdV RecIdFqV; DoQueryPos(KeyId, WordIdV, MaxDiff, RecIdFqV);
-    // wrap as record set and return
-    const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
-    return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdFqV);
-}
-
-
 void TIndex::SearchGixJoin(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& JoinRecIdFqV) const {
     // prepare keys for gix
     TKeyWordV KeyWordV(RecIdV.Len(), 0);
@@ -6295,6 +6300,16 @@ void TIndex::SearchGixJoin(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntK
     default:
         throw TQmExcept::New("[TIndex::SearchGixJoin] Unsupported gix type!");
     }
+}
+
+PRecSet TIndex::SearchTextPos(const TWPt<TBase>& Base, const int& KeyId,
+        const TUInt64V& WordIdV, const int& MaxDiff) const {
+
+    // execute query
+    TUInt64IntKdV RecIdFqV; DoQueryPos(KeyId, WordIdV, MaxDiff, RecIdFqV);
+    // wrap as record set and return
+    const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
+    return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdFqV);
 }
 
 PRecSet TIndex::SearchGeoRange(const TWPt<TBase>& Base, const int& KeyId,
@@ -6973,7 +6988,7 @@ TBase::TBase(const TStr& _FPath, const int64& IndexCacheSize, const TStrUInt64H&
     TEnv::Logger->OnStatus("Opening in create mode");
     // prepare index
     IndexVoc = TIndexVoc::New();
-    Index = TIndex::New(FPath, FAccess, IndexVoc, 
+    Index = TIndex::New(FPath, FAccess, IndexVoc,
         IndexTypeCacheSizeH.GetDatOrDef("full", IndexCacheSize),
         IndexTypeCacheSizeH.GetDatOrDef("small", IndexCacheSize),
         IndexTypeCacheSizeH.GetDatOrDef("tiny", IndexCacheSize),
@@ -7007,11 +7022,11 @@ TBase::TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCac
 
     // load index
     IndexVoc = TIndexVoc::Load(IndexVocFIn);
-    Index = TIndex::New(FPath, FAccess, IndexVoc, 
+    Index = TIndex::New(FPath, FAccess, IndexVoc,
         IndexTypeCacheSizeH.GetDatOrDef("full", IndexCacheSize),
         IndexTypeCacheSizeH.GetDatOrDef("small", IndexCacheSize),
         IndexTypeCacheSizeH.GetDatOrDef("tiny", IndexCacheSize),
-        IndexTypeCacheSizeH.GetDatOrDef("pos", IndexCacheSize), 
+        IndexTypeCacheSizeH.GetDatOrDef("pos", IndexCacheSize),
         SplitLen);
     // load shared store blob base
     StoreBlobBs = TMBlobBs::New(FPath + "StoreBlob", FAccess);
@@ -7189,11 +7204,62 @@ PRecSet TBase::Search(const PJsonVal& QueryVal) {
     return Search(TQuery::New(this, QueryVal));
 }
 
-void TBase::GarbageCollect() {
+void TBase::GarbageCollect(const int& MxTimeMSecs) {
     int StoreKeyId = StoreH.FFirstKeyId();
     while (StoreH.FNextKeyId(StoreKeyId)) {
-        StoreH[StoreKeyId]->GarbageCollect();
+        StoreH[StoreKeyId]->GarbageCollect(MxTimeMSecs);
     }
+}
+
+int TBase::PartialFlush(const int& WndInMsec) {
+    int DirtyStores = (GetStores() + 1);
+    int Saved = 100;
+    int TotalSaved = 0;
+    TTmStopWatch Sw(true);
+
+    TVec<TPair<TWPt<TStore>, bool>> DirtyStoreV;
+    bool FlushIndex = true;
+
+    for (int i = 0; i < GetStores(); i++) {
+        DirtyStoreV.Add(TPair<TWPt<TStore>, bool>(GetStoreByStoreN(i), true));
+    }
+
+    while (Saved > 0) {
+        if (Sw.GetMSecInt() > WndInMsec) {
+            break; // time is up
+        }
+        int TimeSliceMs = WndInMsec / DirtyStores; // time-TimeSliceMs per store
+        DirtyStores = 0;
+        Saved = 0; // how many saved in this loop
+        int xsaved = 0; // how many saved in this loop into last store/index
+        for (int i = 0; i < DirtyStoreV.Len(); i++) {
+            if (!DirtyStoreV[i].Val2)
+                continue; // this store had no dirty data in previous loop
+            xsaved = DirtyStoreV[i].Val1->PartialFlush(TimeSliceMs);
+            if (xsaved == 0) {
+                DirtyStoreV[i].Val2 = false; // ok, this store is clean now
+            } else {
+                DirtyStores++;
+                Saved += xsaved;
+            }
+            TQm::TEnv::Debug->OnStatusFmt("Partial flush:     store %s = %d", DirtyStoreV[i].Val1->GetStoreNm().CStr(), xsaved);
+        }
+        if (FlushIndex) { // save index
+            xsaved = Index->PartialFlush(TimeSliceMs);
+            FlushIndex = (xsaved > 0);
+            if (FlushIndex) {
+                DirtyStores++;
+            }
+            Saved += xsaved;
+            TQm::TEnv::Debug->OnStatusFmt("Partial flush:     index = %d", xsaved);
+        }
+        TotalSaved += Saved;
+        TQm::TEnv::Debug->OnStatusFmt("Partial flush: this loop = %d", Saved);
+    }
+    Sw.Stop();
+    TQm::TEnv::Debug->OnStatusFmt("Partial flush: %d msec, total saved = %d", Sw.GetMSecInt(), TotalSaved);
+
+    return TotalSaved;
 }
 
 bool TBase::SaveJSonDump(const TStr& DumpDir) {
@@ -7424,58 +7490,6 @@ void TBase::PrintIndex(const TStr& FNm, const bool& SortP) {
             FOut.PutStrLn(StrPool->GetStr(StrId));
         }
     }
-}
-
-// perform partial flush of data
-int TBase::PartialFlush(int WndInMsec) {
-    int DirtyStores = (GetStores() + 1);
-    int Saved = 100;
-    int TotalSaved = 0;
-    TTmStopWatch Sw(true);
-
-    TVec<TPair<TWPt<TStore>, bool>> DirtyStoreV;
-    bool FlushIndex = true;
-
-    for (int i = 0; i < GetStores(); i++) {
-        DirtyStoreV.Add(TPair<TWPt<TStore>, bool>(GetStoreByStoreN(i), true));
-    }
-
-    while (Saved > 0) {
-        if (Sw.GetMSecInt() > WndInMsec) {
-            break; // time is up
-        }
-        int TimeSliceMs = WndInMsec / DirtyStores; // time-TimeSliceMs per store
-        DirtyStores = 0;
-        Saved = 0; // how many saved in this loop
-        int xsaved = 0; // how many saved in this loop into last store/index
-        for (int i = 0; i < DirtyStoreV.Len(); i++) {
-            if (!DirtyStoreV[i].Val2)
-                continue; // this store had no dirty data in previous loop
-            xsaved = DirtyStoreV[i].Val1->PartialFlush(TimeSliceMs);
-            if (xsaved == 0) {
-                DirtyStoreV[i].Val2 = false; // ok, this store is clean now
-            } else {
-                DirtyStores++;
-                Saved += xsaved;
-            }
-            TQm::TEnv::Debug->OnStatusFmt("Partial flush:     store %s = %d", DirtyStoreV[i].Val1->GetStoreNm().CStr(), xsaved);
-        }
-        if (FlushIndex) { // save index
-            xsaved = Index->PartialFlush(TimeSliceMs);
-            FlushIndex = (xsaved > 0);
-            if (FlushIndex) {
-                DirtyStores++;
-            }
-            Saved += xsaved;
-            TQm::TEnv::Debug->OnStatusFmt("Partial flush:     index = %d", xsaved);
-        }
-        TotalSaved += Saved;
-        TQm::TEnv::Debug->OnStatusFmt("Partial flush: this loop = %d", Saved);
-    }
-    Sw.Stop();
-    TQm::TEnv::Debug->OnStatusFmt("Partial flush: %d msec, total saved = %d", Sw.GetMSecInt(), TotalSaved);
-
-    return TotalSaved;
 }
 
 /// get performance statistics in JSON form

@@ -14,22 +14,12 @@
 template <class TKey, class TItem> class TGix;
 
 /////////////////////////////////////////////////
-/// Item Vector Merger.
-/// Used when evaluating queries to apply logical operators to item vectors.
+/// Item Handler.
+/// Used when indexing and deindexing items in TGix.
 template <class TKey, class TItem>
-class TGixMerger {
+class TGixItemHandler {
 public:
-    virtual ~TGixMerger() {}
-
-    /// Add elements in JoinV that are not yet in MainV. Both vectors must be sorted.
-    virtual void Union(TVec<TItem>& MainV, const TVec<TItem>& JoinV) const = 0;
-    /// Removed elements from MainV that are not in JoinV. Both vectors must be sorted.
-    virtual void Intrs(TVec<TItem>& MainV, const TVec<TItem>& JoinV) const = 0;
-    /// Adds elements from MainV that are not in JoinV to ResV. MainV and JoinV must be sorted.
-    virtual void Minus(const TVec<TItem>& MainV, const TVec<TItem>& JoinV, TVec<TItem>& ResV) const = 0;
-
-    /// Initialize vector of items for given key.
-    virtual void Def(const TKey& Key, TVec<TItem>& MainV) const = 0;
+    virtual ~TGixItemHandler() {}
 
     /// Merge repeated items in the ItemV vector.
     /// TODO: What is IsLocal parameter?
@@ -47,21 +37,17 @@ public:
 };
 
 /////////////////////////////////////////////////
-/// Default Item Vector Merger.
-/// Uses basic set operations defined on TVec.
+/// Default Item Handler.
+/// Uses basic set operations defined on TVec and TItem.
 template <class TKey, class TItem>
-class TGixDefMerger : public TGixMerger < TKey, TItem > {
+class TGixDefItemHandler : public TGixItemHandler <TKey, TItem> {
 public:
-    void Union(TVec<TItem>& MainV, const TVec<TItem>& JoinV) const { MainV.Union(JoinV); }
-    void Intrs(TVec<TItem>& MainV, const TVec<TItem>& JoinV) const { MainV.Intrs(JoinV); }
-    void Minus(const TVec<TItem>& MainV, const TVec<TItem>& JoinV, TVec<TItem>& ResV) const { MainV.Diff(JoinV, ResV); }
-    void Def(const TKey& Key, TVec<TItem>& MainV) const { }
     void Merge(TVec<TItem>& ItemV, const bool& IsLocal) const { ItemV.Merge(); }
     void Delete(const TItem& Item, TVec<TItem>& MainV) const { return MainV.DelAll(Item); }
     bool IsLt(const TItem& Item1, const TItem& Item2) const { return Item1 < Item2; }
     bool IsLtE(const TItem& Item1, const TItem& Item2) const { return Item1 <= Item2; }
 
-    uint64 GetMemUsed() const { return sizeof(TGixDefMerger<TKey, TItem>); }
+    uint64 GetMemUsed() const { return sizeof(TGixDefItemHandler<TKey, TItem>); }
 };
 
 /////////////////////////////////////////////////
@@ -305,8 +291,8 @@ private:
     /// mapping between key and BLOB pointer
     THash<TKey, TBlobPt> KeyIdH;
 
-    /// Merger used for packing item vectors in item sets
-    const TGixMerger<TKey, TItem>* Merger;
+    /// ItemHandler used for packing item vectors in item sets
+    const TGixItemHandler<TKey, TItem>* ItemHandler;
 
     /// Item set cache
     mutable TCache<TBlobPt, PGixItemSet> ItemSetCache;
@@ -345,7 +331,7 @@ private:
     TBlobPt GetKeyId(const TKey& Key) const;
 
     /// Get handle to the merger
-    const TGixMerger<TKey, TItem>* GetMerger() const { return Merger; }
+    const TGixItemHandler<TKey, TItem>* GetItemHandler() const { return ItemHandler; }
 
     /// Load child vector for given blob pointer from disk
     void GetChildVector(const TBlobPt& Pt, TVec<TItem>& Dest) const;
@@ -360,15 +346,15 @@ private:
     void RefreshStats() const;
 
     TGix(const TStr& Nm, const TStr& FPath, const TFAccess& _Access,
-        const TGixMerger<TKey, TItem>* Merger, const int64& CacheSize,
+        const TGixItemHandler<TKey, TItem>* ItemHandler, const int64& CacheSize,
         const int _SplitLen, const bool _FirstChildBeUnfilledP,
         const int _SplitLenMin, const int _SplitLenMax);
 public:
     static PGix New(const TStr& Nm, const TStr& FPath, const TFAccess& Access,
-        const TGixMerger<TKey, TItem>* Merger, const int64& CacheSize = 100000000,
+        const TGixItemHandler<TKey, TItem>* ItemHandler, const int64& CacheSize = 100000000,
         const int SplitLen = 1024, const bool FirstChildBeUnfilledP = true,
         const int SplitLenMin = 512, const int SplitLenMax = 2048) {
-        return new TGix(Nm, FPath, Access, Merger, CacheSize, SplitLen,
+        return new TGix(Nm, FPath, Access, ItemHandler, CacheSize, SplitLen,
             FirstChildBeUnfilledP, SplitLenMin, SplitLenMax);
     }
 
@@ -466,6 +452,42 @@ public:
 };
 
 /////////////////////////////////////////////////
+/// Item Vector Merger.
+/// Used when evaluating queries to apply logical operators to item vectors.
+template <class TKey, class TItem, class TResItem>
+class TGixMerger {
+public:
+    virtual ~TGixMerger() {}
+
+    /// Add elements in JoinV that are not yet in MainV. Both vectors must be sorted.
+    virtual void Union(TVec<TResItem>& MainV, const TVec<TResItem>& JoinV) const = 0;
+    /// Removed elements from MainV that are not in JoinV. Both vectors must be sorted.
+    virtual void Intrs(TVec<TResItem>& MainV, const TVec<TResItem>& JoinV) const = 0;
+    /// Adds elements from MainV that are not in JoinV to ResV. MainV and JoinV must be sorted.
+    virtual void Minus(const TVec<TResItem>& MainV, const TVec<TResItem>& JoinV, TVec<TResItem>& ResV) const = 0;
+
+    /// Initialize vector of items for given key.
+    virtual void Def(const TKey& Key, TVec<TItem>& MainV, TVec<TResItem>& ResV) const = 0;
+
+    /// Memory footprint
+    virtual uint64 GetMemUsed() const = 0;
+};
+
+/////////////////////////////////////////////////
+/// Default Item Vector Merger.
+/// Uses basic set operations defined on TVec. Assumes TItem == TResItem.
+template <class TKey, class TItem, class TResItem>
+class TGixDefMerger : public TGixMerger <TKey, TItem, TResItem> {
+public:
+    void Union(TVec<TResItem>& MainV, const TVec<TResItem>& JoinV) const { MainV.Union(JoinV); }
+    void Intrs(TVec<TResItem>& MainV, const TVec<TResItem>& JoinV) const { MainV.Intrs(JoinV); }
+    void Minus(const TVec<TResItem>& MainV, const TVec<TResItem>& JoinV, TVec<TResItem>& ResV) const { MainV.Diff(JoinV, ResV); }
+    void Def(const TKey& Key, TVec<TItem>& MainV, TVec<TResItem>& ResV) const { ResV.MoveFrom(MainV); }
+
+    uint64 GetMemUsed() const { return sizeof(TGixDefMerger<TKey, TItem, TResItem>); }
+};
+
+/////////////////////////////////////////////////
 /// Expression item types
 typedef enum {
     getUndef,
@@ -478,11 +500,11 @@ typedef enum {
 
 /////////////////////////////////////////////////
 /// Expression item
-template <class TKey, class TItem>
+template <class TKey, class TItem, class TResItem>
 class TGixExpItem {
 private:
     TCRef CRef;
-    typedef TPt<TGixExpItem<TKey, TItem> > PGixExpItem;
+    typedef TPt<TGixExpItem<TKey, TItem, TResItem> > PGixExpItem;
     typedef TPt<TGixItemSet<TKey, TItem> > PGixItemSet;
     typedef TPt<TGix<TKey, TItem> > PGix;
 
@@ -543,7 +565,7 @@ public:
     PGixExpItem Clone() const { return new TGixExpItem(*this); }
 
     /// Evaluate expression item using given merger and return mathed items
-    bool Eval(const PGix& Gix, TVec<TItem>& ResItemV, const TGixMerger<TKey, TItem>* Merger);
+    bool Eval(const PGix& Gix, TVec<TResItem>& ResItemV, const TGixMerger<TKey, TItem, TResItem>* Merger);
 
     friend class TPt<TGixExpItem>;
 };

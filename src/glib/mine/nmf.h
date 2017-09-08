@@ -26,13 +26,13 @@ public:
 	// calculates the NMF using Gradient Projection with first order approximation (Coordinate search)
 	template <class TMatType>
 	static void CFO(const TMatType& A, const int& R, TFltVV& U, TFltVV& V, const int& MaxIter = 10000, 
-		const double& Eps = 1e-3, const PNotify& TNotify = TNotify::NullNotify);	
+		const double& Eps = 1e-3, const TWPt<TNotify>& TNotify = TNotify::NullNotify());
 
 	// calculates the Weighted NMF using Gradient Projection with first order approximation (Coordinate search)
 	// weights are nonnegative (currently the weight matrix is W, W_ij = A_ij > 0 ? 1 : 0)
 	template <class TMatType>
 	static void WeightedCFO(const TMatType& A, const int& R, TFltVV& U, TFltVV& V, const int& MaxIter = 10000,
-		const double& Eps = 1e-3, const PNotify& TNotify = TNotify::NullNotify);
+		const double& Eps = 1e-3, const TWPt<TNotify>& TNotify = TNotify::NullNotify());
 
 private:
 	//============================================================
@@ -108,7 +108,7 @@ private:
 
 template <class TMatType>
 void TNmf::CFO(const TMatType& A, const int& R, TFltVV& U, TFltVV& V, const int& MaxIter, 
-	const double& Eps, const PNotify& Notify) {
+	const double& Eps, const TWPt<TNotify>& Notify) {
 
 	int Rows = NumOfRows(A);
 	int Cols = NumOfCols(A);
@@ -157,7 +157,7 @@ void TNmf::CFO(const TMatType& A, const int& R, TFltVV& U, TFltVV& V, const int&
 
 template <class TMatType>
 void TNmf::WeightedCFO(const TMatType& A, const int& R, TFltVV& U, TFltVV& V, const int& MaxIter,
-	const double& Eps, const PNotify& Notify) {
+	const double& Eps, const TWPt<TNotify>& Notify) {
 
 	int Rows = NumOfRows(A);
 	int Cols = NumOfCols(A);

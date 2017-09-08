@@ -115,7 +115,6 @@ function FillAndCheck(base, rec_id_type, freq_type) {
 /*
 // field joins
 describe('Different join-field-type tests', function () {
-    this.timeout(15000);
     it('should pass', function () {
         var rec_id_types = ["uint64", "uint", "uint16", "byte"];
         var freq_types = ["uint16", "byte", "int", "int16", ""];
@@ -153,7 +152,6 @@ for (var k = 0; k < 2; k++) {
             var rec_id_type = rec_id_types[i];
             var freq_type = freq_types[j];
             describe('Different join-field-type tests ' + rec_id_type + "/" + freq_type + "/" + sloc, function () {
-                this.timeout(15000);
                 it('should pass', function (rec_id_type, freq_type, sloc) {
                     return function() {
                         SingleStep(rec_id_type, freq_type, sloc);
