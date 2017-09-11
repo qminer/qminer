@@ -3963,7 +3963,6 @@ void TNodeJsTDigest::Init(v8::Handle<v8::Object> exports) {
 
     // Add all methods, getters and setters here.
     NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
     NODE_SET_PROTOTYPE_METHOD(tpl, "partialFit", _partialFit);
     NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
@@ -3976,9 +3975,15 @@ void TNodeJsTDigest::Init(v8::Handle<v8::Object> exports) {
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
 }
 
-TNodeJsTDigest::TNodeJsTDigest(const PJsonVal& ParamVal): Model(ParamVal) { }
+TNodeJsTDigest::TNodeJsTDigest(const PJsonVal& ParamVal):
+    Model(
+            ParamVal->GetObjInt("clusters", 100),
+            ParamVal->GetObjNum("minEps", 1e-4),
+            ParamVal->GetObjInt("seed", 0)
+    ),
+    RndSeed(ParamVal->GetObjInt("seed", 0)) {}
 
-TNodeJsTDigest::TNodeJsTDigest(TSIn& SIn) { Model.LoadState(SIn);  }
+TNodeJsTDigest::TNodeJsTDigest(TSIn& SIn): Model(SIn), RndSeed(SIn) {}
 
 TNodeJsTDigest* TNodeJsTDigest::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -4005,22 +4010,15 @@ void TNodeJsTDigest::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) 
     v8::HandleScope HandleScope(Isolate);
 
     TNodeJsTDigest* JsTDigest = ObjectWrap::Unwrap<TNodeJsTDigest>(Args.Holder());
-    PJsonVal ParamVal = JsTDigest->Model.GetParams();
+    const TQuant::TTDigest& Model = JsTDigest->Model;
+
+    PJsonVal ParamVal = TJsonVal::NewObj();
+    ParamVal->AddToObj("seed", JsTDigest->RndSeed);
+    ParamVal->AddToObj("clusters", Model.GetMnCentroids());
+    ParamVal->AddToObj("minEps", Model.GetMnEps());
+
     v8::Local<v8::Value> JsParamVal = TNodeJsUtil::ParseJson(Isolate, ParamVal);
     Args.GetReturnValue().Set(JsParamVal);
-}
-
-void TNodeJsTDigest::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
-
-    EAssertR(Args.Length() == 1, "TDigest.setParams: Should have 1 argument!");
-
-    TNodeJsTDigest* JsTDigest = ObjectWrap::Unwrap<TNodeJsTDigest>(Args.Holder());
-    PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
-    JsTDigest->Model.SetParams(ParamVal);
-
-    Args.GetReturnValue().Set(Args.Holder());
 }
 
 void TNodeJsTDigest::partialFit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -4028,10 +4026,12 @@ void TNodeJsTDigest::partialFit(const v8::FunctionCallbackInfo<v8::Value>& Args)
     v8::HandleScope HandleScope(Isolate);
 
     TNodeJsTDigest* JsTDigest = ObjectWrap::Unwrap<TNodeJsTDigest>(Args.Holder());
-    double Val = TNodeJsUtil::GetArgFlt(Args, 0);
+    TQuant::TTDigest& Model = JsTDigest->Model;
 
-    // save model
-    JsTDigest->Model.Update(Val);
+    const double Val = TNodeJsUtil::GetArgFlt(Args, 0);
+
+    // update model
+    Model.Insert(Val);
     //// return output stream for convenience
     Args.GetReturnValue().Set(Args.Holder());
 }
@@ -4041,11 +4041,24 @@ void TNodeJsTDigest::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::HandleScope HandleScope(Isolate);
 
     TNodeJsTDigest* JsTDigest = ObjectWrap::Unwrap<TNodeJsTDigest>(Args.Holder());
+    const TQuant::TTDigest& TDigest = JsTDigest->Model;
 
-    double Val = TNodeJsUtil::GetArgFlt(Args, 0);
-    double Quantile = JsTDigest->Model.GetQuantile(Val);
+    if (TNodeJsUtil::IsArgFlt(Args, 0)) {
+        const double PVal = TNodeJsUtil::GetArgFlt(Args, 0);
+        const double Quant = TDigest.Query(PVal);
 
-    Args.GetReturnValue().Set(v8::Number::New(Isolate, Quantile));
+        Args.GetReturnValue().Set(v8::Number::New(Isolate, Quant));
+    } else {
+        TFltV PValV; TNodeJsUtil::GetArgFltV(Args, 0, PValV);
+        TFltV QuantV; TDigest.Query(PValV, QuantV);
+
+        v8::Handle<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
+        for (int QuantN = 0; QuantN < QuantV.Len(); ++QuantN) {
+            QuantArr->Set(QuantN, v8::Number::New(Isolate, QuantV[QuantN]));
+        }
+
+        Args.GetReturnValue().Set(QuantArr);
+    }
 }
 
 void TNodeJsTDigest::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -4058,7 +4071,8 @@ void TNodeJsTDigest::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     // get output stream from arguments
     TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
     // save model
-    JsTDigest->Model.SaveState(*JsFOut->SOut);
+    JsTDigest->Model.Save(*JsFOut->SOut);
+    JsTDigest->RndSeed.Save(*JsFOut->SOut);
     // return output stream for convenience
     Args.GetReturnValue().Set(Args[0]);
 }
@@ -4069,7 +4083,7 @@ void TNodeJsTDigest::init(v8::Local<v8::String> Name, const v8::PropertyCallback
 
     // unwrap
     TNodeJsTDigest* JsModel = ObjectWrap::Unwrap<TNodeJsTDigest>(Info.Holder());
-    Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Model.IsInit()));
+    Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Model.GetSampleN() > 0));
 }
 
 void TNodeJsTDigest::size(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {

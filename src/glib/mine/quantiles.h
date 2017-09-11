@@ -673,6 +673,37 @@ namespace TQuant {
                 TBool UseBands;
             };
         }
+
+        namespace TTDigestUtils {
+
+            class TCentroid {
+            public:
+                TCentroid();
+                TCentroid(const double& Val, const int& Wgt);
+
+                // SERIALIZATION
+                TCentroid(TSIn&);
+                void Save(TSOut&) const;
+
+                void Swallow(const double& Val, const int& ValWgt);
+
+                double GetDist(const double& Val) const;
+
+                const TFlt& GetMean() const { return Mean; }
+                const TUInt& GetCount() const { return Count; }
+
+                // DEBUGGING
+                uint64 GetMemUsed() const;
+
+            private:
+                TFlt Mean;
+                TUInt Count;
+            };
+
+            inline std::ostream& operator <<(std::ostream& os, const TCentroid& Cent) {
+                return os << "<" << Cent.GetMean().Val << "," << Cent.GetCount().Val << ">";
+            }
+        }
     }
 
     ///////////////////////////////////////////////
@@ -819,6 +850,61 @@ namespace TQuant {
     };
 
     using TCkms = TBiasedGk;
+
+    class TTDigest {
+        using TCentroid = TUtils::TTDigestUtils::TCentroid;
+        using TCentroidV = TVec<TCentroid>;
+    public:
+        TTDigest(const int& MnCentroids, const TRnd& Rnd=TRnd());
+        TTDigest(const int& MnCentroids, const double& MnEps, const TRnd& Rnd=TRnd());
+
+        // SERIALIZATION
+        TTDigest(TSIn&);
+        void Save(TSOut&) const;
+
+        /// returns the (approximate) quantile for the given
+        /// cumulative probability
+        double Query(const double& PVal) const;
+        /// calcuated an array of (approximate) quantiles for the
+        /// given cumulative probabilities
+        void Query(const TFltV& PValV, TFltV& QuantV) const;
+        /// inserts a new value with the given weight
+        void Insert(const double& Val, const uint& ValWgt=1);
+
+        // PARAMETERS
+        const TRnd& GetRnd() const { return Rnd; }
+        const TInt& GetMnCentroids() const { return MnCentroids; }
+        const TFlt& GetMnEps() const { return MnEps; }
+
+        // DEBUGGING
+        /// returns the current number of centroids in the summary
+        int GetSummarySize() const;
+        const TUInt64& GetSampleN() const;
+        void PrintSummary() const;
+        /// returns the instances memory footprint size
+        uint64 GetMemUsed() const;
+
+    private:
+        // insert helper methods
+        void Insert(const double& Val, const uint& ValWgt, const bool& UpdateSampleN);
+        void Recluster();
+
+        /// returns the maximum number of clusters the algorithm is allowed to produce
+        int GetMxCentroids() const;
+        /// returns the maximum number of items a cluster with the given p-value can
+        /// summarize
+        int GetMxCentroidSize(const double& PVal) const;
+        /// returns the relative error for the given p-value
+        double GetEps(const double& PVal) const;
+
+        TCentroidV CentroidV {};
+        TRnd Rnd {0};
+        TFlt MnEps {1e-4};
+        TInt MnCentroids;
+        TFlt MxCentroidsFactor {20.0};
+        /* TFlt MxCentroidsFactor {10.0}; */
+        TUInt64 SampleN {uint64(0)};
+    };
 
 
     ////////////////////////////////////////////

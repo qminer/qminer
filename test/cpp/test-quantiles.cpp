@@ -39,13 +39,18 @@ double GetSwGkMxRelErr(const double& EpsGk, const double& EpsEh) {
 
 template <typename TGk, typename TLowerBoundFun, typename TUpperBoundFun>
 void AssertQuantileRange(TGk& Gk, const TLowerBoundFun& GetLowerBound,
-        const TUpperBoundFun& GetUpperBound, const double PValStep=1e-3) {
+        const TUpperBoundFun& GetUpperBound, const double PValStep=1e-3, const bool& PrintP=false) {
 
     for (double PVal = 0.0; PVal <= 1.0; PVal += PValStep) {
         const double QuantMn = GetLowerBound(PVal);
         const double QuantMx = GetUpperBound(PVal);
 
         const double EstQuant = Gk.Query(PVal);
+
+        if (PrintP) {
+            std::cout << "p-val: " << PVal << " (estimated) quantile: " << EstQuant << ", QuantMn: " << QuantMn << ", QuantMx: " << QuantMx << std::endl;
+            Gk.PrintSummary();
+        }
 
         ASSERT_GE(EstQuant, QuantMn);
         ASSERT_LE(EstQuant, QuantMx);
@@ -72,6 +77,7 @@ void AssertQuantileRangeV(TGk& Gk, const TLowerBoundFun& GetLowerBound,
 
         if (PrintP) {
             std::cout << "p-val: " << PVal << " (estimated) quantile: " << EstQuant << ", (vector est.) quantile: " << QuantV[PValN].Val << ", QuantMn: " << QuantMn << ", QuantMx: " << QuantMx << std::endl;
+            Gk.PrintSummary();
         }
 
         ASSERT_GE(EstQuant, QuantMn);
@@ -316,6 +322,104 @@ TEST(TBiasedGk, ZeroQ0) {
 }
 
 // TODO test space limitation
+
+TEST(TTDigest, Query) {
+    const int BatchSize = 1000;
+    const int NTrials = 100;
+
+    const int MnCentroids = 100;
+
+    TRnd Rnd(1);
+    TTDigest TDigest(MnCentroids, Rnd);
+
+    TIntV SampleV;
+    for (int TrialN = 0; TrialN < NTrials; ++TrialN) {
+        GenSamplesUniform(BatchSize, SampleV);
+        for (int SampleN = 0; SampleN < BatchSize; SampleN++) {
+            TDigest.Insert(SampleV[SampleN]);
+        }
+
+        const auto GetWorstPVal = [&](const double& PVal) {
+            // in the worst case we just hit the centroid on the right
+            // in that case, the p-value we need to calculate the error
+            // is given by oequation:
+            // p + eps = p_t = p + 2*p_t*(1-p_t)/c = p + 2*p_t/c - 2*p_t*p_t/c
+            // 0 = p + p_t*(2/c-1) - 2/c*p_t^2
+            // solution: 1/4 (2 - c + sqrt(4 - 4c + c^2 + 8cp))
+            // analogous for the case were p > 0.5
+            if (PVal <= 0.5) {
+                const double WorstPVal = (2.0 - MnCentroids + TMath::Sqrt(4 - 4*MnCentroids + MnCentroids*MnCentroids + 8*MnCentroids*PVal)) / 4.0;
+                if (WorstPVal > 0.5) {
+                    return 0.5;
+                } else {
+                    return WorstPVal;
+                }
+            } else {
+                const double WorstPVal = (2.0 + MnCentroids - TMath::Sqrt(4 + 4*MnCentroids + MnCentroids*MnCentroids - 8*MnCentroids*PVal)) / 4.0;
+                if (WorstPVal < 0.5) {
+                    return 0.5;
+                } else {
+                    return WorstPVal;
+                }
+            }
+        };
+        const auto LowerBound = [&](const double& PVal) {
+            const double WorstPVal = GetWorstPVal(PVal);
+            const double Eps = 2*WorstPVal*(1 - WorstPVal) / MnCentroids; 
+            /* printf("lower bound: pval: %.5f, worst pval: %.5f\n", PVal, WorstPVal); */
+            return std::floor(1 + (BatchSize - 1)*(PVal - Eps));
+        };
+        const auto UpperBound = [&](const double& PVal) {
+            const double WorstPVal = GetWorstPVal(PVal);
+            const double Eps = 2*WorstPVal*(1 - WorstPVal) / MnCentroids; 
+            /* printf("pval: %.5f, worst pval: %.5f\n", PVal, WorstPVal); */
+            return std::ceil(1 + (BatchSize - 1)*(PVal + Eps));
+        };
+
+        AssertQuantileRangeV(TDigest, LowerBound, UpperBound, 1e-3, false);
+    }
+}
+
+TEST(TTDigest, SummarySize) {
+    const int BatchSize = 1000;
+    const int NTrials = 100;
+
+    const int MnCentroids = 100;
+
+    TRnd Rnd(1);
+    TTDigest TDigest(MnCentroids, Rnd);
+
+    TIntV SampleV;
+    for (int TrialN = 0; TrialN < NTrials; ++TrialN) {
+        GenSamplesUniform(BatchSize, SampleV);
+        for (int SampleN = 0; SampleN < BatchSize; SampleN++) {
+            TDigest.Insert(SampleV[SampleN]);
+            /* if (SampleN == BatchSize-1) { */
+            /*     std::cout << "summary size: " << TDigest.GetSummarySize() << std::endl; */
+            /* } */
+            ASSERT_LE(TDigest.GetSummarySize(), 20*MnCentroids);
+        }
+    }
+}
+
+TEST(TTDigest, SampleN) {
+    const int BatchSize = 1000;
+    const int NTrials = 100;
+
+    const int MnCentroids = 100;
+
+    TRnd Rnd(1);
+    TTDigest TDigest(MnCentroids, Rnd);
+
+    TIntV SampleV;
+    for (int TrialN = 0; TrialN < NTrials; ++TrialN) {
+        GenSamplesUniform(BatchSize, SampleV);
+        for (int SampleN = 0; SampleN < BatchSize; SampleN++) {
+            TDigest.Insert(SampleV[SampleN]);
+            ASSERT_EQ(TrialN*BatchSize + SampleN + 1, TDigest.GetSampleN());
+        }
+    }
+}
 
 
 TEST(TExpHistogram, CountEquallySpaced) {

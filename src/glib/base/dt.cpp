@@ -228,6 +228,10 @@ void TRnd::SaveTxt(TOLx& Lx) const {
   Lx.PutInt(Seed);
 }
 
+uint64 TRnd::GetMemUsed() const {
+    return sizeof(TRnd) + TMemUtils::GetExtraMemberSize(Seed);
+}
+
 /////////////////////////////////////////////////
 /// Thin Input-Memory
 TThinMIn::TThinMIn() :

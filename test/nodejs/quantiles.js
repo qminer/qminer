@@ -19,26 +19,30 @@ describe("TDigest test", function () {
             var tdigest = new analytics.TDigest();
             var params = tdigest.getParams();
 
-            assert.equal(params.minCount, 0);
-            assert.equal(params.clusters, 100);
-            assert(tdigest.init);
+            assert.equal(params.seed, 0, "invalid seed");
+            assert.equal(params.clusters, 100, "invalid number of clusters");
+            assert.equal(params.minEps, 1e-4, "invalid max accuracy");
+            assert(tdigest.init === false);
         });
         it("should construct using provided parameters", function () {
-            var tdigest = new analytics.TDigest({ minCount: 1, clusters: 50 });
+            var tdigest = new analytics.TDigest({ seed: 1, clusters: 50, minEps: 1e-5 });
             var params = tdigest.getParams();
 
-            assert.equal(params.minCount, 1);
-            assert.equal(params.clusters, 50);
-            assert(!tdigest.init);
+            assert.equal(params.seed, 1, "invalid seed");
+            assert.equal(params.clusters, 50, "invalid number of clusters");
+            assert.equal(params.minEps, 1e-5, "invalid max accuracy");
+            assert(tdigest.init === false);
         });
     });
 
     describe("Fit/predict test", function () {
         it("It should return a the prediction for the given fit", function () {
             var tdigest = new analytics.TDigest();
+            assert(tdigest.init === false);
             var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
             for (var i = 0; i < inputs.length; i++) {
                 tdigest.partialFit(inputs[i]);
+                assert(tdigest.init === true);
             }
             var pred = tdigest.predict(0.1);
             // TODO test
@@ -47,13 +51,14 @@ describe("TDigest test", function () {
 
     describe('Serialization Tests', function () {
         it('should serialize and deserialize', function () {
-            var tdigest = new analytics.TDigest({ minCount: 1, clusters: 50 });
+            var tdigest = new analytics.TDigest({ seed: 1, clusters: 50, minEps: 1e-5 });
             tdigest.save(fs.openWrite('tdigest.bin')).close();
             var tdigest2 = new analytics.TDigest(fs.openRead('tdigest.bin'));
             var params = tdigest2.getParams();
-            assert.equal(params.minCount, 1);
-            assert.equal(params.clusters, 50);
-            assert(!tdigest2.init);
+            assert.equal(params.seed, 1, "invalid seed");
+            assert.equal(params.clusters, 50, "invalid number of clusters");
+            assert.equal(params.minEps, 1e-5, "invalid max accuracy");
+            assert(tdigest.init === false);
         })
     });
 });

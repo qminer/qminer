@@ -2826,7 +2826,8 @@ public:
     static const TStr GetClassId() { return "TDigest"; }
 
 private:
-    TSignalProc::TTDigest Model;
+    TQuant::TTDigest Model;
+    TInt RndSeed;
 
     TNodeJsTDigest(const PJsonVal& ParamVal);
     TNodeJsTDigest(TSIn& SIn);
@@ -2850,22 +2851,6 @@ public:
     */
     //# exports.TDigest.prototype.getParams = function () { return { }; }
     JsDeclareFunction(getParams);
-
-    /**
-    * Sets the parameters.
-    * @param {module:analytics~TDigestParam} params - The construction parameters.
-    * @returns {module:analytics.TDigest} Self. The model parameters have been updated.
-    * @example
-    * // import modules
-    * var qm = require('qminer');
-    * var analytics = qm.analytics;
-    * // create the default TDigest object
-    * var tdigest = new analytics.TDigest();
-    * // set the parameters of the object
-    * var params = tdigest.setParams({ minCount: 10, clusters: 50 });
-    */
-    //# exports.TDigest.prototype.setParams = function (params) { return Object.create(require('qminer').analytics.TDigest.prototype); }
-    JsDeclareFunction(setParams);
 
     /**
     * Adds a new measurement to the model and updates the approximation of the data distribution.
