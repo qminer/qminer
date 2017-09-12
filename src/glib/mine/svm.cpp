@@ -8,8 +8,8 @@
 
 namespace TSvm {
   
-    svm_model_t* TLinModel::GetModelStruct() const {
-        svm_model_t* svm_model;
+    svm_model_t* TLibSvmModel::GetModelStruct() const {
+        svm_model_t* svm_model = new svm_model_t;
         svm_model->param = Param.GetParamStruct();
         int DimX = SupportVectors.GetXDim();
         int DimY = SupportVectors.GetYDim();
@@ -50,8 +50,14 @@ namespace TSvm {
         return svm_model;
     }
     
+    void InputToArrays(const TFltV& TargetV, double* y){
+      for (int VecN = 0; VecN < TargetV.Len(); ++VecN) {
+        y[VecN] = TargetV[VecN];
+      }
+    }
+    
     /// LIBSVM for sparse input
-    void TLinModel::LibSvmFit(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV, double Cost, double Unbalance, double Nu, double Eps, double CacheSize, double P,
+    void TLibSvmModel::LibSvmFit(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV, double Cost, double Unbalance, double Nu, double Eps, double CacheSize, double P,
             PNotify DebugNotify, PNotify ErrorNotify) {
         
         // load training parameters
@@ -65,7 +71,6 @@ namespace TSvm {
         svm_problem.l = VecV.Len();
         // reserve space for target variable
         svm_problem.y = (double *)malloc(VecV.Len() * sizeof(double));
-        
         // reserve space for training vectors
         svm_problem.x = (svm_node_t **)malloc(VecV.Len() * sizeof(svm_node_t *));
         // compute number of nonzero elements and get dimensionalit
@@ -129,7 +134,7 @@ namespace TSvm {
     }
     
     /// Use LIBSVM for dense input
-    void TLinModel::LibSvmFit(const TFltVV& VecV, const TFltV& TargetV, double Cost, double Unbalance, double Nu, double Eps, double CacheSize, double P,
+    void TLibSvmModel::LibSvmFit(const TFltVV& VecV, const TFltV& TargetV, double Cost, double Unbalance, double Nu, double Eps, double CacheSize, double P,
             PNotify DebugNotify, PNotify ErrorNotify) {
       
         // load training parameters

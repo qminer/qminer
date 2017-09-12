@@ -14,6 +14,67 @@
 
 namespace TSvm {
   
+/// abstract class
+class TSvmModel{
+public:
+  virtual  ~TSvmModel() {  }
+  virtual void Load(TSIn& SIn) = 0;
+  virtual void Save(TSOut& SOut) const = 0;
+  virtual double Predict(const TFltV& Vec) const = 0;
+  virtual double Predict(const TIntFltKdV& SpVec) const = 0;
+  virtual double Predict(const TFltVV& Mat, const int& ColN) const = 0;
+  virtual const TFltV& GetWgtV() const = 0;
+  virtual double GetBias() const = 0;
+};
+
+
+/// Linear model
+class TLinModel : public TSvmModel{
+private:
+    TFltV WgtV;
+    TFlt Bias;
+public:    
+    TLinModel(): Bias(0.0) {  }
+    TLinModel(const TFltV& _WgtV): WgtV(_WgtV), Bias(0.0) {  }
+    TLinModel(const TFltV& _WgtV, const double& _Bias): WgtV(_WgtV), Bias(_Bias) {  }
+    ~TLinModel() {  }
+
+    TLinModel(TSIn& SIn):
+        WgtV(SIn),
+        Bias(SIn) {  }
+    
+    void Load(TSIn& SIn){
+       WgtV.Load(SIn);
+       Bias.Load(SIn);
+    }
+        
+    void Save(TSOut& SOut) const { 
+        WgtV.Save(SOut);
+        Bias.Save(SOut);
+    }
+    
+    /// Get weight vector
+    virtual const TFltV& GetWgtV() const { return WgtV; }    
+    
+    /// Get bias
+    double GetBias() const { return Bias; }
+    
+    /// Classify full vector
+    double Predict(const TFltV& Vec) const { 
+        return TLinAlg::DotProduct(WgtV, Vec) + Bias; 
+    }
+    
+    /// Classify sparse vector
+    double Predict(const TIntFltKdV& SpVec) const { 
+        return TLinAlg::DotProduct(WgtV, SpVec) + Bias;
+    }
+
+    /// Classify matrix column vector
+    double Predict(const TFltVV& Mat, const int& ColN) const {
+        return TLinAlg::DotProduct(Mat, ColN, WgtV) + Bias;
+    }
+};
+  
 class TLibSvmParam{
   public:
     TInt Type;
@@ -32,6 +93,14 @@ class TLibSvmParam{
       Degree(TInt(SIn)),
       Gamma(TFlt(SIn)),
       Coef0(TFlt(SIn)){  }
+      
+    void Load(TSIn& SIn){
+       Type.Load(SIn);
+       Kernel.Load(SIn);
+       Degree.Load(SIn);
+       Gamma.Load(SIn);
+       Coef0.Load(SIn);
+    }
     
     void Save(TSOut& SOut) const {
       TInt(Type).Save(SOut);
@@ -79,8 +148,8 @@ class TLibSvmParam{
     
 };//end TSvmParam
 
-/// Linear model
-class TLinModel {
+/// General model
+class TLibSvmModel : public TSvmModel{
 private:
     TFltV WgtV;
     TFlt Bias;
@@ -89,18 +158,28 @@ private:
     TFltVV Coef; /// coefficients for support vectors
     TFltV Rho; /// bias terms
 public:
-    TLinModel(): Bias(0.0) {  }
-    TLinModel(const TFltV& _WgtV): WgtV(_WgtV), Bias(0.0) {  }
-    TLinModel(const TFltV& _WgtV, const double& _Bias): WgtV(_WgtV), Bias(_Bias) {  }
-    TLinModel(TInt _Type, TInt _Kernel, TInt _Degree, TFlt _Gamma, TFlt _Coef0): Bias(0.0) { Param = TLibSvmParam(_Type, _Kernel, _Degree, _Gamma, _Coef0); }
+    TLibSvmModel(): Bias(0.0) {  }
+    TLibSvmModel(const TFltV& _WgtV): WgtV(_WgtV), Bias(0.0) {  }
+    TLibSvmModel(const TFltV& _WgtV, const double& _Bias): WgtV(_WgtV), Bias(_Bias) {  }
+    TLibSvmModel(TInt _Type, TInt _Kernel, TInt _Degree, TFlt _Gamma, TFlt _Coef0): Bias(0.0) { Param = TLibSvmParam(_Type, _Kernel, _Degree, _Gamma, _Coef0); }
+    ~TLibSvmModel() {  }
 
-    TLinModel(TSIn& SIn):
+    TLibSvmModel(TSIn& SIn):
         WgtV(SIn),
         Bias(SIn),
         Param(SIn),
         SupportVectors(SIn),
         Coef(SIn),
         Rho(SIn) {  }
+        
+    void Load(TSIn& SIn){
+       WgtV.Load(SIn);
+       Bias.Load(SIn);
+       Param.Load(SIn);
+       SupportVectors.Load(SIn);
+       Coef.Load(SIn);
+       Rho.Load(SIn);
+    }
         
     void Save(TSOut& SOut) const { 
         WgtV.Save(SOut);
@@ -112,7 +191,7 @@ public:
     }
     
     /// Get weight vector
-    const TFltV& GetWgtV() const { return WgtV; }    
+    virtual const TFltV& GetWgtV() const { return WgtV; }    
     
     /// Get bias
     double GetBias() const { return Bias; }
@@ -192,7 +271,7 @@ public:
 }; //
 
 template <class TVecV>
-TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
+inline TLinModel* SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
         const TFltV& TargetV, const double& Cost, const double& UnbalanceWgt,
         const int& MxMSecs, const int& MxIter, const double& MnDiff, 
         const int& SampleSize, const PNotify& Notify = TStdNotify::New()) {
@@ -319,11 +398,11 @@ TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
     ProgressNotify();
     Profiler.PrintReport(Notify);
             
-    return TLinModel(WgtV);
+    return new TLinModel(WgtV);
 }
         
 template <class TVecV>
-inline TLinModel SolveRegression(const TVecV& VecV, const int& Dims, const int& Vecs,
+inline TLinModel* SolveRegression(const TVecV& VecV, const int& Dims, const int& Vecs,
 	const TFltV& TargetV, const double& Cost, const double& Eps,
 	const int& MxMSecs, const int& MxIter, const double& MnDiff,
 	const int& SampleSize, const PNotify& Notify) {
@@ -454,7 +533,7 @@ inline TLinModel SolveRegression(const TVecV& VecV, const int& Dims, const int& 
 
 	Profiler.PrintReport(Notify);
 
-	return TLinModel(WgtV);
+	return new TLinModel(WgtV);
 }
 
 };

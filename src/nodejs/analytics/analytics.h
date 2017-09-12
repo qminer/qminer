@@ -126,7 +126,8 @@ private:
     enum { LIBSVM_LINEAR, LIBSVM_POLY, LIBSVM_RBF, LIBSVM_SIGMOID, LIBSVM_PRECOMPUTED, DEFAULT }; /// constants for Kernel, LIBSVM specific
 
     // model
-    TSvm::TLinModel Model;
+    //TWPt<TSvm::TSvmModel> Model;
+    TSvm::TSvmModel* Model = NULL;
 
     TNodeJsSvmModel(const PJsonVal& ParamVal);
     TNodeJsSvmModel(TSIn& SIn);
