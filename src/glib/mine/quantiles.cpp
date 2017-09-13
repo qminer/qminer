@@ -1496,15 +1496,37 @@ namespace TQuant {
     /// t-Digest
     TTDigest::TTDigest(const int& _MnCentroids, const TRnd& _Rnd):
             Rnd(_Rnd),
-            MnCentroids(_MnCentroids) {
+            MnCentroids(_MnCentroids),
+            CompressStrategy(TCompressStrategy::csNever) {
         EAssert(MnCentroids >= 1);
+
+        if (CompressStrategy == TCompressStrategy::csPeriodic) {
+            ReclustSampleN = COMPRESS_INTERVAL_FACTOR * MnCentroids;
+        }
     }
 
-    TTDigest::TTDigest(const int& _MnCentroids, const double& _MnEps, const TRnd& _Rnd):
+    TTDigest::TTDigest(const int& _MnCentroids, const TCompressStrategy& _Cs, const TRnd& _Rnd):
+            Rnd(_Rnd),
+            MnCentroids(_MnCentroids),
+            CompressStrategy(_Cs) {
+        EAssert(MnCentroids >= 1);
+
+        if (CompressStrategy == TCompressStrategy::csPeriodic) {
+            ReclustSampleN = COMPRESS_INTERVAL_FACTOR * MnCentroids;
+        }
+    }
+
+    TTDigest::TTDigest(const int& _MnCentroids, const double& _MnEps, const TCompressStrategy& _Cs,
+                const TRnd& _Rnd):
             Rnd(_Rnd),
             MnEps(_MnEps),
-            MnCentroids(_MnCentroids) {
+            MnCentroids(_MnCentroids),
+            CompressStrategy(_Cs) {
         EAssert(MnCentroids >= 1);
+
+        if (CompressStrategy == TCompressStrategy::csPeriodic) {
+            ReclustSampleN = COMPRESS_INTERVAL_FACTOR * MnCentroids;
+        }
     }
 
     TTDigest::TTDigest(TSIn& SIn):
@@ -1513,7 +1535,9 @@ namespace TQuant {
         MnEps(SIn),
         MnCentroids(SIn),
         MxCentroidsFactor(SIn),
-        SampleN(SIn) {}
+        SampleN(SIn),
+        ReclustSampleN(SIn),
+        CompressStrategy(static_cast<TCompressStrategy>(TUCh(SIn).Val)) {}
 
     void TTDigest::Save(TSOut& SOut) const {
         CentroidV.Save(SOut);
@@ -1522,6 +1546,8 @@ namespace TQuant {
         MnCentroids.Save(SOut);
         MxCentroidsFactor.Save(SOut);
         SampleN.Save(SOut);
+        ReclustSampleN.Save(SOut);
+        TUCh(static_cast<uchar>(CompressStrategy)).Save(SOut);
     }
 
     double TTDigest::Query(const double& PVal) const {
@@ -1613,6 +1639,7 @@ namespace TQuant {
 
     void TTDigest::Insert(const double& Val, const uint& ValWgt) {
         Insert(Val, ValWgt, true);
+        if (SampleN >= ReclustSampleN) { Recluster(); }
     }
 
     int TTDigest::GetSummarySize() const {
@@ -1756,9 +1783,12 @@ namespace TQuant {
     }
 
     void TTDigest::Recluster() {
-        /* std::cout << "reclustering, number of centroids: " << GetSummarySize() << std::endl; */
+        if (SampleN >= ReclustSampleN) {
+            ReclustSampleN += COMPRESS_INTERVAL_FACTOR * GetSummarySize();
+        }
+
         // clear the centroids and insert old centroids one by one in random order
-        TCentroidV OldCentroidV(CentroidV.Len(), 0);
+        TCentroidV OldCentroidV(TMath::Mn(CentroidV.Reserved(), int(MxCentroidsFactor*MnCentroids)), 0);
         std::swap(OldCentroidV, CentroidV);
 
         const int NCentroids = OldCentroidV.Len();

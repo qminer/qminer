@@ -22,15 +22,17 @@ describe("TDigest test", function () {
             assert.equal(params.seed, 0, "invalid seed");
             assert.equal(params.clusters, 100, "invalid number of clusters");
             assert.equal(params.minEps, 1e-4, "invalid max accuracy");
+            assert.equal(params.compression, "periodic", "invalid compression");
             assert(tdigest.init === false);
         });
         it("should construct using provided parameters", function () {
-            var tdigest = new analytics.TDigest({ seed: 1, clusters: 50, minEps: 1e-5 });
+            var tdigest = new analytics.TDigest({ seed: 1, clusters: 50, minEps: 1e-5, compression: "manual" });
             var params = tdigest.getParams();
 
             assert.equal(params.seed, 1, "invalid seed");
             assert.equal(params.clusters, 50, "invalid number of clusters");
             assert.equal(params.minEps, 1e-5, "invalid max accuracy");
+            assert.equal(params.compression, "manual", "invalid compression");
             assert(tdigest.init === false);
         });
     });

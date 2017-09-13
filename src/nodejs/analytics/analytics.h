@@ -2826,7 +2826,10 @@ public:
     static const TStr GetClassId() { return "TDigest"; }
 
 private:
-    TQuant::TTDigest Model;
+    using TTDigest = TQuant::TTDigest;
+    using TCompressStrategy = TTDigest::TCompressStrategy;
+
+    TTDigest Model;
     TInt RndSeed;
 
     TNodeJsTDigest(const PJsonVal& ParamVal);
@@ -2945,6 +2948,10 @@ public:
      */
     //# exports.TDigest.memory = 0;
     JsDeclareProperty(memory);
+
+private:
+    static TCompressStrategy ExtractCompressStrategy(const TStr&);
+    static TStr ExtractStr(const TCompressStrategy&);
 };
 
 /**

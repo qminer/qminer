@@ -3979,6 +3979,7 @@ TNodeJsTDigest::TNodeJsTDigest(const PJsonVal& ParamVal):
     Model(
             ParamVal->GetObjInt("clusters", 100),
             ParamVal->GetObjNum("minEps", 1e-4),
+            ExtractCompressStrategy(ParamVal->GetObjStr("compression", "never")),
             ParamVal->GetObjInt("seed", 0)
     ),
     RndSeed(ParamVal->GetObjInt("seed", 0)) {}
@@ -4015,6 +4016,7 @@ void TNodeJsTDigest::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) 
     PJsonVal ParamVal = TJsonVal::NewObj();
     ParamVal->AddToObj("seed", JsTDigest->RndSeed);
     ParamVal->AddToObj("clusters", Model.GetMnCentroids());
+    ParamVal->AddToObj("compression", ExtractStr(Model.GetCompressStrategy()));
     ParamVal->AddToObj("minEps", Model.GetMnEps());
 
     v8::Local<v8::Value> JsParamVal = TNodeJsUtil::ParseJson(Isolate, ParamVal);
@@ -4102,6 +4104,29 @@ void TNodeJsTDigest::memory(v8::Local<v8::String> Name, const v8::PropertyCallba
     const TNodeJsTDigest* JsModel = ObjectWrap::Unwrap<TNodeJsTDigest>(Info.Holder());
 
     Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Model.GetMemUsed()));
+}
+
+typename TNodeJsTDigest::TCompressStrategy TNodeJsTDigest::ExtractCompressStrategy(const TStr& CsStr) {
+    if (CsStr == "never") {
+        return TCompressStrategy::csNever;
+    } else if (CsStr == "periodic") {
+        return TCompressStrategy::csPeriodic;
+    }  else {
+        throw TExcept::New("Invalid compress strategy: " + CsStr);
+    }
+}
+
+TStr TNodeJsTDigest::ExtractStr(const TCompressStrategy& Cs) {
+    switch (Cs) {
+    case TCompressStrategy::csNever:
+        return "never";
+    case TCompressStrategy::csPeriodic:
+        return "periodic";
+    default: {
+        typename std::underlying_type<TCompressStrategy>::type CsCast = static_cast<std::underlying_type<TCompressStrategy>::type>(Cs);
+        throw TExcept::New(TStr("Invalid compress strategy: ") + CsCast);
+    }
+    }
 }
 
 ///////////////////////////////////////////////////////
