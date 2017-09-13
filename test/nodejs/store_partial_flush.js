@@ -12,10 +12,10 @@ var qm = require('qminer');
 var fs = qm.fs;
 
 describe('Partial-flush tests', function () {
-    describe('simple load-store-close-open test', function () { 
+    it('should perform a simple load-store-close-open test', function (done) {
         this.timeout(300 * 1000);
 
-        var rec_cnt = 100 * 1000;
+        var rec_cnt = 10 * 1000;
         var tab1_name = "Store1";
         var tab2_name = "Store2";
 
@@ -68,15 +68,15 @@ describe('Partial-flush tests', function () {
                 "storage_location": "cache"
             }
         }]);
-        
+
         for (var i = 0; i < rec_cnt; i++) {
-            var director = {  Name: "Name " + i };
-            base.store(tab2_name).push({ 
-                Name: "Another name " + i, 
+            var director = { Name: "Name " + i };
+            base.store(tab2_name).push({
+                Name: "Another name " + i,
                 Age: (i * 17 + 13) % 97,
                 Director: [director]
             });
-            if (i % 10000 == 0) {
+            if (i % 1000 == 0) {
                 //console.log("partial flush ", i);
                 base.partialFlush(100);
                 //console.log(".");
@@ -84,38 +84,39 @@ describe('Partial-flush tests', function () {
         }
         //console.log("Closing base");
         base.close();
-        
+
         //console.log("Opening base");
         var base2 = new qm.Base({ mode: 'open' });
         var store2 = base2.store(tab2_name);
         var recs2 = store2.allRecords;
         assert.equal(recs2.length, rec_cnt);
-        
+
         //console.log("Checking records");
         for (var i = 0; i < rec_cnt; i++) {
             var rec2 = recs2[i];
             assert.equal(rec2.Name, "Another name " + i);
         }
         for (var i = rec_cnt; i < 2 * rec_cnt; i++) {
-            var director2 = {  Name: "Name " + i };
+            var director2 = { Name: "Name " + i };
             //var actors = [];
-            base2.store(tab2_name).push({ 
-                Name: "Another name " + i, 
+            base2.store(tab2_name).push({
+                Name: "Another name " + i,
                 Age: (i * 17 + 13) % 97,
                 Director: [director2]
             });
-            if (i % 10000 == 0) {
+            if (i % 1000 == 0) {
                 //console.log("partial flush ", i);
                 base2.partialFlush(100);
                 //console.log(".");
             }
         }
         base2.close();
+        done();
     });
-    describe('reproduce error from production 26.02.2016', function () { 
+    it('should reproduce error from production 26.02.2016', function (done) { 
         this.timeout(300 * 1000);
 
-        var rec_cnt = 100 * 1000;
+        var rec_cnt = 10 * 1000;
         var tab1_name = "ProcessRegister";
         var tab2_name = "Logs";
 
@@ -178,7 +179,7 @@ describe('Partial-flush tests', function () {
             };
             //console.log(rec)
             base.store(tab2_name).push(rec);
-            if (i % 10000 == 0) {
+            if (i % 1000 == 0) {
                 //console.log("partial flush ", i);
                 base.partialFlush(100);
                 //console.log(".");
@@ -219,12 +220,13 @@ describe('Partial-flush tests', function () {
                 process: { name: "process" + (i % 5)}
             };
             base2.store(tab2_name).push(rec2);
-            if (i % 10000 == 0) {
+            if (i % 1000 == 0) {
                 //console.log("partial flush ", i);
                 base2.partialFlush(100);
                 //console.log(".");
             }
         }
         base2.close();
+        done();
     });    
 })

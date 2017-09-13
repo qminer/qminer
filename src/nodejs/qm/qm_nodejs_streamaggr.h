@@ -1657,6 +1657,9 @@
  *
  * @example
  *
+ * var assert = require('assert');
+ * var qm = require('qminer');
+ *
  * // variables
  * var batchSize = 1000;
  * var nbatches = 10;

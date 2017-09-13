@@ -144,8 +144,7 @@ class TLibSvmParam{
       svm_parameter.shrinking = 0;
       svm_parameter.probability = 0;
       return svm_parameter;
-    }
-    
+    }    
 };//end TSvmParam
 
 /// General model
@@ -274,11 +273,11 @@ public:
     
     /// LIBSVM for sparse input
     void LibSvmFit(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV, double Cost, double Unbalance, double Nu, double Eps, double CacheSize, double P,
-            PNotify DebugNotify, PNotify ErrorNotify);
+            const TWPt<TNotify>& DebugNotify, const TWPt<TNotify>& ErrorNotify);
 
     /// Use LIBSVM for dense input
     void LibSvmFit(const TFltVV& VecV, const TFltV& TargetV, double Cost, double Unbalance, double Nu, double Eps, double CacheSize, double P,
-            PNotify DebugNotify, PNotify ErrorNotify);
+            const TWPt<TNotify>& DebugNotify, const TWPt<TNotify>& ErrorNotify);
     
 }; //
 
@@ -286,7 +285,7 @@ template <class TVecV>
 inline TLinModel* SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
         const TFltV& TargetV, const double& Cost, const double& UnbalanceWgt,
         const int& MxMSecs, const int& MxIter, const double& MnDiff, 
-        const int& SampleSize, const PNotify& Notify = TStdNotify::New()) {
+        const int& SampleSize, const TWPt<TNotify>& Notify) {
 
     // asserts for input parameters
     EAssertR(Dims > 0, "Dimensionality must be positive!");

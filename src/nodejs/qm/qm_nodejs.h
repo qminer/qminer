@@ -663,6 +663,7 @@ private:
 
     /**
     * Calls qminer garbage collector to remove records outside time windows. For application example see {@link module:qm~SchemaTimeWindowDef}.
+    * @param {number} [max_time=-1] - Maximal number of time each store can spend on cleaning backlog in milisecons. If -1 then no limit is applied.
     */
     //# exports.Base.prototype.garbageCollect = function () { }
     JsDeclareFunction(garbageCollect);
@@ -3199,7 +3200,7 @@ public:
 * // add a new record to the base
 * base.store("Class").push({ Name: "Peterson", Grade: 9 });
 * base.store("Class").push({ Name: "Ericsson", Grade: 8 });
-* // update the feature space for scaling 
+* // update the feature space for scaling
 * ftr.updateRecords(base.store("Class").allRecords);
 * // get the features of the first record
 * var vec = ftr.extractVector(base.store("Class")[0]); // the vector with the random value
@@ -3262,7 +3263,7 @@ public:
 * base.store("Class").push({ Name: "Fred", StudyGroup: "A" });
 * base.store("Class").push({ Name: "Wilma", StudyGroup: "B" });
 * base.store("Class").push({ Name: "Barney", StudyGroup: "C" });
-* // update the feature space to get the categories 
+* // update the feature space to get the categories
 * ftr.updateRecords(base.store("Class").allRecords);
 * // get the feature vector for the first record
 * var vec = ftr.extractVector(base.store("Class")[0]); // returns vector [1, 0, 0]

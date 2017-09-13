@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -22,9 +22,9 @@
 * var str = fin.readLine();
 */
 /**
-	* Open file in read mode and return file input stream.
-	* @param {string} fileName - File name.
-	* @returns {module:fs.FIn} Input stream.
+    * Open file in read mode and return file input stream.
+    * @param {string} fileName - File name.
+    * @returns {module:fs.FIn} Input stream.
     * @example
     * // import fs module
     * var fs = require('qminer').fs;
@@ -32,29 +32,29 @@
     * var fout = fs.openWrite('read_text.txt');
     * // write to file
     * fout.write('This is awesome!');
-    * // close the stream 
+    * // close the stream
     * fout.close();
     * // open file to read
     * var fin = fs.openRead('read_text.txt');
-	*/
+    */
  exports.openRead = function(fileName) { return Object.create(require('qminer').fs.FIn.prototype); }
 /**
-	* Open file in write mode and return file output stream.
-	* @param {string} fileName - File name.
-	* @returns {module:fs.FOut} Output stream.
+    * Open file in write mode and return file output stream.
+    * @param {string} fileName - File name.
+    * @returns {module:fs.FOut} Output stream.
     * @example
     * // import fs module
     * var fs = require('qminer').fs;
     * // open file to write
     * var fout = fs.openWrite('write_text.txt');
-    * // close the stream 
+    * // close the stream
     * fout.close();
-	*/
+    */
  exports.openWrite = function(fileName) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
-	* Open file in append mode and return file output stream.
-	* @param {string} fileName - File name.
-	* @returns {module:fs.FOut} Output stream.
+    * Open file in append mode and return file output stream.
+    * @param {string} fileName - File name.
+    * @returns {module:fs.FOut} Output stream.
     * @example
     * // import fs module
     * var fs = require('qminer').fs;
@@ -66,23 +66,23 @@
     * var foutAppend = fs.openAppend('append_text.txt');
     * // close the stream
     * foutAppend.close();
-	*/
- exports.openAppend = function(fileName) { return Object.create(require('qminer').fs.FOut.prototype); }	
+    */
+ exports.openAppend = function(fileName) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
-	* Checks if the file exists.
-	* @param {string} fileName - File name.
-	* @returns {boolean} True if file exists.
+    * Checks if the file exists.
+    * @param {string} fileName - File name.
+    * @returns {boolean} True if file exists.
     * @example
     * // import fs module
     * var fs = require('qminer').fs;
     * // check if a file exists
     * fs.exists('text.txt');
-	*/
- exports.exists = function(fileName) { return false; }	
+    */
+ exports.exists = function(fileName) { return false; }
 /**
-	* Copies a file.
-	* @param {string} source - Source file name.
-	* @param {string} dest - Destination file name.
+    * Copies a file.
+    * @param {string} source - Source file name.
+    * @param {string} dest - Destination file name.
     * @example
     * // import fs module
     * var fs = require('qminer').fs;
@@ -91,13 +91,13 @@
     * // close the stream
     * fout.close();
     * // copy the file
-    * var destination = fs.copy('text.txt', 'copy.txt');
-	*/
- exports.copy = function(source, dest) { return ""; }	
+    * // var destination = fs.copy('text.txt', 'copy.txt');
+    */
+ exports.copy = function(source, dest) { return ""; }
 /**
-	* Moves a file.
-	* @param {string} source - Source file name.
-	* @param {string} dest - Destination file name.
+    * Moves a file.
+    * @param {string} source - Source file name.
+    * @param {string} dest - Destination file name.
     * @example
     * // import fs module
     * var fs = require('qminer').fs;
@@ -106,13 +106,13 @@
     * // close the stream
     * fout.close();
     * // move the file
-    * var destination = fs.move('text.txt', 'move.txt');
-	*/
+    * // var destination = fs.move('text.txt', 'move.txt');
+    */
  exports.move = function(source, dest) { return ""; }
 /**
-	* Deletes a file.
-	* @param {string} fileName - File name.
-	* @returns {boolean} True if delete succeeded.
+    * Deletes a file.
+    * @param {string} fileName - File name.
+    * @returns {boolean} True if delete succeeded.
     * @example
     * // import fs module
     * var fs = require('qminer').fs;
@@ -122,12 +122,12 @@
     * fout.close();
     * // delete the file
     * var destination = fs.del('delete.txt');
-	*/
- exports.del = function(fileName) { return false; }	
+    */
+ exports.del = function(fileName) { return false; }
 /**
-	* Renames a file.
-	* @param {string} source - Source file name.
-	* @param {string} dest - Destination file name.
+    * Renames a file.
+    * @param {string} source - Source file name.
+    * @param {string} dest - Destination file name.
     * @example
     * // import fs module
     * var fs = require('qminer').fs;
@@ -140,20 +140,20 @@
     *    fs.del('rename.txt');
     * }
     * var destination = fs.rename('text.txt', 'rename.txt');
-	*/
+    */
  exports.rename = function(source, dest) { return ""; }
 /**
-	* @typedef {Object} FileInfo 	
+    * @typedef {Object} FileInfo
     * Information about the file.
-	* @property  {string} createTime - Create time.
-	* @property  {string} lastAccessTime - Last access time.
-	* @property  {string} lastWriteTime - Last write time.
-	* @property  {number} size - File size in bytes.	
-	*/
+    * @property  {string} createTime - Create time.
+    * @property  {string} lastAccessTime - Last access time.
+    * @property  {string} lastWriteTime - Last write time.
+    * @property  {number} size - File size in bytes.
+    */
 /**
-	* Returns the file info.
-	* @param {string} fileName - File name.
-	* @returns {module:fs~FileInfo} File info object.
+    * Returns the file info.
+    * @param {string} fileName - File name.
+    * @returns {module:fs~FileInfo} File info object.
     * @example
     * // import fs module
     * var fs = require('qminer').fs;
@@ -163,23 +163,23 @@
     * fout.close();
     * // get the file info
     * var info = fs.fileInfo('text.txt');
-	*/
- exports.fileInfo = function(fileName) { return { createTime : "",  lastAccessTime: "", lastWriteTime: "", size: 0 }}	
+    */
+ exports.fileInfo = function(fileName) { return { createTime : "",  lastAccessTime: "", lastWriteTime: "", size: 0 }}
 /**
-	* Creates a folder.
-	* @param {string} dirName - Folder name.
-	* @returns {boolean} True if succeeded.
+    * Creates a folder.
+    * @param {string} dirName - Folder name.
+    * @returns {boolean} True if succeeded.
     * @example
     // import fs module
     * var fs = require('qminer').fs;
     * // create a folder
     * var makeFolder = fs.mkdir('folder');
-	*/
- exports.mkdir = function(dirName) { return false; }	
+    */
+ exports.mkdir = function(dirName) { return false; }
 /**
-	* Removes a folder.
-	* @param {string} dirName - Folder name.
-	* @returns {boolean} True if succeeded.
+    * Removes a folder.
+    * @param {string} dirName - Folder name.
+    * @returns {boolean} True if succeeded.
     * @example
     // import fs module
     * var fs = require('qminer').fs;
@@ -189,27 +189,28 @@
     * if (makeFolder) {
     *    fs.rmdir('folder');
     * }
-	*/
+    */
  exports.rmdir = function(dirName) { return false; }
 /**
-	* Returns a list fo files in the folder.
-	* @param {string} dirName - Folder name.
-	* @param {string} [fileExtension] - Results are filtered by file extension.
-	* @param {boolean} [recursive=false] - Recursively searches for file names if true.
-	* @returns {Array.<string>} Array of file names.
+    * Returns a list fo files in the folder.
+    * @param {string} dirName - Folder name.
+    * @param {string} [fileExtension] - Results are filtered by file extension.
+    * @param {boolean} [recursive=false] - Recursively searches for file names if true.
+    * @returns {Array.<string>} Array of file names.
     * @example
     * // import fs module
     * var fs = require('qminer').fs;
     * // get the names of all files
     * var fileNames = fs.listFile('./');
-	*/
+    */
  exports.listFile = function(dirName, fileExtension, recursive) { return ['']; }
 /**
      * Reads a buffer line by line and calls a callback for each line.
      * @param {String | module:fs.FIn | Buffer} buffer - Name of the file, input stream of a Node.js buffer.
-     * @param {function} onLine - A callback that gets called on each line (for example: `function (line) {}`).
-     * @param {function} onEnd - A callback that gets returned after all the lines have been read.
-     * @param {function} onError - A callback that gets called if an error occurs.
+     * @param {function} onLine(line) - A callback that gets called on each line (for example: `function (line) {}`).
+     *   Function must return `true` to continue reading, else reading is stoped and `onEnd` is called.
+     * @param {function} onEnd(err) - A callback that gets returned after all the lines have been read or
+     *   function `onLine` returned `false`. If error was due to exception, the exception is provided in `err`.
      * @example
      * // import fs module
      * var fs = require('qminer').fs;
@@ -220,42 +221,41 @@
      * // open the file in read mode
      * var fin = fs.openRead('poem.txt');
      * // read the file line by line and call functions
-     * //var numberOfLines = 0;
-     * //function onLine(line) {
-     * //    console.log(line);
-     * //    numberOfLines += 1;
-     * //}
-     * //function onEnd(line) {
-     * //    console.log("Number of lines", numberOfLines);
-     * //}
-     * //function onError(err) {
-     * //    console.log(err);
-     * //}
-     * //fs.readLines(fin, onLine, onEnd, onError);
+     * var numberOfLines = 0;
+     * function onLine(line) {
+     *     console.log(line);
+     *     numberOfLines += 1;
+     *     return true;
+     * }
+     * function onEnd(err) {
+     *     if (err) { console.log("Error:", err); }
+     *     console.log("Number of lines", numberOfLines);
+     * }
+     * fs.readLines(fin, onLine, onEnd);
      */
- exports.readLines = function (buffer, onLine, onEnd, onError) {}
+ exports.readLines = function (buffer, onLine, onEnd) {}
 /**
-	* Input file stream.
-	* @classdesc Used for reading files.
-	* @class
-	* @param {string} fileName - File name.
-	* @example
-	* // import module
-	* var fs = require('qminer').fs;
+    * Input file stream.
+    * @classdesc Used for reading files.
+    * @class
+    * @param {string} fileName - File name.
+    * @example
+    * // import module
+    * var fs = require('qminer').fs;
     * // open file in write mode
     * var fout = fs.openWrite('file.txt');
     * // write sync and close
     * fout.writeLine('example text');
     * fout.close();
-	* // open file in read mode
-	* var fin = new fs.FIn('file.txt');
-	* // read a line
-	* var str = fin.readLine();
-	*/
- exports.FIn = function(fileName) { return Object.create(require('qminer').fs.FIn.prototype); }	
+    * // open file in read mode
+    * var fin = new fs.FIn('file.txt');
+    * // read a line
+    * var str = fin.readLine();
+    */
+ exports.FIn = function(fileName) { return Object.create(require('qminer').fs.FIn.prototype); }
 /**
-	* Peeks a character.
-	* @returns {string} Character string.
+    * Peeks a character.
+    * @returns {string} Character string.
     * @example
     * // import module
     * var fs = require('qminer').fs;
@@ -268,11 +268,11 @@
     * var fin = new fs.FIn('file.txt');
     * // peek the next character
     * var char = fin.peekCh();
-	*/
+    */
  exports.FIn.prototype.peekCh= function() { return ''; }
 /**
-	* Reads a character.
-	* @returns {string} Character string.
+    * Reads a character.
+    * @returns {string} Character string.
     * @example
     * // import module
     * var fs = require('qminer').fs;
@@ -285,11 +285,11 @@
     * var fin = new fs.FIn('file.txt');
     * // get the next character
     * var char = fin.getCh();
-	*/
+    */
  exports.FIn.prototype.getCh= function() { return ''; }
 /**
-	* Reads a line.
-	* @returns {string} Line string.
+    * Reads a line.
+    * @returns {string} Line string.
     * @example
     * // import module
     * var fs = require('qminer').fs;
@@ -302,19 +302,19 @@
     * var fin = new fs.FIn('file.txt');
     * // get/read a new line
     * var line = fin.readLine();
-	*/
+    */
  exports.FIn.prototype.readLine = function() { return ''; }
 /**
-	* Reads a string that was serialized using `fs.FOut.writeBinary`.
-	* @returns {string} String.
+    * Reads a string that was serialized using `fs.FOut.writeBinary`.
+    * @returns {string} String.
     * @example
     * // import fs module
     * var fs = require('qminer').fs;
     * // read a string that was serialized using fs.FOut.writeBinary
-	*/
+    */
  exports.FIn.prototype.readString = function() { return ''; }
 /**
-	* True if end of file is detected. Otherwise, false. Type `boolean`.
+    * True if end of file is detected. Otherwise, false. Type `boolean`.
     * @example
     * // import module
     * var fs = require('qminer').fs;
@@ -327,10 +327,10 @@
     * var fin = new fs.FIn('file.txt');
     * // check if it's end of the file
     * var eof = fin.eof;
-	*/
+    */
  exports.FIn.prototype.eof = false;
 /**
-	* Length of input stream. Type `number`.
+    * Length of input stream. Type `number`.
     * @example
     * // import module
     * var fs = require('qminer').fs;
@@ -343,11 +343,11 @@
     * var fin = new fs.FIn('file.txt');
     * // get the length of the document
     * var len = fin.length;
-	*/
+    */
  exports.FIn.prototype.length = 0;
 /**
-	* Reads the whole stream.
-	* @returns {string} Content of the file.
+    * Reads the whole stream.
+    * @returns {string} Content of the file.
     * @example
     * // import module
     * var fs = require('qminer').fs;
@@ -360,10 +360,10 @@
     * var fin = new fs.FIn('file.txt');
     * // get/read a the whole string
     * var all = fin.readAll();
-	*/
+    */
  exports.FIn.prototype.readAll = function() { return ''; }
 /**
-	* Closes the input stream.
+    * Closes the input stream.
     * @example
     * // import module
     * var fs = require('qminer').fs;
@@ -376,10 +376,10 @@
     * var fin = new fs.FIn('file.txt');
     * // close the stream
     * fin.close();
-	*/
+    */
  exports.FIn.prototype.close = function() { }
 /**
-	* Checks if the input stream is closed.
+    * Checks if the input stream is closed.
     * @example
     * // import module
     * var fs = require('qminer').fs;
@@ -392,54 +392,14 @@
     * var fin = new fs.FIn('file.txt');
     * // check if the stream is closed
     * var check = fin.isClosed();
-	*/
+    */
  exports.FIn.prototype.isClosed = function() { return false; }
 /**
-	* Output file stream.
-	* @classdesc Used for writing files.
-	* @class
-	* @param {String} fileName - File name.
-	* @param {boolean} [append=false] - Append flag.
-	* @example
-	* // import module
-	* var fs = require('qminer').fs;
-	* // open file in write mode
-	* var fout = new fs.FOut('file.txt');
-	* // write a line
-	* fout.writeLine('example text');
-	* // close
-	* fout.close();
-	*/
- exports.FOut = function(fileName, append) {}	
-/**
-	* Writes a string or number or a JSON object in human readable form.
-	* @param {(String | Number | Object)} arg - Argument to write.
-	* @returns {module:fs.FOut} Self.
-    * @example
-	* // import module
-	* var fs = require('qminer').fs;
-	* // open file in write mode
-	* var fout = new fs.FOut('file.txt');
-	* // write a string
-	* fout.write('example text');
-    * // close
-    * fout.close();
-	*/
- exports.FOut.prototype.write = function(arg) { return this; }
-/**
-	* Writes a string or number or a JSON object in binary form.
-	* @param {(String | Number | Object)} str - Argument to write.
-	* @returns {module:fs.FOut} Self.
-    * @example
-    * // import fs module
-    * var fs = require('qminer').fs;
-    * // save a string in binary form
-	*/
- exports.FOut.prototype.writeBinary = function(arg) { return this; }
-/**
-	* Writes a string and adds a new line.
-	* @param {String} str - String to write.
-	* @returns {module:fs.FOut} Self.
+    * Output file stream.
+    * @classdesc Used for writing files.
+    * @class
+    * @param {String} fileName - File name.
+    * @param {boolean} [append=false] - Append flag.
     * @example
     * // import module
     * var fs = require('qminer').fs;
@@ -449,11 +409,51 @@
     * fout.writeLine('example text');
     * // close
     * fout.close();
-	*/
+    */
+ exports.FOut = function(fileName, append) {}
+/**
+    * Writes a string or number or a JSON object in human readable form.
+    * @param {(String | Number | Object)} arg - Argument to write.
+    * @returns {module:fs.FOut} Self.
+    * @example
+    * // import module
+    * var fs = require('qminer').fs;
+    * // open file in write mode
+    * var fout = new fs.FOut('file.txt');
+    * // write a string
+    * fout.write('example text');
+    * // close
+    * fout.close();
+    */
+ exports.FOut.prototype.write = function(arg) { return this; }
+/**
+    * Writes a string or number or a JSON object in binary form.
+    * @param {(String | Number | Object)} str - Argument to write.
+    * @returns {module:fs.FOut} Self.
+    * @example
+    * // import fs module
+    * var fs = require('qminer').fs;
+    * // save a string in binary form
+    */
+ exports.FOut.prototype.writeBinary = function(arg) { return this; }
+/**
+    * Writes a string and adds a new line.
+    * @param {String} str - String to write.
+    * @returns {module:fs.FOut} Self.
+    * @example
+    * // import module
+    * var fs = require('qminer').fs;
+    * // open file in write mode
+    * var fout = new fs.FOut('file.txt');
+    * // write a line
+    * fout.writeLine('example text');
+    * // close
+    * fout.close();
+    */
  exports.FOut.prototype.writeLine = function(str) { return this; }
 /**
-	* Flushes the output stream.
-	* @returns {module:fs.FOut} Self.
+    * Flushes the output stream.
+    * @returns {module:fs.FOut} Self.
     * @example
     * // import module
     * var fs = require('qminer').fs;
@@ -465,10 +465,10 @@
     * fout.flush();
     * // close
     * fout.close();
-	*/
+    */
  exports.FOut.prototype.flush = function() { return this; }
 /**
-	* Closes the output stream.
+    * Closes the output stream.
     * @example
     * // import module
     * var fs = require('qminer').fs;
@@ -478,7 +478,7 @@
     * fout.writeLine('example text');
     * // close
     * fout.close();
-	*/
+    */
  exports.FOut.prototype.close = function() {}
 
 

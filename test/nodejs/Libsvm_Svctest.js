@@ -324,9 +324,9 @@ describe("LIBSVM SVC test", function () {
                 SVC.fit(matrix, vec);
             });
         })
-        it('should return a close-zero model', function () {
-            var matrix = new la.Matrix([[-1, -1], [0, 0]]);
-            var vec = new la.Vector([-1, 1]);
+        it('should return a close-zero model and print a WARNING (class label 1 not found)', function () {
+            var matrix = new la.Matrix([[1, -1], [0, 0]]);
+            var vec = new la.Vector([-1, -1]);
             var SVC = new analytics.SVC({ algorithm: "LIBSVM" });
 
             SVC.fit(matrix, vec);

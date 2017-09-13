@@ -98,7 +98,7 @@ namespace TSvm {
     
     /// LIBSVM for sparse input
     void TLibSvmModel::LibSvmFit(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV, double Cost, double Unbalance, double Nu, double Eps, double CacheSize, double P,
-            PNotify DebugNotify, PNotify ErrorNotify) {
+            const TWPt<TNotify>& DebugNotify, const TWPt<TNotify>& ErrorNotify) {
         
         // load training parameters
         svm_parameter_t svm_parameter = Param.GetParamStruct(Cost, Unbalance, Nu, Eps, CacheSize, P);
@@ -153,7 +153,7 @@ namespace TSvm {
     
     /// Use LIBSVM for dense input
     void TLibSvmModel::LibSvmFit(const TFltVV& VecV, const TFltV& TargetV, double Cost, double Unbalance, double Nu, double Eps, double CacheSize, double P,
-            PNotify DebugNotify, PNotify ErrorNotify) {
+            const TWPt<TNotify>& DebugNotify, const TWPt<TNotify>& ErrorNotify) {
       
         // load training parameters
         svm_parameter_t svm_parameter = Param.GetParamStruct(Cost, Unbalance, Nu, Eps, CacheSize, P);
