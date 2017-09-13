@@ -157,6 +157,7 @@ private:
     TFltVV SupportVectors; /// support vectors
     TFltVV Coef; /// coefficients for support vectors
     TFltV Rho; /// bias terms
+    TIntV NSupportVectors; /// number of support vectors for each class, needed for prediction
 public:
     TLibSvmModel(): Bias(0.0) {  }
     TLibSvmModel(const TFltV& _WgtV): WgtV(_WgtV), Bias(0.0) {  }
@@ -170,7 +171,8 @@ public:
         Param(SIn),
         SupportVectors(SIn),
         Coef(SIn),
-        Rho(SIn) {  }
+        Rho(SIn),
+        NSupportVectors(SIn){  }
         
     void Load(TSIn& SIn){
        WgtV.Load(SIn);
@@ -179,6 +181,7 @@ public:
        SupportVectors.Load(SIn);
        Coef.Load(SIn);
        Rho.Load(SIn);
+       NSupportVectors.Load(SIn);
     }
         
     void Save(TSOut& SOut) const { 
@@ -188,6 +191,7 @@ public:
         SupportVectors.Save(SOut);
         Coef.Save(SOut);
         Rho.Save(SOut);
+        NSupportVectors.Save(SOut);
     }
     
     /// Get weight vector
@@ -209,15 +213,21 @@ public:
     const TFltV& GetBiases() const { return Rho; }
     
     /// Get svm_model struct
+    /// inverse of ConvertResults(svm_model_t* model)
     svm_model_t* GetModelStruct() const;
     
+    /// converts model from LIBSVM svm_model_t to TLibSvmModel class
+    /// inverse of GetModelStruct
+    void ConvertResults(svm_model_t* model, int Dim);
+    
     /// Classify full vector
-    double Predict(const TFltV& Vec) const { 
-      if (Param.Kernel == LINEAR)
-        return TLinAlg::DotProduct(WgtV, Vec) + Bias; 
+    double Predict(const TFltV& Vec) const {
+      if (Param.Kernel == LINEAR){
+          return TLinAlg::DotProduct(WgtV, Vec) + Bias; 
+      }
       svm_model_t* model = GetModelStruct();
       svm_node_t *x = (svm_node_t *)malloc((Vec.Len() + 1) * sizeof(svm_node_t));
-      double *dec_val = (double *)malloc(model->nr_class*(model->nr_class-1)/2 * sizeof(double));
+      double* dec_val = (double *)malloc(model->nr_class*(model->nr_class-1)/2 * sizeof(double));
       for (int Idx = 0; Idx < Vec.Len(); Idx++){
         x[Idx].index = Idx;
         x[Idx].value = Vec[Idx];
@@ -230,14 +240,14 @@ public:
       free(x);
       free(dec_val);
       free(model);
-      
       return result;
     }
     
     /// Classify sparse vector
-    double Predict(const TIntFltKdV& SpVec) const { 
-      if (Param.Kernel == LINEAR)
-        return TLinAlg::DotProduct(WgtV, SpVec) + Bias;
+    double Predict(const TIntFltKdV& SpVec) const {
+      if (Param.Kernel == LINEAR){
+          return TLinAlg::DotProduct(WgtV, SpVec) + Bias;
+      }
       int FullDim = WgtV.Len();
       TFltV Vec = TFltV(FullDim);
       for (int Idx = 0; Idx < FullDim; Idx++){
@@ -253,14 +263,15 @@ public:
 
     /// Classify matrix column vector
     double Predict(const TFltVV& Mat, const int& ColN) const {
-      if (Param.Kernel == LINEAR)
-        return TLinAlg::DotProduct(Mat, ColN, WgtV) + Bias;
+      if (Param.Kernel == LINEAR){
+          return TLinAlg::DotProduct(Mat, ColN, WgtV) + Bias;
+      }
       int DimX = Mat.GetXDim();
       TFltV Col(DimX);
       Mat.GetCol(ColN, Col);
       return Predict(Col);
     }
-       
+    
     /// LIBSVM for sparse input
     void LibSvmFit(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV, double Cost, double Unbalance, double Nu, double Eps, double CacheSize, double P,
             PNotify DebugNotify, PNotify ErrorNotify);
@@ -268,6 +279,7 @@ public:
     /// Use LIBSVM for dense input
     void LibSvmFit(const TFltVV& VecV, const TFltV& TargetV, double Cost, double Unbalance, double Nu, double Eps, double CacheSize, double P,
             PNotify DebugNotify, PNotify ErrorNotify);
+    
 }; //
 
 template <class TVecV>
@@ -357,8 +369,8 @@ inline TLinModel* SolveClassify(const TVecV& VecV, const int& Dims, const int& V
                 VecN = PosVecIdV[Rnd.GetUniDevInt(PosVecs)];
                 PosCount++;
             }
-			const double VecCfyVal = TargetV[VecN];
-			const double CfyVal = VecCfyVal * TLinAlg::DotProduct(VecV, VecN, WgtV);
+            const double VecCfyVal = TargetV[VecN];
+            const double CfyVal = VecCfyVal * TLinAlg::DotProduct(VecV, VecN, WgtV);
             if (CfyVal < 1.0) { 
                 // with update from the stochastic sub-gradient
                 TLinAlg::AddVec(VecUpdate * VecCfyVal, VecV, VecN, NewWgtV, NewWgtV);
@@ -403,137 +415,137 @@ inline TLinModel* SolveClassify(const TVecV& VecV, const int& Dims, const int& V
         
 template <class TVecV>
 inline TLinModel* SolveRegression(const TVecV& VecV, const int& Dims, const int& Vecs,
-	const TFltV& TargetV, const double& Cost, const double& Eps,
-	const int& MxMSecs, const int& MxIter, const double& MnDiff,
-	const int& SampleSize, const PNotify& Notify) {
+    const TFltV& TargetV, const double& Cost, const double& Eps,
+    const int& MxMSecs, const int& MxIter, const double& MnDiff,
+    const int& SampleSize, const PNotify& Notify) {
 
-	// asserts for input parameters
-	EAssertR(Dims > 0, "Dimensionality must be positive!");
-	EAssertR(Vecs > 0, "Number of vectors must be positive!");
-	EAssertR(Vecs == TargetV.Len(), "Number of vectors must be equal to the number of targets!");
-	EAssertR(Cost > 0.0, "Cost parameter must be positive!");
-	EAssertR(SampleSize > 0, "Sampling size must be positive!");
-	EAssertR(MxIter > 1, "Number of iterations to small!");
-	EAssertR(MnDiff >= 0, "Min difference must be nonnegative!");
-	
-	// initialization 
-	TRnd Rnd(1);
-	const double Lambda = 1.0 / (double(Vecs) * Cost);
-	// we start with random normal vector
-	TFltV WgtV(Dims); TLinAlgTransform::FillRnd(WgtV, Rnd); TLinAlg::Normalize(WgtV);
-	// Scale it to appropriate norm
-	TLinAlg::MultiplyScalar(1.0 / (2.0 * TMath::Sqrt(Lambda)), WgtV, WgtV);
+    // asserts for input parameters
+    EAssertR(Dims > 0, "Dimensionality must be positive!");
+    EAssertR(Vecs > 0, "Number of vectors must be positive!");
+    EAssertR(Vecs == TargetV.Len(), "Number of vectors must be equal to the number of targets!");
+    EAssertR(Cost > 0.0, "Cost parameter must be positive!");
+    EAssertR(SampleSize > 0, "Sampling size must be positive!");
+    EAssertR(MxIter > 1, "Number of iterations to small!");
+    EAssertR(MnDiff >= 0, "Min difference must be nonnegative!");
 
-	// True norm is a product of Norm and TLinAlg::Norm(WgtV)
-	// The reason for this is that we can have very cheap updates for sparse
-	// vectors - we do not need to touch all elements of WgtV in each subgradient
-	// update.
-	double Norm = 1.0;
-	double Normw = 1.0 / (2.0 * TMath::Sqrt(Lambda));
-	
-	TTmTimer Timer(MxMSecs); int Iters = 0; double Diff = 1.0;
-	Notify->OnStatusFmt("Limits: %d iterations, %.3f seconds, %.8f weight difference", MxIter, (double)MxMSecs / 1000.0, MnDiff);
-	// initialize profiler    
-	TTmProfiler Profiler;
-	const int ProfilerPre = Profiler.AddTimer("Pre");
-	const int ProfilerBatch = Profiler.AddTimer("Batch");
+    // initialization 
+    TRnd Rnd(1);
+    const double Lambda = 1.0 / (double(Vecs) * Cost);
+    // we start with random normal vector
+    TFltV WgtV(Dims); TLinAlgTransform::FillRnd(WgtV, Rnd); TLinAlg::Normalize(WgtV);
+    // Scale it to appropriate norm
+    TLinAlg::MultiplyScalar(1.0 / (2.0 * TMath::Sqrt(Lambda)), WgtV, WgtV);
 
-	// function for writing progress reports
-	auto ProgressNotify = [&]() {
-		Notify->OnStatusFmt("  %d iterations, %.3f seconds, last weight difference %g",
-			Iters, Timer.GetStopWatch().GetMSec() / 1000.0, Diff);
-	};
+    // True norm is a product of Norm and TLinAlg::Norm(WgtV)
+    // The reason for this is that we can have very cheap updates for sparse
+    // vectors - we do not need to touch all elements of WgtV in each subgradient
+    // update.
+    double Norm = 1.0;
+    double Normw = 1.0 / (2.0 * TMath::Sqrt(Lambda));
 
-	// Since we are using weight vector overrepresentation using Norm, we need to
-	// compensate the scaling when adding examples using Coef
-	double Coef = 1.0;
-	for (int IterN = 0; IterN < MxIter; IterN++) {
-		if (IterN % 100 == 0) { ProgressNotify(); }
+    TTmTimer Timer(MxMSecs); int Iters = 0; double Diff = 1.0;
+    Notify->OnStatusFmt("Limits: %d iterations, %.3f seconds, %.8f weight difference", MxIter, (double)MxMSecs / 1000.0, MnDiff);
+    // initialize profiler    
+    TTmProfiler Profiler;
+    const int ProfilerPre = Profiler.AddTimer("Pre");
+    const int ProfilerBatch = Profiler.AddTimer("Batch");
 
-		Profiler.StartTimer(ProfilerPre);
-		// tells how much we can move
-		const double Nu = 1.0 / (Lambda * double(IterN + 2));
-		// update Coef which counters Norm		
-		Coef /= (1 - Nu * Lambda);
-		const double VecUpdate = Nu / (double(SampleSize)) * Coef;
-		
-		Profiler.StopTimer(ProfilerPre);
-		// Track the upper bound on the change of norm of WgtV
-		Diff = 0.0;
-		// process examples from the sample
-		Profiler.StartTimer(ProfilerBatch);
-		// store which examples will lead to gradient updates (and their factors)
-		TVec<TPair<TFlt, TInt> > Updates(SampleSize, 0);
-		
-		// in the first pass we find which samples will lead to updates
-		for (int SampleN = 0; SampleN < SampleSize; SampleN++) {
-			const int VecN = Rnd.GetUniDevInt(Vecs);
-			// target
-			const double Target = TargetV[VecN];
-			// prediction
-			double Dot = TLinAlg::DotProduct(VecV, VecN, WgtV);
-			// Used in bound computation
-			double NorX = TLinAlg::Norm(VecV, VecN);
-			// For predictions we need to use the Norm to scale correctly			
-			const double Pred = Norm * Dot;
+    // function for writing progress reports
+    auto ProgressNotify = [&]() {
+        Notify->OnStatusFmt("  %d iterations, %.3f seconds, last weight difference %g",
+                Iters, Timer.GetStopWatch().GetMSec() / 1000.0, Diff);
+    };
 
-			// difference
-			const double Loss = Target - Pred;
-			// do the update based on the difference
-			if (Loss < -Eps) { // y_i - z < -eps
-				// update from the negative stochastic sub-gradient: -x
-				Updates.Add(TPair<TFlt, TInt>(-VecUpdate, VecN));
-				// update the norm of WgtV
-				Normw = sqrt(Normw*Normw - 2 * VecUpdate * Dot + VecUpdate * VecUpdate * NorX * NorX);
-				// update the bound on the change of norm of WgtV
-				Diff += VecUpdate * NorX;
-			} else if (Loss > Eps) { // y_i - z > eps
-				// update from the negative stochastic sub-gradient: x				
-				Updates.Add(TPair<TFlt, TInt>(VecUpdate, VecN));
-				// update the norm of WgtV
-				Normw = sqrt(Normw*Normw + 2 * VecUpdate * Dot + VecUpdate * VecUpdate * NorX * NorX);
-				// update the bound on the change of norm of WgtV
-				Diff += VecUpdate * NorX;
-			} // else nothing to do, we are within the epsilon tube
-		}		
-		// Diff now estimates the upper bound on |w - w_old|/|w|
-		Diff /= Normw;
+    // Since we are using weight vector overrepresentation using Norm, we need to
+    // compensate the scaling when adding examples using Coef
+    double Coef = 1.0;
+    for (int IterN = 0; IterN < MxIter; IterN++) {
+        if (IterN % 100 == 0) { ProgressNotify(); }
 
-		// in the second pass we update
-		for (int UpdateN = 0; UpdateN < Updates.Len(); UpdateN++) {
-			TLinAlg::AddVec(Updates[UpdateN].Val1, VecV, Updates[UpdateN].Val2, WgtV, WgtV);
-		}
-		Norm *= (1 - Nu * Lambda);
+        Profiler.StartTimer(ProfilerPre);
+        // tells how much we can move
+        const double Nu = 1.0 / (Lambda * double(IterN + 2));
+        // update Coef which counters Norm		
+        Coef /= (1 - Nu * Lambda);
+        const double VecUpdate = Nu / (double(SampleSize)) * Coef;
+        
+        Profiler.StopTimer(ProfilerPre);
+        // Track the upper bound on the change of norm of WgtV
+        Diff = 0.0;
+        // process examples from the sample
+        Profiler.StartTimer(ProfilerBatch);
+        // store which examples will lead to gradient updates (and their factors)
+        TVec<TPair<TFlt, TInt> > Updates(SampleSize, 0);
+        
+        // in the first pass we find which samples will lead to updates
+        for (int SampleN = 0; SampleN < SampleSize; SampleN++) {
+            const int VecN = Rnd.GetUniDevInt(Vecs);
+            // target
+            const double Target = TargetV[VecN];
+            // prediction
+            double Dot = TLinAlg::DotProduct(VecV, VecN, WgtV);
+            // Used in bound computation
+            double NorX = TLinAlg::Norm(VecV, VecN);
+            // For predictions we need to use the Norm to scale correctly			
+            const double Pred = Norm * Dot;
 
-		Profiler.StopTimer(ProfilerBatch);
+            // difference
+            const double Loss = Target - Pred;
+            // do the update based on the difference
+            if (Loss < -Eps) { // y_i - z < -eps
+                // update from the negative stochastic sub-gradient: -x
+                Updates.Add(TPair<TFlt, TInt>(-VecUpdate, VecN));
+                // update the norm of WgtV
+                Normw = sqrt(Normw*Normw - 2 * VecUpdate * Dot + VecUpdate * VecUpdate * NorX * NorX);
+                // update the bound on the change of norm of WgtV
+                Diff += VecUpdate * NorX;
+            } else if (Loss > Eps) { // y_i - z > eps
+                // update from the negative stochastic sub-gradient: x				
+                Updates.Add(TPair<TFlt, TInt>(VecUpdate, VecN));
+                // update the norm of WgtV
+                Normw = sqrt(Normw*Normw + 2 * VecUpdate * Dot + VecUpdate * VecUpdate * NorX * NorX);
+                // update the bound on the change of norm of WgtV
+                Diff += VecUpdate * NorX;
+            } // else nothing to do, we are within the epsilon tube
+        }
+        // Diff now estimates the upper bound on |w - w_old|/|w|
+        Diff /= Normw;
 
-		// renormalizing is not needed according to new results:
-		//"Pegasos: Primal Estimated sub-GrAdient SOlver for SVM" Shai Shalev-Shwartz, Yoram Singer, Nathan Srebro, Andrew Cotter." Mathematical Programming, Series B, 127(1):3-30, 2011.
+        // in the second pass we update
+        for (int UpdateN = 0; UpdateN < Updates.Len(); UpdateN++) {
+            TLinAlg::AddVec(Updates[UpdateN].Val1, VecV, Updates[UpdateN].Val2, WgtV, WgtV);
+        }
+        Norm *= (1 - Nu * Lambda);
 
-		// count
-		Iters++;
-		// check stopping criteria with respect to time
-		if (Timer.IsTimeUp()) {
-			Notify->OnStatusFmt("Finishing due to reached time limit of %.3f seconds", (double)MxMSecs / 1000.0);
-			break;
-		}
-		// check stopping criteria with respect to result difference
-		if (Diff < MnDiff) {
-			Notify->OnStatusFmt("Finishing due to reached difference limit of %g", MnDiff);
-			break;
-		}
-	}
-	if (Iters == MxIter) {
-		Notify->OnStatusFmt("Finished due to iteration limit of %d", Iters);
-	}
-	// Finally we use the Norm factor to rescale the weight vector
-	TLinAlg::MultiplyScalar(Norm, WgtV, WgtV);
-	
-	ProgressNotify();
+        Profiler.StopTimer(ProfilerBatch);
 
-	Profiler.PrintReport(Notify);
+        // renormalizing is not needed according to new results:
+        //"Pegasos: Primal Estimated sub-GrAdient SOlver for SVM" Shai Shalev-Shwartz, Yoram Singer, Nathan Srebro, Andrew Cotter." Mathematical Programming, Series B, 127(1):3-30, 2011.
 
-	return new TLinModel(WgtV);
+        // count
+        Iters++;
+        // check stopping criteria with respect to time
+        if (Timer.IsTimeUp()) {
+            Notify->OnStatusFmt("Finishing due to reached time limit of %.3f seconds", (double)MxMSecs / 1000.0);
+            break;
+        }
+        // check stopping criteria with respect to result difference
+        if (Diff < MnDiff) {
+            Notify->OnStatusFmt("Finishing due to reached difference limit of %g", MnDiff);
+            break;
+        }
+    }
+    if (Iters == MxIter) {
+        Notify->OnStatusFmt("Finished due to iteration limit of %d", Iters);
+    }
+    // Finally we use the Norm factor to rescale the weight vector
+    TLinAlg::MultiplyScalar(Norm, WgtV, WgtV);
+
+    ProgressNotify();
+
+    Profiler.PrintReport(Notify);
+
+    return new TLinModel(WgtV);
 }
 
 };

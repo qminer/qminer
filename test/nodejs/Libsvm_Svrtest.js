@@ -306,7 +306,6 @@ describe("LIBSVM SVR test", function () {
             SVR.fit(matrix, vector);
 
             var model = SVR.getModel();
-            model.weights.print();
             assert.eqtol(model.weights[0], 0, 1e-2);
             assert.eqtol(model.weights[1], 0, 1e-2);
         })
@@ -318,7 +317,6 @@ describe("LIBSVM SVR test", function () {
             SVR.fit(matrix, vector);
 
             var model = SVR.getModel();
-            model.weights.print();
             assert.eqtol(model.weights[0], 0, 1e-1);
             assert.eqtol(model.weights[1], 0, 1e-1);
         })
@@ -591,5 +589,44 @@ describe("LIBSVM SVR test", function () {
             assert.deepEqual(SVR.getParams(), SVR2.getParams());
             assert.eqtol(SVR.weights.minus(SVR2.weights).norm(), 0, 1e-8);
         })
+    });
+    describe('Kernel tests', function () {
+        it('should find a fit with polynomial kernel', function () {
+             X = [[-3],
+                  [-2],
+                  [-1],
+                  [0],
+                  [1],
+                  [2],
+                  [3]];
+             var y = [9, 4, 1, 0, 4, 1, 9];
+             
+             var matrix = new la.Matrix(X);
+             matrix = matrix.transpose();
+             var vec = new la.Vector(y);
+             // unbalance: positive examples are 1000 times more important
+             var SVR = new analytics.SVR({ algorithm: "LIBSVM", kernel: "POLY", degree: 2, p: 10e-3 });
+             SVR.fit(matrix, vec);
+             assert.eqtol(SVR.predict(matrix).minus(new la.Vector([9, 4, 1, 0, 1, 4, 9])).norm(), 0, 1e-1);
+         });
+        it('should find a fit with RBF kernel', function () {
+             X = [[1, 0],
+                  [0, 1],
+                  [-1, 0],
+                  [0, -1],
+                  [2, 0],
+                  [0, 2],
+                  [-2, 0],
+                  [0, -2]];
+             var y = [1, 1, 1, 1, 2, 2, 2, 2];
+             
+             var matrix = new la.Matrix(X);
+             matrix = matrix.transpose();
+             var vec = new la.Vector(y);
+             // unbalance: positive examples are 1000 times more important
+             var SVR = new analytics.SVR({ algorithm: "LIBSVM", kernel: "RBF", p: 10e-3 });
+             SVR.fit(matrix, vec);
+             assert.eqtol(SVR.predict(matrix).minus(new la.Vector([1, 1, 1, 1, 2, 2, 2, 2])).norm(), 0, 1e-1);
+         });
     });
 })

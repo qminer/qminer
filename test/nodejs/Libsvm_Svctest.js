@@ -325,8 +325,8 @@ describe("LIBSVM SVC test", function () {
             });
         })
         it('should return a close-zero model', function () {
-            var matrix = new la.Matrix([[1, -1], [0, 0]]);
-            var vec = new la.Vector([-1, -1]);
+            var matrix = new la.Matrix([[-1, -1], [0, 0]]);
+            var vec = new la.Vector([-1, 1]);
             var SVC = new analytics.SVC({ algorithm: "LIBSVM" });
 
             SVC.fit(matrix, vec);
@@ -749,5 +749,45 @@ describe("LIBSVM SVC test", function () {
              assert.eqtol(SVC.predict(matrix).minus(new la.Vector([1, 1, 1, 1, 1, 1])).norm(), 0, 1e-6);
          });
      });
+    describe('Kernel tests', function () {
+        it('should find a fit with polynomial kernel', function () {
+             X = [[-3, 5],
+                  [-1, 0.5],
+                  [0, -0.5],
+                  [1, 0.5],
+                  [3, 5],
+                  [-2, 5],
+                  [-0.5, 1],
+                  [0, 0.5],
+                  [0.5, 1],
+                  [2, 5]];
+             var y = [1, 1, 1, 1, 1, -1, -1, -1, -1, -1];
+             
+             var matrix = new la.Matrix(X);
+             matrix = matrix.transpose();
+             var vec = new la.Vector(y);
+             var SVC = new analytics.SVC({ algorithm: "LIBSVM", kernel: "POLY", degree: 2 });
+             SVC.fit(matrix, vec);          
+             assert.eqtol(SVC.predict(matrix).minus(new la.Vector([1, 1, 1, 1, 1, -1, -1, -1, -1, -1])).norm(), 0, 1e-6);
+         });
+        it('should find a fit with RBF kernel', function () {
+             X = [[1, 0],
+                  [0, 1],
+                  [-1, 0],
+                  [0, -1],
+                  [2, 0],
+                  [0, 2],
+                  [-2, 0],
+                  [0, -2]];
+             var y = [1, 1, 1, 1, -1, -1, -1, -1];
+             
+             var matrix = new la.Matrix(X);
+             matrix = matrix.transpose();
+             var vec = new la.Vector(y);
+             var SVC = new analytics.SVC({ algorithm: "LIBSVM", kernel: "RBF" });
+             SVC.fit(matrix, vec);
+             assert.eqtol(SVC.predict(matrix).minus(new la.Vector([1, 1, 1, 1, -1, -1, -1, -1])).norm(), 0, 1e-6);
+         });
+    });
 });
 

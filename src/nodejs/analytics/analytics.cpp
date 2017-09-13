@@ -133,7 +133,7 @@ v8::Local<v8::Value> TNodeJsAnalytics::TNMFTask::WrapResult() {
 
 TNodeJsSvmModel::TNodeJsSvmModel(const PJsonVal& ParamVal):
         Algorithm("SGD"),
-        Kernel(LINEAR),
+        Kernel(LIBSVM_LINEAR),
         SvmType(DEFAULT), // for LIBSVM only - this handles classification and regression default construction
         SvmCost(1.0),
         SvmUnbalance(1.0),
@@ -394,10 +394,10 @@ void TNodeJsSvmModel::UpdateParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("algorithm")) { Algorithm = ParamVal->GetObjStr("algorithm"); }
     if (ParamVal->IsObjKey("kernel")) {
         TStr KernelStr = ParamVal->GetObjStr("kernel"); 
-        Kernel = LINEAR;
+        Kernel = LIBSVM_LINEAR;
         if (KernelStr == "LINEAR") { Kernel = LIBSVM_LINEAR; }
-        else if (KernelStr == "RBF") { Kernel = LIBSVM_RBF; }
         else if (KernelStr == "POLY") { Kernel = LIBSVM_POLY; }
+        else if (KernelStr == "RBF") { Kernel = LIBSVM_RBF; }        
         else if (KernelStr == "SIGMOID") { Kernel = LIBSVM_SIGMOID; }
         else if (KernelStr == "PRECOMPUTED") { Kernel = LIBSVM_PRECOMPUTED; }
     }

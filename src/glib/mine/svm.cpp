@@ -43,17 +43,57 @@ namespace TSvm {
         svm_model->probA = NULL;
         svm_model->probB = NULL;
         svm_model->sv_indices = NULL;
-        /// for classification only but are not needed (and therefore not saved)
-        svm_model->label = NULL;
+        /// classification specific
         svm_model->nSV = NULL;
+        svm_model->label = NULL;        
+        if (Param.Type == C_SVC || Param.Type == NU_SVC){
+          DimX = NSupportVectors.Len();
+          svm_model->nSV = (int *)malloc(DimX * sizeof(int));
+          for (int Idx = 0; Idx < DimX; Idx++){
+            svm_model->nSV[Idx] = NSupportVectors[Idx];
+          }
+          DimX = svm_model->nr_class;
+          svm_model->label = (int *)malloc(DimX * sizeof(int));
+          for (int Idx = 0; Idx < DimX; Idx++){
+            svm_model->label[Idx] = Idx;
+          }
+        }
 
         return svm_model;
     }
     
-    void InputToArrays(const TFltV& TargetV, double* y){
-      for (int VecN = 0; VecN < TargetV.Len(); ++VecN) {
-        y[VecN] = TargetV[VecN];
-      }
+    void TLibSvmModel::ConvertResults(svm_model_t* svm_model, int Dim){
+        WgtV = TFltV(Dim);
+        Bias = -svm_model->rho[0]; // LIBSVM does w*x-b, while we do w*x+b; thus the sign flip
+        SupportVectors = TFltVV(svm_model->l, Dim);
+        Coef = TFltVV(svm_model->nr_class - 1, svm_model->l);
+        Rho = TFltV(svm_model->nr_class * (svm_model->nr_class - 1)/2);
+
+        /// compute normal vector from support vectors
+        EAssertR(TLinAlg::Norm(WgtV) == 0.0, "Expected a zero weight vector.");
+        for (int Idx = 0; Idx < svm_model->l; ++Idx) {
+            svm_node_t* SVs = svm_model->SV[Idx];
+            while (SVs->index != -1) {
+                SupportVectors.PutXY(Idx, SVs->index - 1, SVs->value);
+                WgtV[SVs->index - 1] += svm_model->sv_coef[0][Idx] * SVs->value;
+                ++SVs;
+            }
+            for (int cIdx = 0; cIdx < svm_model->nr_class - 1; cIdx++){
+              Coef.PutXY(cIdx, Idx, svm_model->sv_coef[cIdx][Idx]);
+            }
+        }
+        for (int Idx = 0; Idx < svm_model->nr_class * (svm_model->nr_class - 1)/2; Idx++){
+            Rho.SetVal(Idx, svm_model->rho[Idx]);
+        }
+        if (Param.Type == C_SVC || Param.Type == NU_SVC){
+            NSupportVectors = TIntV(svm_model->nr_class);
+            for (int Idx = 0; Idx < svm_model->nr_class; Idx++){
+                NSupportVectors.SetVal(Idx, svm_model->nSV[Idx]);
+            }
+        }
+        /// clean up
+        svm_free_and_destroy_model(&svm_model);
+        free(svm_model);
     }
     
     /// LIBSVM for sparse input
@@ -98,39 +138,17 @@ namespace TSvm {
         const char* error_msg = svm_check_parameter(&svm_problem, &svm_parameter);
         EAssertR(error_msg == NULL, error_msg);
 
-        // train the model
+        /// train the model
         svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter, DebugNotify, ErrorNotify);
         
-        SupportVectors = TFltVV(svm_model->l, Dim);
-        Coef = TFltVV(svm_model->nr_class - 1, svm_model->l);
-        Rho = TFltV(svm_model->nr_class * (svm_model->nr_class - 1)/2);
-
-        // compute normal vector from support vectors
-        WgtV = TFltV(Dim);
-        Bias = -svm_model->rho[0]; // LIBSVM does w*x-b, while we do w*x+b; thus the sign flip
-        EAssertR(TLinAlg::Norm(WgtV) == 0.0, "Expected a zero weight vector.");
-        for (int Idx = 0; Idx < svm_model->l; ++Idx) {
-            svm_node_t* SVs = svm_model->SV[Idx];
-            while (SVs->index != -1) {
-                SupportVectors.PutXY(Idx, SVs->index - 1, SVs->value);
-                WgtV[SVs->index - 1] += svm_model->sv_coef[0][Idx] * SVs->value;
-                ++SVs;
-            }
-            //SVIndices.SetVal(Idx, svm_model->sv_indices[Idx]);
-            for (int cIdx = 0; cIdx < svm_model->nr_class - 1; cIdx++){
-              Coef.PutXY(cIdx, Idx, svm_model->sv_coef[cIdx][Idx]);
-            }
-        }        
-        for (int Idx = 0; Idx < svm_model->nr_class * (svm_model->nr_class - 1)/2; Idx++){
-            Rho.SetVal(Idx, svm_model->rho[Idx]);
-        }
-
-        svm_free_and_destroy_model(&svm_model);
+        /// save model and clean up
+        ConvertResults(svm_model, Dim);
+        
+        /// clean up
         svm_destroy_param(&svm_parameter);
         free(svm_problem.y);
         free(svm_problem.x);
-        //free(x_space);
-        free(svm_model);
+        free(x_space);
     }
     
     /// Use LIBSVM for dense input
@@ -173,36 +191,17 @@ namespace TSvm {
         const char* error_msg = svm_check_parameter(&svm_problem, &svm_parameter);
         EAssertR(error_msg == NULL, error_msg);
 
+        /// train model
         svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter, DebugNotify, ErrorNotify);
         
-        SupportVectors = TFltVV(svm_model->l, DimN);
-        Coef = TFltVV(svm_model->nr_class - 1, svm_model->l);
-        Rho = TFltV(svm_model->nr_class * (svm_model->nr_class - 1)/2);
-  
-        WgtV = TFltV(DimN);
-        Bias = -svm_model->rho[0]; // LIBSVM does w*x-b, while we do w*x+b; thus the sign flip
-        EAssertR(TLinAlg::Norm(WgtV) == 0.0, "Expected a zero weight vector.");
-        for (int Idx = 0; Idx < svm_model->l; ++Idx) {
-            svm_node_t* SVs = svm_model->SV[Idx];
-            while (SVs->index != -1) {
-                SupportVectors.PutXY(Idx, SVs->index - 1, SVs->value);
-                WgtV[SVs->index - 1] += svm_model->sv_coef[0][Idx] * SVs->value;
-                ++SVs;
-            }
-            for (int cIdx = 0; cIdx < svm_model->nr_class - 1; cIdx++){
-              Coef.PutXY(cIdx, Idx, svm_model->sv_coef[cIdx][Idx]);
-            }
-        }        
-        for (int Idx = 0; Idx < svm_model->nr_class * (svm_model->nr_class - 1)/2; Idx++){
-          Rho.SetVal(Idx, svm_model->rho[Idx]);
-        }        
+        /// save model and clean up
+        ConvertResults(svm_model, DimN);
         
-        svm_free_and_destroy_model(&svm_model);
+        /// clean up
         svm_destroy_param(&svm_parameter);
         free(svm_problem.y);
         free(svm_problem.x);
         free(x_space);
-        free(svm_model);
     }
 
 }

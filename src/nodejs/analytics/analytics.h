@@ -122,8 +122,8 @@ private:
     bool Verbose;
     PNotify Notify;
     
-    enum { LIBSVM_CSVC, LIBSVM_NUSVC, LIBSVM_ONECLASS, LIBSVM_EPSILONSVR, LIBSVM_NUSVR }; /// constants for SvmType, LIBSVM specific
-    enum { LIBSVM_LINEAR, LIBSVM_POLY, LIBSVM_RBF, LIBSVM_SIGMOID, LIBSVM_PRECOMPUTED, DEFAULT }; /// constants for Kernel, LIBSVM specific
+    enum { LIBSVM_CSVC, LIBSVM_NUSVC, LIBSVM_ONECLASS, LIBSVM_EPSILONSVR, LIBSVM_NUSVR, DEFAULT }; /// constants for SvmType, LIBSVM specific
+    enum { LIBSVM_LINEAR, LIBSVM_POLY, LIBSVM_RBF, LIBSVM_SIGMOID, LIBSVM_PRECOMPUTED }; /// constants for Kernel, LIBSVM specific
 
     // model
     //TWPt<TSvm::TSvmModel> Model;
