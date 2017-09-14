@@ -192,132 +192,132 @@ void TJsonVal::GetArrStrV(TStrV& StrV) const {
 }
 
 PJsonVal TJsonVal::GetObjKey(const TStr& Key) const {
-  EAssert(IsObj());
+  EAssertR(IsObj(), "Cannot get property of non-object!");
   EAssertR(IsObjKey(Key), "Unknown key '" + Key + "'");
   return KeyValH.GetDat(Key);
 }
 
 PJsonVal TJsonVal::GetObjKey(const char *Key) const {
-  EAssert(IsObj());
+  EAssertR(IsObj(), "Cannot get property of non-object!");
   EAssertR(IsObjKey(Key), TStr::Fmt("Unknown key '%s'", Key));
   return KeyValH.GetDat(Key);
 }
 
 bool TJsonVal::GetObjBool(const TStr& Key, const bool& DefBool) const {
-  EAssert(IsObj());
+  EAssertR(IsObj(), "Cannot get property of non-object!");
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetBool() : DefBool;
 }
 
 bool TJsonVal::GetObjBool(const char *Key, const bool& DefBool) const {
-  EAssert(IsObj());
+  EAssertR(IsObj(), "Cannot get property of non-object!");
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetBool() : DefBool;
 }
 
 double TJsonVal::GetObjNum(const TStr& Key, const double& DefNum) const {
-  EAssert(IsObj());
+  EAssertR(IsObj(), "Cannot get property of non-object!");
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetNum() : DefNum;
 }
 
 double TJsonVal::GetObjNum(const char *Key, const double& DefNum) const {
-  EAssert(IsObj());
+  EAssertR(IsObj(), "Cannot get property of non-object!");
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetNum() : DefNum;
 }
 
 int TJsonVal::GetObjInt(const TStr& Key, const int& DefInt) const {
-  EAssert(IsObj());
+  EAssertR(IsObj(), "Cannot get property of non-object!");
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetInt() : DefInt;
 }
 
 int TJsonVal::GetObjInt(const char *Key, const int& DefInt) const {
-  EAssert(IsObj());
+  EAssertR(IsObj(), "Cannot get property of non-object!");
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetInt() : DefInt;
 }
 
 int64 TJsonVal::GetObjInt64(const TStr& Key, const int64& DefInt) const {
-	EAssert(IsObj());
-	return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetInt64() : DefInt;
+  EAssertR(IsObj(), "Cannot get property of non-object!");
+  return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetInt64() : DefInt;
 }
 
 int64 TJsonVal::GetObjInt64(const char *Key, const int64& DefInt) const {
-	EAssert(IsObj());
-	return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetInt64() : DefInt;
+  EAssertR(IsObj(), "Cannot get property of non-object!");
+  return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetInt64() : DefInt;
 }
 
 uint64 TJsonVal::GetObjUInt64(const TStr& Key, const uint64& DefInt) const {
-  EAssert(IsObj());
+  EAssertR(IsObj(), "Cannot get property of non-object!");
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetUInt64() : DefInt;
 } 
 
 uint64 TJsonVal::GetObjUInt64(const char *Key, const uint64& DefInt) const {
-  EAssert(IsObj());
+  EAssertR(IsObj(), "Cannot get property of non-object!");
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetUInt64() : DefInt;
 }
 
 void TJsonVal::GetObjIntV(const TStr& Key, TIntV& IntV) const {
-    EAssert(IsObj());
-    EAssertR(IsObjKey(Key), "Key missing: " + Key);
-    GetObjKey(Key)->GetArrIntV(IntV);
+  EAssertR(IsObj(), "Cannot get property of non-object!");
+  EAssertR(IsObjKey(Key), "Unknown key: " + Key);
+  GetObjKey(Key)->GetArrIntV(IntV);
 }
 
 void TJsonVal::GetObjUInt64V(const TStr& Key, TUInt64V& UInt64V) const {
-    EAssert(IsObj());
-    EAssert(IsObjKey(Key));
-    GetObjKey(Key)->GetArrUInt64V(UInt64V);
+  EAssertR(IsObj(), "Cannot get property of non-object!");
+  EAssertR(IsObjKey(Key), "Unknown key: " + Key);
+  GetObjKey(Key)->GetArrUInt64V(UInt64V);
 }
 
 void TJsonVal::GetObjFltV(const TStr& Key, TFltV& FltV) const {
-    EAssert(IsObj());
-    EAssert(IsObjKey(Key));
-    GetObjKey(Key)->GetArrNumV(FltV);
+  EAssertR(IsObj(), "Cannot get property of non-object!");
+  EAssertR(IsObjKey(Key), "Unknown key: " + Key);
+  GetObjKey(Key)->GetArrNumV(FltV);
 }
 
-TStr TJsonVal::GetObjStr(const TStr& Key, const TStr& DefStr) const { 
-  EAssert(IsObj());
+const TStr& TJsonVal::GetObjStr(const TStr& Key, const TStr& DefStr) const { 
+  EAssertR(IsObj(), "Cannot get property of non-object!");
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetStr() : DefStr;
 }
 
-TStr TJsonVal::GetObjStr(const char *Key, const TStr& DefStr) const {
-  EAssert(IsObj());
+const TStr& TJsonVal::GetObjStr(const char *Key, const TStr& DefStr) const {
+  EAssertR(IsObj(), "Cannot get property of non-object!");
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetStr() : DefStr;
 }
 
 void TJsonVal::GetObjStrV(const TStr& Key, TStrV& StrV) const {
-    EAssert(IsObj());
-    EAssert(IsObjKey(Key));
-    GetObjKey(Key)->GetArrStrV(StrV);
+  EAssertR(IsObj(), "Cannot get property of non-object!");
+  EAssertR(IsObjKey(Key), "Unknown key: " + Key);
+  GetObjKey(Key)->GetArrStrV(StrV);
 }
 
 void TJsonVal::GetObjStrV(const char *Key, TStrV& StrV) const {
-    EAssert(IsObj());
-    EAssert(IsObjKey(Key));
-    GetObjKey(Key)->GetArrStrV(StrV);
+  EAssertR(IsObj(), "Cannot get property of non-object!");
+  EAssertR(IsObjKey(Key), "Unknown key: " + TStr(Key));
+  GetObjKey(Key)->GetArrStrV(StrV);
 }
 
 void TJsonVal::AssertObjKey(const TStr& Key, const TStr& Fun) {
-    // missing key or key not string
-    if (!IsObjKey(Key)) { throw TExcept::New("Exception in function `" + Fun + "`: missing JSON property:`" + Key + "`."); }
+  // missing key or key not string
+  if (!IsObjKey(Key)) { throw TExcept::New("Exception in function `" + Fun + "`: missing JSON property:`" + Key + "`."); }
 }
 
 void TJsonVal::AssertObjKeyStr(const TStr& Key, const TStr& Fun) {
-    // missing key or key not string
-    AssertObjKey(Key, Fun);
-    if (!GetObjKey(Key)->IsStr()) { throw TExcept::New("Exception in function `" + Fun + "`: JSON property:`" + Key + "` is not a string."); }
+  // missing key or key not string
+  AssertObjKey(Key, Fun);
+  if (!GetObjKey(Key)->IsStr()) { throw TExcept::New("Exception in function `" + Fun + "`: JSON property:`" + Key + "` is not a string."); }
 }
 
 void TJsonVal::AssertObjKeyNum(const TStr& Key, const TStr& Fun) {
-    // missing key or key not string
-    AssertObjKey(Key, Fun);
-    if (!GetObjKey(Key)->IsNum()) { throw TExcept::New("Exception in function `" + Fun + "`: JSON property:`" + Key + "` is not a number."); }
+  // missing key or key not string
+  AssertObjKey(Key, Fun);
+  if (!GetObjKey(Key)->IsNum()) { throw TExcept::New("Exception in function `" + Fun + "`: JSON property:`" + Key + "` is not a number."); }
 }
 
 void TJsonVal::AssertObjKeyBool(const TStr& Key, const TStr& Fun) {
-    // missing key or key not string
-    AssertObjKey(Key, Fun);
-    if (!GetObjKey(Key)->IsBool()) { throw TExcept::New("Exception in function `" + Fun + "`: JSON property:`" + Key + "` is not a boolean."); }
+  // missing key or key not string
+  AssertObjKey(Key, Fun);
+  if (!GetObjKey(Key)->IsBool()) { throw TExcept::New("Exception in function `" + Fun + "`: JSON property:`" + Key + "` is not a boolean."); }
 }
 
 uint64 TJsonVal::GetMemUsed() const {
-    return sizeof(TJsonVal) +
+  return sizeof(TJsonVal) +
            // JsonValType is an enum and is already counted
            TMemUtils::GetExtraMemberSize(Bool) +
            TMemUtils::GetExtraMemberSize(Num) +

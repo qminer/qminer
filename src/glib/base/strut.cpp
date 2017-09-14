@@ -107,6 +107,17 @@ TStr TStrUtil::GetStr(const TFltVV& FltVV, const TStr& DelimiterStr, const TStr&
 	return ResChA;
 }
 
+TStr TStrUtil::GetStr(const TVec<TIntFltKdV>& FltSpVV) {
+    TChA ResChA;
+    for (int ColN = 0; ColN < FltSpVV.Len(); ColN++) {
+        ResChA += GetStr(FltSpVV[ColN]);
+        if (ColN < FltSpVV.Len()-1) {
+            ResChA += "\n";
+        }
+    }
+    return ResChA;
+}
+
 TStr TStrUtil::GetStr(const TIntIntFltTrV& IntIntFltTrV, const TStr& DelimiterStr, const TStr& FmtStr) {
 	TChA ResChA;
 

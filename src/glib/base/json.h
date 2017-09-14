@@ -172,8 +172,8 @@ public:
   void GetObjIntV(const TStr& Key, TIntV& IntV) const;
   void GetObjUInt64V(const TStr& Key, TUInt64V& UInt64V) const;
   void GetObjFltV(const TStr& Key, TFltV& FltV) const;
-  TStr GetObjStr(const TStr& Key, const TStr& DefStr) const;
-  TStr GetObjStr(const char *Key, const TStr& DefStr) const;
+  const TStr& GetObjStr(const TStr& Key, const TStr& DefStr) const;
+  const TStr& GetObjStr(const char *Key, const TStr& DefStr) const;
   void GetObjStrV(const TStr& Key, TStrV& StrV) const;
   void GetObjStrV(const char *Key, TStrV& StrV) const;
 

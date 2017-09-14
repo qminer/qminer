@@ -165,7 +165,7 @@ private:
     int FirstDirtyChild();
     /// Get the index of the first child index from which onward the content needs to be merged
     /// There can be other children with smaller indices that are dirty, but we might not want to merge them
-    int FirstChildToMerge();
+    int GetFirstChildToMerge();
     /// Work buffer is merged and still full, add new children collections with the data in work buffer
     void PushWorkBufferToChildren();
     /// If work buffer contains data that belongs to child vectors then push that content to them

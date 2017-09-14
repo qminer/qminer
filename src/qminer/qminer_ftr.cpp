@@ -12,8 +12,8 @@ namespace TQm {
 
 ///////////////////////////////////////////////
 // QMiner-Feature-Extractor
-TFunRouter<PFtrExt, TFtrExt::TNewF> TFtrExt::NewRouter;
-TFunRouter<PFtrExt, TFtrExt::TLoadF> TFtrExt::LoadRouter;
+TFunRouter<TFtrExt::TNewF> TFtrExt::NewRouter;
+TFunRouter<TFtrExt::TLoadF> TFtrExt::LoadRouter;
 
 void TFtrExt::Init() {
     Register<TFtrExts::TRandom>();

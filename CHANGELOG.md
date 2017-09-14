@@ -1,5 +1,46 @@
 # QMiner Change Log
 
+## 21 July 2017
+
+**Version 8.5.0**
+
+**Non-breaking with new features**
+
+Features:
+- DpMeans algorithm in nodejs API. The algorithm fixes the radius of each cluster and the number
+  of clusters is variable
+- Clustering quality measure for kmeans and dpmeans
+
+Bugfix:
+- Inplace sparse vector linear combination assertion
+
+### 14 July 2017
+
+**Version 8.4.0**
+
+**Non-breaking with new features**
+
+Features:
+- **Added support for Node.JS 8**
+- Improved positional text indexing. Uses modulo 1024 instead of 256 (less false positives), stores all mentions of words in a document (before limited to 8 occurrences) and uses about 20% less space for the index.
+- Implementation of a windowed quantile estimation algorithm on streams based on [1].
+- Quantile estimation Node.js analytics models `analytics.TimeWindowGk` (timestamp based window) and `analytics.CountWindowGk` (count based window). Implements the standard analytics module API (`partialFit`,`predict`, `save`).
+- Quantile estimation stream aggregate with type `windowQuantiles`, reads from a window buffer and updates the statistics when data enters the buffer or when data leaves the buffer.
+
+[1] http://infolab.stanford.edu/~datar/courses/cs361a/papers/quantiles.pdf
+
+### 16 June 2017
+
+**Version 8.3.0**
+
+**Non-breaking with new features**
+
+Features:
+
+- added TWPt serialization as in TPt
+- updated TStrHash.GetMemUsed() which used the nonavailable GetMemUsedDeep() method
+- added filtering classes TRecFilterByFieldByteSet, TRecFilterByFieldUIntSet, TRecFilterByFieldUInt64Set
+
 ### 26 May 2017
 
 **Version 8.2.1**
