@@ -4565,10 +4565,22 @@ void TNodeJsCountWindowGk::predict(const v8::FunctionCallbackInfo<v8::Value>& Ar
     TNodeJsCountWindowGk* JsGk = ObjectWrap::Unwrap<TNodeJsCountWindowGk>(Args.Holder());
     TQuant::TCountWindowGk& Gk = JsGk->Gk;
 
-    const double Quant = TNodeJsUtil::GetArgFlt(Args, 0);
-    const double Val = Gk.Query(Quant);
+    if (TNodeJsUtil::IsArgFlt(Args, 0)) {
+        const double PVal = TNodeJsUtil::GetArgFlt(Args, 0);
+        const double Quant = Gk.Query(PVal);
 
-    Args.GetReturnValue().Set(v8::Number::New(Isolate, Val));
+        Args.GetReturnValue().Set(v8::Number::New(Isolate, Quant));
+    } else {
+        TFltV PValV; TNodeJsUtil::GetArgFltV(Args, 0, PValV);
+        TFltV QuantV; Gk.Query(PValV, QuantV);
+
+        v8::Handle<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
+        for (int QuantN = 0; QuantN < QuantV.Len(); ++QuantN) {
+            QuantArr->Set(QuantN, v8::Number::New(Isolate, QuantV[QuantN]));
+        }
+
+        Args.GetReturnValue().Set(QuantArr);
+    }
 }
 
 void TNodeJsCountWindowGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -4685,11 +4697,22 @@ void TNodeJsTimeWindowGk::predict(const v8::FunctionCallbackInfo<v8::Value>& Arg
     TNodeJsTimeWindowGk* JsGk = ObjectWrap::Unwrap<TNodeJsTimeWindowGk>(Args.Holder());
     TQuant::TTimeWindowGk& Gk = JsGk->Gk;
 
-    const double Quant = TNodeJsUtil::GetArgFlt(Args, 0);
-    const double Val = Gk.Query(Quant);
+    if (TNodeJsUtil::IsArgFlt(Args, 0)) {
+        const double PVal = TNodeJsUtil::GetArgFlt(Args, 0);
+        const double Quant = Gk.Query(PVal);
 
-    // return self
-    Args.GetReturnValue().Set(v8::Number::New(Isolate, Val));
+        Args.GetReturnValue().Set(v8::Number::New(Isolate, Quant));
+    } else {
+        TFltV PValV; TNodeJsUtil::GetArgFltV(Args, 0, PValV);
+        TFltV QuantV; Gk.Query(PValV, QuantV);
+
+        v8::Handle<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
+        for (int QuantN = 0; QuantN < QuantV.Len(); ++QuantN) {
+            QuantArr->Set(QuantN, v8::Number::New(Isolate, QuantV[QuantN]));
+        }
+
+        Args.GetReturnValue().Set(QuantArr);
+    }
 }
 
 void TNodeJsTimeWindowGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {

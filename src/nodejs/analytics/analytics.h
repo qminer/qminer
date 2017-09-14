@@ -3416,8 +3416,8 @@ public:
      * Given an input cumulative probability, returns a quantile associated with that
      * probability (e.g. for input 0.5 it will return the median).
      *
-     * @param {number} p - cumulative probability between 0 and 1 (both inclusive)
-     * @returns {number} quantile associated with p
+     * @param {number|Array} p(vals) - cumulative probability or probabilities between 0 and 1 (both inclusive)
+     * @returns {number|Array} quantile associated with p or array of quantiles associated with pvals
      *
      * @example
      * var qm = require('qminer');
@@ -3585,8 +3585,8 @@ public:
      * Given an input cumulative probability, returns a quantile associated with that
      * probability (e.g. for input 0.5 it will return the median).
      *
-     * @param {number} p - cumulative probability between 0 and 1 (both inclusive)
-     * @returns {number} quantile associated with p
+     * @param {number|Array} p(vals) - cumulative probability or probabilities between 0 and 1 (both inclusive)
+     * @returns {number|Array} quantile associated with p or array of quantiles associated with pvals
      *
      * @example
      * var qm = require('qminer');
