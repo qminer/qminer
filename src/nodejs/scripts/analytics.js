@@ -119,7 +119,7 @@ module.exports = exports = function (pathQmBinary) {
     * // get the properties of the model
     * var model = SVC.getModel();
     */
-    exports.SVC.prototype.getModel = function() { return { weights: this.weights }; }
+    exports.SVC.prototype.getModel = function() { return { weights: this.weights, bias: this.bias }; }
     /**
     * Get the model.
     * @returns {Object} The `svmModel` object containing the property:
@@ -132,7 +132,7 @@ module.exports = exports = function (pathQmBinary) {
     * // get the properties of the model
     * var model = SVR.getModel();
     */
-    exports.SVR.prototype.getModel = function() { return { weights: this.weights }; }
+    exports.SVR.prototype.getModel = function() { return { weights: this.weights, bias: this.bias }; }
 
     // Ridge Regression
     /**
@@ -184,7 +184,7 @@ module.exports = exports = function (pathQmBinary) {
     * // import analytics module
     * var analytics = require('qminer').analytics;
     * // create a new OneVsAll object with the model analytics.SVC
-    * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+    * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
     */
     exports.OneVsAll = function (arg) {
         // remember parameters
@@ -202,10 +202,10 @@ module.exports = exports = function (pathQmBinary) {
         * // import analytics module
         * var analytics = require('qminer').analytics;
         * // create a new OneVsAll object with the model analytics.SVC
-        * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+        * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
         * // get the parameters
         * // returns the JSon object
-        * // { model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2, models: [] }
+        * // { model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2, models: [] }
         * var params = onevsall.getParams();
         */
         this.getParams = function () {
@@ -220,7 +220,7 @@ module.exports = exports = function (pathQmBinary) {
         * // import analytics module
         * var analytics = require('qminer').analytics;
         * // create a new OneVsAll object with the model analytics.SVC
-        * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+        * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
         * // set the parameters
         * var params = onevsall.setParams({ model: analytics.SVR, modelParam: { c: 12, maxTime: 10000}, cats: 3, verbose: true });
         */
@@ -244,7 +244,7 @@ module.exports = exports = function (pathQmBinary) {
          * var analytics = require('qminer').analytics;
          * var la = require('qminer').la;
          * // create a new OneVsAll object with the model analytics.SVC
-         * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+         * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
          * // create the data (matrix and vector) used to fit the model
          * var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
          * var vector = new la.Vector([0, 0, 1, 1]);
@@ -291,7 +291,7 @@ module.exports = exports = function (pathQmBinary) {
          * var analytics = require('qminer').analytics;
          * var la = require('qminer').la;
          * // create a new OneVsAll object with the model analytics.SVC
-         * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+         * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
          * // create the data (matrix and vector) used to fit the model
          * var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
          * var vector = new la.Vector([0, 0, 1, 1]);
@@ -332,7 +332,7 @@ module.exports = exports = function (pathQmBinary) {
          * var analytics = require('qminer').analytics;
          * var la = require('qminer').la;
          * // create a new OneVsAll object with the model analytics.SVC
-         * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+         * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
          * // create the data (matrix and vector) used to fit the model
          * var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
          * var vector = new la.Vector([0, 0, 1, 1]);
@@ -1879,12 +1879,11 @@ module.exports = exports = function (pathQmBinary) {
         var params = this.getParams();
         var norC2 = la.square(this.centroids.colNorms());
         var ones_n = la.ones(X.cols).multiply(0.5);
-        var ones_k = la.ones(params.k).multiply(0.5);
+        var ones_k = la.ones(this.centroids.cols).multiply(0.5);
         var norX2 = la.square(X.colNorms());
         var D = this.centroids.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
         var centroids = la.findMaxIdx(D);
         var medoidIDs = new la.IntVector(centroids);
-        assert(this.medoids.length == params.k);
         var result = [];
         for (var i = 0; i < centroids.length; i++) {
             var explanation = featureContrib(X.getCol(i), this.centroids.getCol(centroids[i]));
@@ -1912,9 +1911,9 @@ module.exports = exports = function (pathQmBinary) {
     * // create a matrix to be fitted
     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
     * // create the model
-    * DpMeans.fit(X);
+    * dpmeans.fit(X);
     * // get the model
-    * var model = DpMeans.getModel();
+    * var model = dpmeans.getModel();
     */
     exports.DpMeans.prototype.getModel = function () { return { C: this.centroids, medoids: this.medoids, idxv: this.idxv }; }
 

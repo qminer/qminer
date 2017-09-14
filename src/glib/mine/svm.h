@@ -51,7 +51,7 @@ public:
 
 // LIBSVM for Eps-Support Vector Regression for sparse input
 inline TLinModel LibSvmSolveRegression(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV,
-        const double& Eps, const double& Cost, PNotify DebugNotify, PNotify ErrorNotify) {
+        const double& Eps, const double& Cost, const TWPt<TNotify>& DebugNotify, const TWPt<TNotify>& ErrorNotify) {
      // Asserts for input arguments
     EAssertR(Cost > 0.0, "Cost parameter has to be positive.");
 
@@ -128,7 +128,7 @@ inline TLinModel LibSvmSolveRegression(const TVec<TIntFltKdV>& VecV, const TFltV
 
 // LIBSVM for Eps-Support Vector Regression for TFltVV input
 inline TLinModel LibSvmSolveRegression(const TFltVV& VecV, const TFltV& TargetV,
-        const double& Eps, const double& Cost, PNotify DebugNotify, PNotify ErrorNotify) {
+        const double& Eps, const double& Cost, const TWPt<TNotify>& DebugNotify, const TWPt<TNotify>& ErrorNotify) {
 
     // Asserts for input arguments
     EAssertR(Cost > 0.0, "Cost parameter has to be positive.");
@@ -210,11 +210,12 @@ inline TLinModel LibSvmSolveRegression(const TFltVV& VecV, const TFltV& TargetV,
 }
 
 // LIBSVM for C-Support Vector Classification for sparse input
-inline TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV, const double& Cost,
-	PNotify DebugNotify, PNotify ErrorNotify) {
+inline TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& TargetV, const double& Cost, const double& Unbalance,
+    const TWPt<TNotify>& DebugNotify, const TWPt<TNotify>& ErrorNotify) {
 
     // Asserts for input arguments
     EAssertR(Cost > 0.0, "Cost parameter has to be positive.");
+    EAssertR(Unbalance > 0.0, "Unbalance parameter has to be positive.");
 
     // load training parameters
     svm_parameter_t svm_parameter;
@@ -224,17 +225,22 @@ inline TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& 
     // ignored by the learning when kernel_type!=polynomial
     svm_parameter.degree = 0;
     svm_parameter.C = Cost;
-    svm_parameter.nr_weight = 0;
-    svm_parameter.weight = NULL;
-    svm_parameter.weight_label = NULL;
+    svm_parameter.nr_weight = 2;
+    svm_parameter.weight_label = (int *)malloc(2 * sizeof(int)); // deleted in svm_destroy_param
+    svm_parameter.weight_label[0] = -1;
+    svm_parameter.weight_label[1] = 1;
+    svm_parameter.weight = (double *)malloc(2 * sizeof(double));  // deleted in svm_destroy_param
+    svm_parameter.weight[0] = 1;
+    svm_parameter.weight[1] = Unbalance;
+    
     // cache_size is only needed for kernel functions
     svm_parameter.cache_size = 100;
     svm_parameter.eps = 1e-3;
-	//svm_parameter.p = 0.1; // not needed but it has to be positive as it is checked
+    //svm_parameter.p = 0.1; // not needed but it has to be positive as it is checked
     svm_parameter.shrinking = 0;
     svm_parameter.probability = 0;
-	//  not needed for linear SVM, but it has to be positive as it is checked
-	svm_parameter.gamma = 1.0;
+    //  not needed for linear SVM, but it has to be positive as it is checked
+    svm_parameter.gamma = 1.0;
 
     // load train data
     svm_problem_t svm_problem;
@@ -294,8 +300,8 @@ inline TLinModel LibSvmSolveClassify(const TVec<TIntFltKdV>& VecV, const TFltV& 
 }
 
 // Use LIBSVM for C-Support Vector Classification
-inline TLinModel LibSvmSolveClassify(const TFltVV& VecV, const TFltV& TargetV, const double& Cost,
-	PNotify DebugNotify, PNotify ErrorNotify) {
+inline TLinModel LibSvmSolveClassify(const TFltVV& VecV, const TFltV& TargetV, const double& Cost, const double& Unbalance,
+    const TWPt<TNotify>& DebugNotify, const TWPt<TNotify>& ErrorNotify) {
 
     // Asserts for input arguments
     EAssertR(Cost > 0.0, "Cost parameter has to be positive.");
@@ -308,17 +314,21 @@ inline TLinModel LibSvmSolveClassify(const TFltVV& VecV, const TFltV& TargetV, c
     // ignored by the learning when kernel_type!=polynomial
     svm_parameter.degree = 0;
     svm_parameter.C = Cost;
-    svm_parameter.nr_weight = 0;
-    svm_parameter.weight = NULL;
-    svm_parameter.weight_label = NULL;
+    svm_parameter.nr_weight = 2;
+    svm_parameter.weight_label = (int *)malloc(2 * sizeof(int)); // deleted in svm_destroy_param
+    svm_parameter.weight_label[0] = -1;
+    svm_parameter.weight_label[1] = 1;
+    svm_parameter.weight = (double *)malloc(2 * sizeof(double)); // deleted in svm_destroy_param
+    svm_parameter.weight[0] = 1;
+    svm_parameter.weight[1] = Unbalance;
     // cache_size is only needed for kernel functions
     svm_parameter.cache_size = 100;
     svm_parameter.eps = 1e-3;
-	//svm_parameter.p = 0.1; // not needed but it has to be positive as it is checked
+    //svm_parameter.p = 0.1; // not needed but it has to be positive as it is checked
     svm_parameter.shrinking = 0;
     svm_parameter.probability = 0;
-	//  not needed for linear SVM, but it has to be positive as it is checked
-	svm_parameter.gamma = 1.0;
+    //  not needed for linear SVM, but it has to be positive as it is checked
+    svm_parameter.gamma = 1.0;
 
     const int DimN = VecV.GetXDim(); // Number of features
     const int AllN = VecV.GetYDim(); // Number of examples
@@ -378,7 +388,7 @@ template <class TVecV>
 TLinModel SolveClassify(const TVecV& VecV, const int& Dims, const int& Vecs,
         const TFltV& TargetV, const double& Cost, const double& UnbalanceWgt,
         const int& MxMSecs, const int& MxIter, const double& MnDiff, 
-        const int& SampleSize, const PNotify& Notify = TStdNotify::New()) {
+        const int& SampleSize, const TWPt<TNotify>& Notify) {
 
     // asserts for input parameters
     EAssertR(Dims > 0, "Dimensionality must be positive!");
@@ -509,7 +519,7 @@ template <class TVecV>
 inline TLinModel SolveRegression(const TVecV& VecV, const int& Dims, const int& Vecs,
 	const TFltV& TargetV, const double& Cost, const double& Eps,
 	const int& MxMSecs, const int& MxIter, const double& MnDiff,
-	const int& SampleSize, const PNotify& Notify) {
+	const int& SampleSize, const TWPt<TNotify>& Notify) {
 
 	// asserts for input parameters
 	EAssertR(Dims > 0, "Dimensionality must be positive!");

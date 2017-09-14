@@ -511,5 +511,24 @@ public:
 // include some implementations at the end, so we don't get incomplete types
 #include "nodeutil.hpp"
 
+// This class is needed for compiling external qminer nodejs extensions
+typedef void(*TExportsVoidF)(v8::Handle<v8::Object>);
+struct TExternalQmAddon {
+    static TFunRouter<TExportsVoidF>& CreateOnce() {
+        static TFunRouter<TExportsVoidF> * NewRouter = new TFunRouter<TExportsVoidF>;
+        return *NewRouter;
+    }
+};
+
+#define INIT_EXTERN_QM_ADDON(Name) \
+class Autogen ## Name { \
+public: \
+    Autogen ## Name() { \
+        TFunRouter<TExportsVoidF>& Router = TExternalQmAddon::CreateOnce(); \
+        Router.Register(#Name, Name); \
+    } \
+}; \
+Autogen ## Name Autogen_ ## Name; \
+
 #endif
 

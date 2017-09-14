@@ -33,7 +33,6 @@
         fieldName: 'FirstName'
     });
 
-    // Insert a record whose Value is below lower bound: 0 < lb
     store.push({ FirstName: 'John' });
     // Should print 'Hello John!'
     store.push({ FirstName: 'Mary' });

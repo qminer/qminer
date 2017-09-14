@@ -246,7 +246,7 @@ int64 TJsonVal::GetObjInt64(const char *Key, const int64& DefInt) const {
 uint64 TJsonVal::GetObjUInt64(const TStr& Key, const uint64& DefInt) const {
   EAssertR(IsObj(), "Cannot get property of non-object!");
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetUInt64() : DefInt;
-} 
+}
 
 uint64 TJsonVal::GetObjUInt64(const char *Key, const uint64& DefInt) const {
   EAssertR(IsObj(), "Cannot get property of non-object!");
@@ -271,12 +271,12 @@ void TJsonVal::GetObjFltV(const TStr& Key, TFltV& FltV) const {
   GetObjKey(Key)->GetArrNumV(FltV);
 }
 
-const TStr& TJsonVal::GetObjStr(const TStr& Key, const TStr& DefStr) const { 
+TStr TJsonVal::GetObjStr(const TStr& Key, const TStr& DefStr) const {
   EAssertR(IsObj(), "Cannot get property of non-object!");
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetStr() : DefStr;
 }
 
-const TStr& TJsonVal::GetObjStr(const char *Key, const TStr& DefStr) const {
+TStr TJsonVal::GetObjStr(const char *Key, const TStr& DefStr) const {
   EAssertR(IsObj(), "Cannot get property of non-object!");
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetStr() : DefStr;
 }

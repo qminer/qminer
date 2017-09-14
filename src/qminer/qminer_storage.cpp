@@ -3345,7 +3345,7 @@ void TStoreImpl::UpdateRec(const uint64& RecId, const PJsonVal& RecVal) {
     OnUpdate(RecId);
 }
 
-void TStoreImpl::GarbageCollect() {
+void TStoreImpl::GarbageCollect(const int& MxTimeMSecs) {
     // if no window, nothing to do here
     if (WndDesc.WindowType == swtNone) { return; }
     // if no records, nothing to do here
@@ -3397,7 +3397,7 @@ void TStoreImpl::GarbageCollect() {
         }
     }
     TEnv::Logger->OnStatusFmt("  purging %d records", DelRecIdV.Len());
-    TStoreImpl::DeleteRecs(DelRecIdV, false);
+    TStoreImpl::DeleteRecs(DelRecIdV, MxTimeMSecs, false);
 }
 
 /// Deletes all records
@@ -3468,17 +3468,17 @@ void TStoreImpl::DeleteFirstRecs(const int& DelRecs)  {
         // track progress
         Deleted++;
     }
-    TStoreImpl::DeleteRecs(DelRecIdV, false);
+    TStoreImpl::DeleteRecs(DelRecIdV, -1, false);
 }
 
-void TStoreImpl::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
+void TStoreImpl::DeleteRecs(const TUInt64V& DelRecIdV, const int& MxTimeMSecs, const bool& AssertOK) {
     if (AssertOK) {
         // assert that DelRecIdV is valid, without gaps and that deleting will not create gaps
         PStoreIter Iter = GetIter();
         int Counter = 0;
         QmAssertR((uint64)DelRecIdV.Len() <= GetRecs(), "TStoreImpl::DeleteRecs: "
             "incorrect record id sequence. The length is greater than the total number of records.");
-        while (Iter->Next()) {
+        while (Iter->Next() && Counter < DelRecIdV.Len()) {
             QmAssertR(DelRecIdV[Counter] == Iter->GetRecId(), "TStoreImpl::DeleteRecs: "
                 "incorrect record id sequence. The sequence should start at the first store "
                 "records, should contain only record ids and should not contain gaps");
@@ -3489,10 +3489,17 @@ void TStoreImpl::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
     // NOTE: if you change the logic bellow, be sure to also change the DeleteAllRecs() method
 
     // delete records from index
+    TTmStopWatch StopWatch(true);
+    int DeletedRecs = 0;
     for (int DelRecN = 0; DelRecN < DelRecIdV.Len(); DelRecN++) {
         // report progress
         if (DelRecN > 0 && DelRecN % 1000 == 0) {
             TEnv::Logger->OnStatusFmt("    %d\r", DelRecN);
+        }
+        // check if we still have time
+        if ((MxTimeMSecs != -1) && (StopWatch.GetMSecInt() > MxTimeMSecs)) {
+            TEnv::Logger->OnStatusFmt("Reached time limit of %d msecs in TStoreImpl::DeleteRecs");
+            break;
         }
         // what are we deleting now
         const uint64 DelRecId = DelRecIdV[DelRecN];
@@ -3525,14 +3532,16 @@ void TStoreImpl::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
                 DelJoin(JoinDesc.GetJoinId(), DelRecId, JoinRecId);
             }
         }
+        // count what we deleted
+        DeletedRecs++;
     }
     // delete records from disk
     if (DataCacheP) {
-        DataCache.DelVals(DelRecIdV.Len());
+        DataCache.DelVals(DeletedRecs);
     }
     // delete records from in-memory store
     if (DataMemP) {
-        DataMem.DelVals(DelRecIdV.Len());
+        DataMem.DelVals(DeletedRecs);
     }
 
     // report success :-)
@@ -5007,7 +5016,7 @@ void TStorePbBlob::RunVerificationForRecord(const uint64& RecId) {
 }
 
 /// Purge records that fall out of store window (when it has one)
-void TStorePbBlob::GarbageCollect() {
+void TStorePbBlob::GarbageCollect(const int& MxTimeMSecs) {
     // if no window, nothing to do here
     if (WndDesc.WindowType == swtNone) { return; }
     // if no records, nothing to do here
@@ -5056,7 +5065,7 @@ void TStorePbBlob::GarbageCollect() {
         }
     }
     TEnv::Logger->OnStatusFmt("  purging %d records", DelRecIdV.Len());
-    TStorePbBlob::DeleteRecs(DelRecIdV, false);
+    TStorePbBlob::DeleteRecs(DelRecIdV, MxTimeMSecs, false);
 }
 
 /// Perform defragmentation
@@ -5141,21 +5150,28 @@ void TStorePbBlob::DeleteFirstRecs(const int& Recs) {
     if (RecIds.Len()>Recs) {
         RecIds.Del(Recs, RecIds.Len() - 1);
     }
-    DeleteRecs(RecIds);
+    DeleteRecs(RecIds, -1, false);
 }
 
-void TStorePbBlob::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
+void TStorePbBlob::DeleteRecs(const TUInt64V& DelRecIdV, const int& MxTimeMSecs, const bool& AssertOK) {
     if (AssertOK) {
         // assert that DelRecIdV is valid
         THash<TUInt64, TPgBlobPt>* Ht = (DataMemP ? &RecIdBlobPtHMem : &RecIdBlobPtH);
         for (int i = 0; i < DelRecIdV.Len(); i++) {
-            QmAssertR(Ht->IsKey(DelRecIdV[i]), "TStorePbBlob::DeleteRecs - incorrect record id. Record with specified ID not found.");
+            QmAssertR(Ht->IsKey(DelRecIdV[i]),
+                "TStorePbBlob::DeleteRecs - incorrect record id. Record with specified ID not found.");
         }
     }
     // delete records
+    TTmStopWatch StopWatch(true);
     for (int DelRecN = 0; DelRecN < DelRecIdV.Len(); DelRecN++) {
         // report progress
         if (DelRecN > 0 && DelRecN % 1000 == 0) { TEnv::Logger->OnStatusFmt("    %d\r", DelRecN); }
+        // check if we still have time
+        if ((MxTimeMSecs != -1) && (StopWatch.GetMSecInt() > MxTimeMSecs)) {
+            TEnv::Logger->OnStatusFmt("Reached time limit of %d msecs in TStorePbBlob::DeleteRecs");
+            break;
+        }
         // what are we deleting now
         const uint64 DelRecId = DelRecIdV[DelRecN];
         // execute triggers before deletion
@@ -5194,7 +5210,9 @@ void TStorePbBlob::DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK) {
     }
 
     // report success :-)
-    //TEnv::Logger->OnStatusFmt("  %s records at end", TUInt64::GetStr(GetRecs()).CStr());
+    if (DelRecIdV.Len() > 1000) {
+        TEnv::Logger->OnStatusFmt("  %s records at end", TUInt64::GetStr(GetRecs()).CStr());
+    }
 }
 
 /// Initialize field location flags
@@ -5708,7 +5726,7 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonV
 ///////////////////////////////
 /// Create new base given a schema definition
 TWPt<TBase> NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize,
-    const uint64& DefStoreCacheSize, const bool& StrictNameP, 
+    const uint64& DefStoreCacheSize, const bool& StrictNameP,
     const TStrUInt64H& StoreNmCacheSizeH, const TStrUInt64H& IndexTypeCacheSizeH,
     const bool& InitP, const int& SplitLen, bool UsePaged) {
 
@@ -5727,7 +5745,7 @@ TWPt<TBase> NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& 
 ///////////////////////////////
 /// Load base created from a schema definition
 TWPt<TBase> LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize,
-    const uint64& DefStoreCacheSize, 
+    const uint64& DefStoreCacheSize,
     const TStrUInt64H& StoreNmCacheSizeH, const TStrUInt64H& IndexTypeCacheSizeH,
     const bool& InitP, const int& SplitLen) {
 

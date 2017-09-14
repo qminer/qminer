@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.6.1</a>
       </div>
     </div>
   </nav>
@@ -175,10 +175,12 @@ var prediction = KMeans.predict(Y);</code></pre>
 var analytics = require(&#x27;qminer&#x27;).analytics;
 // create a new KMeans object
 var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+// create a matrix to be fitted
+var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+// create the model with the matrix X
+KMeans.fit(X);
 // get the centroids
-var centroids = KMeans.centroids;
-// print the first centroid
-console.log(centroids.getCol(0));</code></pre>
+var centroids = KMeans.centroids;</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -194,6 +196,10 @@ console.log(centroids.getCol(0));</code></pre>
 var analytics = require(&#x27;qminer&#x27;).analytics;
 // create a new KMeans object
 var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+// create a matrix to be fitted
+var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+// create the model with the matrix X
+KMeans.fit(X);
 // get the idxv
 var idxv = KMeans.idxv;</code></pre>
                 </div>
@@ -211,6 +217,10 @@ var idxv = KMeans.idxv;</code></pre>
 var analytics = require(&#x27;qminer&#x27;).analytics;
 // create a new KMeans object
 var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+// create a matrix to be fitted
+var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+// create the model with the matrix X
+KMeans.fit(X);
 // get the centroids
 var medoids = KMeans.medoids;</code></pre>
                 </div>

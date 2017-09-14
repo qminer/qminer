@@ -81,10 +81,12 @@ void InitAnalytics(Handle<Object> Exports, const TStr& NsNm) {
     TNodeJsKMeans::Init(NsObj);
     TNodeJsDpMeans::Init(NsObj);
     TNodeJsTDigest::Init(NsObj);
-    TNodeJsRecommenderSys::Init(NsObj);
-    TNodeJsGraphCascade::Init(NsObj);
+    TNodeJsGk::Init(NsObj);
+    TNodeJsBiasedGk::Init(NsObj);
     TNodeJsCountWindowGk::Init(NsObj);
     TNodeJsTimeWindowGk::Init(NsObj);
+    TNodeJsRecommenderSys::Init(NsObj);
+    TNodeJsGraphCascade::Init(NsObj);
 
     Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
 }
@@ -163,6 +165,16 @@ void InitQm(Handle<Object> Exports) {
     TNodeJsFtrSpace::Init(Exports);
 }
 
+void InitExternalQmAddons(Handle<Object> Exports) {
+    TFunRouter<TExportsVoidF>& Router = TExternalQmAddon::CreateOnce();
+    TStrV TypeNmV;
+    Router.GetTypeNmV(TypeNmV);
+    int Len = TypeNmV.Len();
+    for (int TypeN = 0; TypeN < Len; TypeN++) {
+        Router.Fun(TypeNmV[TypeN])(Exports);
+    }
+}
+
 void Init(Handle<Object> Exports) {
     InitFs(Exports, "fs");
     InitLa(Exports, "la");
@@ -173,6 +185,8 @@ void Init(Handle<Object> Exports) {
     InitDeprecated(Exports, "deprecated");
     InitStreamStory(Exports, "streamstory");
     InitQm(Exports);
+    // Initializes all external objects
+    InitExternalQmAddons(Exports);
 }
 
 NODE_MODULE(qm, Init);
