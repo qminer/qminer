@@ -3454,6 +3454,18 @@ public:
      */
     //# exports.CountWindowGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
+
+    /**
+     * Returns the current size of the algorithms summary in number of tuples.
+     */
+    //# exports.BiasedGk.size = 0;
+    JsDeclareProperty(size);
+
+    /**
+     * Returns the models current memory consumption.
+     */
+    //# exports.BiasedGk.memory = 0;
+    JsDeclareProperty(memory);
 };
 
 /**
@@ -3623,6 +3635,18 @@ public:
      */
     //# exports.TimeWindowGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
+
+    /**
+     * Returns the current size of the algorithms summary in number of tuples.
+     */
+    //# exports.BiasedGk.size = 0;
+    JsDeclareProperty(size);
+
+    /**
+     * Returns the models current memory consumption.
+     */
+    //# exports.BiasedGk.memory = 0;
+    JsDeclareProperty(memory);
 };
 
 

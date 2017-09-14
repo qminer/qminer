@@ -374,6 +374,15 @@ namespace TQuant {
         }
 
         template <typename TInterval>
+        uint64 TExpHistBase<TInterval>::GetMemUsed() const {
+            return sizeof(TExpHistBase) +
+                TMemUtils::GetExtraContainerSizeShallow(IntervalV) +
+                TMemUtils::GetExtraContainerSizeShallow(LogSizeToBlockCountV) +
+                TMemUtils::GetExtraMemberSize(Eps) +
+                TMemUtils::GetExtraMemberSize(TotalCount);
+        }
+
+        template <typename TInterval>
         bool TExpHistBase<TInterval>::CheckInvariant1() const {
             if (IntervalV.Empty()) { return true; }
 

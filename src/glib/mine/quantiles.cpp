@@ -38,6 +38,13 @@ namespace TQuant {
             DurMSec(SIn),
             ElCount(SIn) {}
 
+        TInterval& TInterval::operator =(const TIntervalWithMax& Other) {
+            StartTm = Other.GetStartTm();
+            DurMSec = Other.GetDurMSec();
+            ElCount = Other.GetCount();
+            return *this;
+        }
+
         void TInterval::Save(TSOut& SOut) const {
             SOut.Save(StartTm);
             SOut.Save(DurMSec);
@@ -53,6 +60,27 @@ namespace TQuant {
 
             DurMSec = Other.DurMSec +  Other.StartTm - StartTm;
             ElCount <<= 1;  // multiply by 2
+        }
+
+        void TInterval::Split(TInterval& StartInterval, TInterval& EndInterval) const {
+            Assert(ElCount > 1);
+            // the start interval which starts at the start of this one
+            // and has duration 0
+            StartInterval.StartTm = GetStartTm();
+            StartInterval.DurMSec = 0;
+            StartInterval.ElCount = GetCount() >> 1;
+            // the end interval occurs at the end of this interval
+            // and also has duration 0
+            EndInterval.StartTm = GetEndTm();
+            EndInterval.DurMSec = 0;
+            EndInterval.ElCount = GetCount() >> 1;
+        }
+
+        uint64 TInterval::GetMemUsed() const {
+            return sizeof(TInterval) +
+                TMemUtils::GetExtraMemberSize(StartTm) +
+                TMemUtils::GetExtraMemberSize(DurMSec) +
+                TMemUtils::GetExtraMemberSize(ElCount);
         }
 
         ////////////////////////////////////////////
@@ -84,6 +112,12 @@ namespace TQuant {
             }
         }
 
+        uint64 TIntervalWithMax::GetMemUsed() const {
+            return TBase::GetMemUsed() +
+                sizeof(TIntervalWithMax) - sizeof(TInterval) +
+                TMemUtils::GetExtraMemberSize(MxVal);
+        }
+
         ////////////////////////////////////////////
         /// Approximate interval with minimum
         TIntervalWithMin::TIntervalWithMin() : TIntervalWithMin(0, 0.0) {}
@@ -111,6 +145,12 @@ namespace TQuant {
             if (Other.MnVal < MnVal) {
                 MnVal = Other.MnVal;
             }
+        }
+
+        uint64 TIntervalWithMin::GetMemUsed() const {
+            return TBase::GetMemUsed() +
+                sizeof(TIntervalWithMin) - sizeof(TInterval) +
+                TMemUtils::GetExtraMemberSize(MnVal);
         }
 
 
@@ -227,6 +267,12 @@ namespace TQuant {
             AssertR(CheckInvariant2(), "EH with max: Invariant 2 fails after removing newest non-max!");
         }
 
+        uint64 TExpHistWithMax::GetMemUsed() const {
+            return TBase::GetMemUsed() +
+                sizeof(TExpHistWithMax) - sizeof(TBase) +
+                TMemUtils::GetExtraMemberSize(MxVal);
+        }
+
         void TExpHistWithMax::ToExpHist(TExpHistogram& ExpHist) const {
             ExpHist.IntervalV.Gen(IntervalV.Len(), IntervalV.Len());
             ExpHist.LogSizeToBlockCountV = LogSizeToBlockCountV;
@@ -248,6 +294,18 @@ namespace TQuant {
 
         void TExpHistWithMax::OnAfterSwallow() {
             FindNewMxVal();
+        }
+
+        void TExpHistWithMax::FindNewMxVal(const int& StartN) {
+            MxVal = TFlt::NInf;
+            for (int IntervalN = StartN; IntervalN < IntervalV.Len(); IntervalN++) {
+                if (IntervalV[IntervalN].GetMxVal() > MxVal) {
+                    MxVal = IntervalV[IntervalN].GetMxVal();
+                }
+            }
+        }
+        bool TExpHistWithMax::IsMaxInWindow(const int64& ForgetTm, const TIntervalWithMax& Interval) {
+            return ForgetTm < int64(Interval.GetStartTm() + Interval.GetEndTm()) / 2;
         }
 
 
@@ -326,6 +384,15 @@ namespace TQuant {
         double TWindowMin::GetMnVal() const {
             Assert(GetSummarySize() > 0);
             return MnVal;
+        }
+
+        uint64 TWindowMin::GetMemUsed() const {
+            return sizeof(TWindowMin) +
+                TMemUtils::GetExtraMemberSize(IntervalV) +
+                TMemUtils::GetExtraMemberSize(LogSizeToBlockCountV) +
+                TMemUtils::GetExtraMemberSize(Eps) +
+                TMemUtils::GetExtraMemberSize(MnVal) +
+                TMemUtils::GetExtraMemberSize(ForgetTm);
         }
 
         void TWindowMin::PrintSummary() const {
@@ -531,6 +598,12 @@ namespace TQuant {
 
         void TEhTuple::SwallowOne(const uint64& ValTm, const double& Val) {
             TupleSizeExpHist.Add(ValTm, Val);
+        }
+
+        uint64 TEhTuple::GetMemUsed() const {
+            return sizeof(TEhTuple) +
+                TMemUtils::GetExtraMemberSize(TupleSizeExpHist) +
+                TMemUtils::GetExtraMemberSize(RightUncertExpHist);
         }
 
         /////////////////////////////////////////////
@@ -743,6 +816,19 @@ namespace TQuant {
 
         uint TSwGkLLSummary::GetTupleCount() const {
             return (uint) Summary.size();
+        }
+
+        uint64 TSwGkLLSummary::GetMemUsed() const {
+            uint64 ExtraLLMem = 2*Summary.size()*sizeof(void*);
+            for (const TTuple& Tuple : Summary) {
+                ExtraLLMem += Tuple.GetMemUsed();
+            }
+            /* const uint64 ExtraLLMem = Summary.size()*(2*sizeof(void*) + sizeof(TTuple)); */
+            return sizeof(TSwGkLLSummary) + ExtraLLMem +
+                TMemUtils::GetExtraMemberSize(ItemCount) +
+                TMemUtils::GetExtraMemberSize(ForgetTm) +
+                TMemUtils::GetExtraMemberSize(EpsGk) +
+                TMemUtils::GetExtraMemberSize(EpsEh);
         }
 
         void TSwGkLLSummary::OnItemsDeleted(const uint64& DelCount) {
@@ -976,7 +1062,7 @@ namespace TQuant {
 
     uint64 TUtils::TGkUtils::TVecSummary::GetMemUsed() const {
         return sizeof(TVecSummary) +
-            TMemUtils::GetExtraMemberSize(Summary) +
+            TMemUtils::GetExtraContainerSizeShallow(Summary) +
             TMemUtils::GetExtraMemberSize(SampleN) +
             TMemUtils::GetExtraMemberSize(Eps) +
             TMemUtils::GetExtraMemberSize(UseBands);
@@ -1189,7 +1275,7 @@ namespace TQuant {
 
     uint64 TUtils::TBiasedUtils::TVecSummary::GetMemUsed() const {
         return sizeof(TVecSummary) +
-            TMemUtils::GetExtraMemberSize(Summary) +
+            TMemUtils::GetExtraContainerSizeShallow(Summary) +
             TMemUtils::GetExtraMemberSize(UseBands);
     }
 
@@ -1333,7 +1419,7 @@ namespace TQuant {
     }
 
     uint64 TGk::GetMemUsed() const {
-        return sizeof(TGk) + 
+        return sizeof(TGk) +
             TMemUtils::GetExtraMemberSize(Summary) +
             TMemUtils::GetExtraMemberSize(Eps) +
             TMemUtils::GetExtraMemberSize(static_cast<char>(CompressStrategy));
@@ -1669,7 +1755,7 @@ namespace TQuant {
 
     uint64 TTDigest::GetMemUsed() const {
         return sizeof(TTDigest) +
-            TMemUtils::GetExtraMemberSize(CentroidV) +
+            TMemUtils::GetExtraContainerSizeShallow(CentroidV) +
             TMemUtils::GetExtraMemberSize(Rnd) +
             TMemUtils::GetExtraMemberSize(MnEps) +
             TMemUtils::GetExtraMemberSize(MnCentroids) +
@@ -1907,6 +1993,15 @@ namespace TQuant {
         return Summary.GetTupleCount();
     }
 
+    uint64 TSwGk::GetMemUsed() const {
+        return sizeof(TSwGk) +
+            TMemUtils::GetExtraMemberSize(Summary) +
+            TMemUtils::GetExtraMemberSize(WinMin) +
+            TMemUtils::GetExtraMemberSize(EpsGk) +
+            TMemUtils::GetExtraMemberSize(ForgetTm) +
+            TMemUtils::GetExtraMemberSize(SampleN);
+    }
+
     uint64 TSwGk::GetValCount() {
         return Summary.GetValCount();
     }
@@ -1959,6 +2054,12 @@ namespace TQuant {
         return WindowSize;
     }
 
+    uint64 TCountWindowGk::GetMemUsed() const {
+        return TSwGk::GetMemUsed() +
+            sizeof(TCountWindowGk) - sizeof(TSwGk) +
+            TMemUtils::GetExtraMemberSize(WindowSize);
+    }
+
     /////////////////////////////////////////////
     /// Time-window SW-GK
     TTimeWindowGk::TTimeWindowGk(const uint64& _WindowMSec, const double& _EpsGk, const double& _EpsEh):
@@ -1986,6 +2087,12 @@ namespace TQuant {
 
     const TUInt64& TTimeWindowGk::GetWindowMSec() const {
         return WindowMSec;
+    }
+
+    uint64 TTimeWindowGk::GetMemUsed() const {
+        return TSwGk::GetMemUsed() +
+            sizeof(TTimeWindowGk) - sizeof(TSwGk) +
+            TMemUtils::GetExtraMemberSize(WindowMSec);
     }
 
     std::ostream& operator <<(std::ostream& os, const TUInt& Val) {

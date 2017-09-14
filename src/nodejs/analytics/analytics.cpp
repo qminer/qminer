@@ -4491,6 +4491,9 @@ void TNodeJsCountWindowGk::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // properties
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "size"), _size);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "memory"), _memory);
+
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
 }
 
@@ -4597,6 +4600,23 @@ void TNodeJsCountWindowGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args)
     Args.GetReturnValue().Set(Args[0]);
 }
 
+void TNodeJsCountWindowGk::size(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsCountWindowGk* JsModel = ObjectWrap::Unwrap<TNodeJsCountWindowGk>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Gk.GetSummarySize()));
+}
+
+void TNodeJsCountWindowGk::memory(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsCountWindowGk* JsModel = ObjectWrap::Unwrap<TNodeJsCountWindowGk>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Gk.GetMemUsed()));
+}
 
 ///////////////////////////////////////////////////////
 // Greenwald-Khanna quantile estimation for time window
@@ -4616,6 +4636,9 @@ void TNodeJsTimeWindowGk::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // properties
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "size"), _size);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "memory"), _memory);
+
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
 }
 
@@ -4727,6 +4750,24 @@ void TNodeJsTimeWindowGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 
     // return the output stream
     Args.GetReturnValue().Set(Args[0]);
+}
+
+void TNodeJsTimeWindowGk::size(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsTimeWindowGk* JsModel = ObjectWrap::Unwrap<TNodeJsTimeWindowGk>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Gk.GetSummarySize()));
+}
+
+void TNodeJsTimeWindowGk::memory(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsTimeWindowGk* JsModel = ObjectWrap::Unwrap<TNodeJsTimeWindowGk>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Gk.GetMemUsed()));
 }
 
 /////////////////////////////////////////////

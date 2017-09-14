@@ -72,6 +72,8 @@ namespace TQuant {
             }
         };
 
+        class TIntervalWithMax;
+
         ////////////////////////////////////
         /// Time interval which holds a count
         /// of items
@@ -88,6 +90,8 @@ namespace TQuant {
             TInterval(const uint64& StartTm);
             TInterval(const uint64& StartTm, const uint64& Dur, const uint& Count);
 
+            TInterval& operator =(const TIntervalWithMax&);
+
             // SERIALIZATION
             TInterval(TSIn&);
             void Save(TSOut& SOut) const;
@@ -99,25 +103,17 @@ namespace TQuant {
             uint64 GetEndTm() const;
 
             void Swallow(const TInterval&);
-            void Split(TInterval& StartInterval, TInterval& EndInterval) const {
-                Assert(ElCount > 1);
-                // the start interval which starts at the start of this one
-                // and has duration 0
-                StartInterval.StartTm = GetStartTm();
-                StartInterval.DurMSec = 0;
-                StartInterval.ElCount = GetCount() >> 1;
-                // the end interval occurs at the end of this interval
-                // and also has duration 0
-                EndInterval.StartTm = GetEndTm();
-                EndInterval.DurMSec = 0;
-                EndInterval.ElCount = GetCount() >> 1;
-            }
+            void Split(TInterval& StartInterval, TInterval& EndInterval) const;
+
+            /// returns the objects memory footprint
+            uint64 GetMemUsed() const;
         };
 
         ///////////////////////////////////////////
         /// Interval which holds the start time,
         /// duration, item count and maximum value
-        class TIntervalWithMax : public TInterval {
+        class TIntervalWithMax : protected TInterval {
+            using TBase = TInterval;
         private:
             TFlt MxVal;             // the maximal value merged into the interval
 
@@ -133,6 +129,10 @@ namespace TQuant {
             TIntervalWithMax(TSIn&);
             void Save(TSOut&) const;
 
+            using TInterval::GetCount;
+            using TInterval::GetStartTm;
+            using TInterval::GetEndTm;
+            using TInterval::GetDurMSec;
             const TFlt& GetMxVal() const { return MxVal; }
 
             void Swallow(const TIntervalWithMax&);
@@ -141,12 +141,16 @@ namespace TQuant {
                 StartInterval.MxVal = MxVal;
                 EndInterval.MxVal = MxVal;
             }
+
+            /// returns the objects memory footprint
+            uint64 GetMemUsed() const;
         };
 
         ///////////////////////////////////////////
         /// Interval which holds the start time,
         /// duration, item count and minimum value
-        class TIntervalWithMin : public TInterval {
+        class TIntervalWithMin : protected TInterval {
+            using TBase = TInterval;
         private:
             TFlt MnVal;
 
@@ -160,9 +164,16 @@ namespace TQuant {
             TIntervalWithMin(TSIn&);
             void Save(TSOut&) const;
 
+            using TInterval::GetCount;
+            using TInterval::GetStartTm;
+            using TInterval::GetEndTm;
+            using TInterval::GetDurMSec;
             const TFlt& GetMnVal() const { return MnVal; }
 
             void Swallow(const TIntervalWithMin&);
+
+            /// returns the objects memory footprint
+            uint64 GetMemUsed() const;
         };
 
         //////////////////////////////////////////////
@@ -215,6 +226,8 @@ namespace TQuant {
 
             /// returns the number of intervals in the summary
             uint GetSummarySize() const;
+            /// returns the objects memory footprint
+            virtual uint64 GetMemUsed() const;
             /// prints the intervals to stadard output
             void PrintSummary() const { std::cout << IntervalV << "\n"; }
 
@@ -329,6 +342,10 @@ namespace TQuant {
             /// deletes the newest element with values different from max
             /// from the structure if there is only one element, it is deleted
             void DelNewestNonMx();
+
+            /// returns the objects memory footprint
+            uint64 GetMemUsed() const;
+
             /// returns a "normal" exponential histogram representation of itself
             void ToExpHist(TExpHistogram&) const;
 
@@ -337,17 +354,8 @@ namespace TQuant {
             void OnAfterSwallow();
 
         private:
-            void FindNewMxVal(const int& StartN=0) {
-                MxVal = TFlt::NInf;
-                for (int IntervalN = StartN; IntervalN < IntervalV.Len(); IntervalN++) {
-                    if (IntervalV[IntervalN].GetMxVal() > MxVal) {
-                        MxVal = IntervalV[IntervalN].GetMxVal();
-                    }
-                }
-            }
-            static bool IsMaxInWindow(const int64& ForgetTm, const TIntervalWithMax& Interval) {
-                return ForgetTm < int64(Interval.GetStartTm() + Interval.GetEndTm()) / 2;
-            }
+            void FindNewMxVal(const int& StartN=0);
+            static bool IsMaxInWindow(const int64& ForgetTm, const TIntervalWithMax& Interval);
 
             // MEMBERS
             using TIntervalV = TBase::TIntervalV;   // TODO when done check if this is needed
@@ -381,6 +389,7 @@ namespace TQuant {
             // DEBUGGING
 
             uint GetSummarySize() const { return IntervalV.Len(); }
+            uint64 GetMemUsed() const;
             bool Empty() const { return IntervalV.Empty(); }
             void PrintSummary() const;
 
@@ -451,6 +460,9 @@ namespace TQuant {
             void Swallow(TEhTuple& Other, const bool& TakeMnMxRank);
             void SwallowOne(const uint64& ValTm, const double& Val);
 
+            /// returns the objects memory footprint
+            uint64 GetMemUsed() const;
+
             friend std::ostream& operator <<(std::ostream& os, const TEhTuple& Tup) {
                 return os << "<"
                           << Tup.TupleSizeExpHist.GetMxVal() << ", "
@@ -501,6 +513,9 @@ namespace TQuant {
             uint64 GetValRecount();
             /// returns the number of tuples in the summary
             uint GetTupleCount() const;
+
+            /// returns the objects memory footprint
+            uint64 GetMemUsed() const;
 
             // TODO check if you can make this private or protected
             /// updates the total count of the items in the sliding window
@@ -977,6 +992,8 @@ namespace TQuant {
         // DEBUGGING
         /// returns the number of tuples in the summary
         int GetSummarySize() const;
+        /// returns the objects memory footprint
+        uint64 GetMemUsed() const;
         /// returns the total count of items in the sliding window
         uint64 GetValCount();
         /// returns the total count of the items by recounting
@@ -1055,6 +1072,8 @@ namespace TQuant {
 
         // debugging stuff
         using TSwGk::PrintSummary;
+        /// returns the objects memory footprint
+        uint64 GetMemUsed() const;
         using TSwGk::GetSummarySize;
         using TSwGk::GetValCount;
         using TSwGk::GetValRecount;
@@ -1109,8 +1128,9 @@ namespace TQuant {
         using TSwGk::GetEpsEh;
 
         // debugging stuff
-        using TSwGk::PrintSummary;
         using TSwGk::GetSummarySize;
+        uint64 GetMemUsed() const;
+        using TSwGk::PrintSummary;
         using TSwGk::GetValCount;
         using TSwGk::GetValRecount;
 
