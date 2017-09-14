@@ -62,6 +62,38 @@ namespace TSvm {
         return svm_model;
     }
     
+    void TLibSvmModel::DeleteModelStruct(svm_model_t* svm_model) const {
+        /// free svm_model->SV
+        int DimX = SupportVectors.GetXDim();
+        for (int Idx = 0; Idx < DimX; Idx++){
+          free(svm_model->SV[Idx]);
+          svm_model->SV[Idx] = NULL;
+        }
+        free(svm_model->SV);
+        svm_model->SV = NULL;
+        /// free svm_model->sv_coef
+        DimX = Coef.GetXDim();
+        for (int Idx = 0; Idx < DimX; Idx++){
+          free(svm_model->sv_coef[Idx]);
+          svm_model->sv_coef[Idx] = NULL;
+        }
+        free(svm_model->sv_coef);
+        svm_model->sv_coef = NULL;
+        // free svm_model->rho
+        free(svm_model->rho);
+        svm_model->rho = NULL;        
+        /// free svm_model->nSV and svm_model->label if allocated
+        if (Param.Type == C_SVC || Param.Type == NU_SVC){
+          free(svm_model->nSV);
+          svm_model->nSV = NULL;
+          free(svm_model->label);
+          svm_model->label = NULL;
+        }
+        
+        delete svm_model;
+        svm_model = NULL;
+    }
+    
     void TLibSvmModel::ConvertResults(svm_model_t* svm_model, int Dim){
         WgtV = TFltV(Dim);
         Bias = -svm_model->rho[0]; // LIBSVM does w*x-b, while we do w*x+b; thus the sign flip

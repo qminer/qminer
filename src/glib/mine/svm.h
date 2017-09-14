@@ -86,6 +86,7 @@ class TLibSvmParam{
     TLibSvmParam() : Type(C_SVC), Kernel(LINEAR), Degree(0), Gamma(1.0), Coef0(1.0) {  } //fill with default values
     TLibSvmParam(TInt _Type, TInt _Kernel, TInt _Degree, TFlt _Gamma, TFlt _Coef0) : 
         Type(_Type), Kernel(_Kernel), Degree(_Degree), Gamma(_Gamma), Coef0(_Coef0) {  } //fill with default values
+    ~TLibSvmParam() {  }
     
     TLibSvmParam(TSIn& SIn):
       Type(TInt(SIn)),
@@ -213,13 +214,18 @@ public:
     
     /// Get svm_model struct
     /// inverse of ConvertResults(svm_model_t* model)
+    /// to delete model and free memory use DeleteModelStruct(svm_model_t* svm_model)
     svm_model_t* GetModelStruct() const;
     
     /// converts model from LIBSVM svm_model_t to TLibSvmModel class
     /// inverse of GetModelStruct
     void ConvertResults(svm_model_t* model, int Dim);
     
-    /// Classify full vector
+    /// free memory
+    /// deletes struct created with 
+    void DeleteModelStruct(svm_model_t* svm_model) const;
+    
+    /// Classify full vector GetModelStruct()
     double Predict(const TFltV& Vec) const {
       if (Param.Kernel == LINEAR){
           return TLinAlg::DotProduct(WgtV, Vec) + Bias; 
@@ -235,10 +241,9 @@ public:
       svm_predict_values(model, x, dec_val);
       double result = dec_val[0];
       
-      svm_free_and_destroy_model(&model);
       free(x);
       free(dec_val);
-      free(model);
+      DeleteModelStruct(model);
       return result;
     }
     
