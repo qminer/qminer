@@ -1321,6 +1321,8 @@ namespace TQuant {
         }
     }
 
+    ///////////////////////////////////////////////////
+    /// tDigest centroid
     TUtils::TTDigestUtils::TCentroid::TCentroid():
             Mean(0),
             Count(0) {}
@@ -1342,12 +1344,22 @@ namespace TQuant {
 
     void TUtils::TTDigestUtils::TCentroid::Swallow(const double& Val, const int& ValWgt) {
         Assert(ValWgt > 0);
-        Mean = (Mean*Count + Val) / (Count + ValWgt);
+        Mean = (Mean*Count + Val*ValWgt) / (Count + ValWgt);
         Count +=  ValWgt;
     }
 
     double TUtils::TTDigestUtils::TCentroid::GetDist(const double& Val) const {
         return TMath::Abs(Val - Mean);
+    }
+
+    TUtils::TTDigestUtils::TCentroid& TUtils::TTDigestUtils::TCentroid::operator +=(const TCentroid& Other) {
+        if (this == &Other) { return *this; }
+        Swallow(Other.GetMean(), Other.GetCount());
+        return *this;
+    }
+
+    bool TUtils::TTDigestUtils::TCentroid::operator <(const TCentroid& Other) const {
+        return GetMean() < Other.GetMean();
     }
 
     uint64 TUtils::TTDigestUtils::TCentroid::GetMemUsed() const {
@@ -1356,6 +1368,112 @@ namespace TQuant {
             TMemUtils::GetExtraMemberSize(Count);
     }
 
+
+    ////////////////////////////////////
+    /// tDigest - base
+    TUtils::TTDigestUtils::TTDigestBase::TTDigestBase(TSIn& SIn):
+        CentroidV(SIn) {}
+
+    void TUtils::TTDigestUtils::TTDigestBase::Save(TSOut& SOut) const {
+        CentroidV.Save(SOut);
+    }
+
+    double TUtils::TTDigestUtils::TTDigestBase::Query(const double& PVal) const {
+        const double NCentroids = CentroidV.Len();
+        const double TargetRank = PVal*(SampleN-1);
+
+        if (NCentroids == 0) { return 0; }
+
+        double CurrMxRank = -0.5;
+        int CentN = 0;
+
+        do {
+            CurrMxRank += CentroidV[CentN].GetCount();
+            if (CurrMxRank >= TargetRank) { break; }
+            ++CentN;
+        } while (CentN < NCentroids);
+
+        if (CentN == 0) { return CentroidV[0].GetMean(); }
+        if (CentN == NCentroids-1) { return CentroidV.Last().GetMean(); }
+
+        // CurrMxRank >= TargetRank
+        // interpolate the result
+        const double CentroidRank = CurrMxRank - 0.5*CentroidV[CentN].GetCount();
+        if (TargetRank > CentroidRank) {
+            // interpolate with the centroid on the right
+            const TCentroid& CurrCent = CentroidV[CentN];
+            const TCentroid& RightCent = CentroidV[CentN+1];
+            return CurrCent.GetMean() +
+                (RightCent.GetMean() - CurrCent.GetMean())*(TargetRank - CentroidRank) / CurrCent.GetCount();
+        } else {
+            // interpolate with the centroid on the left
+            const TCentroid& LeftCent = CentroidV[CentN-1];
+            const TCentroid& CurrCent = CentroidV[CentN];
+            return CurrCent.GetMean() -
+                (CurrCent.GetMean() - LeftCent.GetMean())*(CentroidRank - TargetRank) / CurrCent.GetCount();
+        }
+    }
+
+    void TUtils::TTDigestUtils::TTDigestBase::Query(const TFltV& PValV, TFltV& QuantV) const {
+        if (QuantV.Len() != PValV.Len()) { QuantV.Gen(PValV.Len(), PValV.Len()); }
+
+        const double NCentroids = CentroidV.Len();
+        if (NCentroids == 0) { return; }
+
+        double CurrMxRank = CentroidV[0].GetCount() - 0.5;
+        int CentN = 0;
+
+        for (int PValN = 0; PValN < PValV.Len(); ++PValN) {
+            const double PVal = PValV[PValN];
+            const double TargetRank = PVal*(SampleN-1);
+
+            if (PValN > 0) {
+                EAssertR(PValV[PValN-1] <= PValV[PValN], "TDigest: p-values should be ordered!");
+            }
+
+            do {
+                if (CurrMxRank >= TargetRank) { break; }
+                ++CentN;
+                if (CentN < NCentroids) { CurrMxRank += CentroidV[CentN].GetCount(); }
+            } while (CentN < NCentroids);
+
+            if (CentN == 0) {
+                QuantV[PValN] = CentroidV[0].GetMean();
+                continue;
+            }
+            if (CentN == NCentroids-1) {
+                QuantV[PValN] = CentroidV.Last().GetMean();
+                continue;
+            }
+
+            // CurrMxRank >= TargetRank
+            // interpolate the result
+            const double CentroidRank = CurrMxRank - 0.5*CentroidV[CentN].GetCount();
+            if (TargetRank > CentroidRank) {
+                // interpolate with the centroid on the right
+                const TCentroid& CurrCent = CentroidV[CentN];
+                const TCentroid& RightCent = CentroidV[CentN+1];
+                QuantV[PValN] = CurrCent.GetMean() +
+                    (RightCent.GetMean() - CurrCent.GetMean())*(TargetRank - CentroidRank) / CurrCent.GetCount();
+            } else {
+                // interpolate with the centroid on the left
+                const TCentroid& LeftCent = CentroidV[CentN-1];
+                const TCentroid& CurrCent = CentroidV[CentN];
+                QuantV[PValN] = CurrCent.GetMean() -
+                    (CurrCent.GetMean() - LeftCent.GetMean())*(CentroidRank - TargetRank) / CurrCent.GetCount();
+            }
+        }
+    }
+
+    uint64 TUtils::TTDigestUtils::TTDigestBase::GetMemUsed() const {
+        return sizeof(TTDigestBase) +
+            TMemUtils::GetExtraContainerSizeShallow(CentroidV) +
+            TMemUtils::GetExtraMemberSize(SampleN);
+    }
+
+    void TUtils::TTDigestUtils::TTDigestBase::PrintSummary() const {
+        std::cout << CentroidV << std::endl;
+    }
 
     ////////////////////////////////////
     /// GK - algorithm
@@ -1581,6 +1699,7 @@ namespace TQuant {
     ///////////////////////////////////////////////////
     /// t-Digest
     TTDigest::TTDigest(const int& _MnCentroids, const TRnd& _Rnd):
+            TBase(),
             Rnd(_Rnd),
             MnCentroids(_MnCentroids),
             CompressStrategy(TCompressStrategy::csNever) {
@@ -1592,6 +1711,7 @@ namespace TQuant {
     }
 
     TTDigest::TTDigest(const int& _MnCentroids, const TCompressStrategy& _Cs, const TRnd& _Rnd):
+            TBase(),
             Rnd(_Rnd),
             MnCentroids(_MnCentroids),
             CompressStrategy(_Cs) {
@@ -1604,6 +1724,7 @@ namespace TQuant {
 
     TTDigest::TTDigest(const int& _MnCentroids, const double& _MnEps, const TCompressStrategy& _Cs,
                 const TRnd& _Rnd):
+            TBase(),
             Rnd(_Rnd),
             MnEps(_MnEps),
             MnCentroids(_MnCentroids),
@@ -1616,111 +1737,22 @@ namespace TQuant {
     }
 
     TTDigest::TTDigest(TSIn& SIn):
-        CentroidV(SIn),
+        TBase(SIn),
         Rnd(SIn),
         MnEps(SIn),
         MnCentroids(SIn),
         MxCentroidsFactor(SIn),
-        SampleN(SIn),
         ReclustSampleN(SIn),
         CompressStrategy(static_cast<TCompressStrategy>(TUCh(SIn).Val)) {}
 
     void TTDigest::Save(TSOut& SOut) const {
-        CentroidV.Save(SOut);
+        TBase::Save(SOut);
         Rnd.Save(SOut);
         MnEps.Save(SOut);
         MnCentroids.Save(SOut);
         MxCentroidsFactor.Save(SOut);
-        SampleN.Save(SOut);
         ReclustSampleN.Save(SOut);
         TUCh(static_cast<uchar>(CompressStrategy)).Save(SOut);
-    }
-
-    double TTDigest::Query(const double& PVal) const {
-        const double NCentroids = GetSummarySize();
-        const double TargetRank = PVal*(SampleN-1);
-
-        if (NCentroids == 0) { return 0; }
-
-        double CurrMxRank = -0.5;
-        int CentN = 0;
-
-        do {
-            CurrMxRank += CentroidV[CentN].GetCount();
-            if (CurrMxRank >= TargetRank) { break; }
-            ++CentN;
-        } while (CentN < NCentroids);
-
-        if (CentN == 0) { return CentroidV[0].GetMean(); }
-        if (CentN == NCentroids-1) { return CentroidV.Last().GetMean(); }
-
-        // CurrMxRank >= TargetRank
-        // interpolate the result
-        const double CentroidRank = CurrMxRank - 0.5*CentroidV[CentN].GetCount();
-        if (TargetRank > CentroidRank) {
-            // interpolate with the centroid on the right
-            const TCentroid& CurrCent = CentroidV[CentN];
-            const TCentroid& RightCent = CentroidV[CentN+1];
-            return CurrCent.GetMean() +
-                (RightCent.GetMean() - CurrCent.GetMean())*(TargetRank - CentroidRank) / CurrCent.GetCount();
-        } else {
-            // interpolate with the centroid on the left
-            const TCentroid& LeftCent = CentroidV[CentN-1];
-            const TCentroid& CurrCent = CentroidV[CentN];
-            return CurrCent.GetMean() -
-                (CurrCent.GetMean() - LeftCent.GetMean())*(CentroidRank - TargetRank) / CurrCent.GetCount();
-        }
-    }
-
-    void TTDigest::Query(const TFltV& PValV, TFltV& QuantV) const {
-        if (QuantV.Len() != PValV.Len()) { QuantV.Gen(PValV.Len(), PValV.Len()); }
-        if (GetSummarySize() == 0) { return; }
-
-        const double NCentroids = GetSummarySize();
-
-        double CurrMxRank = CentroidV[0].GetCount() - 0.5;
-        int CentN = 0;
-
-        for (int PValN = 0; PValN < PValV.Len(); ++PValN) {
-            const double PVal = PValV[PValN];
-            const double TargetRank = PVal*(SampleN-1);
-
-            if (PValN > 0) {
-                EAssertR(PValV[PValN-1] <= PValV[PValN], "TDigest: p-values should be ordered!");
-            }
-
-            do {
-                if (CurrMxRank >= TargetRank) { break; }
-                ++CentN;
-                if (CentN < NCentroids) { CurrMxRank += CentroidV[CentN].GetCount(); }
-            } while (CentN < NCentroids);
-
-            if (CentN == 0) {
-                QuantV[PValN] = CentroidV[0].GetMean();
-                continue;
-            }
-            if (CentN == NCentroids-1) {
-                QuantV[PValN] = CentroidV.Last().GetMean();
-                continue;
-            }
-
-            // CurrMxRank >= TargetRank
-            // interpolate the result
-            const double CentroidRank = CurrMxRank - 0.5*CentroidV[CentN].GetCount();
-            if (TargetRank > CentroidRank) {
-                // interpolate with the centroid on the right
-                const TCentroid& CurrCent = CentroidV[CentN];
-                const TCentroid& RightCent = CentroidV[CentN+1];
-                QuantV[PValN] = CurrCent.GetMean() +
-                    (RightCent.GetMean() - CurrCent.GetMean())*(TargetRank - CentroidRank) / CurrCent.GetCount();
-            } else {
-                // interpolate with the centroid on the left
-                const TCentroid& LeftCent = CentroidV[CentN-1];
-                const TCentroid& CurrCent = CentroidV[CentN];
-                QuantV[PValN] = CurrCent.GetMean() -
-                    (CurrCent.GetMean() - LeftCent.GetMean())*(CentroidRank - TargetRank) / CurrCent.GetCount();
-            }
-        }
     }
 
     void TTDigest::Insert(const double& Val, const uint& ValWgt) {
@@ -1736,31 +1768,13 @@ namespace TQuant {
         return SampleN;
     }
 
-    void TTDigest::PrintSummary() const {
-        /* std::cout << "["; */
-        /* int RankLess = -1; */
-        /* for (int CentroidN = 0; CentroidN < CentroidV.Len(); ++CentroidN) { */
-        /*     const TCentroid& Cent = CentroidV[CentroidN]; */
-        /*     const int MnRank = RankLess + 1; */
-        /*     const int MxRank = MnRank + Cent.GetCount() - 1; */
-        /*     std::cout << "<r_min=" << MnRank << ",v=" << Cent.GetMean() << ",s=" << Cent.GetCount() << ",r_max=" << MxRank << ">"; */
-        /*     RankLess = MxRank; */
-        /*     if (CentroidN < CentroidV.Len()-1) { */
-        /*         std::cout << ","; */
-        /*     } */
-        /* } */
-        /* std::cout << "]" << std::endl; */
-        std::cout << CentroidV << std::endl;
-    }
-
     uint64 TTDigest::GetMemUsed() const {
-        return sizeof(TTDigest) +
-            TMemUtils::GetExtraContainerSizeShallow(CentroidV) +
+        return TBase::GetMemUsed() +
+            sizeof(TTDigest) - sizeof(TBase) +
             TMemUtils::GetExtraMemberSize(Rnd) +
             TMemUtils::GetExtraMemberSize(MnEps) +
             TMemUtils::GetExtraMemberSize(MnCentroids) +
-            TMemUtils::GetExtraMemberSize(MxCentroidsFactor) +
-            TMemUtils::GetExtraMemberSize(SampleN);
+            TMemUtils::GetExtraMemberSize(MxCentroidsFactor);
     }
 
     void TTDigest::Insert(const double& Val, const uint& ValWgt, const bool& UpdateSampleN) {
@@ -1852,7 +1866,7 @@ namespace TQuant {
                 const double NewCentroidPVal = (ItemSum + 0.5*NewCentroidWgt) / (SampleN + NewCentroidWgt);
                 const int MxSize = GetMxCentroidSize(NewCentroidPVal);
                 PrevWgt = NewCentroidWgt;
-                NewCentroidWgt = TMath::Mn(MxSize, RemValWgt);
+                NewCentroidWgt = TMath::Mn(MxSize, NewCentroidWgt);
             }
 
             CentroidV.Ins(RightN, TCentroid(Val, NewCentroidWgt));
@@ -1899,6 +1913,134 @@ namespace TQuant {
 
     double TTDigest::GetEps(const double& PVal) const {
         return TMath::Mx(MnEps.Val, 2*PVal*(1-PVal) / MnCentroids);
+    }
+
+    ///////////////////////////////////////////////////
+    /// Periodic merging tDigest
+    TMergingTDigest::TMergingTDigest(const double& CompressFact, const TRnd& _Rnd):
+            TBase(),
+            Delta(CompressFact),
+            Rnd(_Rnd),
+            MxBuffLen(std::ceil(CompressFact*10)),
+            MxCentroids(2*std::ceil(CompressFact)) {
+        CentroidV.Gen(MxCentroids, 0);
+        BuffV.Gen(MxBuffLen + MxCentroids, 0);
+    }
+
+    TMergingTDigest::TMergingTDigest(const double& CompressFact, const int& _MxBuffLen,
+                const TRnd& _Rnd):
+            TBase(),
+            Delta(CompressFact),
+            Rnd(_Rnd),
+            MxBuffLen(_MxBuffLen),
+            MxCentroids(2*std::ceil(CompressFact)) {
+        EAssert(MxBuffLen >= 1);
+
+        CentroidV.Gen(MxCentroids, 0);
+        BuffV.Gen(MxBuffLen + MxCentroids, 0);
+    }
+
+    TMergingTDigest::TMergingTDigest(TSIn& SIn):
+        TBase(SIn),
+        BuffV(SIn),
+        Delta(SIn),
+        Rnd(SIn),
+        MxBuffLen(SIn),
+        MxCentroids(SIn) {}
+
+    void TMergingTDigest::Save(TSOut& SOut) const {
+        TBase::Save(SOut);
+        BuffV.Save(SOut);
+        Delta.Save(SOut);
+        Rnd.Save(SOut);
+        MxBuffLen.Save(SOut);
+        MxCentroids.Save(SOut);
+    }
+
+    void TMergingTDigest::Insert(const double& Val, const uint& ValWgt) {
+        BuffV.Add(TCentroid(Val, ValWgt));
+        if (ShouldFlush()) { Flush(); }
+    }
+
+    void TMergingTDigest::Flush() {
+        if (BuffV.Empty()) { return; }
+
+        SampleN += BuffV.Len();
+
+        BuffV.AddV(CentroidV);
+        BuffV.Sort(Rnd);
+        CentroidV.Clr(false);
+
+        const double WgtSum = double(SampleN);
+
+        // copy the first centroid into a new value
+        TCentroid NewCentroid = BuffV[0];
+        double PrevCentCumProb = 0;
+        double CumProbLimit = GetCentroidMxCumProb(PrevCentCumProb);
+
+        for (int CentroidN = 1; CentroidN < BuffV.Len(); ++CentroidN) {
+            const TCentroid& CurrCentroid = BuffV[CentroidN];
+
+            const double CurrCentroidCumProb = PrevCentCumProb +
+                double(NewCentroid.GetCount() + CurrCentroid.GetCount()) / WgtSum;
+            if (CurrCentroidCumProb <= CumProbLimit) {
+                NewCentroid += CurrCentroid;
+            } else {
+                CentroidV.Add(NewCentroid);
+                PrevCentCumProb += NewCentroid.GetCount() / WgtSum;
+                CumProbLimit = GetCentroidMxCumProb(PrevCentCumProb);
+                NewCentroid = CurrCentroid;
+            }
+        }
+
+        if (NewCentroid.GetCount() > 0) {
+            CentroidV.Add(NewCentroid);
+        }
+
+        BuffV.Clr(false);
+        Assert(CentroidV.Len() <= MxCentroids);
+        Assert(CentroidV.Reserved() == MxCentroids);
+        Assert(BuffV.Reserved() == MxBuffLen + MxCentroids);
+    }
+
+    /* bool TMergingTDigest::IsInit() const { */
+    /*     return SampleN >= uint64(MxBuffLen); */
+    /* } */
+
+    int TMergingTDigest::GetSummarySize() const {
+        return CentroidV.Len();
+    }
+
+    const TUInt64& TMergingTDigest::GetSampleN() const {
+        return SampleN;
+    }
+
+    uint64 TMergingTDigest::GetMemUsed() const {
+        return TBase::GetMemUsed() +
+            sizeof(TMergingTDigest) - sizeof(TBase) +
+            TMemUtils::GetExtraContainerSizeShallow(BuffV) +
+            TMemUtils::GetExtraMemberSize(Delta) +
+            TMemUtils::GetExtraMemberSize(Rnd) +
+            TMemUtils::GetExtraMemberSize(MxBuffLen) +
+            TMemUtils::GetExtraMemberSize(MxCentroids);
+    }
+
+    double TMergingTDigest::GetCentroidMxCumProb(const double& PrevCentCumProb) const {
+        // return k^(-1)(k(q0,\delta)+1,\delta)
+        const double Scaled = Scale(PrevCentCumProb, Delta);
+        return InvScale(Scaled+1, Delta);
+    }
+
+    bool TMergingTDigest::ShouldFlush() const {
+        return BuffV.Len() == MxBuffLen;
+    }
+
+    double TMergingTDigest::Scale(const double& CumProb, const double& Delta) {
+        return Delta * (0.5 + asin(2*CumProb - 1) / TMath::Pi);
+    }
+
+    double TMergingTDigest::InvScale(const double& Scaled, const double& Delta) {
+        return 0.5*(std::sin(TMath::Pi*(Scaled/Delta - 0.5)) + 1);
     }
 
     ///////////////////////////////////////////////////

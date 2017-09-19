@@ -81,6 +81,7 @@ void InitAnalytics(Handle<Object> Exports, const TStr& NsNm) {
     TNodeJsKMeans::Init(NsObj);
     TNodeJsDpMeans::Init(NsObj);
     TNodeJsTDigest::Init(NsObj);
+    TNodeJsBuffTDigest::Init(NsObj);
     TNodeJsGk::Init(NsObj);
     TNodeJsBiasedGk::Init(NsObj);
     TNodeJsCountWindowGk::Init(NsObj);

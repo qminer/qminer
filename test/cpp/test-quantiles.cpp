@@ -336,7 +336,8 @@ TEST(TTDigest, Query) {
     for (int TrialN = 0; TrialN < NTrials; ++TrialN) {
         GenSamplesUniform(BatchSize, SampleV);
         for (int SampleN = 0; SampleN < BatchSize; SampleN++) {
-            TDigest.Insert(SampleV[SampleN]);
+            const int Sample = SampleV[SampleN];
+            TDigest.Insert(Sample);
         }
 
         const auto GetWorstPVal = [&](const double& PVal) {
@@ -378,6 +379,9 @@ TEST(TTDigest, Query) {
 
         AssertQuantileRangeV(TDigest, LowerBound, UpperBound, 1e-3, false);
     }
+    /* PeriodicTDigest.PrintSummary(); */
+    /* TDigest.Insert(0, 100); */
+    /* TDigest.PrintSummary(); */
 }
 
 TEST(TTDigest, SummarySize) {
@@ -421,6 +425,65 @@ TEST(TTDigest, SampleN) {
     }
 }
 
+TEST(TMergingTDigest, Query) {
+    const int BatchSize = 1000;
+    const int NTrials = 100;
+
+    const int Delta = 100;
+
+    TRnd Rnd(1);
+    TMergingTDigest TDigest(Delta, Rnd);
+
+    TIntV SampleV;
+    for (int TrialN = 0; TrialN < NTrials; ++TrialN) {
+        GenSamplesUniform(BatchSize, SampleV);
+        for (int SampleN = 0; SampleN < BatchSize; SampleN++) {
+            TDigest.Insert(SampleV[SampleN]);
+        }
+
+        TDigest.Flush();
+
+        const auto GetWorstPVal = [&](const double& PVal) {
+            // in the worst case we just hit the centroid on the right
+            // in that case, the p-value we need to calculate the error
+            // is given by oequation:
+            // p + eps = p_t = p + 2*p_t*(1-p_t)/c = p + 2*p_t/c - 2*p_t*p_t/c
+            // 0 = p + p_t*(2/c-1) - 2/c*p_t^2
+            // solution: 1/4 (2 - c + sqrt(4 - 4c + c^2 + 8cp))
+            // analogous for the case were p > 0.5
+            if (PVal <= 0.5) {
+                const double WorstPVal = (2.0 - Delta + TMath::Sqrt(4 - 4*Delta + Delta*Delta + 8*Delta*PVal)) / 4.0;
+                if (WorstPVal > 0.5) {
+                    return 0.5;
+                } else {
+                    return WorstPVal;
+                }
+            } else {
+                const double WorstPVal = (2.0 + Delta - TMath::Sqrt(4 + 4*Delta + Delta*Delta - 8*Delta*PVal)) / 4.0;
+                if (WorstPVal < 0.5) {
+                    return 0.5;
+                } else {
+                    return WorstPVal;
+                }
+            }
+        };
+        const auto LowerBound = [&](const double& PVal) {
+            const double WorstPVal = GetWorstPVal(PVal);
+            const double Eps = 2*WorstPVal*(1 - WorstPVal) / Delta; 
+            /* printf("lower bound: pval: %.5f, worst pval: %.5f\n", PVal, WorstPVal); */
+            return std::floor(1 + (BatchSize - 1)*(PVal - Eps));
+        };
+        const auto UpperBound = [&](const double& PVal) {
+            const double WorstPVal = GetWorstPVal(PVal);
+            const double Eps = 2*WorstPVal*(1 - WorstPVal) / Delta; 
+            /* printf("pval: %.5f, worst pval: %.5f\n", PVal, WorstPVal); */
+            return std::ceil(1 + (BatchSize - 1)*(PVal + Eps));
+        };
+
+        AssertQuantileRangeV(TDigest, LowerBound, UpperBound, 1e-3, false);
+        ASSERT_LE(TDigest.GetSummarySize(), 2*Delta);
+    }
+}
 
 TEST(TExpHistogram, CountEquallySpaced) {
     const uint64 WindowMSec = 10000;
