@@ -366,13 +366,13 @@ TEST(TTDigest, Query) {
         };
         const auto LowerBound = [&](const double& PVal) {
             const double WorstPVal = GetWorstPVal(PVal);
-            const double Eps = 2*WorstPVal*(1 - WorstPVal) / MnCentroids; 
+            const double Eps = 2*WorstPVal*(1 - WorstPVal) / MnCentroids;
             /* printf("lower bound: pval: %.5f, worst pval: %.5f\n", PVal, WorstPVal); */
             return std::floor(1 + (BatchSize - 1)*(PVal - Eps));
         };
         const auto UpperBound = [&](const double& PVal) {
             const double WorstPVal = GetWorstPVal(PVal);
-            const double Eps = 2*WorstPVal*(1 - WorstPVal) / MnCentroids; 
+            const double Eps = 2*WorstPVal*(1 - WorstPVal) / MnCentroids;
             /* printf("pval: %.5f, worst pval: %.5f\n", PVal, WorstPVal); */
             return std::ceil(1 + (BatchSize - 1)*(PVal + Eps));
         };
@@ -469,13 +469,13 @@ TEST(TMergingTDigest, Query) {
         };
         const auto LowerBound = [&](const double& PVal) {
             const double WorstPVal = GetWorstPVal(PVal);
-            const double Eps = 2*WorstPVal*(1 - WorstPVal) / Delta; 
+            const double Eps = 2*WorstPVal*(1 - WorstPVal) / Delta;
             /* printf("lower bound: pval: %.5f, worst pval: %.5f\n", PVal, WorstPVal); */
             return std::floor(1 + (BatchSize - 1)*(PVal - Eps));
         };
         const auto UpperBound = [&](const double& PVal) {
             const double WorstPVal = GetWorstPVal(PVal);
-            const double Eps = 2*WorstPVal*(1 - WorstPVal) / Delta; 
+            const double Eps = 2*WorstPVal*(1 - WorstPVal) / Delta;
             /* printf("pval: %.5f, worst pval: %.5f\n", PVal, WorstPVal); */
             return std::ceil(1 + (BatchSize - 1)*(PVal + Eps));
         };

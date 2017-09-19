@@ -997,18 +997,17 @@ namespace TQuant {
         void Insert(const double& Val, const uint& ValWgt=1);
         /// flushes the buffer
         void Flush();
-        /* /// indicates whether the model is initialized */
-        /* bool IsInit() const; */
 
         const TFlt& GetDelta() const { return Delta; }
         const TInt& GetMxBuffLen() const { return MxBuffLen; }
 
+        /// returns the current number of centroids in the summary
         int GetSummarySize() const;
         using TTDigestBase::PrintSummary;
+        /// returns the number of samples seen so far by the model
         const TUInt64& GetSampleN() const;
-        uint64 GetMemUsed() const;
         /// returns this objects memory footprint
-        /* uint64 GetMemUsed() const; */
+        uint64 GetMemUsed() const;
 
     private:
         double GetCentroidMxCumProb(const double& PrevCentCumProb) const;
