@@ -4162,7 +4162,8 @@ TNodeJsGk::TNodeJsGk(const PJsonVal& ParamVal):
             ParamVal->GetObjNum("eps", .01),
             ParamVal->GetObjBool("autoCompress", true) ?
                 TQuant::TGk::TCompressStrategy::csAuto :
-                TQuant::TGk::TCompressStrategy::csManual
+                TQuant::TGk::TCompressStrategy::csManual,
+            ParamVal->GetObjBool("useBands", true)
     ) {}
 
 TNodeJsGk::TNodeJsGk(TSIn& SIn): Gk(SIn) {}
@@ -4197,6 +4198,7 @@ void TNodeJsGk::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     PJsonVal ParamVal = TJsonVal::NewObj();
     ParamVal->AddToObj("eps", Gk.GetEps());
     ParamVal->AddToObj("autoCompress", Gk.GetCompressStrategy() == TQuant::TGk::TCompressStrategy::csAuto);
+    ParamVal->AddToObj("useBands", Gk.GetSummary().IsUseBands());
 
     v8::Local<v8::Value> JsParamVal = TNodeJsUtil::ParseJson(Isolate, ParamVal);
     Args.GetReturnValue().Set(JsParamVal);

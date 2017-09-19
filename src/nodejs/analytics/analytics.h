@@ -2959,6 +2959,7 @@ private:
 * An object used for the construction of {@link module:analytics.Gk}.
 * @property {number} [eps=0.01] - Determines the relative error of the algorithm.
 * @property {boolean} [autoCompress=true] - Whether the summary should be compresses automatically or manually.
+* @property {boolean} [useBands=true] - Whether the algorithm should use the 'band' subprocedure. Using this subprocedure should result in a smaller summary.
 */
 
 /**

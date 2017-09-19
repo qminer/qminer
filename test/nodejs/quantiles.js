@@ -116,8 +116,11 @@ describe('CountWindowGK test', function () {
 
             for (var cumProb = 0; cumProb <= 1; cumProb += 0.001) {
                 var quant_hat = gk.predict(cumProb);
-                assert(Math.floor((cumProb - maxRelErr)*batchSize) <= quant_hat);
-                assert(Math.ceil((cumProb + maxRelErr)*batchSize) >= quant_hat);
+                var minVal = Math.floor((cumProb - maxRelErr)*batchSize);
+                var maxVal = Math.ceil((cumProb + maxRelErr)*batchSize);
+                console.log('predicted quantile: ' + quant_hat + ' [' + minVal + ', ' + maxVal + '] for prob: ' + cumProb);
+                assert(minVal <= quant_hat);
+                assert(maxVal >= quant_hat);
             }
         }
 
@@ -140,22 +143,27 @@ describe('Gk test', function () {
             var params = gk.getParams();
             assert(params.eps != null);
             assert(params.autoCompress != null);
+            assert(params.useBands != null);
 
             assert.equal(params.eps, 0.01);
             assert.equal(params.autoCompress, true);
+            assert.equal(params.useBands, true);
         })
         it('should set correct parameters', function () {
             var gk = new analytics.Gk({
                 eps: 0.1,
-                autoCompress: false
+                autoCompress: false,
+                useBands: false
             })
 
             var params = gk.getParams();
             assert(params.eps != null);
             assert(params.autoCompress != null);
+            assert(params.useBands != null);
 
             assert.equal(params.eps, 0.1);
             assert.equal(params.autoCompress, false);
+            assert.equal(params.useBands, false);
         })
     })
 

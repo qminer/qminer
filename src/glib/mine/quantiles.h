@@ -3,6 +3,7 @@
 
 #include <list>
 #include <iostream>
+#include <functional>
 
 namespace TQuant {
 
@@ -231,6 +232,10 @@ namespace TQuant {
             /// prints the intervals to stadard output
             void PrintSummary() const { std::cout << IntervalV << "\n"; }
 
+            friend std::ostream& operator <<(std::ostream& os, const TExpHistBase<TInterval>& Hist) {
+                return os << Hist.IntervalV;
+            }
+
             /// checks if the error is bounded by eps
             bool CheckInvariant1() const;
             /// checks if the internal structure of the EH is correct
@@ -349,6 +354,10 @@ namespace TQuant {
             /// returns a "normal" exponential histogram representation of itself
             void ToExpHist(TExpHistogram&) const;
 
+            friend std::ostream& operator <<(std::ostream& os, const TExpHistWithMax& Hist) {
+                return os << Hist.IntervalV;
+            }
+
         protected:
             void OnIntervalRemoved(const TIntervalWithMax&);
             void OnAfterSwallow();
@@ -457,11 +466,27 @@ namespace TQuant {
 
             void DelNewestNonMx();
 
+            /// merges itself with the other tuple
             void Swallow(TEhTuple& Other, const bool& TakeMnMxRank);
+            /// adds a single element to itself
             void SwallowOne(const uint64& ValTm, const double& Val);
 
             /// returns the objects memory footprint
             uint64 GetMemUsed() const;
+
+            void PrintLong() const {
+                std::cout << "<\n"
+                    << "\tsize hist: " << TupleSizeExpHist << "\n" 
+                    << "\trigh hist: " << RightUncertExpHist << "\n>";
+            }
+
+            TStr GetStr() const {
+                return "<" +
+                       TFlt::GetStr(TupleSizeExpHist.GetMxVal()) + ", " +
+                       TUInt::GetStr(TupleSizeExpHist.GetCount()) + ", " +
+                       TUInt::GetStr(RightUncertExpHist.GetCount()) +
+                       ">";
+            }
 
             friend std::ostream& operator <<(std::ostream& os, const TEhTuple& Tup) {
                 return os << "<"
@@ -474,6 +499,19 @@ namespace TQuant {
         private:
             TExpHistWithMax TupleSizeExpHist;   // G
             TExpHistogram RightUncertExpHist;   // D
+        };
+
+        class TCondPrinter {
+        public:
+            TCondPrinter();
+            TCondPrinter(const std::function<bool(void)>&);
+
+            bool WillPrint() const { return ShouldPrint; }
+            void StartIter();
+            void Print(const TStr&) const;
+
+            std::function<bool(void)> CondFun;
+            TBool ShouldPrint {false};
         };
 
         ///////////////////////////////////////////
@@ -537,6 +575,9 @@ namespace TQuant {
 
             TFlt EpsGk;                     // quantile estimation error
             TFlt EpsEh;                     // count estimation error
+
+            // TODO here for debugging
+            TCondPrinter Log;
         };
 
         // PRINT OPERATORS
@@ -611,7 +652,7 @@ namespace TQuant {
                 using TTuple = TGkMnUncertTuple;
                 using TSummary = TVec<TTuple>;
             public:
-                TVecSummary(const double& Eps);
+                TVecSummary(const double& Eps, const bool& UseBands=true);
 
                 // SERIALIZATION
                 TVecSummary(TSIn&);
@@ -627,6 +668,8 @@ namespace TQuant {
                 void Compress();
                 /// returns the total number of samples seen by the summary
                 const TUInt64& GetSampleN() const { return SampleN; }
+                /// returns whether the summary uses the `bands` subprocedure
+                const TBool& IsUseBands() const { return UseBands; }
 
                 // DEBUGGING
                 uint GetSize() const { return Summary.Len(); }
@@ -643,7 +686,7 @@ namespace TQuant {
                 TSummary Summary {};
                 TUInt64 SampleN {uint64(0)}; // current size of the summary, initializes to 0
                 TFlt Eps;
-                TBool UseBands {true};
+                TBool UseBands;
             };
         }
 
@@ -728,6 +771,8 @@ namespace TQuant {
     /// http://infolab.stanford.edu/~datar/courses/cs361a/papers/quantiles.pdf
     class TGreenwaldKhanna {
     public:
+        using TSummary = TUtils::TGkUtils::TVecSummary;
+
         enum class TCompressStrategy : char {
             csAuto = 0,
             csManual = 1
@@ -736,7 +781,7 @@ namespace TQuant {
         /// Default constructor. Initializes the algorithm with the allowed error, which
         /// is 2*eps.
         TGreenwaldKhanna(const double& Eps);
-        TGreenwaldKhanna(const double& Eps, const TCompressStrategy&);
+        TGreenwaldKhanna(const double& Eps, const TCompressStrategy&, const bool& UseBands);
 
         // SERIALIZATION
         TGreenwaldKhanna(TSIn&);
@@ -763,12 +808,11 @@ namespace TQuant {
         int GetSummarySize() const;
         uint64 GetMemUsed() const;
         void PrintSummary() const;
+        const TSummary& GetSummary() const { return Summary; }
 
     private:
         uint32 GetCompressInterval() const;
         bool ShouldAutoCompress() const;
-
-        using TSummary = TUtils::TGkUtils::TVecSummary;
 
         TSummary Summary;
         TFlt Eps;
