@@ -161,15 +161,13 @@ describe("SVC test", function () {
                 SVC.setParams();
             });
         })
-        it('should return the same model if the algorithm has changed', function () {
+        it('should throw an exception if the algorithm has changed', function () {
             var matrix = new la.Matrix([[1, -1], [0, 0]]);
             var vec = new la.Vector([1, -1]);
             var SVC = new analytics.SVC();
-            SVC.fit(matrix, vec);
-            SVC.save(require('qminer').fs.openWrite('svc_test.bin')).close();
-            var SVC2 = new analytics.SVC(require('qminer').fs.openRead('svc_test.bin'));
-            SVC2.setParams({ algorithm: "LIBSVM", kernel: "RBF" });
-            assert.eqtol(SVC.weights.minus(SVC2.weights).norm(), 0, 1e-8);
+            assert.throws(function () {
+                SVC.setParams({ algorithm: "LIBSVM", kernel: "RBF" });
+            });
         })
     });
 

@@ -30,10 +30,6 @@ describe("LIBSVM SVR test", function () {
             assert.equal(SVRjSon.nu, 0.01);
             assert.equal(SVRjSon.coef0, 1);
             assert.equal(SVRjSon.cacheSize, 100);
-            assert.equal(SVRjSon.batchSize, 1000); // XXX
-            assert.equal(SVRjSon.maxIterations, 10000); // XXX
-            assert.equal(SVRjSon.maxTime, 1); // XXX
-            assert.eqtol(SVRjSon.minDiff, 1e-6);
             assert.equal(SVRjSon.verbose, false);
         });
         it("It should return a SVR created by Json", function () {
@@ -50,10 +46,6 @@ describe("LIBSVM SVR test", function () {
             assert.equal(SVRjSon.nu, 0.01);
             assert.equal(SVRjSon.coef0, 1);
             assert.equal(SVRjSon.cacheSize, 100);
-            assert.equal(SVRjSon.batchSize, 5); // XXX
-            assert.equal(SVRjSon.maxIterations, 5); // XXX
-            assert.equal(SVRjSon.maxTime, 1); // XXX
-            assert.eqtol(SVRjSon.minDiff, 1e-10);
             assert.equal(SVRjSon.verbose, true);
         });
 
@@ -71,10 +63,6 @@ describe("LIBSVM SVR test", function () {
             assert.equal(SVRjSon.nu, 0.01);
             assert.equal(SVRjSon.coef0, 1);
             assert.equal(SVRjSon.cacheSize, 100);
-            assert.equal(SVRjSon.batchSize, 5); // XXX
-            assert.equal(SVRjSon.maxIterations, 10000); // XXX
-            assert.equal(SVRjSon.maxTime, 1); // XXX
-            assert.eqtol(SVRjSon.minDiff, 1e-6);
             assert.equal(SVRjSon.verbose, true);
         });
 
@@ -92,10 +80,6 @@ describe("LIBSVM SVR test", function () {
             assert.equal(SVRjSon.nu, 0.01);
             assert.equal(SVRjSon.coef0, 1);
             assert.equal(SVRjSon.cacheSize, 100);
-            assert.equal(SVRjSon.batchSize, 1000); // XXX
-            assert.equal(SVRjSon.maxIterations, 10000); // XXX
-            assert.equal(SVRjSon.maxTime, 1); // XXX
-            assert.eqtol(SVRjSon.minDiff, 1e-6);
             assert.equal(SVRjSon.verbose, false);
         });
 
@@ -113,10 +97,6 @@ describe("LIBSVM SVR test", function () {
             assert.equal(SVRjSon.nu, 0.01);
             assert.equal(SVRjSon.coef0, 1);
             assert.equal(SVRjSon.cacheSize, 100);
-            assert.equal(SVRjSon.batchSize, 10000); // XXX
-            assert.equal(SVRjSon.maxIterations, 10000); // XXX
-            assert.equal(SVRjSon.maxTime, 1); // XXX
-            assert.eqtol(SVRjSon.minDiff, 1e-6);
             assert.equal(SVRjSon.verbose, true);
         });
     });
@@ -136,10 +116,6 @@ describe("LIBSVM SVR test", function () {
             assert.equal(SVRjSon.nu, 0.01);
             assert.equal(SVRjSon.coef0, 1);
             assert.equal(SVRjSon.cacheSize, 100);
-            assert.equal(SVRjSon.batchSize, 1000); // XXX
-            assert.equal(SVRjSon.maxIterations, 10000); // XXX
-            assert.equal(SVRjSon.maxTime, 1); // XXX
-            assert.eqtol(SVRjSon.minDiff, 1e-6);
             assert.equal(SVRjSon.verbose, false);
         })
 
@@ -157,10 +133,6 @@ describe("LIBSVM SVR test", function () {
             assert.equal(SVRjSon.nu, 0.01);
             assert.equal(SVRjSon.coef0, 1);
             assert.equal(SVRjSon.cacheSize, 100);
-            assert.equal(SVRjSon.batchSize, 1000); // XXX
-            assert.equal(SVRjSon.maxIterations, 10000); // XXX
-            assert.equal(SVRjSon.maxTime, 1); // XXX
-            assert.eqtol(SVRjSon.minDiff, 1e-6);
             assert.equal(SVRjSon.verbose, false);
         })
 
@@ -178,10 +150,6 @@ describe("LIBSVM SVR test", function () {
             assert.equal(SVRjSon.nu, 0.01);
             assert.equal(SVRjSon.coef0, 1);
             assert.equal(SVRjSon.cacheSize, 100);
-            assert.equal(SVRjSon.batchSize, 1000); // XXX
-            assert.equal(SVRjSon.maxIterations, 10000); // XXX
-            assert.equal(SVRjSon.maxTime, 1); // XXX
-            assert.eqtol(SVRjSon.minDiff, 1e-6);
             assert.equal(SVRjSon.verbose, false);
         })
     });
@@ -202,10 +170,6 @@ describe("LIBSVM SVR test", function () {
             assert.equal(SVRjSon.nu, 0.01);
             assert.equal(SVRjSon.coef0, 1);
             assert.equal(SVRjSon.cacheSize, 100);
-            assert.equal(SVRjSon.batchSize, 1000); // XXX
-            assert.equal(SVRjSon.maxIterations, 10000); // XXX
-            assert.equal(SVRjSon.maxTime, 2); // XXX
-            assert.eqtol(SVRjSon.minDiff, 1e-6);
             assert.equal(SVRjSon.verbose, false);
         })
         it("should return the existing SVR with the changed, added values", function () {
@@ -223,10 +187,6 @@ describe("LIBSVM SVR test", function () {
             assert.equal(SVRjSon.nu, 0.01);
             assert.equal(SVRjSon.coef0, 1);
             assert.equal(SVRjSon.cacheSize, 100);
-            assert.equal(SVRjSon.batchSize, 1000); // XXX
-            assert.equal(SVRjSon.maxIterations, 10000); // XXX
-            assert.equal(SVRjSon.maxTime, 2); // XXX
-            assert.eqtol(SVRjSon.minDiff, 1e-6);
             assert.equal(SVRjSon.verbose, false);
         })
         it("should throw an exception if the argument is not Json", function () {

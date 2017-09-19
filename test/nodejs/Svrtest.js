@@ -151,15 +151,13 @@ describe("SVR test", function () {
                 SVR.setParams();
             });
         })
-        it('should return the same model if the algorithm has changed', function () {
+        it('should throw an exception if algorithm has changed', function () {
             var matrix = new la.Matrix([[1, -1], [0, 0]]);
             var vec = new la.Vector([1, -1]);
             var SVR = new analytics.SVR();
-            SVR.fit(matrix, vec);
-            SVR.save(require('qminer').fs.openWrite('svr_test.bin')).close();
-            var SVR2 = new analytics.SVR(require('qminer').fs.openRead('svr_test.bin'));
-            SVR2.setParams({ algorithm: "LIBSVM", kernel: "RBF" });
-            assert.eqtol(SVR.weights.minus(SVR2.weights).norm(), 0, 1e-8);
+            assert.throws(function () {
+                SVR.setParams({ algorithm: "LIBSVM", kernel: "RBF" });
+            });
         })
     });
 
