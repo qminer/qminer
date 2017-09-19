@@ -95,4 +95,43 @@ describe("Active learning tests", function () {
         });
 
     });
+    describe("Save/load test", function () {
+        it("should save and load an empty model", function (done) {
+            var al = new AL();
+            al.save("active_learner.bin");
+            var al2 = new AL("active_learner.bin");
+            assert(al2._X == null);
+            assert.equal(al2._y.size, 0);
+            assert.equal(al2._settings.SVC.c, 1);
+            assert.equal(al2._settings.SVC.j, 1);
+            assert.equal(al2._settings.SVC.algorithm, "LIBSVM");
+            done();
+        });
+        it("should save and load a model after some data was processed", function (done) {
+            var al = new AL();
+            var X = new la.Matrix([
+                [-2, 1],
+                [-2, 0],
+                [-2, -1],
+                [0, 1],
+                [-0.9, 0],
+                [0, -1]
+            ]).transpose(); // column examples
+            al.setX(X);
+
+            var y = [-1, 0, -1, 1, 0, 1];
+            al.sety(y);
+            al.setLabel(4, 1);
+
+            var qidx = al.getQueryIdx(2);
+            assert.deepEqual(qidx, [1]);
+
+            al.save("active_learner.bin");
+            var al2 = new AL("active_learner.bin");
+            var qidx2 = al2.getQueryIdx(2);
+            assert.deepEqual(qidx2, [1]);
+            done();
+        });
+
+    });
 });

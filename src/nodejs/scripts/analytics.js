@@ -1935,7 +1935,7 @@ module.exports = exports = function (pathQmBinary) {
     * @classdesc Active learner. Uses a SVM model and implements an uncertainty measure (distance to the margin)
     * to select which unlabelled example should be labelled next.
     * @class
-    * @param {module:analytics~ActiveLearnerParam} [arg] - Construction arguments.
+    * @param {(module:analytics~ActiveLearnerParam | module:fs~FIn | string)} [arg] - Construction arguments (JSON) or when loading: an input stream (fs.FIn) or a file name (string).
     * @example
     * // load libs
     * var qm = require('qminer');
@@ -1964,15 +1964,20 @@ module.exports = exports = function (pathQmBinary) {
     class ActiveLearner {
         constructor(opts) {
             opts = opts || {};
-            // SETTINGS
-            let settings = this._getDefaultSettings();
-            override(settings, opts.settings || {});
-            this._settings = settings;
 
-            // STATE
-            this._X = opts.X || null;
-            this._y = opts.y || new Map();
-            this._SVC = new exports.SVC(this._settings.SVC);
+            if (opts instanceof qm.fs.FIn || typeof opts == "string") {
+                this.load(opts);
+            } else {
+                // SETTINGS
+                let settings = this._getDefaultSettings();
+                override(settings, opts.settings || {});
+                this._settings = settings;
+
+                // STATE
+                this._X = opts.X || null;
+                this._y = opts.y || new Map();
+                this._SVC = new exports.SVC(this._settings.SVC);
+            }
         }
 
         /**
@@ -2068,6 +2073,9 @@ module.exports = exports = function (pathQmBinary) {
 
         /**
         * Retrains the SVC model
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} X - data matrix (column examples)
+        * @param {Map} y - a Map from indices to 1 or -1
+        * @param {module:analytics.SVC} SVC - a SVC model
         */
         _retrain(X, y, SVC) {
             // asert y indices and values
@@ -2092,7 +2100,14 @@ module.exports = exports = function (pathQmBinary) {
             this._retrain(this._X, this._y, this._SVC);
         }
 
-        // return an array of indices (1 element by default)
+        /**
+        * Return an array of indices where the model has the highest uncertainty (1 element by default)
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} X - data matrix (column examples)
+        * @param {Map} y - a Map from indices to 1 or -1
+        * @param {module:analytics.SVC} SVC - a SVC model
+        * @param {number} [num=1] - the length of the array that is returned (top `num` indices where uncertainty is maximal)
+        * @returns {Array<number>} - array of indices of unlabelled examples
+        */
         _getQueryIdx(X, y, SVC, num) {
             num = (isFinite(num) && num > 0 && Number.isInteger(num)) ? num : 1;
             // use the classifier on unlabelled examples and return
@@ -2176,7 +2191,64 @@ module.exports = exports = function (pathQmBinary) {
         */
         gety() { return this._y; }
 
+        /**
+        * Loads instance matrix, labels and the model from the input stream
+        * @param {(string | module:fs.FIn)} input - a file name or an input stream
+        */
+        load(input) {
+            if (input instanceof qm.fs.FIn) {
+                this._settings = input.readJson();
+                let matrixType = input.readJson().matrixType;
+                if (matrixType == "null") {
+                    this._X = null;
+                } else if (matrixType == "full") {
+                    this._X = new la.Matrix();
+                    this._X.load(input);
+                } else if (matrixType == "sparse") {
+                    this._X = new la.SparseMatrix();
+                    this._X.load(input);
+                } else {
+                    throw new Error("Cannot load matrix, the type is not supported");
+                }
+                let y = input.readJson();
+                this._y = new Map(y);
+                this._SVC = new exports.SVC(input);
+                return input;
+            } else {
+                let fin = qm.fs.openRead(input);
+                this.load(fin).close();
+            }
+        }
 
+        /**
+        * Saves the instance matrix, labels and the model to the input stream
+        * @param {(string | module:fs.FOut)} output - a file name or an output stream
+        */
+        save(output) {
+            let X = this._X;
+            let y = this._y;
+            let SVC = this._SVC;
+            if (output instanceof qm.fs.FOut) {
+                output.writeJson(this._settings);
+                if (X == undefined) {
+                    output.writeJson({ matrixType: "null" });
+                } else if (X instanceof la.Matrix) {
+                    output.writeJson({ matrixType: "full" });
+                    X.save(output);
+                } else if (X instanceof la.SparseMatrix) {
+                    output.writeJson({ matrixType: "sparse" });
+                    X.save(output);
+                } else {
+                    throw new Error("Cannot save matrix, the type is not supported.");
+                }
+                output.writeJson(Array.from(this._y));
+                SVC.save(output);
+                return output;
+            } else {
+                let fout = qm.fs.openWrite(output);
+                this.save(fout).close();
+            }
+        }
     }
 
     exports.ActiveLearner = ActiveLearner;
