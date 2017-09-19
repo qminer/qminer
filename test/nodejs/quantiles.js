@@ -65,6 +65,88 @@ describe("TDigest test", function () {
     });
 });
 
+describe("BufferedTDigest test", function () {
+    describe("Constructor test", function () {
+        it("should return a default constructor", function () {
+            var tdigest = new analytics.BufferedTDigest();
+            var params = tdigest.getParams();
+
+            assert.equal(params.seed, 0, "invalid seed");
+            assert.equal(params.clusters, 100, "invalid number of clusters");
+            assert.equal(params.bufferLen, 1000, "invalid buffer length: " + params.bufferLen);
+            assert(tdigest.init === false);
+        });
+        it("should construct using provided parameters", function () {
+            var tdigest = new analytics.BufferedTDigest({
+                seed: 1,
+                clusters: 50,
+                bufferLen: 500
+            });
+            var params = tdigest.getParams();
+
+            assert.equal(params.seed, 1, "invalid seed");
+            assert.equal(params.clusters, 50, "invalid number of clusters");
+            assert.equal(params.bufferLen, 500, "invalid buffer length: " + params.bufferLen);
+            assert(tdigest.init === false);
+        });
+    });
+
+    describe('Serialization Tests', function () {
+        it('should serialize and deserialize', function () {
+            var tdigest = new analytics.BufferedTDigest({
+                seed: 1,
+                clusters: 50,
+                bufferLen: 500
+            });
+            tdigest.save(fs.openWrite('bufftdigest.bin')).close();
+            var tdigest2 = new analytics.BufferedTDigest(fs.openRead('bufftdigest.bin'));
+            var params = tdigest2.getParams();
+            assert.equal(params.seed, 1, "invalid seed");
+            assert.equal(params.clusters, 50, "invalid number of clusters");
+            assert.equal(params.bufferLen, 500, "invalid buffer length: " + params.bufferLen);
+            assert(tdigest.init === false);
+        })
+    });
+
+    describe('Testing buffer', function () {
+        it('should auto flush at correct time', function () {
+            var buffLen = 500;
+            var tdigest = new analytics.BufferedTDigest({
+                seed: 1,
+                clusters: 50,
+                bufferLen: buffLen
+            });
+
+            for (var i = 0; i < buffLen-1; ++i) {
+                tdigest.partialFit(3 + Math.random());
+                var val = tdigest.predict(0);
+                assert.equal(val, 0);
+            }
+
+            tdigest.partialFit(3 + Math.random());
+            assert(tdigest.predict(0) > 0)
+        })
+
+        it('should flush manually at correct time', function () {
+            var buffLen = 500;
+            var tdigest = new analytics.BufferedTDigest({
+                seed: 1,
+                clusters: 50,
+                bufferLen: buffLen
+            });
+
+            for (var i = 0; i < 100; ++i) {
+                tdigest.partialFit(3 + Math.random());
+                var val = tdigest.predict(0);
+                assert.equal(val, 0);
+            }
+
+            tdigest.flush();
+            assert(tdigest.predict(0) > 0)
+        })
+    })
+});
+
 describe('CountWindowGK test', function () {
     describe('Constructor test', function () {
         it('should set correct parameters', function () {

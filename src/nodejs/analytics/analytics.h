@@ -2954,6 +2954,205 @@ private:
     static TStr ExtractStr(const TCompressStrategy&);
 };
 
+/////////////////////////////////////////////
+// QMiner-JavaScript-BufferedTDigest
+
+/**
+* @typedef {Object} BufferedDigestParam
+* An object used for the construction of {@link module:analytics.BufferedTDigest}.
+* @property {number} [clusters=100] - The number of clusters in the summary is bounded by floor(minClusters) <= clusters < 2*ceil(minClusters)
+* @property {number} [bufferLen=1000] - the size of the buffer is minClusters*bufferLenFactor, when the buffer fills it is merged with the summary. Also, the algorithm initializes after seeing minClusters*bufferLenFactor examples.
+* @property {number} [seed=0] - random seed (values above 1 are deterministic)
+*/
+
+/**
+* TDigest quantile estimation on streams
+* @classdesc TDigest is a methods that approximates the CDF function of streaming measurements.
+*   Data structure useful for percentile and quantile estimation for online data streams.
+*   It can be added to any anomaly detector to set the number of alarms triggered as a percentage of the total samples.
+*   Adding new samples to the distribution is achieved through `partialFit` and querying the model (computing quantiles)
+*   is implemented by `predict` function.
+*   <br> This is based on the Data Lib Sketch Implementation: {@link https://github.com/vega/datalib-sketch/blob/master/src/t-digest.js t-digest.js}
+*   <br> Paper: Ted Dunning, Otmar Ertl - {@link https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf Computing Extremely Accurate Quantiles Using t-Digests}.
+* @class
+* @param {module:analytics~BufferedTDigestParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
+* <br>1. Using the {@link module:analytics~BufferedTDigestParam} object,
+* <br>2. using the file input stream {@link module:fs.FIn}.
+* @example
+* // import modules
+* var qm = require('qminer');
+* var analytics = qm.analytics;
+* // create the default BufferedTDigest object
+* var tdigest = new analytics.BufferedTDigest();
+* // create the data used for calculating quantiles
+* var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+* // fit the BufferedTDigest model
+* for (var i = 0; i < inputs.length; i++) {
+*     tdigest.partialFit(inputs[i]);
+* }
+* // make the prediction for the 0.1 quantile
+* var prediction = tdigest.predict(0.1);
+* // save the model
+* tdigest.save(fs.openWrite('tdigest.bin')).close();
+* // open the tdigest model under a new variable
+* var tdigest2 = new analytics.BufferedTDigest(fs.openRead('tdigest.bin'));
+*/
+//# exports.BufferedTDigest = function (arg) { return Object.create(require('qminer').analytics.BufferedTDigest.prototype); }
+class TNodeJsBuffTDigest : public node::ObjectWrap {
+    friend class TNodeJsUtil;
+public:
+    static void Init(v8::Handle<v8::Object> exports);
+    static const TStr GetClassId() { return "BufferedTDigest"; }
+
+private:
+    using TTDigest = TQuant::TMergingTDigest;
+
+    TTDigest Model;
+    TInt RndSeed;
+
+    TNodeJsBuffTDigest(const PJsonVal& ParamVal);
+    TNodeJsBuffTDigest(TSIn& SIn);
+    ~TNodeJsBuffTDigest() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
+
+    static TNodeJsBuffTDigest* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+public:
+
+    /**
+    * Returns the parameters.
+    * @returns {module:analytics~BufferedTDigestParam} The construction parameters.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var analytics = qm.analytics;
+    * // create the default BufferedTDigest object
+    * var tdigest = new analytics.BufferedTDigest();
+    * // get the parameters of the object
+    * var params = tdigest.getParams();
+    */
+    //# exports.BufferedTDigest.prototype.getParams = function () { return { }; }
+    JsDeclareFunction(getParams);
+
+    /**
+    * Adds a new measurement to the model and updates the approximation of the data distribution.
+    * @param {number} x - Input number.
+    * @returns {module:analytics.BufferedTDigest} Self. The model has been updated.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var analytics = qm.analytics;
+    * // create the default BufferedTDigest object
+    * var tdigest = new analytics.BufferedTDigest();
+    * // create the data used for calculating quantiles
+    * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+    * // fit the BufferedTDigest model with all input values
+    * for (var i = 0; i < inputs.length; i++) {
+    *     tdigest.partialFit(inputs[i]);
+    * }
+    */
+    //# exports.BufferedTDigest.prototype.partialFit = function (X) { return Object.create(require('qminer').analytics.BufferedTDigest.prototype); }
+    JsDeclareFunction(partialFit);
+
+    /**
+    * Returns a quantile given input number, that is the approximate fraction of samples smaller than the input (0.05 means that 5% of data is smaller than the input value).
+    * @param {number} x - Input number.
+    * @returns {number} Quantile (between 0 and 1).
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var analytics = qm.analytics;
+    * // create the default BufferedTDigest object
+    * var tdigest = new analytics.BufferedTDigest();
+    * // create the data used for calculating quantiles
+    * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+    * // fit the BufferedTDigest model
+    * for (var i = 0; i < inputs.length; i++) {
+    *     tdigest.partialFit(inputs[i]);
+    * }
+    *
+    * tdigest.flush()
+    * // make the prediction for the 0.1 quantile
+    * var prediction = tdigest.predict(0.1);
+    */
+    //# exports.BufferedTDigest.prototype.predict = function (x) { return 0; }
+    JsDeclareFunction(predict);
+
+    /**
+    * Flushed the input buffer.
+    * @returns {module:analytics.BufferedTDigest} Self. The model has been updated.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var analytics = qm.analytics;
+    * // create the default BufferedTDigest object
+    * var tdigest = new analytics.BufferedTDigest();
+    * // create the data used for calculating quantiles
+    * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+    * // fit the BufferedTDigest model
+    * for (var i = 0; i < inputs.length; i++) {
+    *     tdigest.partialFit(inputs[i]);
+    * }
+    *
+    * tdigest.flush()
+    * // make the prediction for the 0.1 quantile
+    * var prediction = tdigest.predict(0.1);
+    */
+    //# exports.BufferedTDigest.prototype.flush = function (X) { return Object.create(require('qminer').analytics.BufferedTDigest.prototype); }
+    JsDeclareFunction(flush);
+
+    /**
+    * Saves BufferedTDigest internal state into (binary) file.
+    * @param {module:fs.FOut} fout - The output stream.
+    * @returns {module:fs.FOut} The output stream `fout`.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var analytics = qm.analytics;
+    * var fs = qm.fs;
+    * // create the default BufferedTDigest object
+    * var tdigest = new analytics.BufferedTDigest();
+    * // create the data used for calculating quantiles
+    * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+    * // fit the BufferedTDigest model
+    * for (var i = 0; i < inputs.length; i++) {
+    *     tdigest.partialFit(inputs[i]);
+    * }
+    * // save the model
+    * tdigest.save(fs.openWrite('tdigest.bin')).close();
+    * // open the tdigest model under a new variable
+    * var tdigest2 = new analytics.BufferedTDigest(fs.openRead('tdigest.bin'));
+    */
+    //# exports.BufferedTDigest.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+    JsDeclareFunction(save);
+
+    /**
+    * Returns true when the model has enough data to initialize. Type `boolean`.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var analytics = qm.analytics;
+    * var fs = qm.fs;
+    * // create the default BufferedTDigest object
+    * var tdigest = new analytics.BufferedTDigest();
+    * // check if the model has enough data to initialize
+    * if (tdigest.init) { console.log("Ready to initialize"); }
+    */
+    //# exports.BufferedTDigest.prototype.init = false;
+    JsDeclareProperty(init);
+
+    /**
+     * Returns the current size of the algorithms summary in number of tuples.
+     */
+    //# exports.BufferedTDigest.size = 0;
+    JsDeclareProperty(size);
+
+    /**
+     * Returns the models current memory consumption.
+     */
+    //# exports.BufferedTDigest.memory = 0;
+    JsDeclareProperty(memory);
+};
+
 /**
 * @typedef {Object} GkParam
 * An object used for the construction of {@link module:analytics.Gk}.

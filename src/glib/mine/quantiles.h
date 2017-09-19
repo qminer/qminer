@@ -750,6 +750,12 @@ namespace TQuant {
                 const TFlt& GetMean() const { return Mean; }
                 const TUInt& GetCount() const { return Count; }
 
+                /// adds the other centroids weight and value to its own
+                /// summary
+                TCentroid& operator +=(const TCentroid&);
+                /// returns true if this centroids mean is smaller than the others
+                bool operator <(const TCentroid&) const;
+
                 // DEBUGGING
                 uint64 GetMemUsed() const;
 
@@ -761,6 +767,45 @@ namespace TQuant {
             inline std::ostream& operator <<(std::ostream& os, const TCentroid& Cent) {
                 return os << "<" << Cent.GetMean().Val << "," << Cent.GetCount().Val << ">";
             }
+
+            inline std::ostream& operator <<(std::ostream& os, const TVec<TCentroid>& CentroidV) {
+                os << "[";
+                for (int CentroidN = 0; CentroidN < CentroidV.Len(); ++CentroidN) {
+                    os << CentroidV[CentroidN];
+                    if (CentroidN < CentroidV.Len()-1) {
+                        os << ", ";
+                    }
+                }
+                return os << "]";
+            }
+
+            class TTDigestBase {
+            public:
+                TTDigestBase() {}
+
+                // SERIALIZATION
+                TTDigestBase(TSIn&);
+                void Save(TSOut&) const;
+
+                /// returns the (approximate) quantile for the given
+                /// cumulative probability
+                double Query(const double& PVal) const;
+                /// calcuated an array of (approximate) quantiles for the
+                /// given cumulative probabilities
+                void Query(const TFltV& PValV, TFltV& QuantV) const;
+
+                // DEBUGGING
+                /// returns the objects memory footprint
+                uint64 GetMemUsed() const;
+                void PrintSummary() const;
+
+            protected:
+                using TCentroidType = TCentroid;
+                using TCentroidV = TVec<TCentroidType>;
+
+                TCentroidV CentroidV {};
+                TUInt64 SampleN;
+            };
         }
     }
 
@@ -910,7 +955,10 @@ namespace TQuant {
 
     using TCkms = TBiasedGk;
 
-    class TTDigest {
+    ////////////////////////////////////
+    /// tDigest - clustering implementation
+    class TTDigest : private TUtils::TTDigestUtils::TTDigestBase {
+        using TBase = TUtils::TTDigestUtils::TTDigestBase;
         using TCentroid = TUtils::TTDigestUtils::TCentroid;
         using TCentroidV = TVec<TCentroid>;
 
@@ -930,12 +978,7 @@ namespace TQuant {
         TTDigest(TSIn&);
         void Save(TSOut&) const;
 
-        /// returns the (approximate) quantile for the given
-        /// cumulative probability
-        double Query(const double& PVal) const;
-        /// calcuated an array of (approximate) quantiles for the
-        /// given cumulative probabilities
-        void Query(const TFltV& PValV, TFltV& QuantV) const;
+        using TBase::Query;
         /// inserts a new value with the given weight
         void Insert(const double& Val, const uint& ValWgt=1);
 
@@ -949,7 +992,7 @@ namespace TQuant {
         /// returns the current number of centroids in the summary
         int GetSummarySize() const;
         const TUInt64& GetSampleN() const;
-        void PrintSummary() const;
+        using TTDigestBase::PrintSummary;
         /// returns the instances memory footprint size
         uint64 GetMemUsed() const;
 
@@ -966,17 +1009,63 @@ namespace TQuant {
         /// returns the relative error for the given p-value
         double GetEps(const double& PVal) const;
 
-        static const uint64 COMPRESS_INTERVAL_FACTOR = 10;
+        static const uint64 COMPRESS_INTERVAL_FACTOR = 20;
 
-        TCentroidV CentroidV {};
         TRnd Rnd {0};
         TFlt MnEps {1e-4};
         TInt MnCentroids;
         TFlt MxCentroidsFactor {20.0};
         /* TFlt MxCentroidsFactor {10.0}; */
-        TUInt64 SampleN {uint64(0)};
         TUInt64 ReclustSampleN {TUInt64::Mx};
         TCompressStrategy CompressStrategy {TCompressStrategy::csNever};
+    };
+
+    ////////////////////////////////////////////
+    /// tDigest - buffer implementaion
+    class TMergingTDigest : private TUtils::TTDigestUtils::TTDigestBase {
+        using TBase = TUtils::TTDigestUtils::TTDigestBase;
+        using TCentroid = TBase::TCentroidType;
+        using TCentroidV = TBase::TCentroidV;
+    public:
+        TMergingTDigest(const double& CompressFact, const TRnd& Rnd);
+        TMergingTDigest(const double& CompressFact, const int& MxBuffLen,
+                const TRnd& Rnd=TRnd(0));
+
+        // SERIALIZATION
+        TMergingTDigest(TSIn&);
+        void Save(TSOut&) const;
+
+        using TBase::Query;
+        /// inserts a new data point into the buffer, if the buffer is full it is
+        /// automatically merged
+        void Insert(const double& Val, const uint& ValWgt=1);
+        /// flushes the buffer
+        void Flush();
+
+        const TFlt& GetDelta() const { return Delta; }
+        const TInt& GetMxBuffLen() const { return MxBuffLen; }
+
+        /// returns the current number of centroids in the summary
+        int GetSummarySize() const;
+        using TTDigestBase::PrintSummary;
+        /// returns the number of samples seen so far by the model
+        const TUInt64& GetSampleN() const;
+        /// returns this objects memory footprint
+        uint64 GetMemUsed() const;
+
+    private:
+        double GetCentroidMxCumProb(const double& PrevCentCumProb) const;
+        /// indicates whether the buffer should be flushed
+        bool ShouldFlush() const;
+
+        static double Scale(const double& CumProb, const double& Delta);
+        static double InvScale(const double& Scaled, const double& Delta);
+
+        TCentroidV BuffV;
+        TFlt Delta;
+        TRnd Rnd {0};
+        TInt MxBuffLen;
+        TInt MxCentroids;
     };
 
 
