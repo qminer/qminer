@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.6.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.6.1</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">TimeWindowGk</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2738">analyticsdoc.<wbr>js:2738</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2770">analyticsdoc.<wbr>js:2770</a></p>
             <div class="symbol-classdesc">
               <p>Greenwald - Khanna algorithm for quantile estimation on sliding windows. Given a cumulative probability p, the algorithm returns the approximate value of the p-th quantile of all the values in a sliding window.</p>
               <p> The algorithm works by keeping a summary of buckets. Each bucket summarizes a range of values. Through the run of the algorithm, new buckets are created and old ones merged. To allow for the computation on a sliding window, each bucket uses
@@ -79,9 +79,10 @@
               <div>
                 <pre class="prettyprint"><code>// import modules
 var qm = require(&#x27;qminer&#x27;);
+var fs = qm.fs;
 var analytics = qm.analytics;
 
-// create the default TDigest object
+// create the default object
 var gk = new analytics.TimeWindowGk({
     window: 5,
     quantileEps: 0.001,
@@ -92,7 +93,7 @@ var gk = new analytics.TimeWindowGk({
 var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
 var times = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
-// fit the TDigest model
+// fit the model
 for (var i = 0; i &lt; inputs.length; i++) {
     gk.partialFit(times[i], inputs[i]);
 }
@@ -215,12 +216,20 @@ gk.partialFit(new Date(&#x27;2017-06-08&#x27;));  // only move the time window, 
             Example
         </h4>
                 <div>
-                  <pre class="prettyprint"><code>var gk = new qm.analytics.TimeWindowGk();
-
+                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+var fs = qm.fs;
+var gk = new qm.analytics.TimeWindowGk({
+    window: 100    // window is 2 days
+});
+gk.partialFit(0, 1.0);
+gk.partialFit(1, 1.0);
+gk.partialFit(2, 1.0);
+gk.partialFit(3, 1.0);
+gk.partialFit(4, 1.0);
 // save the model
-gk.save(fs.openWrite(&#x27;tdigest.bin&#x27;)).close();
-// open the tdigest model under a new variable
-var gk = new analytics.TimeWindowGk(fs.openRead(&#x27;tdigest.bin&#x27;));</code></pre>
+gk.save(fs.openWrite(&#x27;gk.bin&#x27;)).close();
+// open the model under a new variable
+var gk = new analytics.TimeWindowGk(fs.openRead(&#x27;gk.bin&#x27;));</code></pre>
                 </div>
               </section>
               <section>
@@ -264,7 +273,11 @@ var gk = new analytics.TimeWindowGk(fs.openRead(&#x27;tdigest.bin&#x27;));</code
                 <dt>Returns</dt>
                 <dd>
                   <p><code><a href="module-analytics.html#~TimeWindowGkParam">module:analytics~TimeWindowGkParam</a></code>&nbsp;The construction parameters.</p>
-                  <p>var analytics = qm.analytics; var gk = new analytics.TimeWindowGk(); var params = tdigest.getParams();</p>
+                  <p>var qm = require('qminer'); var fs = qm.fs; var analytics = qm.analytics;</p>
+                  <p>// create the default object var gk = new analytics.TimeWindowGk({ window: 5, quantileEps: 0.001, countEps: 0.0005 });
+                  </p>
+                  <p>// create the data used for calculating quantiles var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3]; var times = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];</p>
+                  <p>// fit the model for (var i = 0; i &lt; inputs.length; i++) { gk.partialFit(times[i], inputs[i]); } var params = gk.getParams();</p>
                   <p>console.log(params.window); console.log(params.quantileEps); console.log(params.countEps);
                   </p>
                 </dd>

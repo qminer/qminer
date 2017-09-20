@@ -581,6 +581,7 @@
  exports.Base.prototype.search = function (query) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); }
 /**
     * Calls qminer garbage collector to remove records outside time windows. For application example see {@link module:qm~SchemaTimeWindowDef}.
+    * @param {number} [max_time=-1] - Maximal number of time each store can spend on cleaning backlog in milisecons. If -1 then no limit is applied.
     */
  exports.Base.prototype.garbageCollect = function () { }
 /**
@@ -2678,7 +2679,7 @@
 * // add a new record to the base
 * base.store(&quot;Class&quot;).push({ Name: &quot;Peterson&quot;, Grade: 9 });
 * base.store(&quot;Class&quot;).push({ Name: &quot;Ericsson&quot;, Grade: 8 });
-* // update the feature space for scaling 
+* // update the feature space for scaling
 * ftr.updateRecords(base.store(&quot;Class&quot;).allRecords);
 * // get the features of the first record
 * var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]); // the vector with the random value
@@ -2739,7 +2740,7 @@
 * base.store(&quot;Class&quot;).push({ Name: &quot;Fred&quot;, StudyGroup: &quot;A&quot; });
 * base.store(&quot;Class&quot;).push({ Name: &quot;Wilma&quot;, StudyGroup: &quot;B&quot; });
 * base.store(&quot;Class&quot;).push({ Name: &quot;Barney&quot;, StudyGroup: &quot;C&quot; });
-* // update the feature space to get the categories 
+* // update the feature space to get the categories
 * ftr.updateRecords(base.store(&quot;Class&quot;).allRecords);
 * // get the feature vector for the first record
 * var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]); // returns vector [1, 0, 0]
