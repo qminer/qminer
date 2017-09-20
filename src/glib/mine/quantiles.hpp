@@ -759,5 +759,182 @@ namespace TQuant {
                 }
             }
         }
+
+        namespace TTDigestUtils {
+
+            ///////////////////////////////////////////////////
+            /// tDigest centroid
+
+            template <typename TWgt>
+            TCentroid<TWgt>::TCentroid():
+                    Mean(0),
+                    WgtSum(0) {}
+
+            template <typename TWgt>
+            TCentroid<TWgt>::TCentroid(const double& Val, const TWgt& ValWgt):
+                    Mean(Val),
+                    WgtSum(ValWgt) {
+                Assert(ValWgt > 0);
+            }
+
+            template <typename TWgt>
+            TCentroid<TWgt>::TCentroid(TSIn& SIn):
+                    Mean(SIn),
+                    WgtSum(SIn) {}
+
+            template <typename TWgt>
+            void TCentroid<TWgt>::Save(TSOut& SOut) const {
+                Mean.Save(SOut);
+                WgtSum.Save(SOut);
+            }
+
+            template <typename TWgt>
+            void TCentroid<TWgt>::Swallow(const double& Val, const TWgt& ValWgt) {
+                Assert(ValWgt > 0);
+                Mean = (Mean*WgtSum + Val*ValWgt) / (WgtSum + ValWgt);
+                WgtSum +=  ValWgt;
+            }
+
+            template <typename TWgt>
+            double TCentroid<TWgt>::GetDist(const double& Val) const {
+                return TMath::Abs(Val - Mean);
+            }
+
+            template <typename TWgt>
+            TCentroid<TWgt>& TCentroid<TWgt>::operator +=(const TCentroid<TWgt>& Other) {
+                if (this == &Other) { return *this; }
+                Swallow(Other.GetMean(), Other.GetWgt());
+                return *this;
+            }
+
+            template <typename TWgt>
+            bool TCentroid<TWgt>::operator <(const TCentroid& Other) const {
+                return GetMean() < Other.GetMean();
+            }
+
+            template <typename TWgt>
+            uint64 TCentroid<TWgt>::GetMemUsed() const {
+                return sizeof(TCentroid) +
+                    TMemUtils::GetExtraMemberSize(Mean) +
+                    TMemUtils::GetExtraMemberSize(WgtSum);
+            }
+
+            template <typename TWgt>
+            TStr TCentroid<TWgt>::GetStr() const {
+                return "<" + TFlt::GetStr(GetMean()) + ", " + TWgt::GetStr(GetWgt()) + ">";
+            }
+
+            ////////////////////////////////////
+            /// tDigest - base
+            template <typename TWgt>
+            TTDigestBase<TWgt>::TTDigestBase(TSIn& SIn):
+                CentroidV(SIn) {}
+
+            template <typename TWgt>
+            void TTDigestBase<TWgt>::Save(TSOut& SOut) const {
+                CentroidV.Save(SOut);
+            }
+
+            template <typename TWgt>
+            double TTDigestBase<TWgt>::Query(const double& PVal) const {
+                const double NCentroids = CentroidV.Len();
+                const double TargetRank = PVal*(SampleN-1);
+
+                if (NCentroids == 0) { return 0; }
+
+                double CurrMxRank = -0.5;
+                int CentN = 0;
+
+                do {
+                    CurrMxRank += CentroidV[CentN].GetWgt();
+                    if (CurrMxRank >= TargetRank) { break; }
+                    ++CentN;
+                } while (CentN < NCentroids);
+
+                if (CentN == 0) { return CentroidV[0].GetMean(); }
+                if (CentN == NCentroids-1) { return CentroidV.Last().GetMean(); }
+
+                // CurrMxRank >= TargetRank
+                // interpolate the result
+                const double CentroidRank = CurrMxRank - 0.5*CentroidV[CentN].GetWgt();
+                if (TargetRank > CentroidRank) {
+                    // interpolate with the centroid on the right
+                    const TCentroidType& CurrCent = CentroidV[CentN];
+                    const TCentroidType& RightCent = CentroidV[CentN+1];
+                    return CurrCent.GetMean() +
+                        (RightCent.GetMean() - CurrCent.GetMean())*(TargetRank - CentroidRank) / CurrCent.GetWgt();
+                } else {
+                    // interpolate with the centroid on the left
+                    const TCentroidType& LeftCent = CentroidV[CentN-1];
+                    const TCentroidType& CurrCent = CentroidV[CentN];
+                    return CurrCent.GetMean() -
+                        (CurrCent.GetMean() - LeftCent.GetMean())*(CentroidRank - TargetRank) / CurrCent.GetWgt();
+                }
+            }
+
+            template <typename TWgt>
+            void TTDigestBase<TWgt>::Query(const TFltV& PValV, TFltV& QuantV) const {
+                if (QuantV.Len() != PValV.Len()) { QuantV.Gen(PValV.Len(), PValV.Len()); }
+
+                const double NCentroids = CentroidV.Len();
+                if (NCentroids == 0) { return; }
+
+                double CurrMxRank = CentroidV[0].GetWgt() - 0.5;
+                int CentN = 0;
+
+                for (int PValN = 0; PValN < PValV.Len(); ++PValN) {
+                    const double PVal = PValV[PValN];
+                    const double TargetRank = PVal*(SampleN-1);
+
+                    if (PValN > 0) {
+                        EAssertR(PValV[PValN-1] <= PValV[PValN], "TDigest: p-values should be ordered!");
+                    }
+
+                    do {
+                        if (CurrMxRank >= TargetRank) { break; }
+                        ++CentN;
+                        if (CentN < NCentroids) { CurrMxRank += CentroidV[CentN].GetWgt(); }
+                    } while (CentN < NCentroids);
+
+                    if (CentN == 0) {
+                        QuantV[PValN] = CentroidV[0].GetMean();
+                        continue;
+                    }
+                    if (CentN == NCentroids-1) {
+                        QuantV[PValN] = CentroidV.Last().GetMean();
+                        continue;
+                    }
+
+                    // CurrMxRank >= TargetRank
+                    // interpolate the result
+                    const double CentroidRank = CurrMxRank - 0.5*CentroidV[CentN].GetWgt();
+                    if (TargetRank > CentroidRank) {
+                        // interpolate with the centroid on the right
+                        const TCentroidType& CurrCent = CentroidV[CentN];
+                        const TCentroidType& RightCent = CentroidV[CentN+1];
+                        QuantV[PValN] = CurrCent.GetMean() +
+                            (RightCent.GetMean() - CurrCent.GetMean())*(TargetRank - CentroidRank) / CurrCent.GetWgt();
+                    } else {
+                        // interpolate with the centroid on the left
+                        const TCentroidType& LeftCent = CentroidV[CentN-1];
+                        const TCentroidType& CurrCent = CentroidV[CentN];
+                        QuantV[PValN] = CurrCent.GetMean() -
+                            (CurrCent.GetMean() - LeftCent.GetMean())*(CentroidRank - TargetRank) / CurrCent.GetWgt();
+                    }
+                }
+            }
+
+            template <typename TWgt>
+            uint64 TTDigestBase<TWgt>::GetMemUsed() const {
+                return sizeof(TTDigestBase) +
+                    TMemUtils::GetExtraContainerSizeShallow(CentroidV) +
+                    TMemUtils::GetExtraMemberSize(SampleN);
+            }
+
+            template <typename TWgt>
+            void TTDigestBase<TWgt>::PrintSummary() const {
+                std::cout << CentroidV << std::endl;
+            }
+        }
     }
 }

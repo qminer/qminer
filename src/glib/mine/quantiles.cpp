@@ -1400,159 +1400,6 @@ namespace TQuant {
         }
     }
 
-    ///////////////////////////////////////////////////
-    /// tDigest centroid
-    TUtils::TTDigestUtils::TCentroid::TCentroid():
-            Mean(0),
-            Count(0) {}
-
-    TUtils::TTDigestUtils::TCentroid::TCentroid(const double& Val, const int& ValWgt):
-            Mean(Val),
-            Count(ValWgt) {
-        Assert(ValWgt > 0);
-    }
-
-    TUtils::TTDigestUtils::TCentroid::TCentroid(TSIn& SIn):
-            Mean(SIn),
-            Count(SIn) {}
-
-    void TUtils::TTDigestUtils::TCentroid::Save(TSOut& SOut) const {
-        Mean.Save(SOut);
-        Count.Save(SOut);
-    }
-
-    void TUtils::TTDigestUtils::TCentroid::Swallow(const double& Val, const int& ValWgt) {
-        Assert(ValWgt > 0);
-        Mean = (Mean*Count + Val*ValWgt) / (Count + ValWgt);
-        Count +=  ValWgt;
-    }
-
-    double TUtils::TTDigestUtils::TCentroid::GetDist(const double& Val) const {
-        return TMath::Abs(Val - Mean);
-    }
-
-    TUtils::TTDigestUtils::TCentroid& TUtils::TTDigestUtils::TCentroid::operator +=(const TCentroid& Other) {
-        if (this == &Other) { return *this; }
-        Swallow(Other.GetMean(), Other.GetCount());
-        return *this;
-    }
-
-    bool TUtils::TTDigestUtils::TCentroid::operator <(const TCentroid& Other) const {
-        return GetMean() < Other.GetMean();
-    }
-
-    uint64 TUtils::TTDigestUtils::TCentroid::GetMemUsed() const {
-        return sizeof(TCentroid) +
-            TMemUtils::GetExtraMemberSize(Mean) +
-            TMemUtils::GetExtraMemberSize(Count);
-    }
-
-
-    ////////////////////////////////////
-    /// tDigest - base
-    TUtils::TTDigestUtils::TTDigestBase::TTDigestBase(TSIn& SIn):
-        CentroidV(SIn) {}
-
-    void TUtils::TTDigestUtils::TTDigestBase::Save(TSOut& SOut) const {
-        CentroidV.Save(SOut);
-    }
-
-    double TUtils::TTDigestUtils::TTDigestBase::Query(const double& PVal) const {
-        const double NCentroids = CentroidV.Len();
-        const double TargetRank = PVal*(SampleN-1);
-
-        if (NCentroids == 0) { return 0; }
-
-        double CurrMxRank = -0.5;
-        int CentN = 0;
-
-        do {
-            CurrMxRank += CentroidV[CentN].GetCount();
-            if (CurrMxRank >= TargetRank) { break; }
-            ++CentN;
-        } while (CentN < NCentroids);
-
-        if (CentN == 0) { return CentroidV[0].GetMean(); }
-        if (CentN == NCentroids-1) { return CentroidV.Last().GetMean(); }
-
-        // CurrMxRank >= TargetRank
-        // interpolate the result
-        const double CentroidRank = CurrMxRank - 0.5*CentroidV[CentN].GetCount();
-        if (TargetRank > CentroidRank) {
-            // interpolate with the centroid on the right
-            const TCentroid& CurrCent = CentroidV[CentN];
-            const TCentroid& RightCent = CentroidV[CentN+1];
-            return CurrCent.GetMean() +
-                (RightCent.GetMean() - CurrCent.GetMean())*(TargetRank - CentroidRank) / CurrCent.GetCount();
-        } else {
-            // interpolate with the centroid on the left
-            const TCentroid& LeftCent = CentroidV[CentN-1];
-            const TCentroid& CurrCent = CentroidV[CentN];
-            return CurrCent.GetMean() -
-                (CurrCent.GetMean() - LeftCent.GetMean())*(CentroidRank - TargetRank) / CurrCent.GetCount();
-        }
-    }
-
-    void TUtils::TTDigestUtils::TTDigestBase::Query(const TFltV& PValV, TFltV& QuantV) const {
-        if (QuantV.Len() != PValV.Len()) { QuantV.Gen(PValV.Len(), PValV.Len()); }
-
-        const double NCentroids = CentroidV.Len();
-        if (NCentroids == 0) { return; }
-
-        double CurrMxRank = CentroidV[0].GetCount() - 0.5;
-        int CentN = 0;
-
-        for (int PValN = 0; PValN < PValV.Len(); ++PValN) {
-            const double PVal = PValV[PValN];
-            const double TargetRank = PVal*(SampleN-1);
-
-            if (PValN > 0) {
-                EAssertR(PValV[PValN-1] <= PValV[PValN], "TDigest: p-values should be ordered!");
-            }
-
-            do {
-                if (CurrMxRank >= TargetRank) { break; }
-                ++CentN;
-                if (CentN < NCentroids) { CurrMxRank += CentroidV[CentN].GetCount(); }
-            } while (CentN < NCentroids);
-
-            if (CentN == 0) {
-                QuantV[PValN] = CentroidV[0].GetMean();
-                continue;
-            }
-            if (CentN == NCentroids-1) {
-                QuantV[PValN] = CentroidV.Last().GetMean();
-                continue;
-            }
-
-            // CurrMxRank >= TargetRank
-            // interpolate the result
-            const double CentroidRank = CurrMxRank - 0.5*CentroidV[CentN].GetCount();
-            if (TargetRank > CentroidRank) {
-                // interpolate with the centroid on the right
-                const TCentroid& CurrCent = CentroidV[CentN];
-                const TCentroid& RightCent = CentroidV[CentN+1];
-                QuantV[PValN] = CurrCent.GetMean() +
-                    (RightCent.GetMean() - CurrCent.GetMean())*(TargetRank - CentroidRank) / CurrCent.GetCount();
-            } else {
-                // interpolate with the centroid on the left
-                const TCentroid& LeftCent = CentroidV[CentN-1];
-                const TCentroid& CurrCent = CentroidV[CentN];
-                QuantV[PValN] = CurrCent.GetMean() -
-                    (CurrCent.GetMean() - LeftCent.GetMean())*(CentroidRank - TargetRank) / CurrCent.GetCount();
-            }
-        }
-    }
-
-    uint64 TUtils::TTDigestUtils::TTDigestBase::GetMemUsed() const {
-        return sizeof(TTDigestBase) +
-            TMemUtils::GetExtraContainerSizeShallow(CentroidV) +
-            TMemUtils::GetExtraMemberSize(SampleN);
-    }
-
-    void TUtils::TTDigestUtils::TTDigestBase::PrintSummary() const {
-        std::cout << CentroidV << std::endl;
-    }
 
     ////////////////////////////////////
     /// GK - algorithm
@@ -1863,7 +1710,7 @@ namespace TQuant {
         uint64 ItemSum = 0;
         int RightN = 0;
         while (RightN < CentroidV.Len() && CentroidV[RightN].GetMean() < Val) {
-            ItemSum += CentroidV[RightN].GetCount();
+            ItemSum += CentroidV[RightN].GetWgt();
             ++RightN;
         }
 
@@ -1879,7 +1726,7 @@ namespace TQuant {
             uint64 CurrItemSum = ItemSum;
             while (CurrN >= 0 && CentroidV[CurrN].GetDist(Val) == MnDist) {
                 const TCentroid& CurrCent = CentroidV[CurrN];
-                const TUInt& CentroidCount = CurrCent.GetCount();
+                const TUInt& CentroidCount = CurrCent.GetWgt();
                 CurrItemSum -= CentroidCount;
                 MnDistCentroidIdV.Add(TIntUInt64Pr(CurrN, CurrItemSum));
                 --CurrN;
@@ -1892,7 +1739,7 @@ namespace TQuant {
             uint64 CurrItemSum = ItemSum;
             while (CurrN < CentroidV.Len() && CentroidV[CurrN].GetDist(Val) == MnDist) {
                 const TCentroid& CurrCent = CentroidV[CurrN];
-                const TUInt& CentroidCount = CurrCent.GetCount();
+                const TUInt& CentroidCount = CurrCent.GetWgt();
                 MnDistCentroidIdV.Add(TIntUInt64Pr(CurrN, CurrItemSum));
                 CurrItemSum += CentroidCount;
                 ++CurrN;
@@ -1914,7 +1761,7 @@ namespace TQuant {
             int PrevWgt = -1;
             int AddCentroidWgt = RemValWgt;
             while (AddCentroidWgt > 0 && AddCentroidWgt != PrevWgt) {
-                const int CentroidSize = CentroidV[CentroidId].GetCount();
+                const int CentroidSize = CentroidV[CentroidId].GetWgt();
 
                 const double MeanCentroidCount = LeftCount + 0.5*(CentroidSize + AddCentroidWgt);
                 const double CentroidPVal = MeanCentroidCount / (SampleN + AddCentroidWgt);
@@ -1978,7 +1825,7 @@ namespace TQuant {
             const int SwapN = Rnd.GetUniDevInt(CentroidN, LastCentroidN);
             std::swap(OldCentroidV[CentroidN], OldCentroidV[SwapN]);
             const TCentroid& CurrCentroid = OldCentroidV[CentroidN];
-            Insert(CurrCentroid.GetMean(), CurrCentroid.GetCount(), false);
+            Insert(CurrCentroid.GetMean(), CurrCentroid.GetWgt(), false);
         }
     }
 
@@ -2036,8 +1883,8 @@ namespace TQuant {
         MxCentroids.Save(SOut);
     }
 
-    void TMergingTDigest::Insert(const double& Val, const uint& ValWgt) {
-        BuffV.Add(TCentroid(Val, ValWgt));
+    void TMergingTDigest::Insert(const double& Val) {
+        BuffV.Add(TCentroid(Val, 1.0));
         if (ShouldFlush()) { Flush(); }
     }
 
@@ -2054,25 +1901,97 @@ namespace TQuant {
 
         // copy the first centroid into a new value
         TCentroid NewCentroid = BuffV[0];
-        double PrevCentCumProb = 0;
-        double CumProbLimit = GetCentroidMxCumProb(PrevCentCumProb);
+        double ProbMin = 0;
+        double ProbMax = ToScaleP(ToScaleK(ProbMin) + 1);
+
+#ifndef NDEBUG
+        double PrevLeftPVal = 0;
+        double MidPVal = 0;
+
+        static constexpr double NUM_EPS = 1e-8;
+#endif
 
         for (int CentroidN = 1; CentroidN < BuffV.Len(); ++CentroidN) {
             const TCentroid& CurrCentroid = BuffV[CentroidN];
 
-            const double CurrCentroidCumProb = PrevCentCumProb +
-                double(NewCentroid.GetCount() + CurrCentroid.GetCount()) / WgtSum;
-            if (CurrCentroidCumProb <= CumProbLimit) {
+            const double NextCentroidCumProb = ProbMin +
+                (NewCentroid.GetWgt() + CurrCentroid.GetWgt()) / WgtSum;
+            if (NextCentroidCumProb <= ProbMax) {
                 NewCentroid += CurrCentroid;
-            } else {
+            }
+            else if (ProbMin + NewCentroid.GetWgt()/WgtSum > ProbMax) {
+                // the new centroid is too large to fit the bin, so
+                // only fit part of it and carry the rest into the next
+                // iteration
+#ifndef NDEBUG
+                const double OrigCentroidMass = NewCentroid.GetWgt()/WgtSum;
+#endif
+                // carry the new centroid over to the next iteration
+                const double ExcessWgt = WgtSum*(ProbMin + NewCentroid.GetWgt()/WgtSum - ProbMax);
+                const double NewCentroidWgt = NewCentroid.GetWgt() - ExcessWgt;
+                const double NewCentroidMean = NewCentroid.GetMean();
+
+                const double NewCentroidMass = NewCentroidWgt / WgtSum;
+
+#ifndef NDEBUG
+                PrevLeftPVal = MidPVal;
+                MidPVal = ProbMin;
+                const double CurrRightPVal = ProbMin + NewCentroidMass;
+
+                const double KScalePrevLeft = ToScaleK(PrevLeftPVal);
+                /* const double KScaleNewLeft = ToScaleK(MidPVal); */
+                const double KScaleNewRight = ToScaleK(CurrRightPVal);
+
+                const double NewCentWidthK = ToScaleK(ProbMin + NewCentroidMass) - ToScaleK(ProbMin);
+                const double MaxWidthK = ToScaleK(ProbMax) - ToScaleK(ProbMin);
+                const double LastTwoWidthK = KScaleNewRight - KScalePrevLeft;
+
+                AssertR(NewCentWidthK <= 1.0 + NUM_EPS, TStr("Invariant 1 doesn't hold for centroid ") + TInt::GetStr(CentroidN+1) + " out of " + TInt::GetStr(BuffV.Len()) +
+                        ", value is: " + TFlt::GetStr(NewCentWidthK, "%.15f") + ", centroid: " + TCentroid(NewCentroidMean, NewCentroidWgt).GetStr() + "!");
+                AssertR(CentroidV.Empty() || LastTwoWidthK > 1, TStr("Invariant 2 doesn't hold for centroid ") + TInt::GetStr(CentroidN+1) +
+                        " out of " + TInt::GetStr(BuffV.Len()) + ", width is: " + TFlt::GetStr(LastTwoWidthK) + ", max width is: " + TFlt::GetStr(MaxWidthK) +
+                        ", probability interval is: <" + TFlt::GetStr(PrevLeftPVal) + ", " + TFlt::GetStr(ProbMax) + "> (diff: " + (ProbMax - ProbMin) + ")" +
+                        ", p_left: " + TFlt::GetStr(ProbMin) + ", p_right: " + TFlt::GetStr(ProbMax) + ", orig centroid mass: " + TFlt::GetStr(OrigCentroidMass) +
+                        "!");
+#endif
+
+                NewCentroid.SubtractWgt(NewCentroidWgt);
+                CentroidV.Add(TCentroid(NewCentroidMean, NewCentroidWgt));
+
+                ProbMin += NewCentroidMass;
+                ProbMax = ToScaleP(TMath::Mn(ToScaleK(ProbMin) + 1.0, Delta.Val));
+                --CentroidN;
+            }
+            else {
+                // the new centroid fits
+#ifndef NDEBUG
+                PrevLeftPVal = MidPVal;
+                MidPVal = ProbMin;
+                const double CurrRightPVal = ProbMin + NewCentroid.GetWgt() / WgtSum;
+
+                const double KScalePrevLeft = ToScaleK(PrevLeftPVal);
+                const double KScaleNewRight = ToScaleK(CurrRightPVal);
+
+                const double NewCentWidthK = ToScaleK(ProbMin + NewCentroid.GetWgt() / WgtSum) - ToScaleK(ProbMin);
+                const double LastTwoWidthK = KScaleNewRight - KScalePrevLeft;
+
+                AssertR(NewCentWidthK <= 1.0 + NUM_EPS, TStr("Invariant 1 doesn't hold for centroid ") + TInt::GetStr(CentroidN+1) + " out of " + TInt::GetStr(BuffV.Len()) + ", value is: " +
+                        TFlt::GetStr(NewCentWidthK, "%.15f") + ", centroid: " + NewCentroid.GetStr() + "!");
+                AssertR(CentroidV.Empty() || LastTwoWidthK > 1, TStr("Invariant 2 doesn't hold for centroid ") + TInt::GetStr(CentroidN+1) +
+                        " out of " + TInt::GetStr(BuffV.Len()) + ", value is: " + TFlt::GetStr(LastTwoWidthK) +
+                        ", probability interval is: <" + TFlt::GetStr(PrevLeftPVal) + ", " + TFlt::GetStr(CurrRightPVal) + ">" +
+                        ", p_left: " + TFlt::GetStr(ProbMin) + ", p_right: " + TFlt::GetStr(ProbMax) + ", centroid mass: " + TFlt::GetStr(NewCentroid.GetWgt() / WgtSum) +
+                        "!");
+#endif
+
                 CentroidV.Add(NewCentroid);
-                PrevCentCumProb += NewCentroid.GetCount() / WgtSum;
-                CumProbLimit = GetCentroidMxCumProb(PrevCentCumProb);
+                ProbMin += NewCentroid.GetWgt() / WgtSum;
+                ProbMax = ToScaleP(TMath::Mn(ToScaleK(ProbMin) + 1.0, Delta.Val));
                 NewCentroid = CurrCentroid;
             }
         }
 
-        if (NewCentroid.GetCount() > 0) {
+        if (NewCentroid.GetWgt() > 0.0) {
             CentroidV.Add(NewCentroid);
         }
 
@@ -2081,10 +2000,6 @@ namespace TQuant {
         Assert(CentroidV.Reserved() == MxCentroids);
         Assert(BuffV.Reserved() == MxBuffLen + MxCentroids);
     }
-
-    /* bool TMergingTDigest::IsInit() const { */
-    /*     return SampleN >= uint64(MxBuffLen); */
-    /* } */
 
     int TMergingTDigest::GetSummarySize() const {
         return CentroidV.Len();
@@ -2104,21 +2019,17 @@ namespace TQuant {
             TMemUtils::GetExtraMemberSize(MxCentroids);
     }
 
-    double TMergingTDigest::GetCentroidMxCumProb(const double& PrevCentCumProb) const {
-        // return k^(-1)(k(q0,\delta)+1,\delta)
-        const double Scaled = Scale(PrevCentCumProb, Delta);
-        return InvScale(Scaled+1, Delta);
-    }
-
     bool TMergingTDigest::ShouldFlush() const {
         return BuffV.Len() == MxBuffLen;
     }
 
-    double TMergingTDigest::Scale(const double& CumProb, const double& Delta) {
+    double TMergingTDigest::ToScaleK(const double& CumProb) {
+        AssertR(0 <= CumProb && CumProb <= 1, "Tried to scaled probability: " + TFlt::GetStr(CumProb));
         return Delta * (0.5 + asin(2*CumProb - 1) / TMath::Pi);
     }
 
-    double TMergingTDigest::InvScale(const double& Scaled, const double& Delta) {
+    double TMergingTDigest::ToScaleP(const double& Scaled) {
+        AssertR(0 <= Scaled && Scaled <= Delta, "Tries to inverse scale: " + TFlt::GetStr(Scaled));
         return 0.5*(std::sin(TMath::Pi*(Scaled/Delta - 0.5)) + 1);
     }
 

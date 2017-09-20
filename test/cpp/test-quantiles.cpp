@@ -427,7 +427,7 @@ TEST(TTDigest, SampleN) {
 
 TEST(TMergingTDigest, Query) {
     const int BatchSize = 1000;
-    const int NTrials = 100;
+    const int NTrials = 1000;
 
     const int Delta = 100;
 
@@ -483,6 +483,8 @@ TEST(TMergingTDigest, Query) {
         AssertQuantileRangeV(TDigest, LowerBound, UpperBound, 1e-3, false);
         ASSERT_LE(TDigest.GetSummarySize(), 2*Delta);
     }
+
+/*     TDigest.PrintSummary(); */
 }
 
 TEST(TExpHistogram, CountEquallySpaced) {

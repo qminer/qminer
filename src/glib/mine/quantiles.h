@@ -734,21 +734,24 @@ namespace TQuant {
 
         namespace TTDigestUtils {
 
+            template <typename TWgt>
             class TCentroid {
             public:
                 TCentroid();
-                TCentroid(const double& Val, const int& Wgt);
+                TCentroid(const double& Val, const TWgt& Wgt);
 
                 // SERIALIZATION
                 TCentroid(TSIn&);
                 void Save(TSOut&) const;
 
-                void Swallow(const double& Val, const int& ValWgt);
+                void Swallow(const double& Val, const TWgt& ValWgt);
 
                 double GetDist(const double& Val) const;
 
                 const TFlt& GetMean() const { return Mean; }
-                const TUInt& GetCount() const { return Count; }
+                const TWgt& GetWgt() const { return WgtSum; }
+
+                void SubtractWgt(const TWgt& Wgt) { Assert(0 <= Wgt && Wgt < WgtSum); WgtSum -= Wgt; }
 
                 /// adds the other centroids weight and value to its own
                 /// summary
@@ -758,17 +761,20 @@ namespace TQuant {
 
                 // DEBUGGING
                 uint64 GetMemUsed() const;
+                TStr GetStr() const;
 
             private:
                 TFlt Mean;
-                TUInt Count;
+                TWgt WgtSum;
             };
 
-            inline std::ostream& operator <<(std::ostream& os, const TCentroid& Cent) {
-                return os << "<" << Cent.GetMean().Val << "," << Cent.GetCount().Val << ">";
+            template <typename TWgt>
+            inline std::ostream& operator <<(std::ostream& os, const TCentroid<TWgt>& Cent) {
+                return os << "<" << Cent.GetMean().Val << "," << Cent.GetWgt().Val << ">";
             }
 
-            inline std::ostream& operator <<(std::ostream& os, const TVec<TCentroid>& CentroidV) {
+            template <typename TWgt>
+            inline std::ostream& operator <<(std::ostream& os, const TVec<TCentroid<TWgt>>& CentroidV) {
                 os << "[";
                 for (int CentroidN = 0; CentroidN < CentroidV.Len(); ++CentroidN) {
                     os << CentroidV[CentroidN];
@@ -779,6 +785,7 @@ namespace TQuant {
                 return os << "]";
             }
 
+            template <typename TWgt>
             class TTDigestBase {
             public:
                 TTDigestBase() {}
@@ -800,7 +807,7 @@ namespace TQuant {
                 void PrintSummary() const;
 
             protected:
-                using TCentroidType = TCentroid;
+                using TCentroidType = TCentroid<TWgt>;
                 using TCentroidV = TVec<TCentroidType>;
 
                 TCentroidV CentroidV {};
@@ -826,7 +833,7 @@ namespace TQuant {
         /// Default constructor. Initializes the algorithm with the allowed error, which
         /// is 2*eps.
         TGreenwaldKhanna(const double& Eps);
-        TGreenwaldKhanna(const double& Eps, const TCompressStrategy&, const bool& UseBands);
+        TGreenwaldKhanna(const double& Eps, const TCompressStrategy&, const bool& UseBands=true);
 
         // SERIALIZATION
         TGreenwaldKhanna(TSIn&);
@@ -957,9 +964,9 @@ namespace TQuant {
 
     ////////////////////////////////////
     /// tDigest - clustering implementation
-    class TTDigest : private TUtils::TTDigestUtils::TTDigestBase {
-        using TBase = TUtils::TTDigestUtils::TTDigestBase;
-        using TCentroid = TUtils::TTDigestUtils::TCentroid;
+    class TTDigest : private TUtils::TTDigestUtils::TTDigestBase<TUInt> {
+        using TBase = TUtils::TTDigestUtils::TTDigestBase<TUInt>;
+        using TCentroid = TBase::TCentroidType;
         using TCentroidV = TVec<TCentroid>;
 
     public:
@@ -1022,8 +1029,8 @@ namespace TQuant {
 
     ////////////////////////////////////////////
     /// tDigest - buffer implementaion
-    class TMergingTDigest : private TUtils::TTDigestUtils::TTDigestBase {
-        using TBase = TUtils::TTDigestUtils::TTDigestBase;
+    class TMergingTDigest : private TUtils::TTDigestUtils::TTDigestBase<TFlt> {
+        using TBase = TUtils::TTDigestUtils::TTDigestBase<TFlt>;
         using TCentroid = TBase::TCentroidType;
         using TCentroidV = TBase::TCentroidV;
     public:
@@ -1038,7 +1045,7 @@ namespace TQuant {
         using TBase::Query;
         /// inserts a new data point into the buffer, if the buffer is full it is
         /// automatically merged
-        void Insert(const double& Val, const uint& ValWgt=1);
+        void Insert(const double& Val);
         /// flushes the buffer
         void Flush();
 
@@ -1054,12 +1061,12 @@ namespace TQuant {
         uint64 GetMemUsed() const;
 
     private:
-        double GetCentroidMxCumProb(const double& PrevCentCumProb) const;
+        /* double GetCentroidMxCumProb(const double& PrevCentCumProb) const; */
         /// indicates whether the buffer should be flushed
         bool ShouldFlush() const;
 
-        static double Scale(const double& CumProb, const double& Delta);
-        static double InvScale(const double& Scaled, const double& Delta);
+        double ToScaleK(const double& ValSpaceP);
+        double ToScaleP(const double& ValSpaceK);
 
         TCentroidV BuffV;
         TFlt Delta;
