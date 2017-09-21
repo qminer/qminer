@@ -3305,6 +3305,12 @@ public:
      * Returns the current size of the algorithms summary in number of tuples.
      */
     //# exports.Gk.size = 0;
+    JsDeclareProperty(init);
+
+    /**
+     * Returns the current size of the algorithms summary in number of tuples.
+     */
+    //# exports.Gk.size = 0;
     JsDeclareProperty(size);
 
     /**
@@ -3473,6 +3479,12 @@ public:
      */
     //# exports.BiasedGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
+
+    /**
+     * Indicates whether the model is initialized (has seen at least one value).
+     */
+    //# exports.BiasedGk.init = true;
+    JsDeclareProperty(init);
 
     /**
      * Returns the current size of the algorithms summary in number of tuples.
@@ -3656,6 +3668,12 @@ public:
     JsDeclareFunction(save);
 
     /**
+     * Indicates whether the model is initialized (has seen at least one value).
+     */
+    //# exports.CountWindowGk.init = true;
+    JsDeclareProperty(init);
+
+    /**
      * Returns the current size of the algorithms summary in number of tuples.
      */
     //# exports.BiasedGk.size = 0;
@@ -3835,6 +3853,12 @@ public:
      */
     //# exports.TimeWindowGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
+
+    /**
+     * Indicates whether the model is initialized (has seen at least one value).
+     */
+    //# exports.TimeWindowGk.init = true;
+    JsDeclareProperty(init);
 
     /**
      * Returns the current size of the algorithms summary in number of tuples.

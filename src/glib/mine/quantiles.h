@@ -1217,6 +1217,7 @@ namespace TQuant {
         using TSwGk::GetSummarySize;
         using TSwGk::GetValCount;
         using TSwGk::GetValRecount;
+        using TSwGk::GetSampleN;
 
     private:
         TUInt64 WindowSize;
@@ -1273,6 +1274,7 @@ namespace TQuant {
         using TSwGk::PrintSummary;
         using TSwGk::GetValCount;
         using TSwGk::GetValRecount;
+        using TSwGk::GetSampleN;
 
     private:
         TUInt64 WindowMSec;
