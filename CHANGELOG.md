@@ -1,5 +1,18 @@
 # QMiner Change Log
 
+## 29 September 2017
+
+**Version 8.7.0**
+
+**Non-breaking with new features**
+
+Features:
+- Active learning (javascript implementation in analytics module): uses SVC (preferably LIBSVC)
+  and maximum uncertainty criterion for semisupervised classification.
+
+Bugfix:
+- Lock gets deleted when creating a base with createClean
+
 ## 8 September 2017
 
 **Version 8.6.1**
