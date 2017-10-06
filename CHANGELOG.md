@@ -1,14 +1,18 @@
 # QMiner Change Log
 
-## 29 September 2017
+## 6 October 2017
 
-**Version 8.7.0**
+**Version 9.0.0**
 
-**Non-breaking with new features**
+**Breaking with new features**
+
+Breaking changes:
+- SVC and SVR models are backward binary incompatible
 
 Features:
+- LIBSVM nonlinear classification supported (previously only linear models were wrapped)
 - Active learning (javascript implementation in analytics module): uses SVC (preferably LIBSVC)
-  and maximum uncertainty criterion for semisupervised classification.
+  and maximum uncertainty criterion for semisupervised classification
 
 Bugfix:
 - Lock gets deleted when creating a base with createClean
