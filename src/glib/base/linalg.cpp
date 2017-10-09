@@ -583,7 +583,7 @@ void TLinAlgStat::ZScore(const TFltVV& Mat, TFltVV& Res, const int& Flag, const 
 		Ones.PutAll(1.0);
 
 		for (int ColN = 0; ColN < Cols; ColN++) {
-            double Factor = StdVec[ColN] == 0.0 ? 1.0 : StdVec[ColN];
+            double Factor = StdVec[ColN] == 0.0 ? 1.0 : StdVec[ColN].Val;
 			TLinAlg::LinComb(1.0/Factor, Mat, ColN, -1.0 * MeanVec[ColN]/Factor, Ones, TempRes);
 			for (int RowN = 0; RowN < Rows; RowN++) {
 				Res.At(RowN, ColN) = TempRes[RowN];
@@ -597,7 +597,7 @@ void TLinAlgStat::ZScore(const TFltVV& Mat, TFltVV& Res, const int& Flag, const 
 		Ones.PutAll(1.0);
 
 		for (int RowN = 0; RowN < Rows; RowN++) {
-            double Factor = StdVec[RowN] == 0.0 ? 1.0 : StdVec[RowN];
+            double Factor = StdVec[RowN] == 0.0 ? 1.0 : StdVec[RowN].Val;
 			TLinAlg::LinComb(1.0/Factor, Mat, RowN, -1.0 * MeanVec[RowN]/Factor, Ones, TempRes, 2);
 			for (int ColN = 0; ColN < Cols; ColN++) {
 				Res.At(RowN, ColN) = TempRes[ColN];
