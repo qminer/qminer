@@ -30,14 +30,15 @@ else
     echo "Errors found!"
     exit 1
 fi
-EXAMPLES_PATH=./../../examples/streamaggregate
-cd $EXAMPLES_PATH
-npm install --silent > npm_install.log
-npm test
-CODE=$?
-if [ $CODE -eq 0 ]; then
-    echo "Example tests success!"
-else
-    echo "Example errors found!"
-    exit 1
-fi
+
+#EXAMPLES_PATH=./../../examples/streamaggregate
+#cd $EXAMPLES_PATH
+#npm install --silent > npm_install.log
+#npm test
+#CODE=$?
+#if [ $CODE -eq 0 ]; then
+#    echo "Example tests success!"
+#else
+#    echo "Example errors found!"
+#    exit 1
+#fi
