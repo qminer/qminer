@@ -4158,7 +4158,7 @@ void TNodeJsBuffTDigest::Init(v8::Handle<v8::Object> exports) {
 
 TNodeJsBuffTDigest::TNodeJsBuffTDigest(const PJsonVal& ParamVal):
     Model(
-            ParamVal->GetObjInt("clusters", 100),
+            ParamVal->GetObjInt("delta", 100),
             ParamVal->GetObjNum("bufferLen", 1000),
             ParamVal->GetObjInt("seed", 0)
     ),
@@ -4195,7 +4195,7 @@ void TNodeJsBuffTDigest::getParams(const v8::FunctionCallbackInfo<v8::Value>& Ar
 
     PJsonVal ParamVal = TJsonVal::NewObj();
     ParamVal->AddToObj("seed", JsTDigest->RndSeed);
-    ParamVal->AddToObj("clusters", Model.GetDelta());
+    ParamVal->AddToObj("delta", Model.GetDelta());
     ParamVal->AddToObj("bufferLen", Model.GetMxBuffLen());
 
     v8::Local<v8::Value> JsParamVal = TNodeJsUtil::ParseJson(Isolate, ParamVal);
@@ -4464,6 +4464,105 @@ void TNodeJsGk::memory(v8::Local<v8::String> Name, const v8::PropertyCallbackInf
     Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Gk.GetMemUsed()));
 }
 
+void TNodeJsExactQuant::Init(v8::Handle<v8::Object> exports) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(
+            Isolate,
+            TNodeJsUtil::_NewJs<TNodeJsExactQuant>
+    );
+    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+    // ObjectWrap uses the first internal field to store the wrapped pointer.
+    tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+    // Add all methods, getters and setters here.
+    NODE_SET_PROTOTYPE_METHOD(tpl, "partialFit", _partialFit);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
+
+    // properties
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "init"), _init);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "size"), _size);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "memory"), _memory);
+
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+}
+
+TNodeJsExactQuant::TNodeJsExactQuant(): Model() {}
+
+TNodeJsExactQuant* TNodeJsExactQuant::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    return new TNodeJsExactQuant;
+}
+
+void TNodeJsExactQuant::partialFit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsExactQuant* JsGk = ObjectWrap::Unwrap<TNodeJsExactQuant>(Args.Holder());
+    TQuant::TExact& Model = JsGk->Model;
+
+    const double Val = TNodeJsUtil::GetArgFlt(Args, 0);
+    Model.Insert(Val);
+
+    // return self
+    Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsExactQuant::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsExactQuant* JsGk = ObjectWrap::Unwrap<TNodeJsExactQuant>(Args.Holder());
+    const TQuant::TExact& Model = JsGk->Model;
+
+    if (TNodeJsUtil::IsArgFlt(Args, 0)) {
+        const double PVal = TNodeJsUtil::GetArgFlt(Args, 0);
+        const double Quant = Model.Query(PVal);
+
+        Args.GetReturnValue().Set(v8::Number::New(Isolate, Quant));
+    } else {
+        TFltV PValV; TNodeJsUtil::GetArgFltV(Args, 0, PValV);
+        TFltV QuantV; Model.Query(PValV, QuantV);
+
+        v8::Handle<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
+        for (int QuantN = 0; QuantN < QuantV.Len(); ++QuantN) {
+            QuantArr->Set(QuantN, v8::Number::New(Isolate, QuantV[QuantN]));
+        }
+
+        Args.GetReturnValue().Set(QuantArr);
+    }
+}
+
+void TNodeJsExactQuant::init(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsExactQuant* JsModel = ObjectWrap::Unwrap<TNodeJsExactQuant>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Model.GetSampleN() > 0));
+}
+
+void TNodeJsExactQuant::size(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsExactQuant* JsModel = ObjectWrap::Unwrap<TNodeJsExactQuant>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Model.GetSummarySize()));
+}
+
+void TNodeJsExactQuant::memory(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsExactQuant* JsModel = ObjectWrap::Unwrap<TNodeJsExactQuant>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Number::New(Isolate, JsModel->Model.GetMemUsed()));
+}
+
 ////////////////////////////////////////////
 // CKMS algorithm for biased quantiles
 void TNodeJsBiasedGk::Init(v8::Handle<v8::Object> exports) {
@@ -4580,12 +4679,12 @@ void TNodeJsBiasedGk::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     if (TNodeJsUtil::IsArgFlt(Args, 0)) {
         const double PVal = TNodeJsUtil::GetArgFlt(Args, 0);
-        const double Quant = Gk.Query(PVal);
+        const double Quant = Gk.GetQuantile(PVal);
 
         Args.GetReturnValue().Set(v8::Number::New(Isolate, Quant));
     } else {
         TFltV PValV; TNodeJsUtil::GetArgFltV(Args, 0, PValV);
-        TFltV QuantV; Gk.Query(PValV, QuantV);
+        TFltV QuantV; Gk.GetQuantileV(PValV, QuantV);
 
         v8::Handle<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
         for (int QuantN = 0; QuantN < QuantV.Len(); ++QuantN) {

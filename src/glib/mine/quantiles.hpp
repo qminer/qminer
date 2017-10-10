@@ -21,6 +21,176 @@ namespace TQuant {
             return os;
         }
 
+        //////////////////////////////////////
+        /// GK tuple - value comparators determine
+        /// whether a tuple should be left of the
+        /// value in the summary or not
+        ///
+        /// puts equal values to the left of the tuple
+        template <typename TTuple>
+        bool TEqLeftCmp::IsRightOf(const TTuple& Tuple, const double& Val, TRnd&) {
+            return Val <= Tuple.GetMxVal();
+        }
+
+        template <typename TTuple>
+        bool TEqLeftCmp::IsRightOfNegDir(const TTuple& Tuple, const double& Val, TRnd&) {
+            return Val >= Tuple.GetMxVal();
+        }
+
+        //////////////////////////////////////
+        /// GK tuple - value comparators determine
+        /// whether a tuple should be left of the
+        /// value in the summary or not
+        ///
+        /// puts equal values to the right of the tuple
+        template <typename TTuple>
+        bool TEqRightCmp::IsRightOf(const TTuple& Tuple, const double& Val, TRnd&) {
+            return Val < Tuple.GetMxVal();
+        }
+
+        template <typename TTuple>
+        bool TEqRightCmp::IsRightOfNegDir(const TTuple& Tuple, const double& Val, TRnd&) {
+            return Val > Tuple.GetMxVal();
+        }
+
+        //////////////////////////////////////
+        /// GK tuple - value comparators determine
+        /// whether a tuple should be left of the
+        /// value in the summary or not
+        ///
+        /// puts equal values randomly
+        template <typename TTuple>
+        bool TEqRndCmp::IsRightOf(const TTuple& Tuple, const double& Val, TRnd& Rnd) {
+            if (Val != Tuple.GetMxVal()) {
+                return Val < Tuple.GetMxVal();
+            } else {
+                return Rnd.GetUniDevInt(0, 1) == 0;
+            }
+        }
+
+        template <typename TTuple>
+        bool TEqRndCmp::IsRightOfNegDir(const TTuple& Tuple, const double& Val, TRnd& Rnd) {
+            if (Val != Tuple.GetMxVal()) {
+                return Val > Tuple.GetMxVal();
+            } else {
+                return Rnd.GetUniDevInt(0, 1) == 0;
+            }
+        }
+
+        ///////////////////////////////////////////
+        /// GK tuple
+        template <typename TValCmp>
+        TGkTuple<TValCmp>::TGkTuple() {}
+
+        template <typename TValCmp>
+        TGkTuple<TValCmp>::TGkTuple(const double& _MxVal): MxVal(_MxVal) {}
+
+        template <typename TValCmp>
+        TGkTuple<TValCmp>::TGkTuple(const double& _Val, const uint& _UncertRight, const TGkTuple&):
+                MxVal(_Val),
+                UncertRight(_UncertRight) {
+            AssertR(_UncertRight <= TUInt(TInt::Mx), "Invalid value of Delta: " + TUInt::GetStr(_UncertRight));
+        }
+
+        template <typename TValCmp>
+        TGkTuple<TValCmp>::TGkTuple(TSIn& SIn):
+            MxVal(SIn),
+            TupleSize(SIn),
+            UncertRight(SIn) {}
+
+        template <typename TValCmp>
+        void TGkTuple<TValCmp>::Save(TSOut& SOut) const {
+            MxVal.Save(SOut);
+            TupleSize.Save(SOut);
+            UncertRight.Save(SOut);
+        }
+
+        template <typename TValCmp>
+        void TGkTuple<TValCmp>::Swallow(const TGkTuple& Tuple) {
+            TupleSize += Tuple.GetTupleSize();
+        }
+
+        template <typename TValCmp>
+        void TGkTuple<TValCmp>::SwallowOne() {
+            ++TupleSize;
+        }
+
+        template <typename TValCmp>
+        bool TGkTuple<TValCmp>::IsRightOf(const double& Val, TRnd& Rnd) const {
+            return TValCmp::IsRightOf(*this, Val, Rnd);
+        }
+
+        template <typename TValCmp>
+        bool TGkTuple<TValCmp>::IsRightOfNegDir(const double& Val, TRnd& Rnd) const {
+            return TValCmp::IsRightOfNegDir(*this, Val, Rnd);
+        }
+
+        template <typename TValCmp>
+        uint64 TGkTuple<TValCmp>::GetMemUsed() const {
+            return sizeof(TGkTuple) +
+                TMemUtils::GetExtraMemberSize(MxVal) +
+                TMemUtils::GetExtraMemberSize(TupleSize) +
+                TMemUtils::GetExtraMemberSize(UncertRight);
+        }
+
+        /////////////////////////////////////////////////////////
+        /// GK Tuple which minimizes uncertainty
+        /// values with equal value as this tuple are regarded
+        /// to be on the left of it
+        template <typename TValCmp>
+        TGkMnUncertTuple<TValCmp>::TGkMnUncertTuple(const double& Val):
+                MxVal(Val) {}
+
+        template <typename TValCmp>
+        TGkMnUncertTuple<TValCmp>::TGkMnUncertTuple(const double& Val, const uint&,
+                    const TGkMnUncertTuple& RightTuple):
+                MxVal(Val),
+                UncertRight(RightTuple.GetUncertRight() + RightTuple.GetTupleSize() - 1) {
+            Assert(RightTuple.GetUncertRight() + RightTuple.GetTupleSize() >= 1);
+        }
+
+        template <typename TValCmp>
+        TGkMnUncertTuple<TValCmp>::TGkMnUncertTuple(TSIn& SIn):
+            MxVal(SIn),
+            TupleSize(SIn),
+            UncertRight(SIn) {}
+
+        template <typename TValCmp>
+        void TGkMnUncertTuple<TValCmp>::Save(TSOut& SOut) const {
+            MxVal.Save(SOut);
+            TupleSize.Save(SOut);
+            UncertRight.Save(SOut);
+        }
+
+        template <typename TValCmp>
+        void TGkMnUncertTuple<TValCmp>::Swallow(const TGkMnUncertTuple& LeftTuple) {
+            TupleSize += LeftTuple.TupleSize;
+        }
+
+        template <typename TValCmp>
+        void TGkMnUncertTuple<TValCmp>::SwallowOne() {
+            ++TupleSize;
+        }
+
+        template <typename TValCmp>
+        bool TGkMnUncertTuple<TValCmp>::IsRightOf(const double& Val, TRnd& Rnd) const {
+            return TValCmp::IsRightOf(*this, Val, Rnd);
+        }
+
+        template <typename TValCmp>
+        bool TGkMnUncertTuple<TValCmp>::IsRightOfNegDir(const double& Val, TRnd& Rnd) const {
+            return TValCmp::IsRightOfNegDir(*this, Val, Rnd);
+        }
+
+        template <typename TValCmp>
+        uint64 TGkMnUncertTuple<TValCmp>::GetMemUsed() const {
+            return sizeof(TGkMnUncertTuple) +
+                TMemUtils::GetExtraMemberSize(MxVal) +
+                TMemUtils::GetExtraMemberSize(TupleSize) +
+                TMemUtils::GetExtraMemberSize(UncertRight);
+        }
+
+
         //////////////////////////////////////////////
         /// Exponential Histogram Base
         template <typename TInterval>

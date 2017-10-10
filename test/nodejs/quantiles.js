@@ -12,6 +12,52 @@ var analytics = qm.analytics;
 var fs = qm.fs;
 var assert = require("../../src/nodejs/scripts/assert.js");
 
+describe("ExactQuant test", function () {
+    describe("Accuracy test", function () {
+        it("should return correct results", function () {
+            var n = 100;
+            var model = new analytics.ExactQuant();
+
+            for (var i = 0; i < 100; ++i) {
+                model.partialFit(i);
+            }
+
+            assert.equal(model.predict(0), 0, "incorrect quantile for pval " + 0 + ': ' + model.predict(0));
+            for (var i = 1; i <= 100; ++i) {
+                var pval = i / n;
+                var val = model.predict(pval);
+                assert.equal(val, i < 100 ? i : i-1, 'incorrect quantile for pval ' + pval + ': ' + val);
+                if (i < n) {
+                    var prevPval = pval - 1e-7;
+                    var prevVal = model.predict(prevPval);
+                    assert.equal(prevVal, i-1, 'incorrect quantile for pval ' + prevPval + ': ' + prevVal);
+                }
+            }
+        });
+
+        it('should return correct results between 0 and 1', function () {
+            var n = 100;
+            var model = new analytics.ExactQuant();
+
+            for (var i = 0; i < 100; ++i) {
+                model.partialFit(i / 100);
+            }
+
+            assert.equal(model.predict(0), 0, "incorrect quantile for pval " + 0 + ': ' + model.predict(0));
+            for (var i = 1; i <= 100; ++i) {
+                var pval = i / n;
+                var val = model.predict(pval);
+                assert.equal(val, (i < 100 ? i : i-1) / 100, 'incorrect quantile for pval ' + pval + ': ' + val);
+                if (i < n) {
+                    var prevPval = pval - 1e-7;
+                    var prevVal = model.predict(prevPval);
+                    assert.equal(prevVal, (i-1) / 100, 'incorrect quantile for pval ' + prevPval + ': ' + prevVal);
+                }
+            }
+        })
+    });
+});
+
 describe("TDigest test", function () {
 
     describe("Constructor test", function () {
@@ -23,8 +69,7 @@ describe("TDigest test", function () {
             assert.equal(params.clusters, 100, "invalid number of clusters");
             assert.equal(params.minEps, 1e-4, "invalid max accuracy");
             assert.equal(params.compression, "never", "invalid compression");
-            assert(tdigest.init === false);
-        });
+            assert(tdigest.init === false); });
         it("should construct using provided parameters", function () {
             var tdigest = new analytics.TDigest({ seed: 1, clusters: 50, minEps: 1e-5, compression: "periodic" });
             var params = tdigest.getParams();
@@ -72,20 +117,20 @@ describe("BufferedTDigest test", function () {
             var params = tdigest.getParams();
 
             assert.equal(params.seed, 0, "invalid seed");
-            assert.equal(params.clusters, 100, "invalid number of clusters");
+            assert.equal(params.delta, 100, "invalid delta");
             assert.equal(params.bufferLen, 1000, "invalid buffer length: " + params.bufferLen);
             assert(tdigest.init === false);
         });
         it("should construct using provided parameters", function () {
             var tdigest = new analytics.BufferedTDigest({
                 seed: 1,
-                clusters: 50,
+                delta: 50,
                 bufferLen: 500
             });
             var params = tdigest.getParams();
 
             assert.equal(params.seed, 1, "invalid seed");
-            assert.equal(params.clusters, 50, "invalid number of clusters");
+            assert.equal(params.delta, 50, "invalid delta");
             assert.equal(params.bufferLen, 500, "invalid buffer length: " + params.bufferLen);
             assert(tdigest.init === false);
         });
@@ -95,14 +140,14 @@ describe("BufferedTDigest test", function () {
         it('should serialize and deserialize', function () {
             var tdigest = new analytics.BufferedTDigest({
                 seed: 1,
-                clusters: 50,
+                delta: 50,
                 bufferLen: 500
             });
             tdigest.save(fs.openWrite('bufftdigest.bin')).close();
             var tdigest2 = new analytics.BufferedTDigest(fs.openRead('bufftdigest.bin'));
             var params = tdigest2.getParams();
             assert.equal(params.seed, 1, "invalid seed");
-            assert.equal(params.clusters, 50, "invalid number of clusters");
+            assert.equal(params.delta, 50, "invalid delta");
             assert.equal(params.bufferLen, 500, "invalid buffer length: " + params.bufferLen);
             assert(tdigest.init === false);
         })
@@ -200,7 +245,7 @@ describe('CountWindowGK test', function () {
                 var quant_hat = gk.predict(cumProb);
                 var minVal = Math.floor((cumProb - maxRelErr)*batchSize);
                 var maxVal = Math.ceil((cumProb + maxRelErr)*batchSize);
-                console.log('predicted quantile: ' + quant_hat + ' [' + minVal + ', ' + maxVal + '] for prob: ' + cumProb);
+
                 assert(minVal <= quant_hat);
                 assert(maxVal >= quant_hat);
             }

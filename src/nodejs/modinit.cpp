@@ -83,6 +83,7 @@ void InitAnalytics(Handle<Object> Exports, const TStr& NsNm) {
     TNodeJsTDigest::Init(NsObj);
     TNodeJsBuffTDigest::Init(NsObj);
     TNodeJsGk::Init(NsObj);
+    TNodeJsExactQuant::Init(NsObj);
     TNodeJsBiasedGk::Init(NsObj);
     TNodeJsCountWindowGk::Init(NsObj);
     TNodeJsTimeWindowGk::Init(NsObj);

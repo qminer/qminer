@@ -4,6 +4,8 @@
 #include <list>
 #include <iostream>
 #include <functional>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/tree_policy.hpp>
 
 namespace TQuant {
 
@@ -14,24 +16,212 @@ namespace TQuant {
         template <typename T>
         std::ostream& operator <<(std::ostream& os, const TVec<T>& Vec);
 
+        //////////////////////////////////////
+        /// GK tuple - value comparators determine
+        /// whether a tuple should be left of the
+        /// value in the summary or not
+        ///
+        /// puts equal values to the left of the tuple
+        class TEqLeftCmp {
+        public:
+            template <typename TTuple>
+            static bool IsRightOf(const TTuple& Tuple, const double& Val, TRnd&);
+            template <typename TTuple>
+            static bool IsRightOfNegDir(const TTuple& Tuple, const double& Val, TRnd&);
+        };
+
+        //////////////////////////////////////
+        /// GK tuple - value comparators determine
+        /// whether a tuple should be left of the
+        /// value in the summary or not
+        ///
+        /// puts equal values to the right of the tuple
+        class TEqRightCmp {
+        public:
+            template <typename TTuple>
+            static bool IsRightOf(const TTuple& Tuple, const double& Val, TRnd&);
+            template <typename TTuple>
+            static bool IsRightOfNegDir(const TTuple& Tuple, const double& Val, TRnd&);
+        };
+
+        //////////////////////////////////////
+        /// GK tuple - value comparators determine
+        /// whether a tuple should be left of the
+        /// value in the summary or not
+        ///
+        /// puts equal values randomly
+        class TEqRndCmp {
+        public:
+            template <typename TTuple>
+            static bool IsRightOf(const TTuple& Tuple, const double& Val, TRnd&);
+            template <typename TTuple>
+            static bool IsRightOfNegDir(const TTuple& Tuple, const double& Val, TRnd&);
+        };
+
+
         ////////////////////////////////////
         /// A tuple class used by the GK-based algorithms
+        template <typename TValCmp>
         class TGkTuple {
-        private:
-            TFlt Val {};
-            TUInt TupleSize {};
-            TUInt MnMxRankDiff {};
-
         public:
             TGkTuple();
-            TGkTuple(const double& Val, const uint& MnRankDiff, const uint& Delta);
+            TGkTuple(const double&);
+            TGkTuple(const double& MxVal, const uint& UncertRight, const TGkTuple&);
 
-            const TFlt& GetVal() const { return Val; }
-            const TUInt& GetTupleSize() const { return TupleSize; }
-            const TUInt& GetMnMxRankDiff() const { return MnMxRankDiff; }
+            // SERIALIZATION
+            TGkTuple(TSIn&);
+            void Save(TSOut&) const;
 
             void Swallow(const TGkTuple&);
+            void SwallowOne();
+
+            const TFlt& GetMxVal() const { return MxVal; }
+            const TUInt& GetTupleSize() const { return TupleSize; }
+            const TUInt& GetUncertRight() const { return UncertRight; }
+
+            uint GetTotalUncert() const { return GetTupleSize() + GetUncertRight(); }
+
+            bool IsRightOf(const double& Val, TRnd& Rnd) const;
+            bool IsRightOfNegDir(const double& Val, TRnd& Rnd) const;
+
+            uint64 GetMemUsed() const;
+
+            friend std::ostream& operator <<(std::ostream& os, const TGkTuple& Tuple) {
+                return os << "<"
+                          << Tuple.GetMxVal() << ", "
+                          << Tuple.GetTupleSize() << ","
+                          << Tuple.GetUncertRight()
+                          << ">";
+            }
+
+        private:
+            TFlt MxVal;
+            TUInt TupleSize {uint(1)};
+            TUInt UncertRight {uint(0)};
         };
+
+        /////////////////////////////////
+        /// A tuple used by the GK-based algorithms which
+        /// minimizes the unceirtainty of its values rank
+        ///
+        /// Values equal to the value of the tuple are
+        /// regarded to be left of it in the summary
+        template <typename TValCmp>
+        class TGkMnUncertTuple {
+            using TTuple = TGkMnUncertTuple<TValCmp>;
+
+        public:
+            /// creates an empty tuple
+            TGkMnUncertTuple(): MxVal() {}
+            /// creates a new tuple with a single element with given value
+            TGkMnUncertTuple(const double&);
+            /// creates a new tuple with the given right neighbour
+            /// the new tuple's uncertainty is defined as g_{i+1} + delta_{i+1} - 1
+            TGkMnUncertTuple(const double& Val, const uint&, const TGkMnUncertTuple& RightTuple);
+
+            // SERIALIZATION
+            TGkMnUncertTuple(TSIn&);
+            void Save(TSOut&) const;
+
+            /// adds all the items the argument summarizes to its own summary
+            void Swallow(const TGkMnUncertTuple&);
+            /// adds one item to its own summary
+            void SwallowOne();
+
+            /// returns the maximal value in the summary
+            const TFlt& GetMxVal() const { return MxVal; }
+            /// returns the size of the tuples' summary
+            const TUInt& GetTupleSize() const { return TupleSize; }
+            /// returns the uncertainty of the max values rank due to the merges
+            /// happening on the right of this tuple
+            const TUInt& GetUncertRight() const { return UncertRight; }
+            /// returns the total uncertainty of the values' rank
+            uint GetTotalUncert() const { return GetTupleSize() + GetUncertRight(); }
+
+            bool IsRightOf(const double& Val, TRnd& Rnd) const;
+            bool IsRightOfNegDir(const double& Val, TRnd& Rnd) const;
+
+            // DEBUGGING
+            uint64 GetMemUsed() const;
+
+            friend std::ostream& operator <<(std::ostream& os, const TGkMnUncertTuple& Tuple) {
+                return os << "<"
+                          << Tuple.GetMxVal() << ", "
+                          << Tuple.GetTupleSize() << ","
+                          << Tuple.GetUncertRight()
+                          << ">";
+            }
+
+        private:
+            TFlt MxVal;             // the max value in this tuple
+            TUInt TupleSize {1u};   // how many tuples has this tuple swallowed
+            TUInt UncertRight {};   // how many items on the right could be smaller than this tuple
+        };
+
+        using TGkMnUncertEqLeftTuple = TGkMnUncertTuple<TEqLeftCmp>;
+        using TGkMnUncertEqRightTuple = TGkMnUncertTuple<TEqRightCmp>;
+        using TGkMnUncertEqRndTuple = TGkMnUncertTuple<TEqRndCmp>;
+
+        /////////////////////////////////
+        /// A tuple used by the GK-based algorithms which
+        /// minimizes the unceirtainty of its values rank
+        ///
+        /// Values equal to the value of the tuple are
+        /// regarded to be right of it in the summary
+        /* class TGkMnUncertEqRightTuple { */
+        /* public: */
+        /*     /// creates an empty tuple */
+        /*     TGkMnUncertEqRightTuple(): MxVal() {} */
+        /*     /// creates a new tuple with a single element with given value */
+        /*     TGkMnUncertEqRightTuple(const double&); */
+        /*     /// creates a new tuple with the given right neighbour */
+        /*     /// the new tuple's uncertainty is defined as g_{i+1} + delta_{i+1} - 1 */
+        /*     TGkMnUncertEqRightTuple(const double& Val, const uint&, const TGkMnUncertEqRightTuple& RightTuple); */
+
+        /*     // SERIALIZATION */
+        /*     TGkMnUncertEqRightTuple(TSIn&); */
+        /*     void Save(TSOut&) const; */
+
+        /*     /// adds all the items the argument summarizes to its own summary */
+        /*     void Swallow(const TGkMnUncertEqRightTuple&); */
+        /*     /// adds one item to its own summary */
+        /*     void SwallowOne(); */
+
+        /*     /// returns the maximal value in the summary */
+        /*     const TFlt& GetMxVal() const { return MxVal; } */
+        /*     /// returns the size of the tuples' summary */
+        /*     const TUInt& GetTupleSize() const { return TupleSize; } */
+        /*     /// returns the uncertainty of the max values rank due to the merges */
+        /*     /// happening on the right of this tuple */
+        /*     const TUInt& GetUncertRight() const { return UncertRight; } */
+        /*     /// returns the total uncertainty of the values' rank */
+        /*     uint GetTotalUncert() const { return GetTupleSize() + GetUncertRight(); } */
+
+        /*     bool IsRightOf(const double& Val) const { */
+        /*         return Val < MxVal; */
+        /*     } */
+
+        /*     bool IsRightOfNegDir(const double& Val) const { */
+        /*         return Val > MxVal; */
+        /*     } */
+
+
+        /*     // DEBUGGING */
+        /*     uint64 GetMemUsed() const; */
+
+        /*     friend std::ostream& operator <<(std::ostream& os, const TGkMnUncertEqRightTuple& Tuple) { */
+        /*         return os << "<" */
+        /*                   << Tuple.GetMxVal() << ", " */
+        /*                   << Tuple.GetTupleSize() << "," */
+        /*                   << Tuple.GetUncertRight() */
+        /*                   << ">"; */
+        /*     } */
+
+        /* private: */
+        /*     TFlt MxVal;             // the max value in this tuple */
+        /*     TUInt TupleSize {1u};   // how many tuples has this tuple swallowed */
+        /*     TUInt UncertRight {};   // how many items on the right could be smaller than this tuple */
+        /* }; */
 
         ///////////////////////////////////
         /// Helper for the merge operation
@@ -476,7 +666,7 @@ namespace TQuant {
 
             void PrintLong() const {
                 std::cout << "<\n"
-                    << "\tsize hist: " << TupleSizeExpHist << "\n" 
+                    << "\tsize hist: " << TupleSizeExpHist << "\n"
                     << "\trigh hist: " << RightUncertExpHist << "\n>";
             }
 
@@ -582,7 +772,6 @@ namespace TQuant {
 
         // PRINT OPERATORS
 
-        std::ostream& operator <<(std::ostream& os, const TGkTuple& Tup);
         std::ostream& operator <<(std::ostream&, const TInterval&);
         std::ostream& operator <<(std::ostream&, const TIntervalWithMax&);
         std::ostream& operator <<(std::ostream&, const TIntervalWithMin&);
@@ -595,63 +784,15 @@ namespace TQuant {
 
     namespace TUtils {
 
-        /////////////////////////////////
-        /// A tuple used by the GK-based algorithms which
-        /// minimizes the unceirtainty of its values rank
-        class TGkMnUncertTuple {
-        public:
-            /// creates an empty tuple
-            TGkMnUncertTuple(): MxVal() {}
-            /// creates a new tuple with a single element with given value
-            TGkMnUncertTuple(const double&);
-            /// creates a new tuple with the given right neighbour
-            /// the new tuple's uncertainty is defined as g_{i+1} + delta_{i+1} - 1
-            TGkMnUncertTuple(const double& Val, const TGkMnUncertTuple& RightTuple);
-
-            // SERIALIZATION
-            TGkMnUncertTuple(TSIn&);
-            void Save(TSOut&) const;
-
-            /// adds all the items the argument summarizes to its own summary
-            void Swallow(const TGkMnUncertTuple&);
-            /// adds one item to its own summary
-            void SwallowOne();
-
-            /// returns the maximal value in the summary
-            const TFlt& GetMxVal() const { return MxVal; }
-            /// returns the size of the tuples' summary
-            const TUInt& GetTupleSize() const { return TupleSize; }
-            /// returns the uncertainty of the max values rank due to the merges
-            /// happening on the right of this tuple
-            const TUInt& GetUncertRight() const { return UncertRight; }
-            /// returns the total uncertainty of the values' rank
-            uint GetTotalUncert() const { return GetTupleSize() + GetUncertRight(); }
-
-            // DEBUGGING
-            uint64 GetMemUsed() const;
-
-            friend std::ostream& operator <<(std::ostream& os, const TGkMnUncertTuple& Tuple) {
-                return os << "<"
-                          << Tuple.GetMxVal() << ", "
-                          << Tuple.GetTupleSize() << ","
-                          << Tuple.GetUncertRight()
-                          << ">";
-            }
-
-        private:
-            TFlt MxVal;             // the max value in this tuple
-            TUInt TupleSize {1u};   // how many tuples has this tuple swallowed
-            TUInt UncertRight {};   // how many items on the right could be smaller than this tuple
-        };
-
         namespace TGkUtils {
 
             ///////////////////////////////////
             /// GK summary based on a Glib vector
             class TVecSummary {
-                using TTuple = TGkMnUncertTuple;
-                using TSummary = TVec<TTuple>;
             public:
+                using TTuple = TGkMnUncertEqLeftTuple;
+                using TSummary = TVec<TTuple>;
+
                 TVecSummary(const double& Eps, const bool& UseBands=true);
 
                 // SERIALIZATION
@@ -690,47 +831,56 @@ namespace TQuant {
             };
         }
 
-        namespace TBiasedUtils {
+        /* namespace TBiasedUtils { */
 
-            //////////////////////////////////////
-            /// Biased GK summary based on Glib vector
-            class TVecSummary {
-                using TTuple = TGkMnUncertTuple;
-                using TSummary = TVec<TTuple>;
-            public:
-                TVecSummary(TBiasedGk& Model, const bool& UseBands);
+        /*     ////////////////////////////////////// */
+        /*     /// Biased GK summary based on Glib vector */
+        /*     template <typename TTupleType> */
+        /*     class TVecSummary { */
+        /*     public: */
+        /*         using TTuple = TTupleType; */
+        /*         using TSummary = TVec<TTuple>; */
 
-                // SERIALIZATION
-                TVecSummary(TBiasedGk&, TSIn&);
-                void Save(TSOut&) const;
+        /*         TVecSummary(TBiasedGk& Model, const bool& UseBands); */
 
-                /// returns the quantile corresponding to the givem p-value
-                double Query(const double& PVal) const;
-                /// returns an array of quantile estimates
-                void Query(const TFltV& PValV, TFltV& QuantV) const;
-                /// inserts a new value into the summary
-                void Insert(const double&);
-                /// compresses the summary (if possible)
-                void Compress();
+        /*         // SERIALIZATION */
+        /*         TVecSummary(TBiasedGk&, TSIn&); */
+        /*         void Save(TSOut&) const; */
 
-                // PARAMS
-                const TBool& GetUseBands() const { return UseBands; }
+        /*         /// returns the quantile corresponding to the givem p-value */
+        /*         double Query(const double& PVal) const; */
+        /*         /// returns an array of quantile estimates */
+        /*         void Query(const TFltV& PValV, TFltV& QuantV) const; */
+        /*         /// returns the cumulative distribution function */
+        /*         double GetCdf(const double& Val) const; */
+        /*         /// inserts a new value into the summary */
+        /*         void Insert(const double&); */
+        /*         /// compresses the summary (if possible) */
+        /*         void Compress(); */
 
-                /// returns the number of tuples in the summary
-                uint GetSize() const;
-                /// returns the objects memory footprint
-                uint64 GetMemUsed() const;
-                /// prints the summary to the output stream
-                void Print() const;
+        /*         // PARAMS */
+        /*         const TBool& GetUseBands() const { return UseBands; } */
 
-            private:
-                int GetBand(const TTuple& Tuple, const uint64& MnRank) const;
+        /*         /// returns the number of tuples in the summary */
+        /*         uint GetSize() const; */
+        /*         /// returns the objects memory footprint */
+        /*         uint64 GetMemUsed() const; */
+        /*         /// prints the summary to the output stream */
+        /*         void Print() const; */
 
-                TSummary Summary {};
-                TBiasedGk& Model;
-                TBool UseBands;
-            };
-        }
+        /*     private: */
+        /*         double InterpolateQuant(const int& TupleN, const uint64& TupleMnRank, */
+        /*                 const uint64& TupleMxRank, const double& TargetRank) const { */
+        /*             if (TupleN == Summary.Len()-1) { */
+        /*                 return Summary[TupleN].GetMxVal(); */
+        /*             } else { */
+        /*                 return Summary[TupleN].InterpolateRight(Summary[TupleN+1]); */
+        /*             } */
+        /*         } */
+        /*         int GetBand(const TTuple& Tuple, const uint64& MnRank) const; */
+
+        /*     }; */
+        /* } */
 
         namespace TTDigestUtils {
 
@@ -816,6 +966,34 @@ namespace TQuant {
         }
     }
 
+    ///////////////////////////////////////////
+    /// Exact quantile estimator
+    class TExact {
+        using TTree = __gnu_pbds::tree<
+            double,         /* key                */
+            __gnu_pbds::null_type,         /* mapped             */
+            std::less<double>,   /* compare function   */
+            __gnu_pbds::rb_tree_tag, /* red-black tree tag */
+            __gnu_pbds::tree_order_statistics_node_update>;
+    public:
+        TExact() {}
+
+        double Query(const double& PVal) const;
+        void Query(const TFltV& PValV, TFltV& QuantV) const;
+        void Insert(const double& Val);
+
+        uint64 GetSampleN() const;
+        uint64 GetSummarySize() const { return GetSampleN(); }
+        uint64 GetMemUsed() const {
+            return sizeof(TExact) +
+                sizeof(TTree) +
+                GetSampleN()*(sizeof(double) + sizeof(void*));
+        }
+
+    private:
+        TTree OrderTree;
+    };
+
     ///////////////////////////////////////////////
     /// The Greenwald-Khanna (GK) online quantile estimation algorithm
     /// The error produced by the algorithm is eps
@@ -882,6 +1060,9 @@ namespace TQuant {
     ///
     /// Only the biased version is implemented. The targeted version is flawed.
     class TBiasedGk {
+        using TTuple = TUtils::TGkMnUncertEqRndTuple;
+        using TSummary = TVec<TTuple>;
+
     public:
         enum class TCompressStrategy : char {
             csManual = 0,
@@ -900,11 +1081,7 @@ namespace TQuant {
         ///           which were inserted early on, which can save space in the long run
         TBiasedGk(const double& PVal0, const double& Eps, const TCompressStrategy& Cs=TCompressStrategy::csPeriodic,
                 const bool& UseBands=true);
-        // TODO need 2 constructors:
-        // 1) specify the accuracy and the method takes as much space as needed
-        // 2) specify the space and the accuracy can suffer
-
-        // TODO copy / move
+        TBiasedGk(const double& PVal0, const double& Eps, const TRnd& Rnd);
 
         // SERIALIZATION
         TBiasedGk(TSIn&);
@@ -912,9 +1089,13 @@ namespace TQuant {
 
         // TODO interpolate the result before returning it
         /// returns the eps0 * (q / q0) approximate quantile
-        double Query(const double& Quantile) const;
+        double GetQuantile(const double& CdfVal) const;
         /// returns an array of quantiles corresponding to the given p-values
-        void Query(const TFltV& PValV, TFltV& QuantV) const;
+        void GetQuantileV(const TFltV& CdfValV, TFltV& QuantV) const;
+        /// returns the (approxmate) value of the cumulative distribution function
+        /// for the given value `Val`
+        /// the CDF is defined as CDF(x) = P(X <= x)
+        double GetCdf(const double& Val) const;
         /// inserts a new element into the summary
         void Insert(const double& Val);
         /// compresses the internal summary
@@ -946,18 +1127,19 @@ namespace TQuant {
         const TInt& GetDir() const { return Dir; }
 
     private:
+        bool IsPositiveDir() const { return Dir > 0; }
         bool ShouldCompress() const;
-        int GetBand(const TUtils::TGkTuple&, const uint64& MnRank) const;
+        int GetBand(const TTuple&, const uint64& MnRank) const;
 
-        using TSummary = TUtils::TBiasedUtils::TVecSummary;
-
-        TSummary Summary;
+        TSummary Summary {};
         TUInt64 SampleN {uint64(0)};     // number of samples seen so far, initialized to 0
         TUInt64 CompressSampleN;
         TFlt PVal0;
         TFlt Eps;
+        TRnd Rnd {0};
         TInt Dir;
         TCompressStrategy CompressStrategy {TCompressStrategy::csPeriodic};
+        TBool UseBands {true};
     };
 
     using TCkms = TBiasedGk;
@@ -1034,8 +1216,8 @@ namespace TQuant {
         using TCentroid = TBase::TCentroidType;
         using TCentroidV = TBase::TCentroidV;
     public:
-        TMergingTDigest(const double& CompressFact, const TRnd& Rnd);
-        TMergingTDigest(const double& CompressFact, const int& MxBuffLen,
+        TMergingTDigest(const double& Delta, const TRnd& Rnd);
+        TMergingTDigest(const double& Delta, const int& MxBuffLen,
                 const TRnd& Rnd=TRnd(0));
 
         // SERIALIZATION

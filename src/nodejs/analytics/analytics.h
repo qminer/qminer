@@ -2960,7 +2960,7 @@ private:
 /**
 * @typedef {Object} BufferedDigestParam
 * An object used for the construction of {@link module:analytics.BufferedTDigest}.
-* @property {number} [clusters=100] - The number of clusters in the summary is bounded by floor(minClusters) <= clusters < 2*ceil(minClusters)
+* @property {number} [delta=100] - The number of clusters in the summary is bounded by floor(minClusters) <= clusters < 2*ceil(minClusters)
 * @property {number} [bufferLen=1000] - the size of the buffer is minClusters*bufferLenFactor, when the buffer fills it is merged with the summary. Also, the algorithm initializes after seeing minClusters*bufferLenFactor examples.
 * @property {number} [seed=0] - random seed (values above 1 are deterministic)
 */
@@ -3317,6 +3317,28 @@ public:
      * Returns the models current memory consumption.
      */
     //# exports.Gk.memory = 0;
+    JsDeclareProperty(memory);
+};
+
+class TNodeJsExactQuant : public node::ObjectWrap {
+    friend class TNodeJsUtil;
+public:
+    static void Init(v8::Handle<v8::Object> exports);
+    static const TStr GetClassId() { return "ExactQuant"; }
+
+private:
+    TQuant::TExact Model;
+
+    TNodeJsExactQuant();
+    ~TNodeJsExactQuant() {}
+
+    static TNodeJsExactQuant* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
+
+public:
+    JsDeclareFunction(partialFit);
+    JsDeclareFunction(predict);
+    JsDeclareProperty(init);
+    JsDeclareProperty(size);
     JsDeclareProperty(memory);
 };
 
