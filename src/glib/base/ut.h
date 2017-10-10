@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -19,18 +19,18 @@
 template <class Type>
 class TTypeNm: public TStr{
 public:
-  static TStr GetNrTypeNm(const TStr& TypeNm){    
+  static TStr GetNrTypeNm(const TStr& TypeNm){
     #ifdef GLib_GCC
       // GCC requires some additional cleaning of object names
       int DemangleStatus = 0;
-      char* DemangleTypeCStr = abi::__cxa_demangle(TypeNm.CStr(), 0, 0, &DemangleStatus);        
+      char* DemangleTypeCStr = abi::__cxa_demangle(TypeNm.CStr(), 0, 0, &DemangleStatus);
       TStr DemangleTypeStr(DemangleTypeCStr);
       free(DemangleTypeCStr);
       return DemangleTypeStr;
     #else
       if (TypeNm.StartsWith("class ")){ return TypeNm.GetSubStr(6, TypeNm.Len()-1);}
       else {return TypeNm;}
-    #endif    
+    #endif
   }
 public:
   TTypeNm(): TStr(GetNrTypeNm((char*)(typeid(Type).name()))){}
@@ -38,7 +38,7 @@ public:
 
 template <class Type>
 TStr GetTypeNm(const Type& Var){
-  TStr TypeNm = TStr(typeid(Var).name());   
+  TStr TypeNm = TStr(typeid(Var).name());
   return TTypeNm<Type>::GetNrTypeNm(TypeNm);
 }
 
@@ -113,12 +113,12 @@ public:
   void OnNotify(const TNotifyType& Type, const TStr& MsgStr)
   {
     Assert(CallbackF != NULL);
-    CallbackF(Type, MsgStr); 
+    CallbackF(Type, MsgStr);
   }
   void OnStatus(const TStr& MsgStr)
   {
     Assert(CallbackF != NULL);
-    CallbackF(ntStat, MsgStr); 
+    CallbackF(ntStat, MsgStr);
   }
 };
 
@@ -136,22 +136,22 @@ public:
   void OnNotify(const TNotifyType& Type, const TStr& MsgStr)
   {
     Assert(CallbackF != NULL);
-    CallbackF((int)Type, MsgStr.CStr()); 
+    CallbackF((int)Type, MsgStr.CStr());
   }
   void OnStatus(const TStr& MsgStr)
   {
     Assert(CallbackF != NULL);
-    CallbackF((int)ntStat, MsgStr.CStr()); 
+    CallbackF((int)ntStat, MsgStr.CStr());
   }
 };
 
 /////////////////////////////////////////////////
 // Standard-Notifier
 class TStdNotify: public TNotify{
-public: 
+public:
   bool AddTimeStamp;
-  TStdNotify(const bool& _AddTimeStamp = false) { 
-    AddTimeStamp = _AddTimeStamp; 
+  TStdNotify(const bool& _AddTimeStamp = false) {
+    AddTimeStamp = _AddTimeStamp;
   }
   static PNotify New(const bool& AddTimeStamp = false){
 	  return PNotify(new TStdNotify(AddTimeStamp));
@@ -166,8 +166,8 @@ public:
 class TStdErrNotify: public TNotify{
 public:
   bool AddTimeStamp;
-  TStdErrNotify(const bool& _AddTimeStamp = false) { 
-    AddTimeStamp = _AddTimeStamp; 
+  TStdErrNotify(const bool& _AddTimeStamp = false) {
+    AddTimeStamp = _AddTimeStamp;
   }
   static PNotify New(const bool& AddTimeStamp = false){
 	  return PNotify(new TStdErrNotify(AddTimeStamp));
@@ -213,7 +213,7 @@ private:
 public:
   TExcept(const TStr& _MsgStr): MsgStr(_MsgStr), LocStr(){}
   TExcept(const TStr& _MsgStr, const TStr& _LocStr): MsgStr(_MsgStr), LocStr(_LocStr){}
-  TExcept(const int& _ErrorCode, const TStr& _MsgStr, const TStr& _LocStr) : 
+  TExcept(const int& _ErrorCode, const TStr& _MsgStr, const TStr& _LocStr) :
 	  MsgStr(_MsgStr), LocStr(_LocStr), ErrorCode(_ErrorCode) {}
   static PExcept New(const TStr& MsgStr, const TStr& LocStr = TStr());
   static PExcept New(const int& ErrorCode, const TStr& MsgStr, const TStr& LocStr = TStr());
@@ -248,6 +248,10 @@ public:
   static void ThrowFull(const TStr& MsgStr, const TStr& LocStr){
     if (IsOnExceptF()){(*OnExceptF)(MsgStr);}
     else {throw TExcept::New(MsgStr, LocStr);}}
+  static void ThrowFull(const int& ErrorCode, const TStr& MsgStr, const TStr& LocStr) {
+      if (IsOnExceptF()) { (*OnExceptF)(MsgStr); }
+      else { throw TExcept::New(ErrorCode, MsgStr, LocStr); }
+  }
 };
 
 // Needed for SNAP examples (otherwise please avoid using these)
@@ -263,20 +267,20 @@ public:
 class TFileStackWalker : public StackWalker {
 protected:
     FILE* FOut;
-    
+
     void OnOutput(LPCSTR szText);
 public:
     TFileStackWalker();
     void CloseOutputFile();
     ~TFileStackWalker();
-    
+
     static void WriteStackTrace();
 };
 
 class TBufferStackWalker : public StackWalker {
 protected:
     TChA Output;
-    
+
     void OnOutput(LPCSTR szText);
 public:
 	TBufferStackWalker();

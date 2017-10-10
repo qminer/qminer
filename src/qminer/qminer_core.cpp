@@ -5526,15 +5526,15 @@ int TIndex::TQmGixItemPos::GetPos(const int& PosN) const {
 }
 
 bool TIndex::TQmGixItemPos::Add(const int& Pos) {
-    // make sure we still have palce to store
+    // make sure we still have place to store
     Assert(IsSpace());
-    // make sure we are adding a nonzero value (0 is rezerved for empty)
+    // make sure we are adding a nonzero value (0 is reserved for empty)
     Assert(Pos > 0);
     // make sure the position is already < Modulo
     Assert(Pos <= Modulo);
     // make sure that we always add values in increasing order
-    Assert((uint) Pos > PosV.Pos1);
-    Assert((uint) Pos > PosV.Pos2);
+    Assert(PosV.Len < 1 || (uint) Pos > PosV.Pos1);
+    Assert(PosV.Len < 2 || (uint) Pos > PosV.Pos2);
     Assert((uint) Pos > PosV.Pos3);
     // store position
     // store in the appropriate place
@@ -5571,7 +5571,17 @@ TIndex::TQmGixItemPos TIndex::TQmGixItemPos::Intersect(const TQmGixItemPos& Item
             // check for special case when Pos2 is after the break (% 0xFF).
             // in such case Pos2 is near 0 and we just offset it for 0xFF
             if (Pos1 < (Pos2 + Modulo) && (Pos2 + Modulo) <= (Pos1 + MaxDiff)) {
-                _Item.Add(Pos2); break;
+                // if we have the case where Pos2 goes over the modulo we likely have a case
+                // where the values in _Item have higher values than Pos2. This would break the
+                // conditions so we have to create a new _Item where the values will be properly sorted
+                TIntV ValV;
+                for (int ItemPosN = 0; ItemPosN < _Item.GetPosLen(); ItemPosN++) { ValV.Add(_Item.GetPos(ItemPosN)); }
+                ValV.Add(Pos2);
+                TQmGixItemPos _Item2(RecId);
+                ValV.Sort();
+                for (int ItemPosN = 0; ItemPosN < ValV.Len(); ItemPosN++) { _Item2.Add(ValV[ItemPosN]); }
+                _Item = _Item2;
+                break;
             }
         }
     }
