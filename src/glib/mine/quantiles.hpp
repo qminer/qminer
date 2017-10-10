@@ -29,12 +29,12 @@ namespace TQuant {
         /// puts equal values to the left of the tuple
         template <typename TTuple>
         bool TEqLeftCmp::IsRightOf(const TTuple& Tuple, const double& Val, TRnd&) {
-            return Val <= Tuple.GetMxVal();
+            return Val <= Tuple.GetVal();
         }
 
         template <typename TTuple>
         bool TEqLeftCmp::IsRightOfNegDir(const TTuple& Tuple, const double& Val, TRnd&) {
-            return Val >= Tuple.GetMxVal();
+            return Val >= Tuple.GetVal();
         }
 
         //////////////////////////////////////
@@ -45,12 +45,12 @@ namespace TQuant {
         /// puts equal values to the right of the tuple
         template <typename TTuple>
         bool TEqRightCmp::IsRightOf(const TTuple& Tuple, const double& Val, TRnd&) {
-            return Val < Tuple.GetMxVal();
+            return Val < Tuple.GetVal();
         }
 
         template <typename TTuple>
         bool TEqRightCmp::IsRightOfNegDir(const TTuple& Tuple, const double& Val, TRnd&) {
-            return Val > Tuple.GetMxVal();
+            return Val > Tuple.GetVal();
         }
 
         //////////////////////////////////////
@@ -61,8 +61,8 @@ namespace TQuant {
         /// puts equal values randomly
         template <typename TTuple>
         bool TEqRndCmp::IsRightOf(const TTuple& Tuple, const double& Val, TRnd& Rnd) {
-            if (Val != Tuple.GetMxVal()) {
-                return Val < Tuple.GetMxVal();
+            if (Val != Tuple.GetVal()) {
+                return Val < Tuple.GetVal();
             } else {
                 return Rnd.GetUniDevInt(0, 1) == 0;
             }
@@ -70,8 +70,8 @@ namespace TQuant {
 
         template <typename TTuple>
         bool TEqRndCmp::IsRightOfNegDir(const TTuple& Tuple, const double& Val, TRnd& Rnd) {
-            if (Val != Tuple.GetMxVal()) {
-                return Val > Tuple.GetMxVal();
+            if (Val != Tuple.GetVal()) {
+                return Val > Tuple.GetVal();
             } else {
                 return Rnd.GetUniDevInt(0, 1) == 0;
             }
@@ -145,8 +145,8 @@ namespace TQuant {
         TGkMnUncertTuple<TValCmp>::TGkMnUncertTuple(const double& Val, const uint&,
                     const TGkMnUncertTuple& RightTuple):
                 MxVal(Val),
-                UncertRight(RightTuple.GetUncertRight() + RightTuple.GetTupleSize() - 1) {
-            Assert(RightTuple.GetUncertRight() + RightTuple.GetTupleSize() >= 1);
+                UncertRight(RightTuple.GetUncert() + RightTuple.GetTupleSize() - 1) {
+            Assert(RightTuple.GetUncert() + RightTuple.GetTupleSize() >= 1);
         }
 
         template <typename TValCmp>

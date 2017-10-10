@@ -75,11 +75,11 @@ namespace TQuant {
             void Swallow(const TGkTuple&);
             void SwallowOne();
 
-            const TFlt& GetMxVal() const { return MxVal; }
+            const TFlt& GetVal() const { return MxVal; }
             const TUInt& GetTupleSize() const { return TupleSize; }
-            const TUInt& GetUncertRight() const { return UncertRight; }
+            const TUInt& GetUncert() const { return UncertRight; }
 
-            uint GetTotalUncert() const { return GetTupleSize() + GetUncertRight(); }
+            uint GetTotalUncert() const { return GetTupleSize() + GetUncert(); }
 
             bool IsRightOf(const double& Val, TRnd& Rnd) const;
             bool IsRightOfNegDir(const double& Val, TRnd& Rnd) const;
@@ -88,9 +88,9 @@ namespace TQuant {
 
             friend std::ostream& operator <<(std::ostream& os, const TGkTuple& Tuple) {
                 return os << "<"
-                          << Tuple.GetMxVal() << ", "
+                          << Tuple.GetVal() << ", "
                           << Tuple.GetTupleSize() << ","
-                          << Tuple.GetUncertRight()
+                          << Tuple.GetUncert()
                           << ">";
             }
 
@@ -129,14 +129,14 @@ namespace TQuant {
             void SwallowOne();
 
             /// returns the maximal value in the summary
-            const TFlt& GetMxVal() const { return MxVal; }
+            const TFlt& GetVal() const { return MxVal; }
             /// returns the size of the tuples' summary
             const TUInt& GetTupleSize() const { return TupleSize; }
             /// returns the uncertainty of the max values rank due to the merges
             /// happening on the right of this tuple
-            const TUInt& GetUncertRight() const { return UncertRight; }
+            const TUInt& GetUncert() const { return UncertRight; }
             /// returns the total uncertainty of the values' rank
-            uint GetTotalUncert() const { return GetTupleSize() + GetUncertRight(); }
+            uint GetTotalUncert() const { return GetTupleSize() + GetUncert(); }
 
             bool IsRightOf(const double& Val, TRnd& Rnd) const;
             bool IsRightOfNegDir(const double& Val, TRnd& Rnd) const;
@@ -146,9 +146,9 @@ namespace TQuant {
 
             friend std::ostream& operator <<(std::ostream& os, const TGkMnUncertTuple& Tuple) {
                 return os << "<"
-                          << Tuple.GetMxVal() << ", "
+                          << Tuple.GetVal() << ", "
                           << Tuple.GetTupleSize() << ","
-                          << Tuple.GetUncertRight()
+                          << Tuple.GetUncert()
                           << ">";
             }
 
@@ -188,14 +188,14 @@ namespace TQuant {
         /*     void SwallowOne(); */
 
         /*     /// returns the maximal value in the summary */
-        /*     const TFlt& GetMxVal() const { return MxVal; } */
+        /*     const TFlt& GetVal() const { return MxVal; } */
         /*     /// returns the size of the tuples' summary */
         /*     const TUInt& GetTupleSize() const { return TupleSize; } */
         /*     /// returns the uncertainty of the max values rank due to the merges */
         /*     /// happening on the right of this tuple */
-        /*     const TUInt& GetUncertRight() const { return UncertRight; } */
+        /*     const TUInt& GetUncert() const { return UncertRight; } */
         /*     /// returns the total uncertainty of the values' rank */
-        /*     uint GetTotalUncert() const { return GetTupleSize() + GetUncertRight(); } */
+        /*     uint GetTotalUncert() const { return GetTupleSize() + GetUncert(); } */
 
         /*     bool IsRightOf(const double& Val) const { */
         /*         return Val < MxVal; */
@@ -211,9 +211,9 @@ namespace TQuant {
 
         /*     friend std::ostream& operator <<(std::ostream& os, const TGkMnUncertEqRightTuple& Tuple) { */
         /*         return os << "<" */
-        /*                   << Tuple.GetMxVal() << ", " */
+        /*                   << Tuple.GetVal() << ", " */
         /*                   << Tuple.GetTupleSize() << "," */
-        /*                   << Tuple.GetUncertRight() */
+        /*                   << Tuple.GetUncert() */
         /*                   << ">"; */
         /*     } */
 
@@ -252,7 +252,7 @@ namespace TQuant {
                     const uint& Count, const double& MxVal) {
                 return TInterval(StartTm, Dur, Count, MxVal);
             }
-            static TFlt ExtractOtherCarryInfo(const TInterval& Interval) { return Interval.GetMxVal(); }
+            static TFlt ExtractOtherCarryInfo(const TInterval& Interval) { return Interval.GetVal(); }
             static void MergeOtherCarryInfo(const TFlt& MxVal, TFlt& CurrMxVal) {
                 if (MxVal > CurrMxVal) {
                     CurrMxVal = MxVal;
@@ -324,7 +324,7 @@ namespace TQuant {
             using TInterval::GetStartTm;
             using TInterval::GetEndTm;
             using TInterval::GetDurMSec;
-            const TFlt& GetMxVal() const { return MxVal; }
+            const TFlt& GetVal() const { return MxVal; }
 
             void Swallow(const TIntervalWithMax&);
             void Split(TIntervalWithMax& StartInterval, TIntervalWithMax& EndInterval) const {
@@ -644,9 +644,9 @@ namespace TQuant {
             uint GetTupleSize() const;
             /// returns the (approximate) correction of capacity of the tuple
             /// without shifting the sliding window
-            uint GetUncertRight() const;
+            uint GetUncert() const;
             /// returns the range of the tuples' rank
-            uint GetTotalUncert() const { return GetTupleSize() + GetUncertRight(); }
+            uint GetTotalUncert() const { return GetTupleSize() + GetUncert(); }
             /// indicates whether the tuple is empty
             bool Empty() const { return GetTupleSize() == 0; }
 
@@ -830,57 +830,6 @@ namespace TQuant {
                 TBool UseBands;
             };
         }
-
-        /* namespace TBiasedUtils { */
-
-        /*     ////////////////////////////////////// */
-        /*     /// Biased GK summary based on Glib vector */
-        /*     template <typename TTupleType> */
-        /*     class TVecSummary { */
-        /*     public: */
-        /*         using TTuple = TTupleType; */
-        /*         using TSummary = TVec<TTuple>; */
-
-        /*         TVecSummary(TBiasedGk& Model, const bool& UseBands); */
-
-        /*         // SERIALIZATION */
-        /*         TVecSummary(TBiasedGk&, TSIn&); */
-        /*         void Save(TSOut&) const; */
-
-        /*         /// returns the quantile corresponding to the givem p-value */
-        /*         double Query(const double& PVal) const; */
-        /*         /// returns an array of quantile estimates */
-        /*         void Query(const TFltV& PValV, TFltV& QuantV) const; */
-        /*         /// returns the cumulative distribution function */
-        /*         double GetCdf(const double& Val) const; */
-        /*         /// inserts a new value into the summary */
-        /*         void Insert(const double&); */
-        /*         /// compresses the summary (if possible) */
-        /*         void Compress(); */
-
-        /*         // PARAMS */
-        /*         const TBool& GetUseBands() const { return UseBands; } */
-
-        /*         /// returns the number of tuples in the summary */
-        /*         uint GetSize() const; */
-        /*         /// returns the objects memory footprint */
-        /*         uint64 GetMemUsed() const; */
-        /*         /// prints the summary to the output stream */
-        /*         void Print() const; */
-
-        /*     private: */
-        /*         double InterpolateQuant(const int& TupleN, const uint64& TupleMnRank, */
-        /*                 const uint64& TupleMxRank, const double& TargetRank) const { */
-        /*             if (TupleN == Summary.Len()-1) { */
-        /*                 return Summary[TupleN].GetMxVal(); */
-        /*             } else { */
-        /*                 return Summary[TupleN].InterpolateRight(Summary[TupleN+1]); */
-        /*             } */
-        /*         } */
-        /*         int GetBand(const TTuple& Tuple, const uint64& MnRank) const; */
-
-        /*     }; */
-        /* } */
 
         namespace TTDigestUtils {
 

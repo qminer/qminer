@@ -347,7 +347,7 @@ TEST(TBiasedGk, ZeroQ0) {
 }
 
 TEST(TBiasedGk, GetCdf) {
-    const int NTrials = 100;
+    const int NTrials = 10000;
     const int NSamples = 1000;
 
     const double Cdf0 = 0.01;
@@ -372,6 +372,49 @@ TEST(TBiasedGk, GetCdf) {
 
             const double LowerBound = std::floor(ExpectedCdf*NSamples*(1 - Eps)) / NSamples;
             const double UpperBound = std::ceil(ExpectedCdf*NSamples*(1 + Eps)) / NSamples;
+
+            ASSERT_GE(Actual, LowerBound);
+            ASSERT_LE(Actual, UpperBound);
+        }
+    }
+}
+
+TEST(TBiasedGk, GetCdfNegDir) {
+    const int NTrials = 10000;
+    const int NSamples = 1000;
+
+    const double Cdf0 = 0.99;
+    const double Eps = 0.1;
+
+    TBiasedGk Gk(Cdf0, Eps, TRnd(1));
+
+    TIntV SampleV;
+    for (int TrialN = 0; TrialN < NTrials; ++TrialN) {
+        GenSamplesUniform(NSamples, SampleV);
+        for (int SampleN = 0; SampleN < NSamples; ++SampleN) {
+            Gk.Insert(SampleV[SampleN]);
+        }
+
+        SampleV.Sort();
+
+        for (int SampleN = 0; SampleN < NSamples; ++SampleN) {
+            const double Val = SampleV[SampleN];
+
+            /* std::cout << std::endl << "value: " << Val << std::endl; */
+
+            const double Actual = Gk.GetCdf(Val);
+            const double ExpectedCdf = Val / NSamples;
+
+            const double MxErr = ExpectedCdf <= Cdf0 ? (1.0 - ExpectedCdf)*Eps : (1 - Cdf0)*Eps;
+            const double LowerBound = std::floor((ExpectedCdf - MxErr)*NSamples) / NSamples;
+            const double UpperBound = std::ceil((ExpectedCdf + MxErr)*NSamples) / NSamples;
+
+            /* std::cout << "expected: " << ExpectedCdf << ", [" << LowerBound << ", " << UpperBound << "], value: " << Actual << std::endl; */
+
+            if (Actual < LowerBound || Actual > UpperBound) {
+                Gk.PrintSummary();
+                std::cout << "total samples: " << Gk.GetSampleN().Val << std::endl;
+            }
 
             ASSERT_GE(Actual, LowerBound);
             ASSERT_LE(Actual, UpperBound);

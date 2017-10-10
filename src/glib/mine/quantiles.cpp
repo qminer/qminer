@@ -16,8 +16,8 @@ namespace TQuant {
 /*         TUtils::TGkMnUncertEqRightTuple::TGkMnUncertEqRightTuple(const double& Val, const uint&, */
 /*                     const TGkMnUncertEqRightTuple& RightTuple): */
 /*                 MxVal(Val), */
-/*                 UncertRight(RightTuple.GetUncertRight() + RightTuple.GetTupleSize() - 1) { */
-/*             Assert(RightTuple.GetUncertRight() + RightTuple.GetTupleSize() >= 1); */
+/*                 UncertRight(RightTuple.GetUncert() + RightTuple.GetTupleSize() - 1) { */
+/*             Assert(RightTuple.GetUncert() + RightTuple.GetTupleSize() >= 1); */
 /*         } */
 
 /*         TUtils::TGkMnUncertEqRightTuple::TGkMnUncertEqRightTuple(TSIn& SIn): */
@@ -226,7 +226,7 @@ namespace TQuant {
             }
             // check if the value of the last interval fell outside the window
             // if it did, then update the max value
-            if (!IsMaxInWindow(ForgetTm, IntervalV[0]) && IntervalV[0].GetMxVal() == MxVal) {
+            if (!IsMaxInWindow(ForgetTm, IntervalV[0]) && IntervalV[0].GetVal() == MxVal) {
                 FindNewMxVal(1);
             }
         }
@@ -243,7 +243,7 @@ namespace TQuant {
 
         void TExpHistWithMax::DelNewestNonMx() {
             Assert(!IntervalV.Empty());
-            if (IntervalV.Len() == 1 || IntervalV.Last().GetMxVal() != MxVal) {
+            if (IntervalV.Len() == 1 || IntervalV.Last().GetVal() != MxVal) {
                 DelNewest();
             } else {
                 // delete the second newest
@@ -313,7 +313,7 @@ namespace TQuant {
         void TExpHistWithMax::OnIntervalRemoved(const TIntervalWithMax& Interval) {
             TExpHistBase<TIntervalWithMax>::OnIntervalRemoved(Interval);
 
-            if (MxVal == Interval.GetMxVal()) {
+            if (MxVal == Interval.GetVal()) {
                 FindNewMxVal();
             }
         }
@@ -325,8 +325,8 @@ namespace TQuant {
         void TExpHistWithMax::FindNewMxVal(const int& StartN) {
             MxVal = TFlt::NInf;
             for (int IntervalN = StartN; IntervalN < IntervalV.Len(); IntervalN++) {
-                if (IntervalV[IntervalN].GetMxVal() > MxVal) {
-                    MxVal = IntervalV[IntervalN].GetMxVal();
+                if (IntervalV[IntervalN].GetVal() > MxVal) {
+                    MxVal = IntervalV[IntervalN].GetVal();
                 }
             }
         }
@@ -604,7 +604,7 @@ namespace TQuant {
             return TupleSizeExpHist.GetCount();
         }
 
-        uint TEhTuple::GetUncertRight() const {
+        uint TEhTuple::GetUncert() const {
             return RightUncertExpHist.GetCount();
         }
 
@@ -857,13 +857,13 @@ namespace TQuant {
                     const uint RightTupleCount = RightIt->GetTupleSize();
 
 
-                    /* const uint LeftLogCorr = uint(TMath::Log2(LeftIt->GetUncertRight())); */
-                    /* const uint RightLogCorr = uint(TMath::Log2(RightIt->GetUncertRight())); */
+                    /* const uint LeftLogCorr = uint(TMath::Log2(LeftIt->GetUncert())); */
+                    /* const uint RightLogCorr = uint(TMath::Log2(RightIt->GetUncert())); */
 
                     //======================================================
                     // XXX option 1: original algorithm
                     const TSummary::iterator LargerIt = RightIt->GetVal() >= LeftIt->GetVal() ? RightIt : LeftIt;
-                    const uint LargerCorr = LargerIt->GetUncertRight();
+                    const uint LargerCorr = LargerIt->GetUncert();
                     if (LeftTupleCount + RightTupleCount + LargerCorr < MxUncert) {
                         RightIt->Swallow(*LeftIt, LargerIt == LeftIt);
                     // XXX option 2: my version, don't take the uncertainty of the larger element
@@ -872,9 +872,9 @@ namespace TQuant {
                     // XXX option 3: my version, take the uncertainty of the larger element, but use bands as well
                     /* const TSummary::iterator LargeIt = RightIt->GetVal() >= LeftIt->GetVal() ? RightIt : LeftIt; */
                     /* const TSummary::iterator SmallIt = LargeIt == LeftIt ? RightIt : LeftIt; */
-                    /* const uint LargeLogCorr = uint(TMath::Log2(LargeIt->GetUncertRight())); */
-                    /* const uint SmallLogCorr = uint(TMath::Log2(SmallIt->GetUncertRight())); */
-                    /* const uint LargerCorr = LargeIt->GetUncertRight(); */
+                    /* const uint LargeLogCorr = uint(TMath::Log2(LargeIt->GetUncert())); */
+                    /* const uint SmallLogCorr = uint(TMath::Log2(SmallIt->GetUncert())); */
+                    /* const uint LargerCorr = LargeIt->GetUncert(); */
                     /* if (LeftTupleCount + RightTupleCount + LargerCorr < MxUncert && */
                     /*         SmallLogCorr <= LargeLogCorr) { */
                     /*     RightIt->Swallow(*LeftIt, LargeIt == LeftIt); */
@@ -977,7 +977,7 @@ namespace TQuant {
                << Interval.GetStartTm()
                << ", " << Interval.GetDurMSec()
                << ", " << Interval.GetCount()
-               << ", " << Interval.GetMxVal()
+               << ", " << Interval.GetVal()
                << ">";
         }
 
@@ -1027,13 +1027,13 @@ namespace TQuant {
             CurrMnRank += Tuple.GetTupleSize();
 
             if (CurrMnRank >= MnRankThreshold) {
-                return Tuple.GetMxVal();
+                return Tuple.GetVal();
             }
 
             ++TupleN;
         }
 
-        return Summary.Last().GetMxVal();
+        return Summary.Last().GetVal();
     }
 
     void TUtils::TGkUtils::TVecSummary::Query(const TFltV& PValV, TFltV& QuantV) const {
@@ -1057,7 +1057,7 @@ namespace TQuant {
                 CurrMnRank += TupleSize;
 
                 if (CurrMnRank >= MnRankThreshold) {
-                    QuantV[PValN] = Tuple.GetMxVal();
+                    QuantV[PValN] = Tuple.GetVal();
                     CurrMnRank -= TupleSize;
                     break;
                 }
@@ -1066,7 +1066,7 @@ namespace TQuant {
             }
 
             if (TupleIt == EndIt) {
-                QuantV[PValN] = Summary.Last().GetMxVal();
+                QuantV[PValN] = Summary.Last().GetVal();
             }
 
             ++PValN;
@@ -1077,7 +1077,7 @@ namespace TQuant {
     void TUtils::TGkUtils::TVecSummary::Insert(const double& Val) {
         // binary search to find the first tuple with value greater than val
         // this is where we will insert the new value
-        const auto Cmp = [&](const TTuple& Tup, const double& Val) { return Tup.GetMxVal() < Val; };
+        const auto Cmp = [&](const TTuple& Tup, const double& Val) { return Tup.GetVal() < Val; };
         const auto ValIt = std::lower_bound(Summary.begin(), Summary.end(), Val, Cmp);
 
         const int NewValN = int(ValIt - Summary.begin());
@@ -1145,7 +1145,7 @@ namespace TQuant {
         // where capacity is defined as floor(2*eps*n) - delta_i
 
         const uint64 MxUncert = (uint64) GetMxTupleUncert();
-        const uint UncertRight = Tuple.GetUncertRight();
+        const uint UncertRight = Tuple.GetUncert();
         const uint64 Capacity = MxUncert - UncertRight;
         AssertR(MxUncert >= UncertRight, "Tuple uncertainty greater than capacity!");
 
@@ -1168,7 +1168,7 @@ namespace TQuant {
         }
         else {
             // fail horribly and think about what you did
-            const TStr MsgStr = "Could not find the band of tuple: <" + TFlt::GetStr(Tuple.GetMxVal()) + "," + TUInt::GetStr(Tuple.GetTupleSize()) + "," + TInt::GetStr(Tuple.GetUncertRight()) + ">, p=" + TInt::GetStr(MxUncert) + ", candidate band = " + TInt::GetStr(CandidateBand) + "!";
+            const TStr MsgStr = "Could not find the band of tuple: <" + TFlt::GetStr(Tuple.GetVal()) + "," + TUInt::GetStr(Tuple.GetTupleSize()) + "," + TInt::GetStr(Tuple.GetUncert()) + ">, p=" + TInt::GetStr(MxUncert) + ", candidate band = " + TInt::GetStr(CandidateBand) + "!";
             FailR(MsgStr.CStr());
             return -1;
         }
@@ -1361,7 +1361,7 @@ namespace TQuant {
         const double EpsRank = GetMxTupleUncert(TargetRank) / 2;
 
         if (TargetRank <= 1) {
-            return Summary.begin()->GetMxVal();
+            return Summary.begin()->GetVal();
         }
 
         int CurrMnRank = 0;
@@ -1370,13 +1370,13 @@ namespace TQuant {
             const uint64 MxRank = CurrMnRank + Tuple.GetTotalUncert();
 
             if (MxRank > TargetRank + EpsRank) {
-                return Summary[TupleN-1].GetMxVal();
+                return Summary[TupleN-1].GetVal();
             }
 
             CurrMnRank += Tuple.GetTupleSize();
         }
 
-        return Summary.Last().GetMxVal();
+        return Summary.Last().GetVal();
     }
 
     void TBiasedGk::GetQuantileV(const TFltV& CdfValV, TFltV& QuantV) const {
@@ -1403,14 +1403,14 @@ namespace TQuant {
             const double EpsRank = GetMxTupleUncert(TargetRank) / 2;
 
             if (TargetRank <= 1) {
-                QuantV[DirPValN] = Summary[0].GetMxVal();
+                QuantV[DirPValN] = Summary[0].GetVal();
             } else {
                 while (TupleN < Summary.Len()) {
                     const TTuple& Tuple = Summary[TupleN];
                     const uint64 MxRank = CurrMnRank + Tuple.GetTotalUncert();
 
                     if (MxRank > TargetRank + EpsRank) {
-                        QuantV[DirPValN] = Summary[TupleN-1].GetMxVal();
+                        QuantV[DirPValN] = Summary[TupleN-1].GetVal();
                         break;
                     }
 
@@ -1419,7 +1419,7 @@ namespace TQuant {
                 }
 
                 if (TupleN == Summary.Len()) {
-                    QuantV[DirPValN] = Summary.Last().GetMxVal();
+                    QuantV[DirPValN] = Summary.Last().GetVal();
                 }
             }
 
@@ -1433,7 +1433,13 @@ namespace TQuant {
         const int SummarySize = GetSummarySize();
 
         const auto HandleDir = [&](const double& Cdf) { return IsPositiveDir() ? Cdf : 1.0 - Cdf; };
-        const auto HandleRank = [&](const double& Rank) { return HandleDir(Rank / double(GetSampleN())); };
+        const auto HandleRank = [&](const double& Rank) {
+            if (IsPositiveDir()) {
+                return Rank / double(GetSampleN());
+            } else {
+                return (double(GetSampleN()) - Rank + 1.0) / double(GetSampleN());
+            }
+        };
 
         // find the first tuple with value larger than `Val`
         int RightTupleN = 0;
@@ -1443,16 +1449,16 @@ namespace TQuant {
         if (IsPositiveDir()) {
             while (RightTupleN < SummarySize) {
                 const TTuple& RightTuple = Summary[RightTupleN];
-                const TFlt& TupleVal = RightTuple.GetMxVal();
+                const TFlt& RightTupleVal = RightTuple.GetVal();
 
                 RightMnRank += RightTuple.GetTupleSize();
 
-                if (TupleVal == Val) {
+                if (RightTupleVal == Val) {
                     // with positive direction must go to the last tuple
                     EqTupleN = RightTupleN;
                 }
 
-                if (Val < TupleVal) { break; }
+                if (Val < RightTupleVal) { break; }
 
                 ++RightTupleN;
             }
@@ -1460,19 +1466,20 @@ namespace TQuant {
         else {
             while (RightTupleN < SummarySize) {
                 const TTuple& RightTuple = Summary[RightTupleN];
-                const TFlt& TupleVal = RightTuple.GetMxVal();
+                const TFlt& RightTupleVal = RightTuple.GetVal();
 
                 RightMnRank += RightTuple.GetTupleSize();
 
-                if (TupleVal == Val) {
+                if (RightTupleVal == Val) {
                     // with negative direction I must break with the first tuple
                     EqTupleN = RightTupleN;
                     ++RightTupleN;
                     if (RightTupleN < SummarySize) { RightMnRank += Summary[RightTupleN].GetTupleSize(); }
+                    /* std::cout << "will force break" << std::endl; */
                     break;
                 }
 
-                if (Val > TupleVal) { break; }
+                if (Val > RightTupleVal) { break; }
 
                 ++RightTupleN;
             }
@@ -1481,7 +1488,9 @@ namespace TQuant {
         if (EqTupleN != -1) {
             const int64 MnRank = RightTupleN < SummarySize ?
                 RightMnRank - Summary[RightTupleN].GetTupleSize() : RightMnRank;
-            const int64 MxRank = MnRank + Summary[EqTupleN].GetUncertRight();
+            const int64 MxRank = MnRank + Summary[EqTupleN].GetUncert();
+
+/*             std::cout << "found tuple with equal value, min rank: " << MnRank << ", max rank: " << MxRank << std::endl; */
 
             return HandleRank(0.5*double(MnRank + MxRank));
         } else {
@@ -1503,36 +1512,27 @@ namespace TQuant {
                 const TTuple& LeftTuple = Summary[LeftTupleN];
                 const TTuple& RightTuple = Summary[RightTupleN];
 
-                const int64 LeftMxRank = RightMnRank - RightTuple.GetTupleSize() + LeftTuple.GetUncertRight();
-
-                const TFlt& LeftVal = LeftTuple.GetMxVal();
-                const TFlt& RightVal = RightTuple.GetMxVal();
-
                 // get the maximum rank to the right
-                int64 RightMxRank = RightMnRank;
-                {
-                    int TupleN = RightTupleN + 1;
-                    while (TupleN < SummarySize && Summary[TupleN].GetMxVal() == RightVal) {
-                        RightMxRank += Summary[TupleN].GetTupleSize();
-                        ++TupleN;
-                    }
-                    RightMxRank += Summary[TupleN-1].GetUncertRight();
-                }
-                // get the minimum rank to the left
-                int64 LeftMnRank = RightMnRank - RightTuple.GetTupleSize();
-                {
-                    int TupleN = LeftTupleN;
-                    while (TupleN >= 0 && Summary[TupleN].GetMxVal() == LeftVal) {
-                        LeftMnRank -= Summary[TupleN].GetTupleSize();
-                        --TupleN;
-                    }
-                    LeftMnRank += Summary[TupleN+1].GetTupleSize();
-                }
+                const int64 RightMxRank = RightMnRank + RightTuple.GetUncert();
+                const int64 LeftMnRank = RightMnRank - RightTuple.GetTupleSize();
+                const int64 LeftMxRank = LeftMnRank + LeftTuple.GetUncert();
 
-                const double LeftExpRank = 0.5*(LeftMnRank + LeftMxRank);
-                const double ExpectedRank = 0.5*(LeftExpRank + RightMxRank);
+                /* std::cout << "left rank: [" << LeftMnRank << " to " << LeftMxRank << "], right rank: [" << RightMnRank << " to " << RightMxRank << "]" << std::endl; */
+                /* std::cout << "left tuple: " << LeftTuple << ", right tuple: " << RightTuple << std::endl; */
 
-                return HandleRank(ExpectedRank);
+                if (IsPositiveDir()) {
+                    const double LeftExpRank = 0.5*(LeftMnRank + LeftMxRank);
+                    // ExpectedRank = 0.5*(LeftExpRank+1.0 + RightMxRank)-1.0
+                    const double ExpectedRank = 0.5*(LeftExpRank + RightMxRank) - 0.5;
+
+                    return HandleRank(ExpectedRank);
+                } else {
+                    const double RightExpRank = 0.5*(RightMnRank + RightMxRank);
+                    // ExpectedRank = 0.5*(LeftMnRank + RightExpRank-1.0)+1.0
+                    const double ExpectedRank = 0.5*(LeftMnRank + RightExpRank) + 0.5;
+
+                    return HandleRank(ExpectedRank);
+                }
             }
         }
     }
@@ -1690,10 +1690,10 @@ namespace TQuant {
     }
 
     int TBiasedGk::GetBand(const TTuple& Tuple, const uint64& MnRank) const {
-        if (Tuple.GetUncertRight() == 0) { return TInt::Mx; }
+        if (Tuple.GetUncert() == 0) { return TInt::Mx; }
 
         const uint MxTupleRange = (uint) GetMxTupleUncert((double) MnRank);
-        const uint TupleDelta = Tuple.GetUncertRight();
+        const uint TupleDelta = Tuple.GetUncert();
         const uint Capacity = MxTupleRange - TupleDelta;
 
         AssertR(MxTupleRange >= TupleDelta, "Tuple uncertainty smaller than max range, max range: " + TInt::GetStr(MxTupleRange) + ", uncertainty: " + TInt::GetStr(TupleDelta) + "!");
@@ -1716,8 +1716,8 @@ namespace TQuant {
             // fail horribly and think about what you did
             PrintSummary();
             const TStr MsgStr = "Could not find the band of tuple: <" +
-                TFlt::GetStr(Tuple.GetMxVal()) + "," + TUInt::GetStr(Tuple.GetTupleSize()) + "," +
-                TUInt::GetStr(Tuple.GetUncertRight()) + ">, max size=" + TInt::GetStr(MxTupleRange) +
+                TFlt::GetStr(Tuple.GetVal()) + "," + TUInt::GetStr(Tuple.GetTupleSize()) + "," +
+                TUInt::GetStr(Tuple.GetUncert()) + ">, max size=" + TInt::GetStr(MxTupleRange) +
                 ", max tuple size: " + TUInt::GetStr(MxTupleRange) +
                 ", delta: " + TUInt::GetStr(TupleDelta) +
                 ", capacity: " + TUInt::GetStr(Capacity) +
