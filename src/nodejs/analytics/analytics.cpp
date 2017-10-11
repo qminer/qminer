@@ -4366,7 +4366,7 @@ void TNodeJsGk::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     PJsonVal ParamVal = TJsonVal::NewObj();
     ParamVal->AddToObj("eps", Gk.GetEps());
     ParamVal->AddToObj("autoCompress", Gk.GetCompressStrategy() == TQuant::TGk::TCompressStrategy::csAuto);
-    ParamVal->AddToObj("useBands", Gk.GetSummary().IsUseBands());
+    ParamVal->AddToObj("useBands", Gk.GetUseBandsP());
 
     v8::Local<v8::Value> JsParamVal = TNodeJsUtil::ParseJson(Isolate, ParamVal);
     Args.GetReturnValue().Set(JsParamVal);
@@ -4395,12 +4395,12 @@ void TNodeJsGk::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     if (TNodeJsUtil::IsArgFlt(Args, 0)) {
         const double PVal = TNodeJsUtil::GetArgFlt(Args, 0);
-        const double Quant = Gk.Query(PVal);
+        const double Quant = Gk.GetQuantile(PVal);
 
         Args.GetReturnValue().Set(v8::Number::New(Isolate, Quant));
     } else {
         TFltV PValV; TNodeJsUtil::GetArgFltV(Args, 0, PValV);
-        TFltV QuantV; Gk.Query(PValV, QuantV);
+        TFltV QuantV; Gk.GetQuantileV(PValV, QuantV);
 
         v8::Handle<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
         for (int QuantN = 0; QuantN < QuantV.Len(); ++QuantN) {
@@ -4443,7 +4443,7 @@ void TNodeJsGk::init(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<
 
     const TNodeJsGk* JsModel = ObjectWrap::Unwrap<TNodeJsGk>(Info.Holder());
 
-    Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Gk.GetSummary().GetSampleN() > 0));
+    Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Gk.GetSampleN() > 0));
 }
 
 void TNodeJsGk::size(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {

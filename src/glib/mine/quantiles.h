@@ -27,6 +27,8 @@ namespace TQuant {
             template <typename TTuple>
             static bool IsRightOf(const TTuple& Tuple, const double& Val, TRnd&);
             template <typename TTuple>
+            static bool IsLeftOf(const TTuple& Tuple, const double& Val, TRnd&);
+            template <typename TTuple>
             static bool IsRightOfNegDir(const TTuple& Tuple, const double& Val, TRnd&);
         };
 
@@ -41,6 +43,8 @@ namespace TQuant {
             template <typename TTuple>
             static bool IsRightOf(const TTuple& Tuple, const double& Val, TRnd&);
             template <typename TTuple>
+            static bool IsLeftOf(const TTuple& Tuple, const double& Val, TRnd&);
+            template <typename TTuple>
             static bool IsRightOfNegDir(const TTuple& Tuple, const double& Val, TRnd&);
         };
 
@@ -54,6 +58,8 @@ namespace TQuant {
         public:
             template <typename TTuple>
             static bool IsRightOf(const TTuple& Tuple, const double& Val, TRnd&);
+            template <typename TTuple>
+            static bool IsLeftOf(const TTuple& Tuple, const double& Val, TRnd&);
             template <typename TTuple>
             static bool IsRightOfNegDir(const TTuple& Tuple, const double& Val, TRnd&);
         };
@@ -82,6 +88,7 @@ namespace TQuant {
             uint GetTotalUncert() const { return GetTupleSize() + GetUncert(); }
 
             bool IsRightOf(const double& Val, TRnd& Rnd) const;
+            bool IsLeftOf(const double& Val, TRnd& Rnd) const;
             bool IsRightOfNegDir(const double& Val, TRnd& Rnd) const;
 
             uint64 GetMemUsed() const;
@@ -139,6 +146,7 @@ namespace TQuant {
             uint GetTotalUncert() const { return GetTupleSize() + GetUncert(); }
 
             bool IsRightOf(const double& Val, TRnd& Rnd) const;
+            bool IsLeftOf(const double& Val, TRnd& Rnd) const;
             bool IsRightOfNegDir(const double& Val, TRnd& Rnd) const;
 
             // DEBUGGING
@@ -784,52 +792,52 @@ namespace TQuant {
 
     namespace TUtils {
 
-        namespace TGkUtils {
+        /* namespace TGkUtils { */
 
-            ///////////////////////////////////
-            /// GK summary based on a Glib vector
-            class TVecSummary {
-            public:
-                using TTuple = TGkMnUncertEqLeftTuple;
-                using TSummary = TVec<TTuple>;
+        /*     /////////////////////////////////// */
+        /*     /// GK summary based on a Glib vector */
+        /*     class TVecSummary { */
+        /*     public: */
+        /*         using TTuple = TGkMnUncertEqLeftTuple; */
+        /*         using TSummary = TVec<TTuple>; */
 
-                TVecSummary(const double& Eps, const bool& UseBands=true);
+        /*         TVecSummary(const double& Eps, const bool& UseBands=true); */
 
-                // SERIALIZATION
-                TVecSummary(TSIn&);
-                void Save(TSOut&) const;
+        /*         // SERIALIZATION */
+        /*         TVecSummary(TSIn&); */
+        /*         void Save(TSOut&) const; */
 
-                /// returns the quantile corresponding to the givem p-value
-                double Query(const double& PVal) const;
-                /// returns an array of quantile estimates
-                void Query(const TFltV& PValV, TFltV& QuantV) const;
-                /// inserts a new value into the summary
-                void Insert(const double&);
-                /// compresses the summary (if possible)
-                void Compress();
-                /// returns the total number of samples seen by the summary
-                const TUInt64& GetSampleN() const { return SampleN; }
-                /// returns whether the summary uses the `bands` subprocedure
-                const TBool& IsUseBands() const { return UseBands; }
+        /*         /// returns the quantile corresponding to the givem p-value */
+        /*         double Query(const double& PVal) const; */
+        /*         /// returns an array of quantile estimates */
+        /*         void Query(const TFltV& PValV, TFltV& QuantV) const; */
+        /*         /// inserts a new value into the summary */
+        /*         void Insert(const double&); */
+        /*         /// compresses the summary (if possible) */
+        /*         void Compress(); */
+        /*         /// returns the total number of samples seen by the summary */
+        /*         const TUInt64& GetSampleN() const { return SampleN; } */
+        /*         /// returns whether the summary uses the `bands` subprocedure */
+        /*         const TBool& IsUseBands() const { return UseBands; } */
 
-                // DEBUGGING
-                uint GetSize() const { return Summary.Len(); }
-                uint64 GetMemUsed() const;
+        /*         // DEBUGGING */
+        /*         uint GetSize() const { return Summary.Len(); } */
+        /*         uint64 GetMemUsed() const; */
 
-                friend std::ostream& operator <<(std::ostream& os, const TVecSummary& Summary) {
-                    return os << Summary.Summary;
-                }
+        /*         friend std::ostream& operator <<(std::ostream& os, const TVecSummary& Summary) { */
+        /*             return os << Summary.Summary; */
+        /*         } */
 
-            private:
-                uint GetMxTupleUncert() const;
-                int GetBand(const TTuple&) const;
+        /*     private: */
+                /* uint GetMxTupleUncert() const; */
+                /* int GetBand(const TTuple&) const; */
 
-                TSummary Summary {};
-                TUInt64 SampleN {uint64(0)}; // current size of the summary, initializes to 0
-                TFlt Eps;
-                TBool UseBands;
-            };
-        }
+                /* TSummary Summary {}; */
+                /* TUInt64 SampleN {uint64(0)}; // current size of the summary, initializes to 0 */
+                /* TFlt Eps; */
+                /* TBool UseBands; */
+            /* }; */
+        /* } */
 
         namespace TTDigestUtils {
 
@@ -949,8 +957,10 @@ namespace TQuant {
     ///
     /// http://infolab.stanford.edu/~datar/courses/cs361a/papers/quantiles.pdf
     class TGreenwaldKhanna {
+        using TTuple = TUtils::TGkMnUncertEqLeftTuple;
+        using TSummary = TVec<TTuple>;
+
     public:
-        using TSummary = TUtils::TGkUtils::TVecSummary;
 
         enum class TCompressStrategy : char {
             csAuto = 0,
@@ -961,20 +971,26 @@ namespace TQuant {
         /// is 2*eps.
         TGreenwaldKhanna(const double& Eps);
         TGreenwaldKhanna(const double& Eps, const TCompressStrategy&, const bool& UseBands=true);
+        TGreenwaldKhanna(const double& Eps, const TRnd& Rnd, const bool& UseBands=true);
 
         // SERIALIZATION
         TGreenwaldKhanna(TSIn&);
         void Save(TSOut&) const;
 
-        // TODO copy / move
-
         // TODO interpolate the result before returning it
         /// reutrns the (eps-approximate) value of the targeted quantile
-        double Query(const double& PVal) const;
+        double GetQuantile(const double& PVal) const;
         /// returns an array of quantiles corresponding to the given p-values
-        void Query(const TFltV& PValV, TFltV& QuantV) const;
+        void GetQuantileV(const TFltV& PValV, TFltV& QuantV) const;
+        /// returns the (approxmate) value of the cumulative distribution function
+        /// for the given value `Val`
+        /// the CDF is defined as CDF(x) = P(X <= x)
+        double GetCdf(const double& Val) const;
+        void GetCdfV(const TFltV& ValV, TFltV& CdfValV) const;
+        /// returns the maximum (absolute) difference of the CDFs of the two distributions
+        double GetMxCdfDiff(const TGreenwaldKhanna& Other) const;
         /// updates the summary with the new value
-        void Insert(const double& Val);
+        void Insert(const double& Val); // TODO
         /// compresses the internal summary
         void Compress();
 
@@ -984,18 +1000,26 @@ namespace TQuant {
 
         // DEBUGGING
         /// reutrns the number of tuples stored in the summary
+        const TUInt64& GetSampleN() const { return SampleN; }
+        const TBool& GetUseBandsP() const { return UseBandsP; }
         int GetSummarySize() const;
         uint64 GetMemUsed() const;
         void PrintSummary() const;
-        const TSummary& GetSummary() const { return Summary; }
 
     private:
+        uint GetMxUncert() const;
+        int GetBand(const TTuple& Tuple) const;
         uint32 GetCompressInterval() const;
         bool ShouldAutoCompress() const;
 
-        TSummary Summary;
+        void GetSummaryValV(TFltV& ValV) const;
+
+        TSummary Summary {};
+        TRnd Rnd {0};
+        TUInt64 SampleN {uint64(0)};
         TFlt Eps;
         TCompressStrategy CompressStrategy {TCompressStrategy::csAuto};
+        TBool UseBandsP {true};
     };
 
     using TGk = TGreenwaldKhanna;
@@ -1412,6 +1436,17 @@ namespace TQuant {
     };
 
     std::ostream& operator <<(std::ostream& os, const TUInt& Val);
+
+    namespace TStat {
+
+        // returns the value of the Kolmogorov-Smirnov statistic
+        template <typename TDistEst1, typename TDistEst2>
+        double KolmogorovSmirnov(const TDistEst1& DistEst1, const TDistEst2& DistEst2);
+        // performs the Kolmogorov-Smirnov test for the given value of `Alpha`
+        template <typename TDistEst1, typename TDistEst2>
+        bool KolmogorovSmirnovTest(const TDistEst1& DistEst1, const TDistEst2& DistEst2,
+                const double& Alpha);
+    }
 }
 
 #include "quantiles.hpp"

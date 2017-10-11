@@ -87,7 +87,7 @@ void AssertQuantileRangeV(TGk& Gk, const TLowerBoundFun& GetLowerBound,
 }
 
 template <typename TGk, typename TLowerBoundFun, typename TUpperBoundFun>
-void AssertCkmsQuantileRangeV(TGk& Gk, const TLowerBoundFun& GetLowerBound,
+void AssertQuantileRangeVNew(TGk& Gk, const TLowerBoundFun& GetLowerBound,
         const TUpperBoundFun& GetUpperBound, const double PValStep=1e-3, const bool& PrintP=false) {
 
     TFltV PValV;
@@ -115,7 +115,37 @@ void AssertCkmsQuantileRangeV(TGk& Gk, const TLowerBoundFun& GetLowerBound,
     }
 }
 
-TEST(TGreenwaldKhanna, Query) {
+template <typename TGk, typename TLowerBoundFun, typename TUpperBoundFun>
+void AssertCdfRangeV(TGk& Gk, const double& MnVal, const double& MxVal,
+        const TLowerBoundFun& GetLowerBound, const TUpperBoundFun& GetUpperBound,
+        const double Step=1e-3, const bool& PrintP=false) {
+
+    TFltV ValV;
+    for (double Val = MnVal; Val <= MxVal; Val += Step) {
+        ValV.Add(Val);
+    }
+
+    TFltV CdfValV;   Gk.GetCdfV(ValV, CdfValV);
+
+    for (int ValN = 0; ValN < ValV.Len(); ++ValN) {
+        const double Val = ValV[ValN];
+        const double CdfMn = GetLowerBound(Val);
+        const double CdfMx = GetUpperBound(Val);
+
+        const double EstCdf = Gk.GetCdf(Val);
+
+        if (PrintP) {
+            std::cout << "value: " << Val << " (estimated) CDF: " << EstCdf << ", (vector est.) CDF: " << CdfValV[ValN].Val << ", CdfMn: " << CdfMn << ", CdfMx: " << CdfMx << std::endl;
+            Gk.PrintSummary();
+        }
+
+        ASSERT_GE(EstCdf, CdfMn);
+        ASSERT_LE(EstCdf, CdfMx);
+        ASSERT_EQ(EstCdf, CdfValV[ValN]);
+    }
+}
+
+TEST(TGreenwaldKhanna, GetQuantile) {
     const double Eps = .001;
     const int NSamples = 1000;
 
@@ -125,13 +155,65 @@ TEST(TGreenwaldKhanna, Query) {
         Gk.Insert(i);
     }
 
-    const double Tenth = Gk.Query(.1);
-    const double First = Gk.Query(1e-6);
-    const double Last = Gk.Query(1 - 1e-6);
+    const double Tenth = Gk.GetQuantile(.1);
+    const double First = Gk.GetQuantile(1e-6);
+    const double Last = Gk.GetQuantile(1 - 1e-6);
 
     ASSERT_NEAR(.1*NSamples, Tenth, Eps*NSamples);
     ASSERT_NEAR(1e-6*NSamples, First, Eps*NSamples);
     ASSERT_NEAR((1 - 1e-6)*NSamples, Last, Eps*NSamples);
+}
+
+TEST(TGreenwaldKhanna, GetQuantileExtensive) {
+    const int NTrials = 100;
+    const int NSamples = 1000;
+
+    const double Eps = 0.01;
+
+    TRnd Rnd(1);
+
+    TGk BandGk(Eps, Rnd, true);
+    TGk BandlessGk(Eps, Rnd, false);
+
+    const int MxError = Eps*NSamples;
+
+    const auto LowerBoundFun = [&](const double& PVal) { return std::floor(PVal*NSamples - MxError); };
+    const auto UpperBoundFun = [&](const double& PVal) { return std::ceil(PVal*NSamples + MxError); };
+
+    for (int TrialN = 0; TrialN < NTrials; TrialN++) {
+        TIntV SampleV;  GenSamplesUniform(NSamples, SampleV);
+        for (int SampleN = 0; SampleN < NSamples; SampleN++) {
+            BandGk.Insert(SampleV[SampleN]);
+            BandlessGk.Insert(SampleV[SampleN]);
+        }
+
+        AssertQuantileRangeVNew(BandGk, LowerBoundFun, UpperBoundFun, .0001, false);
+        AssertQuantileRangeVNew(BandlessGk, LowerBoundFun, UpperBoundFun, .0001, false);
+    }
+}
+
+TEST(TGk, GetCdf) {
+    const int NTrials = 100;
+    const int BatchSize = 1000;
+
+    const double Eps = 0.1;
+
+    TGk Gk(Eps, TRnd(1));
+
+    TIntV SampleV;
+    for (int TrialN = 0; TrialN < NTrials; ++TrialN) {
+        GenSamplesUniform(BatchSize, SampleV);
+        for (int SampleN = 0; SampleN < BatchSize; ++SampleN) {
+            Gk.Insert(SampleV[SampleN]);
+        }
+
+        SampleV.Sort();
+
+        const auto LowerBound = [&](const double& Val) { return Val/BatchSize - Eps; };
+        const auto UpperBound = [&](const double& Val) { return Val/BatchSize + Eps; };
+
+        AssertCdfRangeV(Gk, 0, 1000, LowerBound, UpperBound, 1, false);
+    }
 }
 
 TEST(TGreenwaldKhanna, Compress) {
@@ -160,7 +242,7 @@ TEST(TGreenwaldKhanna, Compress) {
         // test a grid
         const auto LowerBoundFun = [&](const double& PVal) { return std::floor(NSamples*(PVal - Eps)); };
         const auto UpperBoundFun = [&](const double& PVal) { return std::ceil(NSamples*(PVal + Eps)); };
-        AssertQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun);
+        AssertQuantileRangeVNew(Gk, LowerBoundFun, UpperBoundFun);
     }
 }
 
@@ -190,7 +272,7 @@ TEST(TGreenwaldKhanna, LateManualCompress) {
     // test a grid
     const auto LowerBoundFun = [&](const double& PVal) { return std::floor(NSamples*(PVal - Eps)); };
     const auto UpperBoundFun = [&](const double& PVal) { return std::ceil(NSamples*(PVal + Eps)); };
-    AssertQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun);
+    AssertQuantileRangeVNew(Gk, LowerBoundFun, UpperBoundFun);
 }
 
 TEST(TGreenwaldKhanna, AutoCompress) {
@@ -217,10 +299,128 @@ TEST(TGreenwaldKhanna, AutoCompress) {
         }
 
         // test the accuracy
-        AssertQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun);
+        AssertQuantileRangeVNew(Gk, LowerBoundFun, UpperBoundFun);
     }
 
     ASSERT_TRUE(Gk.GetSummarySize() < BatchSize);
+}
+
+TEST(TGreenwaldKhanna, KolmogorovSmirnovFar) {
+    const int Vals = 7;
+    const double Eps = 0.001;
+    const double Mean1 = 5;
+    const double Mean2 = 0;
+
+    const double Sigma = 1;
+
+    TRnd Rnd(1);
+
+    TGk GkLow(Eps, Rnd);
+    TGk GkHigh(Eps, Rnd);
+
+    for (int ValN = 0; ValN < Vals; ++ValN) {
+        const double Val1 = Rnd.GetNrmDev(Mean1, Sigma, TFlt::Mn, TFlt::Mx);
+        const double Val2 = Rnd.GetNrmDev(Mean2, Sigma, TFlt::Mn, TFlt::Mx);
+
+        /* std::cout << "inserting" << std::endl; */
+        GkLow.Insert(Val1);
+        GkHigh.Insert(Val2);
+
+        /* std::cout << "testing" << std::endl; */
+        const double Statistic = TStat::KolmogorovSmirnov(GkLow, GkHigh);
+        const bool AreDiffP = TStat::KolmogorovSmirnovTest(GkLow, GkHigh, 0.001);
+
+        ASSERT_FALSE(AreDiffP);
+        ASSERT_GE(Statistic, 0.9);
+        /* std::cout << "n: " << (ValN+1) << "K-S statistic: " << Statistic << ", are diff: " << AreDiffP << std::endl; */
+    }
+
+    const double Val1 = Rnd.GetNrmDev(Mean1, Sigma, TFlt::Mn, TFlt::Mx);
+    const double Val2 = Rnd.GetNrmDev(Mean2, Sigma, TFlt::Mn, TFlt::Mx);
+
+    GkLow.Insert(Val1);
+    GkHigh.Insert(Val2);
+
+    const bool AreDiffP = TStat::KolmogorovSmirnovTest(GkLow, GkHigh, 0.001);
+
+    ASSERT_TRUE(AreDiffP);
+}
+
+TEST(TGreenwaldKhanna, KolmogorovSmirnovNear) {
+    const int Vals = 41;
+    const double Eps = 0.001;
+    const double Mean1 = 1;
+    const double Mean2 = 0;
+
+    const double Sigma = 1;
+
+    TRnd Rnd(1);
+
+    TGk GkLow(Eps, Rnd);
+    TGk GkHigh(Eps, Rnd);
+
+    for (int ValN = 0; ValN < Vals; ++ValN) {
+        const double Val1 = Rnd.GetNrmDev(Mean1, Sigma, TFlt::Mn, TFlt::Mx);
+        const double Val2 = Rnd.GetNrmDev(Mean2, Sigma, TFlt::Mn, TFlt::Mx);
+
+        /* std::cout << "inserting" << std::endl; */
+        GkLow.Insert(Val1);
+        GkHigh.Insert(Val2);
+
+        /* std::cout << "testing" << std::endl; */
+        const double Statistic = TStat::KolmogorovSmirnov(GkLow, GkHigh);
+        const bool AreDiffP = TStat::KolmogorovSmirnovTest(GkLow, GkHigh, 0.001);
+
+        ASSERT_FALSE(AreDiffP);
+        ASSERT_GE(Statistic, 0.3);
+        /* std::cout << "n: " << (ValN+1) << "K-S statistic: " << Statistic << ", are diff: " << AreDiffP << std::endl; */
+    }
+
+    const double Val1 = Rnd.GetNrmDev(Mean1, Sigma, TFlt::Mn, TFlt::Mx);
+    const double Val2 = Rnd.GetNrmDev(Mean2, Sigma, TFlt::Mn, TFlt::Mx);
+
+    GkLow.Insert(Val1);
+    GkHigh.Insert(Val2);
+
+    const bool AreDiffP = TStat::KolmogorovSmirnovTest(GkLow, GkHigh, 0.001);
+
+    ASSERT_TRUE(AreDiffP);
+}
+
+TEST(TGreenwaldKhanna, KolmogorovSmirnovSame) {
+    const int Vals = 1000;
+    const double Eps = 0.001;
+    const double Mean1 = 0;
+    const double Mean2 = 0;
+
+    const double Sigma = 1;
+
+    TRnd Rnd(1);
+
+    TGk GkLow(Eps, Rnd);
+    TGk GkHigh(Eps, Rnd);
+
+    for (int ValN = 0; ValN < Vals; ++ValN) {
+        const double Val1 = Rnd.GetNrmDev(Mean1, Sigma, TFlt::Mn, TFlt::Mx);
+        const double Val2 = Rnd.GetNrmDev(Mean2, Sigma, TFlt::Mn, TFlt::Mx);
+
+        /* std::cout << "inserting" << std::endl; */
+        GkLow.Insert(Val1);
+        GkHigh.Insert(Val2);
+
+        /* std::cout << "testing" << std::endl; */
+        const double Statistic = TStat::KolmogorovSmirnov(GkLow, GkHigh);
+        const bool AreDiffP = TStat::KolmogorovSmirnovTest(GkLow, GkHigh, 0.001);
+
+        ASSERT_FALSE(AreDiffP);
+        if (ValN > 30) {
+            ASSERT_LE(Statistic, 0.3);
+        }
+        if (ValN > 40) {
+            ASSERT_LE(Statistic, 0.2);
+        }
+        /* std::cout << "n: " << (ValN+1) << "K-S statistic: " << Statistic << ", are diff: " << AreDiffP << std::endl; */
+    }
 }
 
 TEST(TBiasedGk, GetQuantile) {
@@ -245,8 +445,8 @@ TEST(TBiasedGk, GetQuantile) {
         const auto UpperBoundFun = [&](const double& PVal) {
             return std::ceil(PVal <= Quant0 ? NSamples*(PVal + Eps0*Quant0) : NSamples*PVal*(1 + Eps0)); };
 
-        AssertCkmsQuantileRangeV(BandGk, LowerBoundFun, UpperBoundFun, .0001);
-        AssertCkmsQuantileRangeV(BandlessGk, LowerBoundFun, UpperBoundFun, .0001);
+        AssertQuantileRangeVNew(BandGk, LowerBoundFun, UpperBoundFun, .0001);
+        AssertQuantileRangeVNew(BandlessGk, LowerBoundFun, UpperBoundFun, .0001);
     }
 }
 
@@ -269,7 +469,7 @@ TEST(TBiasedGk, HighQuantiles) {
         const auto UpperBoundFun = [&](const double& PVal) {
             return std::ceil(PVal >= TargetPVal ? NSamples*(PVal + Eps0*(1 - TargetPVal)) : NSamples*(PVal + Eps0*(1 - PVal))); };
 
-        AssertCkmsQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun, .0001);
+        AssertQuantileRangeVNew(Gk, LowerBoundFun, UpperBoundFun, .0001);
     }
 }
 
@@ -295,8 +495,8 @@ TEST(TBiasedGk, OrderedInput) {
     const auto UpperBoundFun = [&](const double& PVal) {
         return std::floor(PVal >= TargetPVal ? NSamples*(PVal + Eps*(1 - TargetPVal)) : NSamples*(PVal + Eps*(1 - PVal))); };
 
-    AssertCkmsQuantileRangeV(IncGk, LowerBoundFun, UpperBoundFun, 0.0001);
-    AssertCkmsQuantileRangeV(DecGk, LowerBoundFun, UpperBoundFun, 0.0001);
+    AssertQuantileRangeVNew(IncGk, LowerBoundFun, UpperBoundFun, 0.0001);
+    AssertQuantileRangeVNew(DecGk, LowerBoundFun, UpperBoundFun, 0.0001);
 }
 
 TEST(TBiasedGk, ExtremeValues) {
@@ -347,7 +547,7 @@ TEST(TBiasedGk, ZeroQ0) {
 }
 
 TEST(TBiasedGk, GetCdf) {
-    const int NTrials = 10000;
+    const int NTrials = 100;
     const int NSamples = 1000;
 
     const double Cdf0 = 0.01;
@@ -373,6 +573,15 @@ TEST(TBiasedGk, GetCdf) {
             const double LowerBound = std::floor(ExpectedCdf*NSamples*(1 - Eps)) / NSamples;
             const double UpperBound = std::ceil(ExpectedCdf*NSamples*(1 + Eps)) / NSamples;
 
+            if (Actual < LowerBound || Actual > UpperBound) {
+                std::cout << std::endl;
+                Gk.PrintSummary();
+                std::cout << "value: " << Val << ", ";
+                std::cout << "n samples: " << Gk.GetSampleN() << std::endl;
+                std::cout << "expected: " << ExpectedCdf << ", bounds: [" << LowerBound << ", " << UpperBound << "], actual: " << Actual << std::endl;
+                std::cout << std::endl;
+            }
+
             ASSERT_GE(Actual, LowerBound);
             ASSERT_LE(Actual, UpperBound);
         }
@@ -380,7 +589,7 @@ TEST(TBiasedGk, GetCdf) {
 }
 
 TEST(TBiasedGk, GetCdfNegDir) {
-    const int NTrials = 10000;
+    const int NTrials = 100;
     const int NSamples = 1000;
 
     const double Cdf0 = 0.99;

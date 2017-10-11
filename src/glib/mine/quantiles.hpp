@@ -33,6 +33,11 @@ namespace TQuant {
         }
 
         template <typename TTuple>
+        bool TEqLeftCmp::IsLeftOf(const TTuple& Tuple, const double& Val, TRnd&) {
+            return Val > Tuple.GetVal();
+        }
+
+        template <typename TTuple>
         bool TEqLeftCmp::IsRightOfNegDir(const TTuple& Tuple, const double& Val, TRnd&) {
             return Val >= Tuple.GetVal();
         }
@@ -46,6 +51,11 @@ namespace TQuant {
         template <typename TTuple>
         bool TEqRightCmp::IsRightOf(const TTuple& Tuple, const double& Val, TRnd&) {
             return Val < Tuple.GetVal();
+        }
+
+        template <typename TTuple>
+        bool TEqRightCmp::IsLeftOf(const TTuple& Tuple, const double& Val, TRnd&) {
+            return Val >= Tuple.GetVal();
         }
 
         template <typename TTuple>
@@ -63,6 +73,15 @@ namespace TQuant {
         bool TEqRndCmp::IsRightOf(const TTuple& Tuple, const double& Val, TRnd& Rnd) {
             if (Val != Tuple.GetVal()) {
                 return Val < Tuple.GetVal();
+            } else {
+                return Rnd.GetUniDevInt(0, 1) == 0;
+            }
+        }
+
+        template <typename TTuple>
+        bool TEqRndCmp::IsLeftOf(const TTuple& Tuple, const double& Val, TRnd& Rnd) {
+            if (Val != Tuple.GetVal()) {
+                return Val > Tuple.GetVal();
             } else {
                 return Rnd.GetUniDevInt(0, 1) == 0;
             }
@@ -121,6 +140,11 @@ namespace TQuant {
         }
 
         template <typename TValCmp>
+        bool TGkTuple<TValCmp>::IsLeftOf(const double& Val, TRnd& Rnd) const {
+            return TValCmp::IsLeftOf(*this, Val, Rnd);
+        }
+
+        template <typename TValCmp>
         bool TGkTuple<TValCmp>::IsRightOfNegDir(const double& Val, TRnd& Rnd) const {
             return TValCmp::IsRightOfNegDir(*this, Val, Rnd);
         }
@@ -175,6 +199,11 @@ namespace TQuant {
         template <typename TValCmp>
         bool TGkMnUncertTuple<TValCmp>::IsRightOf(const double& Val, TRnd& Rnd) const {
             return TValCmp::IsRightOf(*this, Val, Rnd);
+        }
+
+        template <typename TValCmp>
+        bool TGkMnUncertTuple<TValCmp>::IsLeftOf(const double& Val, TRnd& Rnd) const {
+            return TValCmp::IsLeftOf(*this, Val, Rnd);
         }
 
         template <typename TValCmp>
@@ -1105,6 +1134,24 @@ namespace TQuant {
             void TTDigestBase<TWgt>::PrintSummary() const {
                 std::cout << CentroidV << std::endl;
             }
+        }
+    }
+
+    namespace TStat {
+
+        template <typename TDistEst1, typename TDistEst2>
+        double KolmogorovSmirnov(const TDistEst1& Dist1, const TDistEst2& Dist2) {
+            return Dist1.GetMxCdfDiff(Dist2);
+        }
+
+        template <typename TDistEst1, typename TDistEst2>
+        bool KolmogorovSmirnovTest(const TDistEst1& Dist1, const TDistEst2& Dist2, const double& Alpha) {
+            const double Statistic = KolmogorovSmirnov(Dist1, Dist2);
+            const double COfAlpha = TMath::Sqrt(-0.5*TMath::Log(0.5*Alpha));
+
+            const double n = Dist1.GetSampleN();
+            const double m = Dist2.GetSampleN();
+            return Statistic > COfAlpha * TMath::Sqrt((n + m) / (n * m));
         }
     }
 }
