@@ -25,7 +25,7 @@ bool TNodeJsUtil::IsArgWrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, 
 template <class TClass>
 TClass* TNodeJsUtil::GetArgUnwrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
     EAssertR(ArgN < Args.Length(), "GetArgUnwrapObj: Not enough arguments!");
-    EAssertR(IsArgWrapObj<TClass>(Args, ArgN), "Invalid argument class!");
+    EAssertR(IsArgWrapObj<TClass>(Args, ArgN), "Invalid argument class `" + GetClass(v8::Handle<v8::Object>::Cast(Args[ArgN])) + "`, when expecting `" + TClass::GetClassId() + "`!");
     return node::ObjectWrap::Unwrap<TClass>(Args[ArgN]->ToObject());
 }
 
