@@ -3358,7 +3358,7 @@ public:
     /**
      * Returns the current size of the algorithms summary in number of tuples.
      */
-    //# exports.Gk.size = 0;
+    //# exports.Gk.init = false;
     JsDeclareProperty(init);
 
     /**
@@ -3366,6 +3366,12 @@ public:
      */
     //# exports.Gk.size = 0;
     JsDeclareProperty(size);
+
+    /**
+     * Returns the number of samples seen by the model.
+     */
+    //# exports.Gk.samples = 0;
+    JsDeclareProperty(samples);
 
     /**
      * Returns the models current memory consumption.
@@ -3567,6 +3573,12 @@ public:
      */
     //# exports.BiasedGk.size = 0;
     JsDeclareProperty(size);
+
+    /**
+     * Returns the number of samples seen by the model.
+     */
+    //# exports.BiasedGk.samples = 0;
+    JsDeclareProperty(samples);
 
     /**
      * Returns the models current memory consumption.
