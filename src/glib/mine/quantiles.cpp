@@ -1486,7 +1486,6 @@ namespace TQuant {
             Eps(SIn),
             Rnd(SIn),
             Dir(SIn),
-            CompressStrategy(TCompressStrategy::csPeriodic),
             UseBands(SIn) {
         const TCh Cs(SIn);
 
@@ -1517,8 +1516,8 @@ namespace TQuant {
         Eps.Save(SOut);
         Rnd.Save(SOut);
         Dir.Save(SOut);
-        TCh(static_cast<std::underlying_type<TCompressStrategy>::type>(CompressStrategy)).Save(SOut);
         UseBands.Save(SOut);
+        TCh(static_cast<std::underlying_type<TCompressStrategy>::type>(CompressStrategy)).Save(SOut);
     }
 
     double TBiasedGk::GetQuantile(const double& CdfVal) const {

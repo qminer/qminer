@@ -788,56 +788,7 @@ namespace TQuant {
 
     using TUtils::operator<<;
 
-    class TBiasedGk;
-
     namespace TUtils {
-
-        /* namespace TGkUtils { */
-
-        /*     /////////////////////////////////// */
-        /*     /// GK summary based on a Glib vector */
-        /*     class TVecSummary { */
-        /*     public: */
-        /*         using TTuple = TGkMnUncertEqLeftTuple; */
-        /*         using TSummary = TVec<TTuple>; */
-
-        /*         TVecSummary(const double& Eps, const bool& UseBands=true); */
-
-        /*         // SERIALIZATION */
-        /*         TVecSummary(TSIn&); */
-        /*         void Save(TSOut&) const; */
-
-        /*         /// returns the quantile corresponding to the givem p-value */
-        /*         double Query(const double& PVal) const; */
-        /*         /// returns an array of quantile estimates */
-        /*         void Query(const TFltV& PValV, TFltV& QuantV) const; */
-        /*         /// inserts a new value into the summary */
-        /*         void Insert(const double&); */
-        /*         /// compresses the summary (if possible) */
-        /*         void Compress(); */
-        /*         /// returns the total number of samples seen by the summary */
-        /*         const TUInt64& GetSampleN() const { return SampleN; } */
-        /*         /// returns whether the summary uses the `bands` subprocedure */
-        /*         const TBool& IsUseBands() const { return UseBands; } */
-
-        /*         // DEBUGGING */
-        /*         uint GetSize() const { return Summary.Len(); } */
-        /*         uint64 GetMemUsed() const; */
-
-        /*         friend std::ostream& operator <<(std::ostream& os, const TVecSummary& Summary) { */
-        /*             return os << Summary.Summary; */
-        /*         } */
-
-        /*     private: */
-                /* uint GetMxTupleUncert() const; */
-                /* int GetBand(const TTuple&) const; */
-
-                /* TSummary Summary {}; */
-                /* TUInt64 SampleN {uint64(0)}; // current size of the summary, initializes to 0 */
-                /* TFlt Eps; */
-                /* TBool UseBands; */
-            /* }; */
-        /* } */
 
         namespace TTDigestUtils {
 
