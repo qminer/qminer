@@ -1,29 +1,30 @@
-var request = require("supertest");
-var makeServer = require('../server');
+var qminerBackend = require('../lib/qminerBackend');
+var assert = require('assert');
+
+var express = require('express');
+var app = express();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
 
 describe('Streamaggregate example test', function () {
-	// run server before each test
-	var server;
-	beforeEach(function () {
-		server = makeServer();		
+	this.timeout(10000);
+	var qmBackend;
+	before(function () {
+		qmBackend = new qminerBackend();
 	});
-	
+
 	// close server after each test
-    afterEach(function (done) {
-    	server.close(done);
+    after(function () {
+    	qmBackend.base.close();
     });
-  
+
     // test server
-	it('should responds to /', function (done) {
-		request(server)
-	    	.get('/')
-	    	.expect(200, done);
-	});
-	
-	// test server
-  	it('should repond 404 to everything else', function (done) {
-    	request(server)
-      		.get('/foo/bar')
-    		.expect(404, done);
+	it('shouldn\'t crash', function () {
+		assert.doesNotThrow(function () {
+			qmBackend.pushBrownianStats(qmBackend);
+			qmBackend.pushBrownianResampler(qmBackend);
+			qmBackend.pushGaussianMerger(qmBackend);
+			qmBackend.createIOStream(io);
+		});
 	});
 });
