@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -282,8 +282,8 @@ bool TThinMIn::GetNextLnBf(TChA& LnChA) {
 	return GetNextLn(LnChA);
 }
 
-TStr TThinMIn::GetSNm() const { 
-    return "Thin input memory"; 
+TStr TThinMIn::GetSNm() const {
+    return "Thin input memory";
 }
 /////////////////////////////////////////////////
 // Memory
@@ -357,7 +357,7 @@ void TMem::Del(const int& BChN, const int& EChN){
 void TMem::AddBf(const void* _Bf, const int& _BfL){
   IAssert((_BfL>=0) && (_Bf != NULL));
   Reserve(Len() + _BfL, false);
-  memcpy(Bf + BfL, _Bf, _BfL);  
+  memcpy(Bf + BfL, _Bf, _BfL);
   BfL+=_BfL;
   //char* ChBf=(char*)Bf;
   //for (int BfC=0; BfC<BfL; BfC++){
@@ -377,7 +377,7 @@ TStr TMem::GetAsStr(const char& NewNullCh) const {
 }
 
 TStr TMem::GetHexStr() const {
-	TChA ChA;	
+	TChA ChA;
 	for (int ChN = 0; ChN< BfL ; ChN++){
 		uchar Ch = uchar(Bf[ChN]);
 		char MshCh = TCh::GetHexCh((Ch / 16) % 16);
@@ -393,7 +393,7 @@ TMem TMem::GetFromHex(const TStr& Str) {
 	while (ChN<StrLen){
 		char MshCh = Str.GetCh(ChN); ChN++;
 		char LshCh = Str.GetCh(ChN); ChN++;
-		uchar Ch = uchar(TCh::GetHex(MshCh) * 16 + TCh::GetHex(LshCh));		
+		uchar Ch = uchar(TCh::GetHex(MshCh) * 16 + TCh::GetHex(LshCh));
 		ChA += Ch;
 	}
 	return TMem(ChA.CStr(), ChA.Len());
@@ -455,7 +455,7 @@ void TStr::Base64Decode(const TStr& In, TMem& Mem) {
 	unsigned char char_array_4[4], char_array_3[3];
 	Mem.Reserve(In.Len());
 	while (in_len-- && (In[in_] != '=') && is_base64(In[in_])) {
-		char_array_4[i++] = In[in_]; 
+		char_array_4[i++] = In[in_];
 		in_++;
 		if (i == 4) {
 			for (i = 0; i < 4; i++) {
@@ -509,13 +509,13 @@ bool TMemIn::GetNextLnBf(TChA& LnChA){
   return false;
 }
 
-TStr TMemIn::GetSNm() const { 
-  return "Input-Memory"; 
+TStr TMemIn::GetSNm() const {
+  return "Input-Memory";
 }
 
 /////////////////////////////////////////////////
 // Output-Memory
-TRefMemOut::TRefMemOut(TMem& _Mem): TSBase(), 
+TRefMemOut::TRefMemOut(TMem& _Mem): TSBase(),
     TSOut(), Mem(_Mem){}
 
 int TRefMemOut::PutBf(const void* LBf, const TSize& LBfL){
@@ -527,8 +527,8 @@ int TRefMemOut::PutBf(const void* LBf, const TSize& LBfL){
   return LBfS;
 }
 
-TStr TRefMemOut::GetSNm() const { 
-  return "Output-Reference-Memory"; 
+TStr TRefMemOut::GetSNm() const {
+  return "Output-Reference-Memory";
 }
 
 /////////////////////////////////////////////////
@@ -545,17 +545,30 @@ int TMemOut::PutBf(const void* LBf, const TSize& LBfL){
   return LBfS;
 }
 
-TStr TMemOut::GetSNm() const { 
-  return "Output-Memory"; 
+TStr TMemOut::GetSNm() const {
+  return "Output-Memory";
 }
 
 /////////////////////////////////////////////////
 // Char-Array
 void TChA::Resize(const int& _MxBfL){
-  if (_MxBfL<=MxBfL){return;}
-  else {if (MxBfL*2<_MxBfL){MxBfL=_MxBfL;} else {MxBfL*=2;}}
+  // Get max vale for MxBfL
+  const auto Max = std::numeric_limits<decltype(MxBfL)>::max() - 1;
+  // Make sure we got valid _MxBfL
+  IAssert(0 <= _MxBfL && _MxBfL < Max);
+  // Check if there is something to do
+  if (_MxBfL <= MxBfL) return;
+  // Check if _MxBfL at least twice larger then MxBf
+  // We devide to avoid overflow when multiplying with 2
+  if (_MxBfL / 2 >= MxBfL) { MxBfL = _MxBfL; }
+  // if not we try to dobule the size. In case we go under 0,
+  // which indicates overflow, we resort to max size
+  else { MxBfL *= 2; if (MxBfL < 0 || MxBfL > Max) MxBfL = Max; }
+  // Reserve new buffer
   char* NewBf=new char[MxBfL+1]; IAssert(NewBf!=NULL);
+  // Copy old contents ...
   strcpy(NewBf, Bf);
+  // and delete old buffer
   delete[] Bf; Bf=NewBf;
 }
 
@@ -880,8 +893,8 @@ bool TChAIn::GetNextLnBf(TChA& LnChA){
   return false;
 }
 
-TStr TChAIn::GetSNm() const { 
-  return "Input-Char-Array"; 
+TStr TChAIn::GetSNm() const {
+  return "Input-Char-Array";
 }
 
 /////////////////////////////////////////////////
@@ -932,7 +945,7 @@ TStr::TStr(TStr&& Str): Inner(nullptr) {
 TStr::TStr(const TChA& ChA): Inner(nullptr) {
     if (!ChA.Empty()) {
         Inner = new char[ChA.Len()+1];
-        strcpy(Inner, ChA.CStr());        
+        strcpy(Inner, ChA.CStr());
     }
 }
 
@@ -952,7 +965,7 @@ TStr::TStr(const TSStr& SStr): Inner(nullptr) {
 		strcpy(Inner, SStr.CStr());
 	}
 }
-  
+
 TStr::TStr(const PSIn& SIn): Inner(nullptr) {
 	const int SInLen = SIn->Len();
 	if (SInLen > 0) {
@@ -971,8 +984,8 @@ TStr::TStr(TSIn& SIn, const bool& IsSmall): Inner(nullptr) {
 		}
 	} else {
 		int BfL; SIn.Load(BfL);
-		if (BfL == 0) { 
-            EAssert(SIn.GetCh() == 0); 
+		if (BfL == 0) {
+            EAssert(SIn.GetCh() == 0);
         } else {
 			SIn.Load(Inner, BfL, BfL);
 		}
@@ -985,10 +998,10 @@ TStr::TStr(TSIn& SIn, const bool& IsSmall): Inner(nullptr) {
 }
 
 void TStr::Load(TSIn& SIn, const bool& IsSmall) {
-    *this = TStr(SIn, IsSmall); 
-} 
- 
-void TStr::Save(TSOut& SOut, const bool& IsSmall) const { 
+    *this = TStr(SIn, IsSmall);
+}
+
+void TStr::Save(TSOut& SOut, const bool& IsSmall) const {
     if (IsSmall){ SOut.Save(CStr()); }
     else { const int BfL = Len(); SOut.Save(BfL); SOut.Save(CStr(), BfL); }
 }
@@ -1042,7 +1055,7 @@ TStr& TStr::operator=(const char* CStr) {
 	return *this;
 }
 
-bool TStr::operator==(const char* _CStr) const { 
+bool TStr::operator==(const char* _CStr) const {
 	if (_CStr == nullptr) { return false; }
 	return (CStr() == _CStr) || (strcmp(CStr(), _CStr) == 0);
 }
@@ -1063,7 +1076,7 @@ void TStr::PutCh(const int& ChN, const char& Ch) {
 
 char TStr::GetCh(const int& ChN) const {
     // Assert index not negative, index not >= Length
-    Assert( (0 <= ChN) && (ChN < Len()) ); 
+    Assert( (0 <= ChN) && (ChN < Len()) );
     return Inner[ChN];
 }
 
@@ -1090,7 +1103,7 @@ void TStr::Clr() {
 	}
 }
 
-int TStr::GetMemUsed() const { 
+int TStr::GetMemUsed() const {
     return int(sizeof(TStr) + (Empty() ? 0 : (Len() + 1)));
 }
 
@@ -1141,12 +1154,12 @@ TStr& TStr::ToLc() {
 }
 
 TStr TStr::GetLc() const {
-    return TStr(*this).ToLc();	
+    return TStr(*this).ToLc();
 }
 
 TStr& TStr::ToCap() {
 	if (Empty()) { return *this; }
-	const int StrLen = Len();	
+	const int StrLen = Len();
 	// copy first char in uppercase
 	Inner[0] = (char)toupper(Inner[0]);
 	// copy all other chars in lowercase
@@ -1157,7 +1170,7 @@ TStr& TStr::ToCap() {
 }
 
 TStr TStr::GetCap() const{
-	return TStr(*this).ToCap();	
+	return TStr(*this).ToCap();
 }
 
 TStr& TStr::ToTrunc() {
@@ -1167,7 +1180,7 @@ TStr& TStr::ToTrunc() {
 
 TStr TStr::GetTrunc() const {
   int ThisLen = Len();
-  
+
   int BChN = 0;
   int EChN = ThisLen - 1;
 
@@ -1191,7 +1204,7 @@ TStr TStr::GetHex() const {
     char LshCh=TCh::GetHexCh(Ch%16);
     ChA+=MshCh; ChA+=LshCh;
   }
-  return TStr(ChA);  
+  return TStr(ChA);
 }
 
 
@@ -1234,9 +1247,9 @@ TStr TStr::GetSubStr(const int& BChN, const int& EChN) const {
 	return WrapCStr(Bf);
 }
 
-// safe version of GetSubStr(). 
+// safe version of GetSubStr().
 // Fixes BChN and EChN values that are outside of string's range
-// supports also negative indices (python like): 
+// supports also negative indices (python like):
 // GetSubStrSafe(0,-1) will return all but last char
 TStr TStr::GetSubStrSafe(const int& BChN, const int& EChN) const {
 	int StrLen = Len();
@@ -1289,9 +1302,9 @@ void TStr::DelChAll(const char& DelCh) {
 void TStr::DelSubStr(const int& BChN, const int& EChN) {
 	int StrLen = Len();
 	EAssertR(0 <= BChN && BChN <= EChN && EChN < StrLen, "TStr::DelSubStr index out of bounds");
-	
+
     int Chs = Len() - (EChN - BChN + 1);
-    if (Chs == 0) { 
+    if (Chs == 0) {
         // nothing left after delete, clear it all
         Clr();
     } else if (Chs < Len()) {
@@ -1554,7 +1567,7 @@ TStr TStr::Left(const int& EChN) const {
 }
 
 int TStr::CountCh(const char& Ch, const int& BChN) const {
-	const int ThisLen = Len();	
+	const int ThisLen = Len();
 	if(ThisLen == 0) { return 0; }
 	EAssertR(BChN >= 0 && BChN < ThisLen, "TStr::CountCh index BChN out of bounds!");
 
@@ -1604,7 +1617,7 @@ int TStr::SearchStr(const TStr& Str, const int& BChN) const {
 
   // special case for handling empty strings
   if (ThisLen == 0) { return Str.Empty() ? 0 : -1; }
-  
+
   const int NrBChN = BChN;
   const char* StrPt = strstr((const char*) CStr() + NrBChN, Str.CStr());
   if (StrPt == nullptr) { return -1; }
@@ -1658,7 +1671,7 @@ int TStr::ChangeChAll(const char& SrcCh, const char& DstCh) {
 int TStr::ChangeStr(const TStr& SrcStr, const TStr& DstStr, const int& BChN) {
 	if (Empty() && BChN == 0) { return -1; }
 	const int ChN = SearchStr(SrcStr, BChN);
-	if (ChN != -1){		
+	if (ChN != -1){
         DelSubStr(ChN, ChN + SrcStr.Len() - 1);
         InsStr(ChN, DstStr);
 	}
@@ -1720,7 +1733,7 @@ int TStr::ChangeStrAll(const TStr& SrcStr, const TStr& DstStr) {
 	// insert null character
 	ResStr[Length + NMatches*(DstLen - SrcLen)] = 0;
 	// replace with the new string
-	*this = WrapCStr(ResStr);   
+	*this = WrapCStr(ResStr);
     // return number of changes
     return NMatches;
 }
@@ -2174,10 +2187,10 @@ TStr TStr::GetSpaceStr(const int& Spaces) {
     if (Spaces == 0) { return TStr(); }
     // we have more, go for it
 	char *NewBf = new char[Spaces + 1];
-	for (int SpaceN = 0; SpaceN < Spaces; SpaceN++) { 
+	for (int SpaceN = 0; SpaceN < Spaces; SpaceN++) {
         NewBf[SpaceN] = ' ';
     }
-	NewBf[Spaces] = 0; 
+	NewBf[Spaces] = 0;
 	return WrapCStr(NewBf);
 }
 
@@ -2215,8 +2228,8 @@ TStr operator+(const TStr& LStr, const char Ch) {
 	const size_t RightLen = 1;
 
 	// check if any of the strings are empty
-	if (LeftLen == 0) { return TStr(Ch); } 
-	else if (RightLen == 0) { return LStr; } 
+	if (LeftLen == 0) { return TStr(Ch); }
+	else if (RightLen == 0) { return LStr; }
 	else {
 		const char* LCStr = LStr.CStr();
 
@@ -2276,7 +2289,7 @@ bool TStr::IsUInt64(TChRet& Ch, const bool& Check, const uint64& MnVal, const ui
 /////////////////////////////////////////////////
 // Input-String
 TStrIn::TStrIn(const TStr& _Str, const bool& MakeCopyP) :
-  TSBase(), TSIn(), OwnP(MakeCopyP), 
+  TSBase(), TSIn(), OwnP(MakeCopyP),
   Bf(MakeCopyP ? _Str.CloneCStr() : _Str.CStr()), BfC(0), BfL(_Str.Len()){}
 
 PSIn TStrIn::New(const TStr& Str, const bool& MakeCopyP){
@@ -2297,8 +2310,8 @@ bool TStrIn::GetNextLnBf(TChA& LnChA){
   return false;
 }
 
-TStr TStrIn::GetSNm() const { 
-  return "Input-String"; 
+TStr TStrIn::GetSNm() const {
+  return "Input-String";
 }
 
 /////////////////////////////////////////////////
@@ -2394,14 +2407,14 @@ TStrPool64::TStrPool64(::TSize _MxBfL, ::TSize _GrowBy):
   AddStr("");
 }
 
-TStrPool64::TStrPool64(const TStrPool64& StrPool): 
+TStrPool64::TStrPool64(const TStrPool64& StrPool):
   MxBfL(StrPool.MxBfL), BfL(StrPool.BfL), GrowBy(StrPool.GrowBy) {
   if (Bf != NULL) { free(Bf); } else { IAssert(MxBfL == 0); }
-  Bf = (char*)malloc(StrPool.MxBfL); IAssert(Bf != NULL); 
+  Bf = (char*)malloc(StrPool.MxBfL); IAssert(Bf != NULL);
   memcpy(Bf, StrPool.Bf, BfL);
 }
 
-TStrPool64::TStrPool64(TSIn& SIn, bool LoadCompact): 
+TStrPool64::TStrPool64(TSIn& SIn, bool LoadCompact):
   MxBfL(0), BfL(0), GrowBy(0), Bf(0) {
   uint64 _GrowBy, _MxBfL, _BfL;
   SIn.Load(_GrowBy); SIn.Load(_MxBfL); SIn.Load(_BfL);
@@ -2423,18 +2436,18 @@ TStrPool64& TStrPool64::operator=(const TStrPool64& StrPool) {
   if (this != &StrPool) {
   GrowBy = StrPool.GrowBy;  MxBfL = StrPool.MxBfL;  BfL = StrPool.BfL;
   if (Bf != NULL) { free(Bf); } else { IAssert(MxBfL == 0); }
-  Bf = (char*)malloc(MxBfL); IAssert(Bf != NULL); 
+  Bf = (char*)malloc(MxBfL); IAssert(Bf != NULL);
   memcpy(Bf, StrPool.Bf, BfL);
   }
   return *this;
 }
 
-void TStrPool64::Clr(bool DoDel) { 
-  BfL = 0; 
-  if (DoDel && (Bf!=NULL)) { 
-    free(Bf); 
-    Bf = NULL; MxBfL = 0; 
-  } 
+void TStrPool64::Clr(bool DoDel) {
+  BfL = 0;
+  if (DoDel && (Bf!=NULL)) {
+    free(Bf);
+    Bf = NULL; MxBfL = 0;
+  }
 }
 
 uint64 TStrPool64::AddStr(const TStr& Str) {
@@ -2783,7 +2796,7 @@ bool TUInt::IsIpv6Str(const TStr& IpStr, const char& SplitCh) {
 	for (int IpStrN = 0; IpStrN < IpStrV.Len(); IpStrN++) {
 		if (IpStrV[IpStrN].Empty()) { continue; }
 		if (IpStrV[IpStrN].IsHexInt(true, 0x0000, 0xFFFF, Group)) { continue; }
-		return false; 
+		return false;
 	}
 	// all fine
 	return true;
