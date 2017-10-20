@@ -272,7 +272,7 @@ TILx::TILx(const PSIn& _SIn, const TFSet& OptSet, const TLxChDefTy& ChDefTy):
   PrevSymStStack(), RwStrH(50),
   IsCmtAlw(false), IsRetEoln(false), IsSigNum(false),
   IsUniStr(false), IsCsSens(false), IsExcept(false),
-  IsTabSep(false), IsList(false),
+  IsTabSep(false), IsList(false), IsIgnoreEscape(false),
   Sym(syUndef),
   Str(), UcStr(), CmtStr(),
   Bool(false), Int(0), Flt(0),
@@ -291,6 +291,7 @@ void TILx::SetOpt(const int& Opt, const bool& Val){
     case iloExcept: IsExcept=Val; break;
     case iloTabSep: IsTabSep=Val; break;
     case iloList: IsList=Val; break;
+    case iloIgnoreEscape: IsIgnoreEscape=Val; break;
     default: Fail;
   }
 }
@@ -403,7 +404,13 @@ TLxSym TILx::GetSym(const TFSet& Expect){
               TUnicode::EncodeUtf8(UChCd, Str);
               TUnicode::EncodeUtf8(UChCd, UcStr); }
               GetCh(); break;
-            default: Sym=syUndef; break;
+            default:
+              if (IsIgnoreEscape) {
+                Str.AddCh(Ch); UcStr.AddCh(ChDef.GetUc(Ch)); GetCh();
+              } else {
+                Sym=syUndef;
+              }
+              break;
           }
           if (Sym==syUndef){
             throw PExcept(new TExcept("Invalid Escape Sequence in Quoted String"));}

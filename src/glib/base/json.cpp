@@ -318,12 +318,12 @@ void TJsonVal::AssertObjKeyBool(const TStr& Key, const TStr& Fun) {
 
 uint64 TJsonVal::GetMemUsed() const {
   return sizeof(TJsonVal) +
-           // JsonValType is an enum and is already counted
-           TMemUtils::GetExtraMemberSize(Bool) +
-           TMemUtils::GetExtraMemberSize(Num) +
-           TMemUtils::GetExtraMemberSize(Str) +
-           TMemUtils::GetExtraMemberSize(ValV) +
-           TMemUtils::GetExtraMemberSize(KeyValH);
+    // JsonValType is an enum and is already counted
+    TMemUtils::GetExtraMemberSize(Bool) +
+    TMemUtils::GetExtraMemberSize(Num) +
+    TMemUtils::GetExtraMemberSize(Str) +
+    TMemUtils::GetExtraMemberSize(ValV) +
+    TMemUtils::GetExtraMemberSize(KeyValH);
 }
 
 PJsonVal TJsonVal::GetValFromLx(TILx& Lx){
@@ -373,7 +373,7 @@ PJsonVal TJsonVal::GetValFromLx(TILx& Lx){
 }
 
 PJsonVal TJsonVal::GetValFromSIn(const PSIn& SIn, bool& Ok, TStr& MsgStr){
-  TILx Lx(SIn, TFSet()|iloCmtAlw|iloCsSens|iloExcept|iloSigNum);
+  TILx Lx(SIn, TFSet()|iloCmtAlw|iloCsSens|iloExcept|iloSigNum|iloIgnoreEscape);
   PJsonVal Val;
   try {
     Lx.GetSym(TFSet()|syIdStr|syFlt|syQStr|syLBracket|syLBrace);
