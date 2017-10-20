@@ -23,15 +23,15 @@ if errorlevel 1 (
    exit /b %errorlevel%
 )
 
-SET EXAMPLES_PATH=.\..\..\examples\streamaggregate
-cd %EXAMPLES_PATH%
+rem SET EXAMPLES_PATH=.\..\..\examples\streamaggregate
+rem cd %EXAMPLES_PATH%
 
-call npm install --silent > npm_install.log
-call npm test
-if errorlevel 1 (
-   echo Failure Reason Given is %errorlevel%
-   cd %CURRENT_PATH%
-   exit /b %errorlevel%
-)
+rem call npm install --silent > npm_install.log
+rem call npm test
+rem if errorlevel 1 (
+rem    echo Failure Reason Given is %errorlevel%
+rem    cd %CURRENT_PATH%
+rem    exit /b %errorlevel%
+rem )
 
 cd %CURRENT_PATH%
