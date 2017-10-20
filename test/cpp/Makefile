@@ -65,6 +65,8 @@ TEST_SRCS += test-linalg.cpp
 TEST_SRCS += test-tuple.cpp
 TEST_SRCS += test-quantiles.cpp
 TEST_SRCS += test-TVec.cpp
+TEST_SRCS += test-TJsonVal.cpp
+TEST_SRCS += test-misc.cpp
 
 # transform to list of object files
 TEST_OBJS = $(TEST_SRCS:.cpp=.o)
