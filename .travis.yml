@@ -8,13 +8,13 @@ language: node_js
 addons:
   apt:
     sources: [ 'ubuntu-toolchain-r-test' ]
-    packages: [ 'gcc-4.8', 'g++-4.8', 'gcc-4.8-multilib', 'g++-4.8-multilib', 'libc6-dev-i386', 'linux-libc-dev:i386' ]
+    packages: [ 'gcc-4.8', 'g++-4.8', 'gcc-4.8-multilib', 'g++-4.8-multilib', 'libc6-dev-i386', 'linux-libc-dev:i386', 'libgtest-dev' ]
 
 node_js:
   - 6
   - 8
 
-env: 
+env:
   - CXXFLAGS=-std=c++0x CC=gcc-4.8 CXX=g++-4.8
 
 matrix:
@@ -57,10 +57,11 @@ script:
   - npm install -g mustache
   - ./tools/genExampleTests.sh
   - ./test/nodejs/test.sh
+  - cd test/cpp; make
 
 os: linux
 notifications:
-  email:  
+  email:
   - blaz.fortuna@ijs.si
   - jan.rupnik@ijs.si
   - viktor@carvic.si
