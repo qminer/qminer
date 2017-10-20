@@ -1282,7 +1282,7 @@ public:
     TUniCaseFolding caseFolding;
     // These hash tables contain only the unconditional mappings from SpecialCasing.txt.
     // The conditional mappings are hardcoded into GetCaseConverted().
-    TIntIntVH specialCasingLower, specialCasingUpper, specialCasingTitle;
+    TIntIntVH specialCasingLower, specialCasingUpper, specialCasingTitle, specialUnknown;
     int scriptUnknown; // = scripts.GetKey("Unknown")
 
     TUniChDb() : scriptUnknown(-1) { }
@@ -1689,7 +1689,7 @@ protected:
                 else comment += char(c); }
                 /*first = false;*/}
     private:
-        TUcdFileReader& operator = (const TUcdFileReader& r) { Fail; return *((TUcdFileReader *) 0); }
+        TUcdFileReader& operator = (const TUcdFileReader& r) { Fail; throw TExcept::New("Fail"); }
         TUcdFileReader(const TUcdFileReader& r) { Fail; }
     public:
         TUcdFileReader() : f(0) { }
@@ -2832,7 +2832,10 @@ void TUniChDb::GetCaseConverted(const TSrcVec& src, size_t srcIdx, const size_t 
                                 const TUniChDb::TCaseConversion how,
                                 const bool turkic, const bool lithuanian) const
 {
-    const TIntIntVH &specials = (how == ccUpper ? specialCasingUpper : how == ccLower ? specialCasingLower : how == ccTitle ? specialCasingTitle : *((TIntIntVH *) 0));
+    const TIntIntVH &specials = (
+        how == ccUpper ? specialCasingUpper :
+        how == ccLower ? specialCasingLower :
+        how == ccTitle ? specialCasingTitle : specialUnknown);
     if (clrDest) dest.Clr();
     enum {
         GreekCapitalLetterSigma = 0x3a3,
@@ -3033,7 +3036,7 @@ void TUniChDb::GetCaseConverted(const TSrcVec& src, size_t srcIdx, const size_t 
             howHere == how ? specials :
             howHere == ccLower ? specialCasingLower :
             howHere == ccTitle ? specialCasingTitle :
-            howHere == ccUpper ? specialCasingUpper : *((TIntIntVH *) 0));
+            howHere == ccUpper ? specialCasingUpper : specialUnknown);
         int i = specHere.GetKeyId(cp);
         if (i >= 0) { TUniCaseFolding::AppendVector(specHere[i], dest); continue; }
         // Try to use the simple (one-character) mappings.
