@@ -103,19 +103,10 @@ public:
     ~TNodeJsSvmModel() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 private:
     // parameters
-    TStr Algorithm;
-    double SvmCost;
-    double SvmUnbalance; // classification specific
-    double SvmEps; // regression specific
-    int SampleSize;
-    int MxIter;
-    int MxTime;
-    double MnDiff;
-    bool Verbose;
-    TWPt<TNotify> Notify;
-
+    TStr Algorithm; /// SGD, LIBSVM
+    
     // model
-    TSvm::TLinModel Model;
+    TSvm::TSvmModel* Model = NULL;
 
     TNodeJsSvmModel(const PJsonVal& ParamVal);
     TNodeJsSvmModel(TSIn& SIn);
@@ -129,7 +120,7 @@ public:
     JsDeclareFunction(setParams);
     //- `vec = svmModel.weights` -- weights of the SVM linear model as a full vector `vec`
     JsDeclareProperty(weights);
-    //- `num = svmModel.bias` -- bias of a SVM model (number)
+    //- `vec = svmModel.bias` -- weights of the SVM linear model as a full vector `vec`
     JsDeclareProperty(bias);
     //- `fout = svmModel.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
     JsDeclareFunction(save);
@@ -153,14 +144,22 @@ private:
 /**
 * @typedef {Object} SVMParam
 * SVM constructor parameters. Used for the construction of {@link module:analytics.SVC} and {@link module:analytics.SVR}.
-* @property  {string} [algorithm='SGD'] - The algorithm procedure. Possible options are `'SGD'`, `'PR_LOQO'` and `'LIBSVM'`.
+* @property  {string} [algorithm='SGD'] - The algorithm procedure. Possible options are `'SGD'` and `'LIBSVM'`. `'PR_LOQO'`is not supported anymore.
 * @property  {number} [c=1.0] - Cost parameter. Increasing the parameter forces the model to fit the training data more accurately (setting it too large may lead to overfitting) .
-* @property  {number} [j=1.0] - Unbalance parameter. Increasing it gives more weight to the positive examples (getting a better fit on the positive training examples gets a higher priority). Setting c=n is like adding n-1 copies of the positive training examples to the data set.
-* @property  {number} [eps=1e-1] - Epsilon insensitive loss parameter. Larger values result in fewer support vectors (smaller model complexity)
+* @property  {number} [j=1.0] - Unbalance parameter. Increasing it gives more weight to the positive examples (getting a better fit on the positive training examples gets a higher priority). Setting j=n is like adding n-1 copies of the positive training examples to the data set.
+* @property  {number} [eps=1e-3] - Epsilon insensitive loss parameter. Larger values result in fewer support vectors (smaller model complexity)
 * @property  {number} [batchSize=1000] - Number of examples used in the subgradient estimation. Higher number of samples slows down the algorithm, but makes the local steps more accurate.
 * @property  {number} [maxIterations=10000] - Maximum number of iterations.
 * @property  {number} [maxTime=1] - Maximum runtime in seconds.
 * @property  {number} [minDiff=1e-6] - Stopping criterion tolerance.
+* @property  {string} [type='C_SVC'] - The subalgorithm procedure in LIBSVM. Possible options are `'C_SVC'`, `'NU_SVC'` and `'ONE_CLASS'` for classification and `'EPSILON_SVR'`, `'NU_SVR'` and `'ONE_CLASS'` for regression.
+* @property  {string} [kernel='LINEAR'] - Kernel type in LIBSVM. Possible options are `'LINEAR'`, `'POLY'`, 'RBF'`, 'SIGMOID'`  and `'PRECOMPUTED'`.
+* @property  {number} [gamma=1.0] - Gamma parameter in LIBSVM. Set gamma in kernel function.
+* @property  {number} [p=1e-1] - P parameter in LIBSVM. Set the epsilon in loss function of epsilon-SVR.
+* @property  {number} [degree=1] - Degree parameter in LIBSVM. Set degree in kernel function.
+* @property  {number} [nu=1e-2] - Nu parameter in LIBSVM. Set the parameter nu of nu-SVC, one-class SVM, and nu-SVR.
+* @property  {number} [coef0=1.0] - Coef0 parameter in LIBSVM. Set coef0 in kernel function.
+* @property  {number} [cacheSize=100] - Set cache memory size in MB (default 100) in LIBSVM.
 * @property  {boolean} [verbose=false] - Toggle verbose output in the console.
 */
 

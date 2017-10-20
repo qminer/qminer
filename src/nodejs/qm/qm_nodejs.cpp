@@ -401,7 +401,7 @@ TNodeJsBase::TNodeJsBase(const TStr& DbFPath_, const TStr& SchemaFNm, const PJso
     if (ForceCreate) {
         if (TDir::Exists(DbFPath)) {
             // delete only qminer stuff!
-            TFile::Del(TPath::Combine(DbFPath, LockFNm), false);
+            TFile::Del(LockFNm, false);
             // json files
             TFile::Del(TPath::Combine(DbFPath, "Base.json"), false);
             TFile::Del(TPath::Combine(DbFPath, "StoreList.json"), false);

@@ -161,6 +161,14 @@ describe("SVC test", function () {
                 SVC.setParams();
             });
         })
+        it('should throw an exception if the algorithm has changed', function () {
+            var matrix = new la.Matrix([[1, -1], [0, 0]]);
+            var vec = new la.Vector([1, -1]);
+            var SVC = new analytics.SVC();
+            assert.throws(function () {
+                SVC.setParams({ algorithm: "LIBSVM", kernel: "RBF" });
+            });
+        })
     });
 
     describe("Weights tests", function () {
@@ -176,6 +184,20 @@ describe("SVC test", function () {
             assert.equal(Vec.length, 0);
         })
 
+    });
+    
+    describe("Bias tests", function () {
+        it("should return zero", function () {
+            var SVC = new analytics.SVC();
+            var num = SVC.weights;
+            assert.equal(num, 0);
+        })
+        it("should return zero even if the parameters have been changed", function () {
+            var SVC = new analytics.SVC();
+            SVC.setParams({ j: 3, maxTime: 2 });
+            var num = SVC.weights;
+            assert.equal(num, 0);
+        })
     });
 
     describe("GetModel tests", function () {
@@ -441,8 +463,8 @@ describe("SVC test", function () {
             var vec = new la.Vector([1, -1]);
             var SVC = new analytics.SVC();
             SVC.fit(matrix, vec);
-			SVC.save(require('qminer').fs.openWrite('svr_test.bin')).close();
-            var SVC2 = new analytics.SVC(require('qminer').fs.openRead('svr_test.bin'));
+			SVC.save(require('qminer').fs.openWrite('svc_test.bin')).close();
+            var SVC2 = new analytics.SVC(require('qminer').fs.openRead('svc_test.bin'));
             assert.deepEqual(SVC.getParams(), SVC2.getParams());
             assert.eqtol(SVC.weights.minus(SVC2.weights).norm(), 0, 1e-8);
         })
