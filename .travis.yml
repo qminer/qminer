@@ -53,11 +53,11 @@ install:
   - npm install --build-from-source $NPMOPT $QMDEBUG
 
 script:
+  - ./test/cpp/test.sh
   - npm install -g mocha
   - npm install -g mustache
   - ./tools/genExampleTests.sh
   - ./test/nodejs/test.sh
-  - cd test/cpp; make
 
 os: linux
 notifications:
