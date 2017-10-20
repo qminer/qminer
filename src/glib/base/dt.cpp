@@ -553,7 +553,7 @@ TStr TMemOut::GetSNm() const {
 // Char-Array
 void TChA::Resize(const int& _MxBfL){
   // Get max vale for MxBfL
-  const auto Max = std::numeric_limits<decltype(MxBfL)>::max() - 1;
+  const auto Max = TInt::Mx - 1;
   // Make sure we got valid _MxBfL
   IAssert(0 <= _MxBfL && _MxBfL < Max);
   // Check if there is something to do
