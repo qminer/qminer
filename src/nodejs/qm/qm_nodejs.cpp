@@ -276,7 +276,7 @@ void TNodeJsQm::flags(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo
     JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "gcc")), v8::Boolean::New(Isolate, false));
 #endif
 
-#ifdef Glib_CLANG
+#ifdef GLib_CLANG
     JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "clang")), v8::String::NewFromUtf8(Isolate, __clang_version__));
 #else
     JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "clang")), v8::Boolean::New(Isolate, false));

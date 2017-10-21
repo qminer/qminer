@@ -13,11 +13,11 @@ double TMath::Pi=3.14159265358979323846;
 double TMath::LogOf2=log(double(2));
 
 uint TMath::FloorLog2(const uint& Val) {
-#if defined(Glib_GCC)
+#if defined(GLib_GCC)
     return (unsigned) (8 * sizeof(uint) - __builtin_clz(Val) - 1);
-#elif defined(Glib_CLANG)
+#elif defined(GLib_CLANG)
     return (unsigned) (8 * sizeof(uint) - __builtin_clz(Val) - 1);
-#elif defined(Glib_MSC)
+#elif defined(GLib_MSC)
     return (unsigned) (8 * sizeof(uint) - __lzcnt(Val) - 1);
 #else
     Fail; return 0;
@@ -25,11 +25,11 @@ uint TMath::FloorLog2(const uint& Val) {
 }
 
 uint64 TMath::FloorLog2(const uint64& Val) {
-#if defined(Glib_GCC)
+#if defined(GLib_GCC)
     return (unsigned) (8 * sizeof(uint64) - __builtin_clzll(Val) - 1);
-#elif defined(Glib_CLANG)
+#elif defined(GLib_CLANG)
     return (unsigned) (8 * sizeof(uint64) - __builtin_clzll(Val) - 1);
-#elif defined(Glib_MSC)
+#elif defined(GLib_MSC)
     return (unsigned) (8 * sizeof(uint64) - __lzcnt64(Val) - 1);
 #else
     Fail; return 0;

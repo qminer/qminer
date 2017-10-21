@@ -57,7 +57,7 @@ typedef long long index_t;
   #endif
 #endif
 #if defined (__clang__)
-  #define Glib_CLANG
+  #define GLib_CLANG
 #endif
 
 // if you need to compile with older compiler (C++98 standard)
@@ -139,7 +139,7 @@ typedef long long index_t;
 
 #if defined(GLib_MACOSX)
   // On OS X Maverics there is no default support for OpenMP
-#elif defined(Glib_CLANG)
+#elif defined(GLib_CLANG)
   // Default clang on Linux also does not support OpenMP
 #else
   #define GLib_OPENMP
