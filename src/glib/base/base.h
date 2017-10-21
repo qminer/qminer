@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -55,6 +55,9 @@ typedef long long index_t;
     #undef _CMPWARN
     #define _CMPWARN __attribute__ ((deprecated))
   #endif
+#endif
+#if defined (__clang__)
+  #define Glib_CLANG
 #endif
 
 // if you need to compile with older compiler (C++98 standard)
@@ -136,7 +139,7 @@ typedef long long index_t;
 
 #if defined(GLib_MACOSX)
   // On OS X Maverics there is no default support for OpenMP
-#elif defined(__clang__)
+#elif defined(Glib_CLANG)
   // Default clang on Linux also does not support OpenMP
 #else
   #define GLib_OPENMP
