@@ -203,6 +203,8 @@ public:
     const TItem& GetItem(const int& ItemN) const;
     /// Get items into vector
     void GetItemV(TVec<TItem>& _ItemV);
+    /// Go over all children and working buffer and pass it to HandleItemV function
+    template <typename THandler> void GetItemV(THandler& Handler);
     /// Delete specified item from this itemset
     void DelItem(const TItem& Item);
     /// Clear all items from this itemset
@@ -383,6 +385,8 @@ public:
     PGixItemSet GetItemSet(const TBlobPt& Pt) const;
     /// Get items for given key
     void GetItemV(const TKey& Key, TVec<TItem>& ItemV) const;
+    /// Go over all children and working buffer and pass it to HandleItemV function
+    template <typename THandler> void GetItemV(const TKey& Key, THandler& Handler) const;
     /// for storing item sets from cache to blob
     TBlobPt StoreItemSet(const TBlobPt& KeyId);
     /// for deleting itemset from cache and blob
