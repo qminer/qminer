@@ -46,7 +46,7 @@ $(MAIN): $(MAIN).o $(BUILD)/glib.a $(BUILD)/qminer.a
 	$(CC) $(CXXFLAGS) -c $<
 
 qminer:
-	cd ../../..; node-gyp build --jobs 20
+	cd ../../..; node-gyp configure build --jobs 20
 
 test: $(MAIN)
 	./$(MAIN)
