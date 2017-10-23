@@ -29,7 +29,11 @@ void TNodeJsQm::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_METHOD(exports, "stats", _stats);
 
     // Add properties
-    exports->SetAccessor(v8::String::NewFromUtf8(Isolate, "flags"), _flags);
+    exports->SetAccessor(Isolate->GetCurrentContext(),
+      v8::String::NewFromUtf8(Isolate, "flags"), _flags);
+    //v8::Maybe<bool> Res = exports->SetAccessor(
+    //  Isolate->GetCurrentContext(),
+    //  v8::String::NewFromUtf8(Isolate, "flags"), _flags);
 
     // initialize QMiner environment
     TQm::TEnv::Init();
@@ -213,7 +217,7 @@ void TNodeJsQm::stats(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     Args.GetReturnValue().Set(Result);
 }
 
-void TNodeJsQm::flags(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsQm::flags(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 

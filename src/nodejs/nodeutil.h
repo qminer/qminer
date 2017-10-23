@@ -32,6 +32,19 @@
         } \
     };
 
+#define JsDeclareProperty2(Function) \
+    static void Function(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
+    static void _ ## Function(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
+        v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
+        v8::HandleScope HandleScope(Isolate); \
+        try { \
+            Function(Name, Info); \
+        } catch (const PExcept& Except) { \
+            Isolate->ThrowException(v8::Exception::TypeError( \
+            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
+        } \
+    };
+
 #define JsDeclIndexedProperty(Function) \
     static void Function(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info); \
     static void _ ## Function(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
