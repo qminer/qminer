@@ -1,0 +1,55 @@
+[
+    // used for the the Stat/Smooth chart
+    {
+        "name": "Stats",
+        "fields": [
+            { "name": "Value", "type": "float" },
+            { "name": "Time", "type": "datetime" }
+        ]
+    },
+    {
+        "name": "Average",
+        "fields": [
+            { "name": "Value", "type": "float" },
+            { "name": "Time", "type": "datetime" }
+        ]
+    },
+    // used for the resampler chart
+    {
+        "name": "Random",
+        "fields": [
+            { "name": "Value", "type": "float" },
+            { "name": "Time", "type": "datetime" }
+        ]
+    },
+    {
+        "name": "Resampler",
+        "fields": [
+            { "name": "Value", "type": "float" },
+            { "name": "Time", "type": "datetime" }
+        ]
+    },
+    // used for the merger charts
+    {
+        "name": "Gauss",
+        "fields": [
+            { "name": "Value", "type": "float" },
+            { "name": "Time", "type": "datetime" }
+        ]
+    },
+    {
+        "name": "OtherGauss",
+        "fields": [
+            { "name": "Value", "type": "float" },
+            { "name": "Time", "type": "datetime" }
+        ]
+    },
+    {
+        "name": "Merger",
+        "fields": [
+            { "name": "FirstValue", "type": "float" },
+            { "name": "SecondValue", "type": "float" },
+            { "name": "Time", "type": "datetime" }
+        ]
+    }
+]

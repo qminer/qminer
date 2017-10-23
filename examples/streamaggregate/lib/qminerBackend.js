@@ -18,61 +18,7 @@ class QMinerBackend {
     _createBase() {
         this.base = new qm.Base({
             mode: 'createClean',
-            schema: [
-                // used for the the Stat/Smooth chart
-                {
-                    name: 'Stats',
-                    fields: [
-                        { name: 'Value', type: 'float' },
-                        { name: 'Time', type: 'datetime' }
-                    ]
-                },
-                {
-                    name: 'Average',
-                    fields: [
-                        { name: 'Value', type: 'float' },
-                        { name: 'Time', type: 'datetime' }
-                    ]
-                },
-                // used for the resampler chart
-                {
-                    name: 'Random',
-                    fields: [
-                        { name: 'Value', type: 'float' },
-                        { name: 'Time', type: 'datetime' }
-                    ]
-                },
-                {
-                    name: 'Resampler',
-                    fields: [
-                        { name: 'Value', type: 'float' },
-                        { name: 'Time', type: 'datetime' }
-                    ]
-                },
-                // used for the merger charts
-                {
-                    name: 'Gauss',
-                    fields: [
-                        { name: 'Value', type: 'float' },
-                        { name: 'Time', type: 'datetime' }
-                    ]
-                },
-                {
-                    name: 'OtherGauss',
-                    fields: [
-                        { name: 'Value', type: 'float' },
-                        { name: 'Time', type: 'datetime' }
-                    ]
-                },
-                {
-                    name: 'Merger',
-                    fields: [
-                        { name: 'FirstValue', type: 'float' },
-                        { name: 'SecondValue', type: 'float' },
-                        { name: 'Time', type: 'datetime' }
-                    ]
-                }
-            ]
+            schemaPath: __dirname + '/schema.json'
         });
     }
 
@@ -81,7 +27,7 @@ class QMinerBackend {
      * @param {String} storeName - Store name.
      * @param {Object} opts - The stream aggr options.
      */
-    _addStreamAggr(opts, storeName, singleStore=false) {
+    _addStreamAggr(singleStore, opts, storeName) {
         if (singleStore) {
             this.base.store(storeName).addStreamAggr(opts);
         } else {
@@ -94,8 +40,8 @@ class QMinerBackend {
      */
     _loadSteamAggr() {
         let streamAggrOpts = require('./streamAggrOpts');
-        streamAggrOpts.singleStore.forEach(el => this._addStreamAggr(el.opts, el.store, true));
-        streamAggrOpts.multiStore.forEach(el => this._addStreamAggr(el.opts));
+        streamAggrOpts.singleStore.forEach(el => this._addStreamAggr(true, el.opts, el.store));
+        streamAggrOpts.multiStore.forEach(el => this._addStreamAggr(false, el.opts));
     }
 
     /**
@@ -141,13 +87,14 @@ class QMinerBackend {
 
     /**
      * Add a new stream aggregate for sending data via socket.
+     * @param {Boolean} mergerFlag - Select socket object.
      * @param {String} storeName - Store name.
      * @param {String} streamName - Stream name.
      * @param {Socket} io - The socket library.
      * @param {String} socketName - Socket name.
-     * @param {Boolean} merger - Select socket object.
+
      */
-    _addNewStreamAggr(storeName, streamName, io, socketName, merger=false) {
+    _addNewStreamAggr(mergerFlag, storeName, streamName, io, socketName) {
         // creates socket emit object
         function createSocketObj(rec, merger) {
             return merger ? {
@@ -164,7 +111,7 @@ class QMinerBackend {
             this.name = streamName;
             this.onAdd = function (rec) {
                 if (io.sockets.connected) {
-                    io.sockets.emit(socketName, createSocketObj(rec, merger));
+                    io.sockets.emit(socketName, createSocketObj(rec, mergerFlag));
                 }
             };
             this.saveJson = function (limit) {
@@ -180,7 +127,7 @@ class QMinerBackend {
     createIOStream(io) {
         require('./streamAggrOpts').emitSocketOpts.forEach(el => {
             let mergerFlag = el.storeName === "Merger";
-            this._addNewStreamAggr(el.storeName, el.streamName, io, el.socketName, mergerFlag);
+            this._addNewStreamAggr(mergerFlag, el.storeName, el.streamName, io, el.socketName);
         });
     }
 }
