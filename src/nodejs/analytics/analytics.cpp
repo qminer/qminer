@@ -2472,8 +2472,7 @@ TNodeJsKMeans::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Arg
             v8::Handle<v8::Array> Arr = v8::Handle<v8::Array>::Cast(Args[1]);
             const int Len = Arr->Length();
             JsArr = new TNodeJsIntV(Len);
-
-            for (int ElN = 0; ElN < Len; ElN++) { JsArr->Vec[ElN] = Arr->Get(ElN)->ToInt32()->Value(); }
+            TNodeJsUtil::GetArgIntV(Args, 1, JsArr->Vec);
         }
         else {
             throw TExcept::New("KMeans.fit: second argument expected to be an IntVector or Array!");
@@ -3338,8 +3337,7 @@ TNodeJsDpMeans::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Ar
             v8::Handle<v8::Array> Arr = v8::Handle<v8::Array>::Cast(Args[1]);
             const int Len = Arr->Length();
             JsArr = new TNodeJsIntV(Len);
-
-            for (int ElN = 0; ElN < Len; ElN++) { JsArr->Vec[ElN] = Arr->Get(ElN)->ToInt32()->Value(); }
+            TNodeJsUtil::GetArgIntV(Args, 1, JsArr->Vec);
         }
         else {
             throw TExcept::New("DpMeans.fit: second argument expected to be an IntVector or Array!");

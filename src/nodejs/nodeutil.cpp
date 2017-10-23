@@ -551,7 +551,7 @@ void TNodeJsUtil::GetArgIntV(const v8::FunctionCallbackInfo<v8::Value>& Args, co
     v8::Array* JsIntV = v8::Array::Cast(*Args[ArgN]);
 
     const int Len = JsIntV->Length();
-    IntV.Gen(Len);
+    if (IntV.Len() != Len) { IntV.Gen(Len); }
 
     for (int i = 0; i < Len; i++) {
         v8::Local<v8::Value> Val = JsIntV->Get(i);
