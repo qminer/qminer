@@ -1,5 +1,38 @@
 # QMiner Change Log
 
+## 6 October 2017
+
+**Version 9.0.0**
+
+**Breaking with new features**
+
+Breaking changes:
+- SVC and SVR models are backward binary incompatible
+
+Features:
+- LIBSVM nonlinear classification supported (previously only linear models were wrapped)
+- Active learning (javascript implementation in analytics module): uses SVC (preferably LIBSVC)
+  and maximum uncertainty criterion for semisupervised classification
+
+Bugfix:
+- Lock gets deleted when creating a base with createClean
+
+## 8 September 2017
+
+**Version 8.6.1**
+
+**Non-breaking with no new features**
+
+Bugfix:
+- Analytics `PNotify` segfault bug fixed (smartpoitners to static notify objects changed to weak pointers)
+- Unit testing silent failing fix + improved example unit test generation 
+- Several unit tests fixed that were failing
+- Division by zero fixed in bag-of-words feature extractor (unknown words + IDF weighting bug)
+- Fixed #550: frequency is computed correctly for tiny joins
+- Fixed #459 : `PJsonVal` returning temporary strings given as default value by reference
+- Fixed #446 : Added timeout parameter to `TStore::GarbageCollect()`
+- Fixes #455 : Fixed documentation and example for `fs.readLines(...)`
+
 ## 1 September 2017
 
 **Version 8.6.0**

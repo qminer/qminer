@@ -496,18 +496,18 @@ public:
 public:
     // load from xml file
     TVizMapXmlDocBs(const TStr& XmlFNm, 
-        const PNotify& Notify = TStdNotify::New());
+        const TWPt<TNotify>& Notify = TStdNotify::New());
     static PVizMapXmlDocBs New(const TStr& XmlFNm, 
-        const PNotify& Notify = TStdNotify::New()) {
+        const TWPt<TNotify>& Notify = TStdNotify::New()) {
             return new TVizMapXmlDocBs(XmlFNm, Notify); }
 
     //// create from SearchBs RSet
     //TVizMapXmlDocBs(const PWdGixRSet& RSet, 
     //    const TVizMapXmlDocGrouping& Grouping,
-    //    const PNotify& Notify = TStdNotify::New());
+    //    const TWPt<TNotify>& Notify = TStdNotify::New());
     //static PVizMapXmlDocBs New(const PWdGixRSet& RSet, 
     //    const TVizMapXmlDocGrouping& Grouping,
-    //    const PNotify& Notify = TStdNotify::New()) { 
+    //    const TWPt<TNotify>& Notify = TStdNotify::New()) { 
     //        return new TVizMapXmlDocBs(RSet, Grouping, Notify); }
 
     // generates bow with documents as documents
@@ -525,26 +525,26 @@ typedef enum {vdtEucl, vdtCos, vdtSqrtCos, vdtDistMtx} TVizDistType;
 class TVizMapFactory {
 private:
     static void CG(const TMatrix& Matrix, const TFltV& b, TFltV& x,
-        PNotify Notify, const int& MaxStep = 200, const double& EpsTer = 1e-7);
+        const TWPt<TNotify>& Notify, const int& MaxStep = 200, const double& EpsTer = 1e-7);
 
 public:
     // the ultimate MDS...
     static void MakeFlat(const PSVMTrainSet& Set, const TVizDistType& DistType, 
         TVec<TFltV>& DocPointV, const int& MxStep, const int& MxSecs, 
-        const double& MnDiff, const bool& RndStartPos, PNotify& Notify);
+        const double& MnDiff, const bool& RndStartPos, const TWPt<TNotify>& Notify);
     static void NormalizePoints(TVec<TFltV>& PointV);
 
     // BowSpV->LSI->MDS->DocPointV
     // applys LSI and MDS to documents in DocSpV
     static void LsiMds(TVec<PBowSpV> DocSpV, PSemSpace SemSpace, TVec<TFltV>& DocPointV, 
         const double& SemSpaceThresh, const int& MxStep, const int& MxSecs, 
-        const double& MnDiff, PNotify Notify);
+        const double& MnDiff, const TWPt<TNotify>& Notify);
 
     // Bow->LSI->MDS->Viz
     // for smaller datasets
     static PVizMapFrame DocLsiMds(PBowDocWgtBs BowDocWgtBs, PSemSpace SemSpace,
         const TVec<TFltV>& _DocPointV, const double& SemSpaceThresh, 
-        const int& MxStep, const int& MxSecs, const double& MnDiff, PNotify Notify);
+        const int& MxStep, const int& MxSecs, const double& MnDiff, const TWPt<TNotify>& Notify);
 
     // adds metadata from BowDocBs and info for computing keywords to VizMap
     static void AddDocMetadata(PVizMapFrame VizMapFrame, PBowDocBs PointBowDocBs, 
@@ -556,42 +556,42 @@ public:
     // on positions ClustPointV of landmarks ClustSpV
     static void LndMrk(PBowDocWgtBs BowDocWgtBs, PBowSim BowSim,
         const TVec<PBowSpV>& ClustSpV, const TVec<TFltV>& ClustPointV, 
-        TVec<TFltV>& DocPointV, const int& LinCombNum, PNotify Notify);
+        TVec<TFltV>& DocPointV, const int& LinCombNum, const TWPt<TNotify>& Notify);
 
     // Bow->Landmarks->Viz
     static PVizMapFrame DocLndMrk(PBowDocWgtBs BowDocWgtBs, 
         const TVec<PBowSpV>& ClustSpV, const TVec<TFltV>& ClustPointV, 
-        const int& LinCombNum = 3, PNotify Notify = TNullNotify::New());
+        const int& LinCombNum = 3, const TWPt<TNotify>& Notify = TNullNotify::New());
     // Bow->KMeans->LSI->MDS->Viz -- for larger datasets
     static PVizMapFrame ClustLsiMdsDocLndMrk(PBowDocWgtBs BowDocWgtBs,
         PBowDocPart BowDocPart, PSemSpace SemSpace, const int& LinCombNum, 
         const double& SemSpaceThresh, const int& MxStep, const int& MxSecs, 
-        const double& MnDiff, PNotify Notify);
+        const double& MnDiff, const TWPt<TNotify>& Notify);
 
     // Bow->VizFrame
     static PVizMapFrame NewVizMapFrame(PBowDocBs BowDocBs, PBowDocWgtBs BowDocWgtBs,
         PBowDocBs KeyWdBowDocBs, PBowDocWgtBs KeyWdBowDocWgtBs, const int& ThDocs,
-        const int& Clusts, const double& SvdThreshold, const PNotify& Notify, 
+        const int& Clusts, const double& SvdThreshold, const TWPt<TNotify>& Notify, 
         const bool& LndPointWgt, const bool& CalcLandscapeP);
     static PVizMapFrame NewVizMapFrame(PBowDocBs BowDocBs, const int& ThDocs,
-        const int& Clusts, const double& SvdThreshold, const PNotify& Notify, 
+        const int& Clusts, const double& SvdThreshold, const TWPt<TNotify>& Notify, 
         const bool& LndPointWgt, const bool& CalcLandscapeP);
 
     // Visualization using Landmark-Maps
     static PVizMapFrame NewVizMapFrameFromLndMrk(PBowDocBs BowDocBs, 
         PBowDocWgtBs BowDocWgtBs, PVizMapLndMrk VizMapLndMrk, const bool& LndMrkLndP, 
-        const bool& LndMrkKeyWdP, const PNotify& Notify);
+        const bool& LndMrkKeyWdP, const TWPt<TNotify>& Notify);
 
 public:
     // Visualization-for-Dummys
     static PVizMap NewVizMap(PBowDocBs BowDocBs, PBowDocWgtBs BowDocWgtBs,
         PBowDocBs KeyWdBowDocBs, PBowDocWgtBs KeyWdBowDocWgtBs, const int& ThDocs = 300,
         const int& Clusts = 200, const double& SvdThreshold = 0.8,
-        const PNotify& Notify = TStdNotify::New(), const bool& LndPointWgtP = false,
+        const TWPt<TNotify>& Notify = TStdNotify::New(), const bool& LndPointWgtP = false,
         const bool& CalcLandscapeP = true);
     static PVizMap NewVizMap(PBowDocBs BowDocBs, const int& ThDocs = 300,
         const int& Clusts = 200, const double& SvdThreshold = 0.8,
-        const PNotify& Notify = TStdNotify::New(), const bool& LndPointWgtP = false,
+        const TWPt<TNotify>& Notify = TStdNotify::New(), const bool& LndPointWgtP = false,
         const bool& CalcLandscapeP = true);
 
     // Visualization-of-DAX-strucutres (Document-Atlas-Xml format)
@@ -599,58 +599,58 @@ public:
         const PVizMapXmlDocBs& XmlDocBs, PSwSet SwSet = TSwSet::New(swstEn523),
         PStemmer Stemmer = TStemmer::New(stmtPorter, true), 
         const int& ThDocs = 300, const int& Clusts = 200, const double& SvdThreshold = 0.8,
-        const PNotify& Notify = TStdNotify::New(), const bool& LndPointWgt = false,
+        const TWPt<TNotify>& Notify = TStdNotify::New(), const bool& LndPointWgt = false,
         const bool& CalcLandscapeP = true);
 
     static PVizMap NewVizMapDynamicDoc(const PVizMapXmlDocBs& XmlDocBs, PSwSet SwSet = TSwSet::New(swstEn523),
         PStemmer Stemmer = TStemmer::New(stmtPorter, true), 
         const int& ThDocs = 300, const int& Clusts = 200, const double& SvdThreshold = 0.8,
-        const PNotify& Notify = TStdNotify::New(), const bool& LndPointWgt = false,
+        const TWPt<TNotify>& Notify = TStdNotify::New(), const bool& LndPointWgt = false,
         const bool& CalcLandscapeP = true);
 
     static PVizMap NewVizMapStaticAuthor(const PVizMapXmlDocBs& XmlDocBs, PSwSet SwSet = TSwSet::New(swstEn523),
         PStemmer Stemmer = TStemmer::New(stmtPorter, true), const int& MxAuthors = 100,
         const int& ThDocs = 300, const int& Clusts = 200, const double& SvdThreshold = 0.8,
-        const PNotify& Notify = TStdNotify::New(), const bool& LndPointWgt = false,
+        const TWPt<TNotify>& Notify = TStdNotify::New(), const bool& LndPointWgt = false,
         const bool& CalcLandscapeP = true);
 
     static PVizMap NewVizMapDynamicAuthor(const PVizMapXmlDocBs& XmlDocBs, PSwSet SwSet = TSwSet::New(swstEn523),
         PStemmer Stemmer = TStemmer::New(stmtPorter, true), const int& MxFrames = 5, 
         const int& MxAuthors = 10, const int& ThDocs = 300, const int& Clusts = 200, 
-        const double& SvdThreshold = 0.8, const PNotify& Notify = TStdNotify::New(), 
+        const double& SvdThreshold = 0.8, const TWPt<TNotify>& Notify = TStdNotify::New(), 
         const bool& LndPointWgt = false, const bool& CalcLandscapeP = true);
 
     static PVizMap NewVizMap(const PVizMapXmlDocBs& XmlDocBs, 
         const TVizXmlMapType& VizXmlMapType, PSwSet SwSet = TSwSet::New(swstEn523), 
         PStemmer Stemmer = TStemmer::New(stmtPorter, true), const int& ThDocs = 300, 
         const int& Clusts = 200, const double& SvdThreshold = 0.8,
-        const PNotify& Notify = TStdNotify::New(), const bool& LndPointWgt = false,
+        const TWPt<TNotify>& Notify = TStdNotify::New(), const bool& LndPointWgt = false,
         const bool& CalcLandscapeP = true);
 
     static PVizMap NewVizMap(const TStr& XmlFNm, 
         const TVizXmlMapType& VizXmlMapType, PSwSet SwSet = TSwSet::New(swstEn523), 
         PStemmer Stemmer = TStemmer::New(stmtPorter, true), const int& ThDocs = 300, 
         const int& Clusts = 200, const double& SvdThreshold = 0.8,
-        const PNotify& Notify = TStdNotify::New(), const bool& LndPointWgt = false,
+        const TWPt<TNotify>& Notify = TStdNotify::New(), const bool& LndPointWgt = false,
         const bool& CalcLandscapeP = true);
 
     // Generation of LandMark-Maps
     static PVizMapLndMrk NewVizMapLndMrk(PBowDocBs BowDocBs, 
         PBowDocWgtBs BowDocWgtBs, const int& ThDocs = 600, const int& Clusts = 400, 
-        const double& SvdThreshold = 0.8, const PNotify& Notify = TStdNotify::New());
+        const double& SvdThreshold = 0.8, const TWPt<TNotify>& Notify = TStdNotify::New());
     static PVizMapLndMrk NewVizMapLndMrk(PBowDocBs BowDocBs, 
         const TIntV& DIdV = TIntV(), const int& ThDocs = 600, const int& Clusts = 400, 
-        const double& SvdThreshold = 0.8, const PNotify& Notify = TStdNotify::New());
+        const double& SvdThreshold = 0.8, const TWPt<TNotify>& Notify = TStdNotify::New());
 
     // Visualization using Landmark-Maps
     static PVizMap NewVizMapFromLndMrk(PBowDocBs BowDocBs, PBowDocWgtBs BowDocWgtBs,
         PVizMapLndMrk VizMapLndMrk, const bool& LndMrkLndP = false,
-        const bool& LndMrkKeyWdP = false, const PNotify& Notify = TStdNotify::New());
+        const bool& LndMrkKeyWdP = false, const TWPt<TNotify>& Notify = TStdNotify::New());
     static PVizMap NewVizMapFromLndMrk(PBowDocBs BowDocBs, const TIntV& DIdV,
         PVizMapLndMrk VizMapLndMrk, const bool& LndMrkLndP = false,
         const bool& LndMrkKeyWdP = false, 
         const TBowWordWgtType& WgtType = bwwtLogDFNrmTFIDF,
-        const PNotify& Notify = TStdNotify::New());
+        const TWPt<TNotify>& Notify = TStdNotify::New());
 };
 
 //////////////////////////////////////////////////////////////////////////

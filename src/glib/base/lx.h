@@ -130,7 +130,7 @@ public:
 // Lexical-Input
 typedef enum {
   iloCmtAlw, iloRetEoln, iloSigNum, iloUniStr, iloCsSens,
-  iloExcept, iloTabSep, iloList, iloMx} TILxOpt;
+  iloExcept, iloTabSep, iloList, iloIgnoreEscape, iloMx} TILxOpt;
 
 class TILx{
 private:
@@ -142,7 +142,7 @@ private:
   TSStack<TILxSymSt> PrevSymStStack;
   TStrIntH RwStrH;
   bool IsCmtAlw, IsRetEoln, IsSigNum, IsUniStr, IsCsSens;
-  bool IsExcept, IsTabSep, IsList;
+  bool IsExcept, IsTabSep, IsList, IsIgnoreEscape;
   char GetCh(){
     Assert(Ch!=TCh::EofCh);
     PrevCh=Ch; LnChN++; ChN++;

@@ -23,7 +23,7 @@ TNodeJsAnalytics::TNMFTask::TNMFTask(const v8::FunctionCallbackInfo<v8::Value>& 
         V(nullptr),
         Iter(10000),
         Tol(1e-6),
-        Notify(TNotify::NullNotify) {
+        Notify(TNotify::NullNotify()) {
 
     if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
         JsFltVV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0);
@@ -41,8 +41,8 @@ TNodeJsAnalytics::TNMFTask::TNMFTask(const v8::FunctionCallbackInfo<v8::Value>& 
         PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 2);
         Iter = ParamVal->GetObjInt("iter", 100);
         Tol = ParamVal->GetObjNum("tol", 1e-3);
-        bool verbose = ParamVal->GetObjBool("verbose", false);
-        Notify = verbose ? TNotify::StdNotify : TNotify::NullNotify;
+        bool Verbose = ParamVal->GetObjBool("verbose", false);
+        Notify = Verbose ? TQm::TEnv::Debug() : TNotify::NullNotify();
     }
 
     U = new TNodeJsFltVV();
@@ -89,77 +89,22 @@ v8::Local<v8::Value> TNodeJsAnalytics::TNMFTask::WrapResult() {
     return HandleScope.Escape(JsObj);
 }
 
-//void TNodeJsAnalytics::nmf(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-//  v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-//  v8::HandleScope HandleScope(Isolate);
-//
-//  EAssertR(Args.Length() >= 2, "Analytics.nmf: takes at least 2 parameters!");
-//  // function parameters
-//  int k = TNodeJsUtil::GetArgInt32(Args, 1);
-//  int Iter = 10000;
-//  double Tol = 1e-6;
-//  PNotify Notify = TNotify::NullNotify;
-//
-//  if (Args.Length() >= 3) {
-//      PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 2);
-//      Iter = ParamVal->GetObjInt("iter", 10000);
-//      Tol =  ParamVal->GetObjNum("tol", 1e-6);
-//      bool verbose = ParamVal->GetObjBool("verbose", false);
-//      Notify = verbose ? TNotify::StdNotify : TNotify::NullNotify;
-//  }
-//
-//  v8::Handle<v8::Object> JsObj = v8::Object::New(Isolate); // Result
-//
-//  TFltVV U;
-//  TFltVV V;
-//  if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
-//      TNodeJsFltVV* JsMat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0);
-//      TNmf::RankOneResidueIter(JsMat->Mat, k, U, V, Iter, Tol, Notify);
-//  }
-//  else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
-//      TNodeJsSpMat* JsMat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0);
-//      TNmf::RankOneResidueIter(JsMat->Mat, k, U, V, Iter, Tol, Notify);
-//  }
-//  else {
-//      throw TExcept::New("Analytics.nmf: first parameter must be a dense or sparse matrix!");
-//  }
-//  JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "U")), TNodeJsFltVV::New(U));
-//  JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "V")), TNodeJsFltVV::New(V));
-//  Args.GetReturnValue().Set(JsObj);
-//}
-
 ////////////////////////////////////////////////////////
 // Support Vector Machine
 
 TNodeJsSvmModel::TNodeJsSvmModel(const PJsonVal& ParamVal):
-        Algorithm("SGD"),
-        SvmCost(1.0),
-        SvmUnbalance(1.0),
-        SvmEps(0.1),
-        SampleSize(1000),
-        MxIter(10000),
-        MxTime(1000*1),
-        MnDiff(1e-6),
-        Verbose(false),
-        Notify(TNotify::NullNotify) {
-
+        Algorithm("SGD"){
+    if (Model) { delete Model; }
+    Model = NULL;
     UpdateParams(ParamVal);
 }
 
 TNodeJsSvmModel::TNodeJsSvmModel(TSIn& SIn):
-        Algorithm(SIn),
-        SvmCost(TFlt(SIn)),
-        SvmUnbalance(TFlt(SIn)),
-        SvmEps(TFlt(SIn)),
-        SampleSize(TInt(SIn)),
-        MxIter(TInt(SIn)),
-        MxTime(TInt(SIn)),
-        MnDiff(TFlt(SIn)),
-        Verbose(TBool(SIn)),
-        Notify(TNotify::NullNotify),
-        Model(SIn) {
-
-    if (Verbose) { Notify = TNotify::StdNotify; }
+        Algorithm(SIn){
+    if (Model) { delete Model; }
+    if (Algorithm == "LIBSVM"){ Model = new TSvm::TLibSvmModel(); }
+    else { Model = new TSvm::TLinModel(); }
+    Model->Load(SIn);
 }
 
 TNodeJsSvmModel* TNodeJsSvmModel::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -203,15 +148,15 @@ void TNodeJsSvmModel::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args)
 void TNodeJsSvmModel::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-
     EAssertR(Args.Length() == 1, "svm.setParams: takes 1 argument!");
     EAssertR(TNodeJsUtil::IsArgJson(Args, 0), "svm.setParams: first argument should be a Javascript object!");
 
     try {
         TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
         PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
-
-        JsModel->UpdateParams(ParamVal);
+        
+        if (ParamVal->IsObjKey("algorithm")) { throw TExcept::New("svm.setParams: cannot safely change algorithm"); }
+        else { JsModel->UpdateParams(ParamVal); }
 
         Args.GetReturnValue().Set(Args.Holder());
     }
@@ -226,7 +171,12 @@ void TNodeJsSvmModel::weights(v8::Local<v8::String> Name, const v8::PropertyCall
 
     try {
         TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Info.Holder());
-        Info.GetReturnValue().Set(TNodeJsFltV::New(JsModel->Model.GetWgtV()));
+        if (!JsModel->Model){
+            throw TExcept::New("svm.weights: model is not initialized");
+        }
+        else{
+            Info.GetReturnValue().Set(TNodeJsFltV::New(JsModel->Model->GetWgtV()));
+        }
     }
     catch (const PExcept& Except) {
         throw TExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::weights");
@@ -239,7 +189,12 @@ void TNodeJsSvmModel::bias(v8::Local<v8::String> Name, const v8::PropertyCallbac
 
     try {
         TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Info.Holder());
-        Info.GetReturnValue().Set(v8::Number::New(Isolate, JsModel->Model.GetBias()));
+        if (!JsModel->Model){
+            throw TExcept::New("svm.weights: model is not initialized");
+        }
+        else{
+            Info.GetReturnValue().Set(v8::Number::New(Isolate, JsModel->Model->GetBias()));
+        }
     } catch (const PExcept& Except) {
         throw TExcept::New(Except->GetMsgStr(), "TNodeJsSvmModel::bias");
     }
@@ -273,22 +228,26 @@ void TNodeJsSvmModel::decisionFunction(const v8::FunctionCallbackInfo<v8::Value>
 
     try {
         TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
+        
+        if ((JsModel->Model->GetWgtV()).Len() == 0) {
+            throw TExcept::New("svm.decisionFunction: fit was not called yet");
+        }
 
         if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltV>(Args, 0)) {
             TNodeJsFltV* Vec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltV>(Args, 0);
-            const double Res = JsModel->Model.Predict(Vec->Vec);
+            const double Res = JsModel->Model->Predict(Vec->Vec);
             Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
         }
         else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpVec>(Args, 0)) {
             TNodeJsSpVec* SpVec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpVec>(Args, 0);
-            const double Res = JsModel->Model.Predict(SpVec->Vec);
+            const double Res = JsModel->Model->Predict(SpVec->Vec);
             Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
         }
         else if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
             const TFltVV& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0)->Mat;
             TFltV ResV(Mat.GetCols(), 0);
             for (int ColN = 0; ColN < Mat.GetCols(); ColN++) {
-                ResV.Add(JsModel->Model.Predict(Mat, ColN));
+                ResV.Add(JsModel->Model->Predict(Mat, ColN));
             }
             Args.GetReturnValue().Set(TNodeJsFltV::New(ResV));
         }
@@ -296,7 +255,7 @@ void TNodeJsSvmModel::decisionFunction(const v8::FunctionCallbackInfo<v8::Value>
             const TVec<TIntFltKdV>& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0)->Mat;
             TFltV ResV(Mat.Len(), 0);
             for (int ColN = 0; ColN < Mat.Len(); ColN++) {
-                ResV.Add(JsModel->Model.Predict(Mat[ColN]));
+                ResV.Add(JsModel->Model->Predict(Mat[ColN]));
             }
             Args.GetReturnValue().Set(TNodeJsFltV::New(ResV));
         }
@@ -318,22 +277,26 @@ void TNodeJsSvmModel::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     try {
         TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
+        
+        if ((JsModel->Model->GetWgtV()).Len() == 0) {
+            throw TExcept::New("svm.predict: fit was not called yet");
+        }
 
         if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltV>(Args, 0)) {
             TNodeJsFltV* Vec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltV>(Args, 0);
-            const double Res = (JsModel->Model.Predict(Vec->Vec) > 0.0) ? 1.0 : -1.0;
+            const double Res = (JsModel->Model->Predict(Vec->Vec) > 0.0) ? 1.0 : -1.0;
             Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
         }
         else if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpVec>(Args, 0)) {
             TNodeJsSpVec* SpVec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpVec>(Args, 0);
-            const double Res = (JsModel->Model.Predict(SpVec->Vec) > 0.0) ? 1.0 : -1.0;
+            const double Res = (JsModel->Model->Predict(SpVec->Vec) > 0.0) ? 1.0 : -1.0;
             Args.GetReturnValue().Set(v8::Number::New(Isolate, Res));
         }
         else if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
             const TFltVV& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0)->Mat;
             TFltV ResV(Mat.GetCols(), 0);
             for (int ColN = 0; ColN < Mat.GetCols(); ColN++) {
-                ResV.Add(JsModel->Model.Predict(Mat, ColN) > 0.0 ? 1.0 : -1.0);
+                ResV.Add(JsModel->Model->Predict(Mat, ColN) > 0.0 ? 1.0 : -1.0);
             }
             Args.GetReturnValue().Set(TNodeJsFltV::New(ResV));
         }
@@ -341,7 +304,7 @@ void TNodeJsSvmModel::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             const TVec<TIntFltKdV>& Mat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsSpMat>(Args, 0)->Mat;
             TFltV ResV(Mat.Len(), 0);
             for (int ColN = 0; ColN < Mat.Len(); ColN++) {
-                ResV.Add(JsModel->Model.Predict(Mat[ColN]) > 0.0 ? 1.0 : -1.0);
+                ResV.Add(JsModel->Model->Predict(Mat[ColN]) > 0.0 ? 1.0 : -1.0);
             }
             Args.GetReturnValue().Set(TNodeJsFltV::New(ResV));
         }
@@ -355,51 +318,28 @@ void TNodeJsSvmModel::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 }
 
 void TNodeJsSvmModel::UpdateParams(const PJsonVal& ParamVal) {
-    if (ParamVal->IsObjKey("algorithm")) Algorithm = ParamVal->GetObjStr("algorithm");
-    if (ParamVal->IsObjKey("c")) SvmCost = ParamVal->GetObjNum("c");
-    if (ParamVal->IsObjKey("j")) SvmUnbalance = ParamVal->GetObjNum("j");
-    if (ParamVal->IsObjKey("eps")) SvmEps = ParamVal->GetObjNum("eps");
-    if (ParamVal->IsObjKey("batchSize")) SampleSize = ParamVal->GetObjInt("batchSize");
-    if (ParamVal->IsObjKey("maxIterations")) MxIter = ParamVal->GetObjInt("maxIterations");
-    if (ParamVal->IsObjKey("maxTime")) MxTime = TFlt::Round(1000.0 * ParamVal->GetObjNum("maxTime"));
-    if (ParamVal->IsObjKey("minDiff")) MnDiff = ParamVal->GetObjNum("minDiff");
-    if (ParamVal->IsObjKey("verbose")) {
-        Verbose = ParamVal->GetObjBool("verbose");
-        Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+    if (ParamVal->IsObjKey("algorithm")) { Algorithm = ParamVal->GetObjStr("algorithm"); }
+    if (!Model) { 
+        if (Algorithm == "LIBSVM") { Model = new TSvm::TLibSvmModel(); }
+        else { Model = new TSvm::TLinModel(); }
     }
+    Model->UpdateParams(ParamVal);
 }
 
 PJsonVal TNodeJsSvmModel::GetParams() const {
-    PJsonVal ParamVal = TJsonVal::NewObj();
-
+    PJsonVal ParamVal = Model->GetParams();
     ParamVal->AddToObj("algorithm", Algorithm);
-    ParamVal->AddToObj("c", SvmCost);
-    ParamVal->AddToObj("j", SvmUnbalance);
-    ParamVal->AddToObj("eps", SvmEps);
-    ParamVal->AddToObj("batchSize", SampleSize);
-    ParamVal->AddToObj("maxIterations", MxIter);
-    ParamVal->AddToObj("maxTime", MxTime / 1000); // convert from miliseconds to seconds
-    ParamVal->AddToObj("minDiff", MnDiff);
-    ParamVal->AddToObj("verbose", Verbose);
-
     return ParamVal;
 }
 
 void TNodeJsSvmModel::Save(TSOut& SOut) const {
     Algorithm.Save(SOut);
-    TFlt(SvmCost).Save(SOut);
-    TFlt(SvmUnbalance).Save(SOut);
-    TFlt(SvmEps).Save(SOut);
-    TInt(SampleSize).Save(SOut);
-    TInt(MxIter).Save(SOut);
-    TInt(MxTime).Save(SOut);
-    TFlt(MnDiff).Save(SOut);
-    TBool(Verbose).Save(SOut);
-    Model.Save(SOut);
+    Model->Save(SOut);
 }
 
 void TNodeJsSvmModel::ClrModel() {
-    Model = TSvm::TLinModel();
+    delete Model;
+    Model = NULL;
 }
 
 ///////////////////////////////
@@ -444,20 +384,9 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
         if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
             TVec<TIntFltKdV>& VecV = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject())->Mat;
-            if (JsModel->Algorithm == "SGD") {
-                JsModel->Model = TSvm::SolveClassify<TVec<TIntFltKdV>>(VecV, TLinAlgSearch::GetMaxDimIdx(VecV) + 1,
-                    VecV.Len(), ClsV, JsModel->SvmCost, JsModel->SvmUnbalance, JsModel->MxTime,
-                    JsModel->MxIter, JsModel->MnDiff, JsModel->SampleSize, JsModel->Notify);
-            }
-            else if (JsModel->Algorithm == "PR_LOQO") {
-                PSVMTrainSet TrainSet = TRefSparseTrainSet::New(VecV, ClsV);
-                PSVMModel SvmModel = TSVMModel::NewClsLinear(TrainSet, JsModel->SvmCost, JsModel->SvmUnbalance,
-                    TIntV(), TSVMLearnParam::Lin(JsModel->MxTime, JsModel->Verbose ? 2 : 0));
-                JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
-            }
-            else if (JsModel->Algorithm == "LIBSVM") {
-                JsModel->Model = TSvm::LibSvmSolveClassify(VecV, ClsV, JsModel->SvmCost, JsModel->SvmUnbalance,
-                    TQm::TEnv::Debug, TQm::TEnv::Error);
+            if (JsModel->Algorithm == "SGD" || JsModel->Algorithm == "LIBSVM") {
+                JsModel->Model->FitClassification(VecV, TLinAlgSearch::GetMaxDimIdx(VecV) + 1,
+                    VecV.Len(), ClsV);
             }
             else {
                 throw TExcept::New("SVC.fit: unknown algorithm " + JsModel->Algorithm);
@@ -465,20 +394,8 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         }
         else if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
             TFltVV& VecV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject())->Mat;
-            if (JsModel->Algorithm == "SGD") {
-                JsModel->Model = TSvm::SolveClassify<TFltVV>(VecV, VecV.GetRows(),
-                    VecV.GetCols(), ClsV, JsModel->SvmCost, JsModel->SvmUnbalance, JsModel->MxTime,
-                    JsModel->MxIter, JsModel->MnDiff, JsModel->SampleSize, JsModel->Notify);
-            }
-            else if (JsModel->Algorithm == "PR_LOQO") {
-                PSVMTrainSet TrainSet = TRefDenseTrainSet::New(VecV, ClsV);
-                PSVMModel SvmModel = TSVMModel::NewClsLinear(TrainSet, JsModel->SvmCost, JsModel->SvmUnbalance,
-                    TIntV(), TSVMLearnParam::Lin(JsModel->MxTime, JsModel->Verbose ? 2 : 0));
-                JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
-            }
-            else if (JsModel->Algorithm == "LIBSVM") {
-                JsModel->Model = TSvm::LibSvmSolveClassify(VecV, ClsV, JsModel->SvmCost, JsModel->SvmUnbalance,
-                    TQm::TEnv::Debug, TQm::TEnv::Error);
+            if (JsModel->Algorithm == "SGD" || JsModel->Algorithm == "LIBSVM") {
+                JsModel->Model->FitClassification(VecV, VecV.GetRows(), VecV.GetCols(), ClsV);
             }
             else {
                 throw TExcept::New("SVC.fit: unknown algorithm " + JsModel->Algorithm);
@@ -529,7 +446,7 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     try {
         TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
-
+   
         // check target vector is actually a vector
         EAssertR(TNodeJsUtil::IsArgWrapObj<TNodeJsFltV>(Args, 1), "SVR.fit: second argument expected to be la.Vector!");
         TFltV& ClsV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltV>(Args, 1)->Vec;
@@ -537,20 +454,9 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
         if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
             TVec<TIntFltKdV>& VecV = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject())->Mat;
-            if (JsModel->Algorithm == "SGD") {
-                JsModel->Model = TSvm::SolveRegression<TVec<TIntFltKdV>>(VecV, TLinAlgSearch::GetMaxDimIdx(VecV) + 1,
-                    VecV.Len(), ClsV, JsModel->SvmCost, JsModel->SvmEps, JsModel->MxTime,
-                    JsModel->MxIter, JsModel->MnDiff, JsModel->SampleSize, JsModel->Notify);
-            }
-            else if (JsModel->Algorithm == "PR_LOQO") {
-                PSVMTrainSet TrainSet = TRefSparseTrainSet::New(VecV, ClsV);
-                PSVMModel SvmModel = TSVMModel::NewRegLinear(TrainSet, JsModel->SvmEps, JsModel->SvmCost,
-                    TIntV(), TSVMLearnParam::Lin(JsModel->MxTime, JsModel->Verbose ? 2 : 0));
-                JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
-            }
-            else if (JsModel->Algorithm == "LIBSVM") {
-                JsModel->Model = TSvm::LibSvmSolveRegression(VecV, ClsV, JsModel->SvmEps, JsModel->SvmCost,
-                    TQm::TEnv::Debug, TQm::TEnv::Error);
+            if (JsModel->Algorithm == "SGD" || JsModel->Algorithm == "LIBSVM") {
+                JsModel->Model->FitRegression(VecV, TLinAlgSearch::GetMaxDimIdx(VecV) + 1,
+                    VecV.Len(), ClsV);
             }
             else {
                 throw TExcept::New("SVR.fit: unknown algorithm " + JsModel->Algorithm);
@@ -558,20 +464,9 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         }
         else if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
             TFltVV& VecV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject())->Mat;
-            if (JsModel->Algorithm == "SGD") {
-                JsModel->Model = TSvm::SolveRegression<TFltVV>(VecV, VecV.GetRows(),
-                    VecV.GetCols(), ClsV, JsModel->SvmCost, JsModel->SvmEps, JsModel->MxTime,
-                    JsModel->MxIter, JsModel->MnDiff, JsModel->SampleSize, JsModel->Notify);
-            }
-            else if (JsModel->Algorithm == "PR_LOQO") {
-                PSVMTrainSet TrainSet = TRefDenseTrainSet::New(VecV, ClsV);
-                PSVMModel SvmModel = TSVMModel::NewRegLinear(TrainSet, JsModel->SvmEps, JsModel->SvmCost,
-                    TIntV(), TSVMLearnParam::Lin(JsModel->MxTime, JsModel->Verbose ? 2 : 0));
-                JsModel->Model = TSvm::TLinModel(SvmModel->GetWgtV(), SvmModel->GetThresh());
-            }
-            else if (JsModel->Algorithm == "LIBSVM") {
-                JsModel->Model = TSvm::LibSvmSolveRegression(VecV, ClsV, JsModel->SvmEps, JsModel->SvmCost,
-                    TQm::TEnv::Debug, TQm::TEnv::Error);
+            if (JsModel->Algorithm == "SGD" || JsModel->Algorithm == "LIBSVM") {
+                JsModel->Model->FitRegression(VecV, VecV.GetRows(),
+                    VecV.GetCols(), ClsV);
             }
             else {
                 throw TExcept::New("SVR.fit: unknown algorithm " + JsModel->Algorithm);
@@ -2083,7 +1978,7 @@ TNodeJsMDS::TFitTransformTask::TFitTransformTask(const v8::FunctionCallbackInfo<
         JsFltVV(nullptr),
         JsSpVV(nullptr),
         JsResult(nullptr),
-        Notify(TQm::TEnv::Logger) {
+        Notify(TQm::TEnv::Logger()) {
 
     JsMDS = ObjectWrap::Unwrap<TNodeJsMDS>(Args.Holder());
 
@@ -2285,7 +2180,7 @@ TNodeJsKMeans::TNodeJsKMeans(TSIn& SIn) :
         throw TExcept::New("KMeans load constructor: loading invalid KMeans model!");
     }
 
-    Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+    Notify = Verbose ? TQm::TEnv::Debug() : TNotify::NullNotify();
 }
 
 TNodeJsKMeans::~TNodeJsKMeans() {
@@ -2332,7 +2227,7 @@ void TNodeJsKMeans::UpdateParams(const PJsonVal& ParamVal) {
         throw TExcept::New("Update KMeans Exception: distance type is not valid " + TInt::GetStr((int)DistType));
     }
 
-    Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+    Notify = Verbose ? TQm::TEnv::Debug() : TNotify::NullNotify();
 }
 
 void TNodeJsKMeans::Save(TSOut& SOut) const {
@@ -3148,7 +3043,7 @@ TNodeJsDpMeans::TNodeJsDpMeans(TSIn& SIn) :
         throw TExcept::New("DpMeans load constructor: loading invalid DpMeans model!");
     }
 
-    Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+    Notify = Verbose ? TQm::TEnv::Debug() : TNotify::NullNotify();
 }
 
 TNodeJsDpMeans::~TNodeJsDpMeans() {
@@ -3197,7 +3092,7 @@ void TNodeJsDpMeans::UpdateParams(const PJsonVal& ParamVal) {
         throw TExcept::New("Update KMeans Exception: distance type is not valid " + TInt::GetStr((int)DistType));
     }
 
-    Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+    Notify = Verbose ? TQm::TEnv::Debug() : TNotify::NullNotify();
 }
 
 void TNodeJsDpMeans::Save(TSOut& SOut) const {
@@ -4689,7 +4584,7 @@ TNodeJsRecommenderSys::TNodeJsRecommenderSys(const PJsonVal& ParamVal) :
     K(2),
     Tol(1e-3),
     Verbose(false),
-    Notify(TNotify::NullNotify) {
+    Notify(TNotify::NullNotify()) {
     UpdateParams(ParamVal);
 }
 
@@ -4700,7 +4595,7 @@ TNodeJsRecommenderSys::TNodeJsRecommenderSys(TSIn& SIn) :
     Verbose(TBool(SIn)),
     U(SIn),
     V(SIn) {
-    Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+    Notify = Verbose ? TQm::TEnv::Debug() : TNotify::NullNotify();
 }
 
 void TNodeJsRecommenderSys::UpdateParams(const PJsonVal& ParamVal) {
@@ -4709,7 +4604,7 @@ void TNodeJsRecommenderSys::UpdateParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("tol")) { Tol = ParamVal->GetObjNum("tol"); }
     if (ParamVal->IsObjKey("verbose")) { Verbose = ParamVal->GetObjBool("verbose"); }
 
-    Notify = Verbose ? TNotify::StdNotify : TNotify::NullNotify;
+    Notify = Verbose ? TQm::TEnv::Debug() : TNotify::NullNotify();
 }
 
 PJsonVal TNodeJsRecommenderSys::GetParams() const {

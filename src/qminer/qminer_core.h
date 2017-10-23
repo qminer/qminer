@@ -817,13 +817,13 @@ public:
     bool HasJoin(const TStr& JoinNm, const uint64& RecId) const;
 
     /// Signal to purge any old stuff, e.g. records that fall out of time window when store has one
-    virtual void GarbageCollect() { }
+    virtual void GarbageCollect(const int& MxTimeMSecs = -1) { }
     /// Deletes all records
     virtual void DeleteAllRecs() = 0;
     /// Delete the first DelRecs records (the records that were inserted first)
     virtual void DeleteFirstRecs(const int& DelRecs) = 0;
-    /// Delete specific records
-    virtual void DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK = true) = 0;
+    /// Delete specific records. If given a max time delete stops when time limit reached.
+    virtual void DeleteRecs(const TUInt64V& DelRecIdV, const int& MxTimeMSecs = -1, const bool& AssertOK = true) = 0;
 
     /// Check if the value of given field for a given record is NULL
     virtual bool IsFieldNull(const uint64& RecId, const int& FieldId) const { return false; }
@@ -3288,6 +3288,13 @@ private:
     /// Executes GIX query expression against the tiny index
     bool DoQueryTiny(const TPt<TQmGixExpItemTiny>& ExpItem, TVec<TQmGixItemFull>& RecIdFqV) const;
 
+    /// Executes GIX join query against the full index
+    void DoJoinQueryFull(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& RecIdFqV) const;
+    /// Executes GIX join query against the small index
+    void DoJoinQuerySmall(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& RecIdFqV) const;
+    /// Executes GIX join query against the tiny index
+    void DoJoinQueryTiny(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& RecIdFqV) const;
+
     /// Execute Position query. Result is vector of record ids and frequency of phrase occurences.
     void DoQueryPos(const int& KeyId, const TUInt64V& WordIdV, const int& MaxDiff, TUInt64IntKdV& RecIdFqV) const;
 
@@ -3942,10 +3949,11 @@ public:
     /// Searching records (default search interface)
     PRecSet Search(const PJsonVal& QueryVal);
 
-    /// Execute garbage collection on all stores
-    void GarbageCollect();
+    /// Execute garbage collection on all stores.
+    /// Each store is given MxTimeMSecs for the collection.
+    void GarbageCollect(const int& MxTimeMSecs = -1);
     /// Perform partial flush of data
-    int PartialFlush(int WndInMsec = 500);
+    int PartialFlush(const int& WndInMSec = 500);
 
     /// asserts if a field name is valid
     void AssertValidNm(const TStr& FldNm) const { NmValidator.AssertValidNm(FldNm); }

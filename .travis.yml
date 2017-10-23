@@ -14,7 +14,7 @@ node_js:
   - 6
   - 8
 
-env: 
+env:
   - CXXFLAGS=-std=c++0x CC=gcc-4.8 CXX=g++-4.8
 
 matrix:
@@ -60,7 +60,7 @@ script:
 
 os: linux
 notifications:
-  email:  
+  email:
   - blaz.fortuna@ijs.si
   - jan.rupnik@ijs.si
   - viktor@carvic.si

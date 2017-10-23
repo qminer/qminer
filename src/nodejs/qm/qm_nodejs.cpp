@@ -276,7 +276,7 @@ void TNodeJsQm::flags(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo
     JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "gcc")), v8::Boolean::New(Isolate, false));
 #endif
 
-#ifdef __clang__
+#ifdef GLib_CLANG
     JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "clang")), v8::String::NewFromUtf8(Isolate, __clang_version__));
 #else
     JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "clang")), v8::Boolean::New(Isolate, false));
@@ -401,7 +401,7 @@ TNodeJsBase::TNodeJsBase(const TStr& DbFPath_, const TStr& SchemaFNm, const PJso
     if (ForceCreate) {
         if (TDir::Exists(DbFPath)) {
             // delete only qminer stuff!
-            TFile::Del(TPath::Combine(DbFPath, LockFNm), false);
+            TFile::Del(LockFNm, false);
             // json files
             TFile::Del(TPath::Combine(DbFPath, "Base.json"), false);
             TFile::Del(TPath::Combine(DbFPath, "StoreList.json"), false);
@@ -725,7 +725,11 @@ void TNodeJsBase::garbageCollect(const v8::FunctionCallbackInfo<v8::Value>& Args
     TNodeJsBase* JsBase = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsBase>(Args.Holder());
     TWPt<TQm::TBase> Base = JsBase->Base;
 
-    Base->GarbageCollect();
+    // parse out optional max time parameter
+    const int MxTimeMSecs = TNodeJsUtil::GetArgInt32(Args, 0, -1);
+
+    Base->GarbageCollect(MxTimeMSecs);
+
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
