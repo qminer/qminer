@@ -4052,7 +4052,7 @@ PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const int& JoinId, const int& S
         // do join using index
         const int JoinKeyId = JoinDesc.GetJoinKeyId();
         // prepare join query
-        TUInt64V RecIdV;
+        TUInt64V RecIdV(SampleRecs, 0);
         for (int RecN = 0; RecN < SampleRecs; RecN++) {
             const uint64 RecId = SampleRecIdKdV[RecN].Key;
             RecIdV.Add(RecId);
@@ -5615,6 +5615,57 @@ bool TIndex::DoQueryTiny(const TPt<TQmGixExpItemTiny>& ExpItem, TVec<TQmGixItemF
     return Not;
 }
 
+void TIndex::DoJoinQueryFull(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& RecIdFqV) const {
+    // temporary story for joined records
+    THash<TUInt64, TInt> RecIdFqH;
+    // lambda that goes over child vectors and updates the hash table with counts
+    auto Handler = [&RecIdFqH](TVec<TQmGixItemFull> ItemV) {
+        for (const TQmGixItemFull& RecIdFq : ItemV) {
+            RecIdFqH.AddDat(RecIdFq.Key) += RecIdFq.Dat;
+        }
+    };
+    // go over all records we want to join
+    for (uint64 RecId : RecIdV) {
+        GixFull->GetItemV(TQmGixKey(KeyId, RecId), Handler);
+    }
+    // convert to vector
+    RecIdFqH.GetKeyDatKdV(RecIdFqV);
+}
+
+void TIndex::DoJoinQuerySmall(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& RecIdFqV) const {
+    // temporary story for joined records
+    THash<TUInt64, TInt> RecIdFqH;
+    // lambda that goes over child vectors and updates the hash table with counts
+    auto Handler = [&RecIdFqH](TVec<TQmGixItemSmall> ItemV) {
+        for (const TQmGixItemSmall& RecIdFq : ItemV) {
+            RecIdFqH.AddDat((uint64)RecIdFq.Key) += (int)RecIdFq.Dat;
+        }
+    };
+    // go over all records we want to join
+    for (uint64 RecId : RecIdV) {
+        GixSmall->GetItemV(TQmGixKey(KeyId, RecId), Handler);
+    }
+    // convert to vector
+    RecIdFqH.GetKeyDatKdV(RecIdFqV);
+}
+
+void TIndex::DoJoinQueryTiny(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& RecIdFqV) const {
+    // temporary story for joined records
+    THash<TUInt64, TInt> RecIdFqH;
+    // lambda that goes over child vectors and updates the hash table with counts
+    auto Handler = [&RecIdFqH](TVec<TQmGixItemTiny> ItemV) {
+        for (const TQmGixItemTiny& RecId : ItemV) {
+            RecIdFqH.AddDat((uint64)RecId) += 1;
+        }
+    };
+    // go over all records we want to join
+    for (uint64 RecId : RecIdV) {
+        GixTiny->GetItemV(TQmGixKey(KeyId, RecId), Handler);
+    }
+    // convert to vector
+    RecIdFqH.GetKeyDatKdV(RecIdFqV);
+}
+
 void TIndex::DoQueryPos(const int& KeyId, const TUInt64V& WordIdV,
         const int& MaxDiff, TUInt64IntKdV& RecIdFqV) const {
 
@@ -6282,21 +6333,16 @@ void TIndex::SearchGixJoin(const int& KeyId, const uint64& RecId, TUInt64IntKdV&
 }
 
 void TIndex::SearchGixJoin(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& JoinRecIdFqV) const {
-    // prepare keys for gix
-    TKeyWordV KeyWordV(RecIdV.Len(), 0);
-    for (const uint64 RecId : RecIdV) {
-        KeyWordV.Add(TKeyWord(KeyId, RecId));
-    }
     // check which Gix to use
     const TIndexKeyGixType GixType = GetGixType(KeyId);
     // go to appropriate gix and always first check if we have the key at all
     switch (GixType) {
     case oikgtFull:
-        DoQueryFull(TQmGixExpItemFull::NewOrV(KeyWordV), JoinRecIdFqV); break;
+        DoJoinQueryFull(KeyId, RecIdV, JoinRecIdFqV); break;
     case oikgtSmall:
-        DoQuerySmall(TQmGixExpItemSmall::NewOrV(KeyWordV), JoinRecIdFqV); break;
+        DoJoinQuerySmall(KeyId, RecIdV, JoinRecIdFqV); break;
     case oikgtTiny:
-        DoQueryTiny(TQmGixExpItemTiny::NewOrV(KeyWordV), JoinRecIdFqV); break;
+        DoJoinQueryTiny(KeyId, RecIdV, JoinRecIdFqV); break;
     default:
         throw TQmExcept::New("[TIndex::SearchGixJoin] Unsupported gix type!");
     }
