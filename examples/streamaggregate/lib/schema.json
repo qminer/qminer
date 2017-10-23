@@ -1,5 +1,4 @@
 [
-    // used for the the Stat/Smooth chart
     {
         "name": "Stats",
         "fields": [
@@ -14,7 +13,6 @@
             { "name": "Time", "type": "datetime" }
         ]
     },
-    // used for the resampler chart
     {
         "name": "Random",
         "fields": [
@@ -29,7 +27,6 @@
             { "name": "Time", "type": "datetime" }
         ]
     },
-    // used for the merger charts
     {
         "name": "Gauss",
         "fields": [
