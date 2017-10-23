@@ -995,7 +995,7 @@ void TNodeJsStore::recordByName(const v8::FunctionCallbackInfo<v8::Value>& Args)
 void TNodeJsStore::each(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    v8::TryCatch TryCatch;
+    v8::TryCatch TryCatch(Isolate);
 
     QmAssertR(TNodeJsUtil::IsArgFun(Args, 0), "each: Argument 0 should be a function!");
     Args.GetReturnValue().Set(Args.Holder());
@@ -1033,7 +1033,7 @@ void TNodeJsStore::each(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsStore::map(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    v8::TryCatch TryCatch;
+    v8::TryCatch TryCatch(Isolate);
 
     QmAssertR(TNodeJsUtil::IsArgFun(Args, 0), "each: Argument 0 should be a function!");
 
@@ -3070,7 +3070,7 @@ void TNodeJsRecSet::toJSON(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsRecSet::each(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    v8::TryCatch TryCatch;
+    v8::TryCatch TryCatch(Isolate);
 
     TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
 
@@ -3108,7 +3108,7 @@ void TNodeJsRecSet::each(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsRecSet::map(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    v8::TryCatch TryCatch;
+    v8::TryCatch TryCatch(Isolate);
 
     TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Args.Holder());
 
@@ -3627,7 +3627,7 @@ TJsRecFilter::TJsRecFilter(TWPt<TQm::TStore> _Store, v8::Handle<v8::Function> _C
 bool TJsRecFilter::Filter(const TQm::TRec& Rec) const {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    v8::TryCatch TryCatch;
+    v8::TryCatch TryCatch(Isolate);
 
     // prepare record objects - since they are local, they are safe from GC
     v8::Local<v8::Object> JsRec = TNodeJsRec::NewInstance(
@@ -3654,7 +3654,7 @@ TJsRecPairFilter::TJsRecPairFilter(TWPt<TQm::TStore> _Store, v8::Handle<v8::Func
 
 bool TJsRecPairFilter::operator()(const TUInt64IntKd& RecIdWgt1, const TUInt64IntKd& RecIdWgt2) const {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::TryCatch TryCatch;
+    v8::TryCatch TryCatch(Isolate);
 
     v8::HandleScope HandleScope(Isolate);
     // prepare record objects - since they are local, they are safe from GC
@@ -3790,7 +3790,7 @@ double TNodeJsFuncFtrExt::ExecuteFunc(const TQm::TRec& FtrRec) const {
 void TNodeJsFuncFtrExt::ExecuteFuncVec(const TQm::TRec& FtrRec, TFltV& Vec) const {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    v8::TryCatch TryCatch;
+    v8::TryCatch TryCatch(Isolate);
     v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, Fun);
     v8::Handle<v8::Value> Argv[1] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), FtrRec)) };
     v8::Handle<v8::Value> RetVal = Callback->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);

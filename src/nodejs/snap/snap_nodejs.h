@@ -636,7 +636,7 @@ void TNodeJsGraph<T>::edges(v8::Local<v8::String> Name, const v8::PropertyCallba
 template <class T>
 void TNodeJsGraph<T>::eachNode(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-	v8::TryCatch TryCatch;
+	v8::TryCatch TryCatch(Isolate);
 	v8::HandleScope HandleScope(Isolate);
 	TNodeJsGraph* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Args.Holder());
 
@@ -661,7 +661,7 @@ template <class T>
 void TNodeJsGraph<T>::eachEdge(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	v8::TryCatch TryCatch;
+	v8::TryCatch TryCatch(Isolate);
 	TNodeJsGraph* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Args.Holder());
 
 	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
@@ -972,7 +972,7 @@ template <class T>
 void TNodeJsNode<T>::eachNbr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	v8::TryCatch TryCatch;
+	v8::TryCatch TryCatch(Isolate);
 	TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
 
 	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
@@ -996,7 +996,7 @@ template <class T>
 void TNodeJsNode<T>::eachInNbr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	v8::TryCatch TryCatch;
+	v8::TryCatch TryCatch(Isolate);
 	TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
 
 	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
@@ -1020,7 +1020,7 @@ template <class T>
 void TNodeJsNode<T>::eachOutNbr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	v8::TryCatch TryCatch;
+	v8::TryCatch TryCatch(Isolate);
 	TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
 
 	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);

@@ -150,7 +150,7 @@ template <>
 inline void TNodeJsNode<TNEGraph>::eachEdge(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	v8::TryCatch TryCatch;
+	v8::TryCatch TryCatch(Isolate);
 	TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
 
 	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
@@ -175,7 +175,7 @@ template <>
 inline void TNodeJsNode<TNEGraph>::eachInEdge(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	v8::TryCatch TryCatch;
+	v8::TryCatch TryCatch(Isolate);
 	TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
 
 	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
@@ -200,7 +200,7 @@ template <>
 inline void TNodeJsNode<TNEGraph>::eachOutEdge(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	v8::TryCatch TryCatch;
+	v8::TryCatch TryCatch(Isolate);
 	TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
 
 	v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);

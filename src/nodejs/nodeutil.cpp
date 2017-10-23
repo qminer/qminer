@@ -690,7 +690,7 @@ double TNodeJsUtil::ExecuteFlt(const v8::Handle<v8::Function>& Fun, const v8::Lo
     v8::HandleScope HandleScope(Isolate);
 
     v8::Handle<v8::Value> Argv[1] = { Arg };
-    v8::TryCatch TryCatch;
+    v8::TryCatch TryCatch(Isolate);
     v8::Handle<v8::Value> RetVal = Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
     TNodeJsUtil::CheckJSExcept(TryCatch);
     EAssertR(RetVal->IsNumber(), "Return type expected to be number");
@@ -702,7 +702,7 @@ PJsonVal TNodeJsUtil::ExecuteJson(const v8::Handle<v8::Function>& Fun,
         const v8::Local<v8::Object>& Arg1, const v8::Local<v8::Object>& Arg2) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    v8::TryCatch TryCatch;
+    v8::TryCatch TryCatch(Isolate);
     const int ArgC = 2;
     v8::Handle<v8::Value> ArgV[ArgC] = { Arg1, Arg2 };
     v8::Handle<v8::Value> RetVal = Fun->Call(Isolate->GetCurrentContext()->Global(), 2, ArgV);
@@ -717,7 +717,7 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const int& Ar
         v8::Handle<v8::Value> ArgV[]) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    v8::TryCatch TryCatch;
+    v8::TryCatch TryCatch(Isolate);
     Fun->Call(Isolate->GetCurrentContext()->Global(), ArgC, ArgV);
     TNodeJsUtil::CheckJSExcept(TryCatch);
 }
@@ -726,7 +726,7 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun,
         const v8::Local<v8::Value>& Arg1, const v8::Local<v8::Value>& Arg2) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    v8::TryCatch TryCatch;
+    v8::TryCatch TryCatch(Isolate);
 
     const int ArgC = 2;
     v8::Handle<v8::Value> ArgV[ArgC] = { Arg1, Arg2 };
@@ -742,7 +742,7 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    v8::TryCatch TryCatch;
+    v8::TryCatch TryCatch(Isolate);
     Fun->Call(Isolate->GetCurrentContext()->Global(), 0, nullptr);
     if (TryCatch.HasCaught()) {
         v8::String::Utf8Value Msg(TryCatch.Message()->Get());
@@ -753,7 +753,7 @@ void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun) {
 void TNodeJsUtil::ExecuteErr(const v8::Handle<v8::Function>& Fun, const PExcept& Except) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    v8::TryCatch TryCatch;
+    v8::TryCatch TryCatch(Isolate);
 
     const TStr& Msg = Except->GetMsgStr();
     v8::Local<v8::String> V8Msg = v8::String::NewFromUtf8(Isolate, Msg.CStr());
@@ -815,7 +815,7 @@ v8::Local<v8::Value> TNodeJsUtil::V8JsonToV8Str(const v8::Handle<v8::Value>& Jso
     v8::Local<v8::Function> Fun = v8::Local<v8::Function>::Cast(FunObj);
 
 
-    v8::TryCatch TryCatch;
+    v8::TryCatch TryCatch(Isolate);
     v8::Local<v8::Value> ArgV[1] = { Json };
     v8::Local<v8::Value> JsonStr = Fun->Call(Context->Global(), 1, ArgV);
 

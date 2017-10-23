@@ -143,7 +143,7 @@ template <class TVal>
 void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Local<TVal>& Arg) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    v8::TryCatch TryCatch;
+    v8::TryCatch TryCatch(Isolate);
 
     v8::Handle<v8::Value> Argv[1] = { Arg };
     Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
@@ -154,7 +154,7 @@ template <class TVal>
 bool TNodeJsUtil::ExecuteBool(const v8::Handle<v8::Function>& Fun, const v8::Local<TVal>& Arg) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    v8::TryCatch TryCatch;
+    v8::TryCatch TryCatch(Isolate);
 
     v8::Handle<v8::Value> Argv[1] = { Arg };
     v8::Local<v8::Value> RetVal = Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
