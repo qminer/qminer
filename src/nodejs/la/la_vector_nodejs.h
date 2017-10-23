@@ -1471,7 +1471,7 @@ inline void TNodeJsVec<PJsonVal, TAuxJsonV>::toString(const v8::FunctionCallback
 
 // Returns the size of the vector 
 template<typename TVal, typename TAux>
-void TNodeJsVec<TVal, TAux>::length(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsVec<TVal, TAux>::length(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 

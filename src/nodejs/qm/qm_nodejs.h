@@ -114,7 +114,7 @@ private:
     * var flags = qm.flags;
     */
     //# exports.flags = { buildTime: "", win: true, linux: true, darwin: true, x86: true, x64: true, omp: true, debug: true, gcc: true, clang: true, blas: true, blas_intel: true, blas_amd: true, blas_openblas: true, lapacke: true };
-    JsDeclareProperty2(flags);
+    JsDeclareProperty(flags);
 
     /**
     * Returns the module version.

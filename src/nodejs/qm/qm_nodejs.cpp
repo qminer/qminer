@@ -31,9 +31,6 @@ void TNodeJsQm::Init(v8::Handle<v8::Object> exports) {
     // Add properties
     exports->SetAccessor(Isolate->GetCurrentContext(),
       v8::String::NewFromUtf8(Isolate, "flags"), _flags);
-    //v8::Maybe<bool> Res = exports->SetAccessor(
-    //  Isolate->GetCurrentContext(),
-    //  v8::String::NewFromUtf8(Isolate, "flags"), _flags);
 
     // initialize QMiner environment
     TQm::TEnv::Init();
@@ -1728,7 +1725,7 @@ void TNodeJsStore::triggerOnAddCallbacks(const v8::FunctionCallbackInfo<v8::Valu
     }
 }
 
-void TNodeJsStore::name(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsStore::name(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -1737,7 +1734,7 @@ void TNodeJsStore::name(v8::Local<v8::String> Name, const v8::PropertyCallbackIn
     Info.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, JsStore->Store->GetStoreNm().CStr()));
 }
 
-void TNodeJsStore::empty(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsStore::empty(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -1747,7 +1744,7 @@ void TNodeJsStore::empty(v8::Local<v8::String> Name, const v8::PropertyCallbackI
     Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsStore->Store->Empty()));
 }
 
-void TNodeJsStore::length(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsStore::length(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -1771,7 +1768,7 @@ void TNodeJsStore::allRecords(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TNodeJsUtil::NewInstance<TNodeJsRecSet>(new TNodeJsRecSet(ResultSet, JsStore->Watcher)));
 }
 
-void TNodeJsStore::fields(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsStore::fields(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -1799,7 +1796,7 @@ void TNodeJsStore::fields(v8::Local<v8::String> Name, const v8::PropertyCallback
     Info.GetReturnValue().Set(FieldV);
 }
 
-void TNodeJsStore::joins(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsStore::joins(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -1842,7 +1839,7 @@ void TNodeJsStore::joins(v8::Local<v8::String> Name, const v8::PropertyCallbackI
     Info.GetReturnValue().Set(JoinV);
 }
 
-void TNodeJsStore::keys(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsStore::keys(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -2150,7 +2147,7 @@ void TNodeJsRec::toJSON(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 }
 
 
-void TNodeJsRec::id(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsRec::id(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -2159,7 +2156,7 @@ void TNodeJsRec::id(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v
     Info.GetReturnValue().Set(v8::Integer::New(Isolate, (int)JsRec->Rec.GetRecId()));
 }
 
-void TNodeJsRec::name(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsRec::name(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -2168,7 +2165,7 @@ void TNodeJsRec::name(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo
     Info.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, JsRec->Rec.GetRecNm().CStr()));
 }
 
-void TNodeJsRec::fq(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsRec::fq(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -2190,7 +2187,7 @@ void TNodeJsRec::store(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 }
 
-void TNodeJsRec::getField(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsRec::getField(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -2198,12 +2195,12 @@ void TNodeJsRec::getField(v8::Local<v8::String> Name, const v8::PropertyCallback
     TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Self);
     const TQm::TRec& Rec = JsRec->Rec;
     const TWPt<TQm::TStore>& Store = Rec.GetStore();
-    const int FieldId = Store->GetFieldId(TNodeJsUtil::GetStr(Name));
+    const int FieldId = Store->GetFieldId(TNodeJsUtil::GetStr(Name->ToString()));
 
     Info.GetReturnValue().Set(TNodeJsStore::Field(Rec, FieldId));
 }
 
-void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info) {
+void TNodeJsRec::setField(v8::Local<v8::Name> Name, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -2211,7 +2208,7 @@ void TNodeJsRec::setField(v8::Local<v8::String> Name, v8::Local<v8::Value> Value
     TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(Self);
     TQm::TRec& Rec = JsRec->Rec;
     const TWPt<TQm::TStore>& Store = Rec.GetStore();
-    TStr FieldNm = TNodeJsUtil::GetStr(Name);
+    TStr FieldNm = TNodeJsUtil::GetStr(Name->ToString());
     const int FieldId = Store->GetFieldId(FieldNm);
     //TODO: for now we don't support by-value records, fix this
     //QmAssertR(Rec.IsByRef(), "Only records by reference (from stores) supported for setters.");
@@ -2473,7 +2470,7 @@ void TNodeJsRecByValV::push(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
-void TNodeJsRecByValV::length(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsRecByValV::length(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -3507,7 +3504,7 @@ void TNodeJsRecSet::store(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 }
 
-void TNodeJsRecSet::length(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsRecSet::length(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -3517,7 +3514,7 @@ void TNodeJsRecSet::length(v8::Local<v8::String> Name, const v8::PropertyCallbac
     Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsRecSet->RecSet->GetRecs()));
 }
 
-void TNodeJsRecSet::empty(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsRecSet::empty(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Info.Holder());
@@ -3525,7 +3522,7 @@ void TNodeJsRecSet::empty(v8::Local<v8::String> Name, const v8::PropertyCallback
     Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsRecSet->RecSet->Empty()));
 }
 
-void TNodeJsRecSet::weighted(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsRecSet::weighted(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     TNodeJsRecSet* JsRecSet = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRecSet>(Info.Holder());
@@ -3716,7 +3713,7 @@ void TNodeJsIndexKey::store(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         );
 }
 
-void TNodeJsIndexKey::name(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsIndexKey::name(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     // unwrap
@@ -3725,7 +3722,7 @@ void TNodeJsIndexKey::name(v8::Local<v8::String> Name, const v8::PropertyCallbac
     Info.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, JsIndexKey->IndexKey.GetKeyNm().CStr()));
 }
 
-void TNodeJsIndexKey::vocabulary(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsIndexKey::vocabulary(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     // unwrap
@@ -3744,7 +3741,7 @@ void TNodeJsIndexKey::vocabulary(v8::Local<v8::String> Name, const v8::PropertyC
     }
 }
 
-void TNodeJsIndexKey::fq(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsIndexKey::fq(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     // unwrap
@@ -4082,7 +4079,7 @@ v8::Local<v8::Value> TNodeJsFtrSpace::TExtractMatrixTask::WrapResult() {
 }
 
 
-void TNodeJsFtrSpace::dim(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsFtrSpace::dim(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -4095,7 +4092,7 @@ void TNodeJsFtrSpace::dim(v8::Local<v8::String> Name, const v8::PropertyCallback
     }
 }
 
-void TNodeJsFtrSpace::dims(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsFtrSpace::dims(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 

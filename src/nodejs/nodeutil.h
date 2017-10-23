@@ -20,19 +20,6 @@
 #include "thread.h"
 
 #define JsDeclareProperty(Function) \
-    static void Function(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
-    static void _ ## Function(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
-        v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
-        v8::HandleScope HandleScope(Isolate); \
-        try { \
-            Function(Name, Info); \
-        } catch (const PExcept& Except) { \
-            Isolate->ThrowException(v8::Exception::TypeError( \
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
-        } \
-    };
-
-#define JsDeclareProperty2(Function) \
     static void Function(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
     static void _ ## Function(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
         v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
@@ -83,8 +70,8 @@
     }
 
 #define JsDeclareSetProperty(GetFunction, SetFunction) \
-    static void GetFunction(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
-    static void _ ## GetFunction(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
+    static void GetFunction(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
+    static void _ ## GetFunction(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
         v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
         v8::HandleScope HandleScope(Isolate); \
         try { \
@@ -94,8 +81,8 @@
             v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
       } \
     } \
-    static void SetFunction(v8::Local<v8::String> Name, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info); \
-    static void _ ## SetFunction(v8::Local<v8::String> Name, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info) { \
+    static void SetFunction(v8::Local<v8::Name> Name, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info); \
+    static void _ ## SetFunction(v8::Local<v8::Name> Name, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info) { \
         v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
         v8::HandleScope HandleScope(Isolate); \
         try { \
