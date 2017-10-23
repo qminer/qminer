@@ -108,6 +108,26 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Value>& Val, const bool& Ig
     }
 }
 
+double TNodeJsUtil::GetObjNum(const v8::Local<v8::Value>& Value) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::MaybeLocal<v8::Number> MaybeNum = Value->ToNumber(Isolate->GetCurrentContext());
+    v8::Local<v8::Number> Num;
+    EAssertR(MaybeNum.ToLocal(&Num), "TNodeJsUtil::GetObjNum: Value expected to be a number");
+    // Alternative (faster but may crash if Value is empty):
+    // v8::Local<v8::Number> Num = Value->ToNumber(Isolate->GetCurrentContext()).ToLocalChecked()
+    return Num->Value();
+}
+
+int TNodeJsUtil::GetObjInt32(const v8::Local<v8::Value>& Value) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::MaybeLocal<v8::Int32> MaybeInt = Value->ToInt32(Isolate->GetCurrentContext());
+    v8::Local<v8::Int32> Int;
+    EAssertR(MaybeInt.ToLocal(&Int), "TNodeJsUtil::GetObjInt32: Value expected to be a number");
+    // Alternative (faster but may crash if Value is empty):
+    // v8::Local<v8::Int32> Num = Value->ToInt32(Isolate->GetCurrentContext()).ToLocalChecked()
+    return Int->Value();
+}
+
 v8::Local<v8::Value> TNodeJsUtil::ParseJson(v8::Isolate* Isolate, const PJsonVal& JsonVal) {
     v8::EscapableHandleScope HandleScope(Isolate);
     
@@ -383,7 +403,7 @@ int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, co
     if (ArgN >= Args.Length()) { return DefVal; }
     v8::Handle<v8::Value> Val = Args[ArgN];
     EAssertR(Val->IsInt32(), TStr::Fmt("Argument %d expected to be int", ArgN));
-    return Val->Int32Value();
+    return GetObjInt32(Val);
 }
 
 
@@ -399,7 +419,7 @@ int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, co
     bool IsInt = Val->IsInt32();
     EAssertR(IsInt,
         TStr::Fmt("Argument %d, property %s expected to be int32", ArgN, Property.CStr()).CStr());
-    return Val->ToNumber()->Int32Value();   
+    return GetObjInt32(Val);
 }
 
 int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const int& DefVal) {
@@ -412,7 +432,7 @@ int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, co
             bool IsInt = Val->IsInt32();
             EAssertR(IsInt,
                      TStr::Fmt("Argument %d, property %s expected to be int32", ArgN, Property.CStr()).CStr());
-            return Val->ToNumber()->Int32Value();
+            return GetObjInt32(Val);
         }
     }
     return DefVal;
@@ -425,7 +445,7 @@ double TNodeJsUtil::GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, c
     EAssertR(Args.Length() > ArgN, TStr::Fmt("TNodeJsUtil::GetArgFlt: Missing argument %d", ArgN));
     v8::Handle<v8::Value> Val = Args[ArgN];
     EAssertR(Val->IsNumber(), TStr::Fmt("Argument %d expected to be number", ArgN));
-    return Val->NumberValue();
+    return GetObjNum(Val);
 }
 
 double TNodeJsUtil::GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const double& DefVal) {
@@ -435,7 +455,7 @@ double TNodeJsUtil::GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, c
     if (ArgN >= Args.Length()) { return DefVal; }
     v8::Handle<v8::Value> Val = Args[ArgN];
     EAssertR(Val->IsNumber(), TStr::Fmt("Argument %d expected to be number", ArgN));
-    return Val->NumberValue();
+    return GetObjNum(Val);
 }
 
 double TNodeJsUtil::GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const double& DefVal) {
@@ -447,7 +467,7 @@ double TNodeJsUtil::GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, c
             v8::Handle<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, Property.CStr()));
             EAssertR(Val->IsNumber(),
                 TStr::Fmt("Argument %d, property %s expected to be number", ArgN, Property.CStr()).CStr());
-            return Val->NumberValue();
+            return GetObjNum(Val);
         }
     }
     return DefVal;
@@ -467,7 +487,7 @@ void TNodeJsUtil::GetArgFltV(const v8::FunctionCallbackInfo<v8::Value>& Args, co
     for (int i = 0; i < Len; i++) {
         v8::Local<v8::Value> ArrVal = Arr->Get(i);
         EAssertR(ArrVal->IsNumber(), "TNodeJsUtil::GetArgFltV: Value is not a number!");
-        FltV[i] = ArrVal->NumberValue();
+        FltV[i] = GetObjNum(ArrVal);
     }
 }
 

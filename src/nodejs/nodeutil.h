@@ -177,7 +177,10 @@ public:
     static PJsonVal GetObjJson(const v8::Local<v8::Value>& Val, const bool& IgnoreFunc=false, const bool& IgnoreWrappedObj=false);
     static PJsonVal GetObjProps(const v8::Local<v8::Object>& Obj) { return GetObjJson(Obj, true); }
     static PJsonVal GetObjToNmJson(const v8::Local<v8::Value>& Val);
-
+    /// Converts v8 value to double
+    static double GetObjNum(const v8::Local<v8::Value>& Value);
+    /// Converts v8 value to int
+    static int GetObjInt32(const v8::Local<v8::Value>& Value);
     /// Convert GLib Json (PJsonVal) to v8 Json
     static v8::Local<v8::Value> ParseJson(v8::Isolate* Isolate, const PJsonVal& JsonVal);
     /// Transform V8 string to TStr

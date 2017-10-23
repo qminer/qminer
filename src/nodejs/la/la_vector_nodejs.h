@@ -26,11 +26,8 @@ public:
         v8::EscapableHandleScope HandleScope(Isolate);
         return HandleScope.Escape(v8::Number::New(Isolate, Val));
     }
-    //static double GetArgVal(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
-    //    return TJsObjUtil<TJsVec<TFlt, TAuxFltV> >::GetArgFlt(Args, ArgN);
-    //}
     static double CastVal(const v8::Local<v8::Value>& Value) {
-        return Value->ToNumber()->Value();
+        return TNodeJsUtil::GetObjNum(Value);
     }
     static void AssertType(const v8::Local<v8::Value>& Val) {
         EAssertR(Val->IsNumber(), ClassId + "::AssertType: Value expected to be a number");
@@ -48,11 +45,8 @@ public:
         v8::EscapableHandleScope HandleScope(Isolate);
         return HandleScope.Escape(v8::Integer::New(Isolate, Val));
     }
-    //static int GetArgVal(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
-    //    return TJsObjUtil<TJsVec<TInt, TAuxIntV> >::GetArgInt32(Args, ArgN);
-    // }
     static int CastVal(const v8::Local<v8::Value>& Value) {
-        return Value->ToInt32()->Value();
+        return TNodeJsUtil::GetObjInt32(Value);
     }
     static void AssertType(const v8::Local<v8::Value>& Val) {
         EAssertR(Val->IsInt32(), ClassId + "::AssertType: Value expected to be an integer");
