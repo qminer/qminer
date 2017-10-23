@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -34,10 +34,10 @@ public:
     }
     TLogger(const int& _VerbosityLevel = 3) { VerbosityLevel = _VerbosityLevel; StartingSpaces = 0; }
     ~TLogger() { }
-    
+
     // i don't know why, but I had to define this in order to compile
     bool operator==(const TLogger& BSet) const { return &BSet == this;}
-  
+
     TVec<PNotify> NotifyInstV;
 
     // (In/De)creaseSpaces methods allow one to have indented content in the logs. can be used to get tree-like view of function calls
@@ -50,20 +50,20 @@ public:
     int GetVerbosityLevel() { return VerbosityLevel; }
     void AddLogger(const PNotify& Notify) { NotifyInstV.Add(Notify); }
     void RemoveLoggers() { NotifyInstV.Clr(); }
-    void RemoveLogger(const PNotify& Notify) { 
+    void RemoveLogger(const PNotify& Notify) {
         // SearchForW on the vector doesn't compile so we have to check item by item
         for (int N = 0; N < NotifyInstV.Len(); N++) {
             if (NotifyInstV[N]() == Notify())
                 NotifyInstV.Del(N);
         }
-        //NotifyInstV.DelIfIn(Notify); 
+        //NotifyInstV.DelIfIn(Notify);
     }
 
     void NotifyVerbose(const int& VerbosityLevel, const char *Str);
     void NotifyVerbose(const int& VerbosityLevel, const TNotifyType& Type, const char *Str);
     void NotifyVerboseFmt(const int& VerbosityLevel, const char *FmtStr, ...);
     void NotifyVerboseFmt(const int& VerbosityLevel, const TNotifyType& Type, const char *FmtStr, ...);
-    
+
     void NotifyInfo(const char *Str);
     void NotifyWarn(const char *Str);
     void NotifyErr(const char *Str);
@@ -72,7 +72,7 @@ public:
     void NotifyWarnFmt(const char *FmtStr, ...);
     void NotifyErrFmt(const char *FmtStr, ...);
     void NotifyErr(const char *Str, const PExcept& Except);
-    void NotifyFmt(const TNotifyType& Type, const char *FmtStr, va_list argptr);
+    void NotifyFmt(const TNotifyType& Type, const char *FmtStr, va_list Argptr);
     void Notify(const TNotifyType& Type, const char *Str);
 
     static void PrintInfo(const TStr& Str);
@@ -82,4 +82,6 @@ public:
     static void PrintInfo(const char *FmtStr, ...);
     static void PrintWarning(const char *FmtStr, ...);
     static void PrintError(const char *FmtStr, ...);
+
+    static void Print(const TStr& Type, const char *FmtStr, va_list Argptr);
 };

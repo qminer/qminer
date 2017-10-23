@@ -3181,6 +3181,7 @@ private:
         int GetPos(const int& PosN) const;
 
         /// Add new position to the item and return true if the item became full
+        /// the positions are always added in increasing order - every added position should be higher than the last
         bool Add(const int& Pos);
         /// Intersect keeping bigger positions that are within MaxDiff difference:
         /// Assumes that this is before Item and we only keep position when Item
