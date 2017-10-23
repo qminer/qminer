@@ -2038,10 +2038,11 @@ v8::Local<v8::Object> TNodeJsRec::NewInstance(TNodeJsRec* JsRec) {
         "TNodeJsRec::NewInstance: constructor is empty. Did you call TNodeJsRec::Init(exports)?");
 
     v8::Persistent<v8::Function>& PersCons = BaseStoreIdConstructor[BaseId][StoreId];
-    v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(
-        Isolate, PersCons);
+    v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, PersCons);
+    v8::MaybeLocal<v8::Object> MaybeInstance = Cons->NewInstance(Isolate->GetCurrentContext());
+    v8::Local<v8::Object> Instance;
+    EAssertR(MaybeInstance.ToLocal(&Instance), "TNodeJsRec::NewInstance: failed to create instance (empty handle)");
 
-    v8::Local<v8::Object> Instance = Cons->NewInstance();
     const int IntenalFldCount = Instance->InternalFieldCount();
     EAssertR(IntenalFldCount > 0, "TNodeJsRec::NewInstance: constructor has " + TInt::GetStr(IntenalFldCount) + " internal fields!");
     JsRec->Wrap(Instance);

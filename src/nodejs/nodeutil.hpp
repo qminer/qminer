@@ -132,9 +132,11 @@ template <class TClass>
 v8::Local<v8::Object> TNodeJsUtil::NewInstance(TClass* Obj) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
-    EAssertR(!TClass::Constructor.IsEmpty(), "NewJsInstance<...>::New: constructor is empty. Did you call NewJsInstance<...>::Init(exports); in this module's init function?");
-    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, TClass::Constructor);
-    v8::Local<v8::Object> Instance = cons->NewInstance();
+    EAssertR(!TClass::Constructor.IsEmpty(), "NewJsInstance<" + TClass::GetClassId() + ">::New: constructor is empty. Did you call NewJsInstance<...>::Init(exports); in this module's init function?");
+    v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, TClass::Constructor);
+    v8::MaybeLocal<v8::Object> MaybeInstance = Cons->NewInstance(Isolate->GetCurrentContext());
+    v8::Local<v8::Object> Instance;
+    EAssertR(MaybeInstance.ToLocal(&Instance), "NewJsInstance<" + TClass::GetClassId() + ">::New: failed to create instance (empty handle)");
     Obj->Wrap(Instance);
     return HandleScope.Escape(Instance);
 }
