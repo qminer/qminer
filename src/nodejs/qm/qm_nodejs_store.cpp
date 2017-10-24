@@ -68,7 +68,7 @@ namespace TQm {
             v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, GetRecsFun);
             v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
 
-            v8::TryCatch TryCatch;
+            v8::TryCatch TryCatch(Isolate);
             v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
             if (TryCatch.HasCaught()) {
                 v8::String::Utf8Value Msg(TryCatch.Message()->Get());
@@ -86,7 +86,7 @@ namespace TQm {
             v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, GetAllRecsFun);
             v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
 
-            v8::TryCatch TryCatch;
+            v8::TryCatch TryCatch(Isolate);
             v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
             if (TryCatch.HasCaught()) {
                 v8::String::Utf8Value Msg(TryCatch.Message()->Get());
@@ -106,7 +106,7 @@ namespace TQm {
             v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, GetFirstRecIdFun);
             v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
 
-            v8::TryCatch TryCatch;
+            v8::TryCatch TryCatch(Isolate);
             v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
             if (TryCatch.HasCaught()) {
                 v8::String::Utf8Value Msg(TryCatch.Message()->Get());
@@ -124,7 +124,7 @@ namespace TQm {
             v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, GetLastRecIdFun);
             v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
 
-            v8::TryCatch TryCatch;
+            v8::TryCatch TryCatch(Isolate);
             v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
             if (TryCatch.HasCaught()) {
                 v8::String::Utf8Value Msg(TryCatch.Message()->Get());
@@ -148,7 +148,7 @@ namespace TQm {
             int Argc = 2;
             v8::Handle<v8::Value> Argv[2] = { JsRecId, JsFieldId };
 
-            v8::TryCatch TryCatch;
+            v8::TryCatch TryCatch(Isolate);
             v8::Local<v8::Value> RetVal = Callback->Call(GlobalContext, Argc, Argv);
             if (TryCatch.HasCaught()) {
                 v8::String::Utf8Value Msg(TryCatch.Message()->Get());
