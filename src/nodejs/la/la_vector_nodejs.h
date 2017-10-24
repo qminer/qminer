@@ -26,8 +26,8 @@ public:
         v8::EscapableHandleScope HandleScope(Isolate);
         return HandleScope.Escape(v8::Number::New(Isolate, Val));
     }
-    static double CastVal(const v8::Local<v8::Value>& Value) {
-        return TNodeJsUtil::GetObjNum(Value);
+    static double CastVal(v8::Local<v8::Context>& Context, const v8::Local<v8::Value>& Value) {
+        return Value->ToNumber(Context).ToLocalChecked()->Value();
     }
     static void AssertType(const v8::Local<v8::Value>& Val) {
         EAssertR(Val->IsNumber(), ClassId + "::AssertType: Value expected to be a number");
@@ -45,8 +45,8 @@ public:
         v8::EscapableHandleScope HandleScope(Isolate);
         return HandleScope.Escape(v8::Integer::New(Isolate, Val));
     }
-    static int CastVal(const v8::Local<v8::Value>& Value) {
-        return TNodeJsUtil::GetObjInt32(Value);
+    static int CastVal(v8::Local<v8::Context>& Context, const v8::Local<v8::Value>& Value) {
+        return Value->ToInt32(Context).ToLocalChecked()->Value();
     }
     static void AssertType(const v8::Local<v8::Value>& Val) {
         EAssertR(Val->IsInt32(), ClassId + "::AssertType: Value expected to be an integer");
@@ -64,12 +64,12 @@ public:
         v8::EscapableHandleScope HandleScope(Isolate);
         return HandleScope.Escape(v8::String::NewFromUtf8(Isolate, Val.CStr()));
     }
-    static TStr CastVal(const v8::Local<v8::Value>& Value) {
+    static TStr CastVal(v8::Local<v8::Context>& Context, const v8::Local<v8::Value>& Value) {
         v8::String::Utf8Value Utf8(Value);
         return TStr(*Utf8);
     }
     static void AssertType(const v8::Local<v8::Value>& Val) {
-        EAssertR(Val->IsString(), ClassId + "::AssertType: Value expected to be a String");        
+        EAssertR(Val->IsString(), ClassId + "::AssertType: Value expected to be a String");
     }
     static TStr Parse(const TStr& Str) {
         return Str;
@@ -84,8 +84,8 @@ public:
         v8::EscapableHandleScope HandleScope(Isolate);
         return v8::Boolean::New(Isolate, Val);
     }
-    static bool CastVal(const v8::Local<v8::Value>& Value) {
-        return Value->BooleanValue();
+    static bool CastVal(v8::Local<v8::Context>& Context, const v8::Local<v8::Value>& Value) {
+        return Value->ToBoolean(Context).ToLocalChecked()->Value();
     }
     static void AssertType(const v8::Local<v8::Value>& Val) {
         EAssertR(Val->IsBoolean(), ClassId + "::AssertType: Value expected to be a boolean");
@@ -103,7 +103,7 @@ public:
         v8::EscapableHandleScope HandleScope(Isolate);
         return TNodeJsUtil::ParseJson(Isolate, Val);
     }
-    static PJsonVal CastVal(const v8::Local<v8::Value>& Value) {
+    static PJsonVal CastVal(v8::Local<v8::Context>& Context, const v8::Local<v8::Value>& Value) {
         const PJsonVal JsonVal = TNodeJsUtil::GetObjJson(Value);
         return JsonVal;
     }
@@ -1070,6 +1070,7 @@ template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
     EAssertR(!Constructor.IsEmpty(), "TNodeJsVec<TVal, TAux>::New: constructor is empty. Did you call TNodeJsVec<TVal, TAux>::Init(exports); in this module's init function? Vector ClassId: " + TAux::ClassId);
     if (Args.IsConstructCall()) {
         //printf("vector construct call, class = %s, nargs: %d\n", TAux::ClassId.CStr(), Args.Length());
@@ -1084,7 +1085,7 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
             //printf("vector construct call, class = %s, input array\n", TAux::ClassId.CStr());
             v8::Handle<v8::Array> Arr = v8::Handle<v8::Array>::Cast(Args[0]);
             const int Len = Arr->Length();
-            for (int ElN = 0; ElN < Len; ++ElN) { JsVec->Vec.Add(TAux::CastVal(Arr->Get(ElN))); }
+            for (int ElN = 0; ElN < Len; ++ElN) { JsVec->Vec.Add(TAux::CastVal(Context, Arr->Get(ElN))); }
         }
         else if (Args[0]->IsObject()) {
             if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltV>(Args, 0)) {
@@ -1216,10 +1217,11 @@ template<typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::indexSet(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
 
     TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Info.Holder());
     EAssertR(Index < static_cast<uint32_t>(JsVec->Vec.Len()), "Index out of bounds.");
-    JsVec->Vec[Index] = TAux::CastVal(Value);
+    JsVec->Vec[Index] = TAux::CastVal(Context, Value);
     Info.GetReturnValue().Set(v8::Undefined(Isolate));
 }
 
@@ -1246,6 +1248,7 @@ template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::put(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
 
     EAssertR(Args.Length() >= 2, "Expected two arguments.");
     EAssertR(Args[0]->IsInt32(),
@@ -1259,7 +1262,7 @@ void TNodeJsVec<TVal, TAux>::put(const v8::FunctionCallbackInfo<v8::Value>& Args
 
     EAssertR(Idx >= 0 && Idx < JsVec->Vec.Len(), "Index out of bounds");
 
-    JsVec->Vec[Idx] = TAux::CastVal(Args[1]);
+    JsVec->Vec[Idx] = TAux::CastVal(Context, Args[1]);
 
     Args.GetReturnValue().Set(Args.Holder());
 }
@@ -1269,6 +1272,7 @@ template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::push(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
 
     TNodeJsVec<TVal, TAux>* JsVec =
         ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
@@ -1283,7 +1287,7 @@ void TNodeJsVec<TVal, TAux>::push(const v8::FunctionCallbackInfo<v8::Value>& Arg
     }
     else {
         
-        JsVec->Vec.Add(TAux::CastVal(Args[0]));
+        JsVec->Vec.Add(TAux::CastVal(Context, Args[0]));
         Args.GetReturnValue().Set(v8::Number::New(Isolate, JsVec->Vec.Len()));
     }
 }
@@ -1293,6 +1297,7 @@ template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::splice(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
 
     EAssertR(Args.Length() >= 2, "vec.splice expects at least 2 arguments!");
 
@@ -1316,17 +1321,17 @@ void TNodeJsVec<TVal, TAux>::splice(const v8::FunctionCallbackInfo<v8::Value>& A
 
     // override
     for (int i = 0; i < NOverride; i++) {
-        Vec[StartIdx + i] = TAux::CastVal(Args[2 + i]);
+        Vec[StartIdx + i] = TAux::CastVal(Context, Args[2 + i]);
     }
 
     // insert
     for (int i = 0; i < NIns; i++) {
         const int Idx = StartIdx + NOverride + i;
         if (Idx == Vec.Len()) {
-            Vec.Add(TAux::CastVal(Args[2 + NOverride + i]));
+            Vec.Add(TAux::CastVal(Context, Args[2 + NOverride + i]));
         }
         else {
-            Vec.Ins(StartIdx + NOverride + i, TAux::CastVal(Args[2 + NOverride + i]));
+            Vec.Ins(StartIdx + NOverride + i, TAux::CastVal(Context, Args[2 + NOverride + i]));
         }
     }
 
@@ -1342,6 +1347,7 @@ template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::unshift(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
     TNodeJsVec<TVal, TAux>* JsVec =
         ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
 
@@ -1349,7 +1355,7 @@ void TNodeJsVec<TVal, TAux>::unshift(const v8::FunctionCallbackInfo<v8::Value>& 
     for (int ArgN = 0; ArgN < Args.Length(); ArgN++) {
         // assume number
         TAux::AssertType(Args[ArgN]);
-        Temp[ArgN] = TAux::CastVal(Args[ArgN]);
+        Temp[ArgN] = TAux::CastVal(Context, Args[ArgN]);
     }
     Temp.AddV(JsVec->Vec);
     JsVec->Vec = Temp;

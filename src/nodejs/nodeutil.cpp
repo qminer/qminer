@@ -108,26 +108,6 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Value>& Val, const bool& Ig
     }
 }
 
-double TNodeJsUtil::GetObjNum(const v8::Local<v8::Value>& Value) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::MaybeLocal<v8::Number> MaybeNum = Value->ToNumber(Isolate->GetCurrentContext());
-    v8::Local<v8::Number> Num;
-    EAssertR(MaybeNum.ToLocal(&Num), "TNodeJsUtil::GetObjNum: Value expected to be a number");
-    // Alternative (faster but may crash if Value is empty):
-    // v8::Local<v8::Number> Num = Value->ToNumber(Isolate->GetCurrentContext()).ToLocalChecked()
-    return Num->Value();
-}
-
-int TNodeJsUtil::GetObjInt32(const v8::Local<v8::Value>& Value) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::MaybeLocal<v8::Int32> MaybeInt = Value->ToInt32(Isolate->GetCurrentContext());
-    v8::Local<v8::Int32> Int;
-    EAssertR(MaybeInt.ToLocal(&Int), "TNodeJsUtil::GetObjInt32: Value expected to be a number");
-    // Alternative (faster but may crash if Value is empty):
-    // v8::Local<v8::Int32> Num = Value->ToInt32(Isolate->GetCurrentContext()).ToLocalChecked()
-    return Int->Value();
-}
-
 v8::Local<v8::Value> TNodeJsUtil::ParseJson(v8::Isolate* Isolate, const PJsonVal& JsonVal) {
     v8::EscapableHandleScope HandleScope(Isolate);
     
@@ -399,17 +379,19 @@ int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, co
 int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const int& DefVal) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
 
     if (ArgN >= Args.Length()) { return DefVal; }
     v8::Handle<v8::Value> Val = Args[ArgN];
     EAssertR(Val->IsInt32(), TStr::Fmt("Argument %d expected to be int", ArgN));
-    return GetObjInt32(Val);
+    return Val->ToInt32(Context).ToLocalChecked()->Value();
 }
 
 
 int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
 
     EAssertR(Args.Length() > ArgN, "insufficient number of arguments!");
 
@@ -419,12 +401,13 @@ int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, co
     bool IsInt = Val->IsInt32();
     EAssertR(IsInt,
         TStr::Fmt("Argument %d, property %s expected to be int32", ArgN, Property.CStr()).CStr());
-    return GetObjInt32(Val);
+    return Val->ToInt32(Context).ToLocalChecked()->Value();
 }
 
 int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const int& DefVal) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
 
     if (Args.Length() > ArgN) {
         if (Args[ArgN]->IsObject() && Args[ArgN]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, Property.CStr()))) {
@@ -432,7 +415,7 @@ int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, co
             bool IsInt = Val->IsInt32();
             EAssertR(IsInt,
                      TStr::Fmt("Argument %d, property %s expected to be int32", ArgN, Property.CStr()).CStr());
-            return GetObjInt32(Val);
+            return Val->ToInt32(Context).ToLocalChecked()->Value();
         }
     }
     return DefVal;
@@ -441,33 +424,36 @@ int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, co
 double TNodeJsUtil::GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
 
     EAssertR(Args.Length() > ArgN, TStr::Fmt("TNodeJsUtil::GetArgFlt: Missing argument %d", ArgN));
     v8::Handle<v8::Value> Val = Args[ArgN];
     EAssertR(Val->IsNumber(), TStr::Fmt("Argument %d expected to be number", ArgN));
-    return GetObjNum(Val);
+    return Val->ToNumber(Context).ToLocalChecked()->Value();
 }
 
 double TNodeJsUtil::GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const double& DefVal) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
 
     if (ArgN >= Args.Length()) { return DefVal; }
     v8::Handle<v8::Value> Val = Args[ArgN];
     EAssertR(Val->IsNumber(), TStr::Fmt("Argument %d expected to be number", ArgN));
-    return GetObjNum(Val);
+    return Val->ToNumber(Context).ToLocalChecked()->Value();
 }
 
 double TNodeJsUtil::GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const double& DefVal) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
 
     if (Args.Length() > ArgN) {
         if (Args[ArgN]->IsObject() && Args[ArgN]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, Property.CStr()))) {
             v8::Handle<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, Property.CStr()));
             EAssertR(Val->IsNumber(),
                 TStr::Fmt("Argument %d, property %s expected to be number", ArgN, Property.CStr()).CStr());
-            return GetObjNum(Val);
+            return Val->ToNumber(Context).ToLocalChecked()->Value();
         }
     }
     return DefVal;
@@ -476,6 +462,7 @@ double TNodeJsUtil::GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, c
 void TNodeJsUtil::GetArgFltV(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, TFltV& FltV) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
 
     EAssert(Args.Length() > ArgN);
     EAssertR(Args[ArgN]->IsArray(), "TNodeJsUtil::GetArgFltV: Argument is not an array!");
@@ -487,7 +474,7 @@ void TNodeJsUtil::GetArgFltV(const v8::FunctionCallbackInfo<v8::Value>& Args, co
     for (int i = 0; i < Len; i++) {
         v8::Local<v8::Value> ArrVal = Arr->Get(i);
         EAssertR(ArrVal->IsNumber(), "TNodeJsUtil::GetArgFltV: Value is not a number!");
-        FltV[i] = GetObjNum(ArrVal);
+        FltV[i] = ArrVal->ToNumber(Context).ToLocalChecked()->Value();
     }
 }
 
