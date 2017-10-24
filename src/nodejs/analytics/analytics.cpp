@@ -10,7 +10,7 @@
 //////////////////////////////////////////////////////
 // NodeJS - analytics
 
-void TNodeJsAnalytics::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsAnalytics::Init(v8::Local<v8::Object> exports) {
     NODE_SET_METHOD(exports, "nmf", _nmf);
     NODE_SET_METHOD(exports, "nmfAsync", _nmfAsync);
 }
@@ -49,7 +49,7 @@ TNodeJsAnalytics::TNMFTask::TNMFTask(const v8::FunctionCallbackInfo<v8::Value>& 
     V = new TNodeJsFltVV();
 }
 
-v8::Handle<v8::Function> TNodeJsAnalytics::TNMFTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+v8::Local<v8::Function> TNodeJsAnalytics::TNMFTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     if (TNodeJsUtil::IsArgFun(Args, 2)) {
         return TNodeJsUtil::GetArgFun(Args, 2);
     }
@@ -84,8 +84,8 @@ v8::Local<v8::Value> TNodeJsAnalytics::TNMFTask::WrapResult() {
     v8::EscapableHandleScope HandleScope(Isolate);
 
     v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result
-    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "U")), TNodeJsUtil::NewInstance(U));
-    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "V")), TNodeJsUtil::NewInstance(V));
+    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "U")), TNodeJsUtil::NewInstance(U));
+    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "V")), TNodeJsUtil::NewInstance(V));
     return HandleScope.Escape(JsObj);
 }
 
@@ -345,7 +345,7 @@ void TNodeJsSvmModel::ClrModel() {
 ///////////////////////////////
 // QMiner-JavaScript-Support-Vector-Classification
 
-void TNodeJsSVC::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsSVC::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -414,7 +414,7 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 ///////////////////////////////
 // QMiner-JavaScript-Support-Vector-Regression
 
-void TNodeJsSVR::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsSVR::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -484,7 +484,7 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 /////////////////////////////////////////////
 // Ridge Regression
-void TNodeJsRidgeReg::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsRidgeReg::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -626,7 +626,7 @@ void TNodeJsRidgeReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 /////////////////////////////////////////////
 // Sigmoid
-void TNodeJsSigmoid::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsSigmoid::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -776,7 +776,7 @@ void TNodeJsSigmoid::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 /////////////////////////////////////////////
 // Nearest Neighbor Annomaly Detection
-void TNodeJsNNAnomalies::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsNNAnomalies::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -1013,7 +1013,7 @@ TNodeJsRecLinReg::TNodeJsRecLinReg(const TSignalProc::POnlineLinReg& _Model):
         Model(_Model) {}
 
 
-void TNodeJsRecLinReg::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsRecLinReg::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -1227,7 +1227,7 @@ PJsonVal TNodeJsRecLinReg::GetParams() const {
 
 ////////////////////////////////////////////////////////
 // Logistic regression model
-void TNodeJsLogReg::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsLogReg::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -1380,7 +1380,7 @@ void TNodeJsLogReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 ////////////////////////////////////////////////////////
 // Proportional Hazards Model
-void TNodeJsPropHaz::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsPropHaz::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -1561,7 +1561,7 @@ TNodeJsNNet::TNodeJsNNet(TSIn& SIn) {
 
 }
 
-void TNodeJsNNet::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsNNet::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsNNet>);
@@ -1798,7 +1798,7 @@ TSignalProc::TTFunc TNodeJsNNet::ExtractFuncFromString(const TStr& FuncString) {
 ///////////////////////////////
 // QMiner-JavaScript-Tokenizer
 
-void TNodeJsTokenizer::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsTokenizer::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -1929,7 +1929,7 @@ void TNodeJsMDS::Save(TSOut& SOut) const {
     SaveEnum<TVizDistType>(SOut, DistType);
 }
 
-void TNodeJsMDS::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsMDS::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -1995,7 +1995,7 @@ TNodeJsMDS::TFitTransformTask::TFitTransformTask(const v8::FunctionCallbackInfo<
     JsResult = new TNodeJsFltVV();
 }
 
-v8::Handle<v8::Function> TNodeJsMDS::TFitTransformTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+v8::Local<v8::Function> TNodeJsMDS::TFitTransformTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     return TNodeJsUtil::GetArgFun(Args, 1);
 }
 
@@ -2264,7 +2264,7 @@ void TNodeJsKMeans::CleanUp() {
     }
 }
 
-void TNodeJsKMeans::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsKMeans::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -2350,43 +2350,43 @@ void TNodeJsKMeans::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         if (!JsKMeans->DenseFitMatrix.Empty() || !JsKMeans->SparseFitMatrix.Empty()) {
             v8::Local<v8::Object> FitStart = v8::Object::New(Isolate);
             if (!JsKMeans->DenseFitMatrix.Empty()) {
-                FitStart->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "C")), TNodeJsFltVV::New(JsKMeans->DenseFitMatrix));
+                FitStart->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "C")), TNodeJsFltVV::New(JsKMeans->DenseFitMatrix));
             }
             else {
-                FitStart->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "C")), TNodeJsSpMat::New(JsKMeans->SparseFitMatrix));
+                FitStart->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "C")), TNodeJsSpMat::New(JsKMeans->SparseFitMatrix));
             }
-            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "fitStart")), FitStart);
+            JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "fitStart")), FitStart);
         }
-        JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "iter")), v8::Integer::New(Isolate, JsKMeans->Iter));
-        JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "k")), v8::Integer::New(Isolate, JsKMeans->K));
-        JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "verbose")), v8::Boolean::New(Isolate, JsKMeans->Verbose));
-        JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "allowEmpty")), v8::Boolean::New(Isolate, JsKMeans->AllowEmptyP));
-        JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "calcDistQual")), v8::Boolean::New(Isolate, JsKMeans->CalcDistQualP));
+        JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "iter")), v8::Integer::New(Isolate, JsKMeans->Iter));
+        JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "k")), v8::Integer::New(Isolate, JsKMeans->K));
+        JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "verbose")), v8::Boolean::New(Isolate, JsKMeans->Verbose));
+        JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "allowEmpty")), v8::Boolean::New(Isolate, JsKMeans->AllowEmptyP));
+        JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "calcDistQual")), v8::Boolean::New(Isolate, JsKMeans->CalcDistQualP));
 
         if (!JsKMeans->FitIdx.Empty()) {
-            v8::Handle<v8::Array> FitIdx = v8::Array::New(Isolate, JsKMeans->FitIdx.Len());
+            v8::Local<v8::Array> FitIdx = v8::Array::New(Isolate, JsKMeans->FitIdx.Len());
             for (int ElN = 0; ElN < JsKMeans->FitIdx.Len(); ElN++) {
                 FitIdx->Set(ElN, v8::Integer::New(Isolate, JsKMeans->FitIdx.GetVal(ElN).Val));
             }
-            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "fitIdx")), FitIdx);
+            JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "fitIdx")), FitIdx);
         }
 
         switch (JsKMeans->DistType) {
         case dtEuclid:
-            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "distanceType")), v8::String::NewFromUtf8(Isolate, "Euclid"));
+            JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "distanceType")), v8::String::NewFromUtf8(Isolate, "Euclid"));
             break;
         case dtCos:
-            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "distanceType")), v8::String::NewFromUtf8(Isolate, "Cos"));
+            JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "distanceType")), v8::String::NewFromUtf8(Isolate, "Cos"));
             break;
         default:
             throw TExcept::New("KMeans.GetParams: unsupported distance type " + TInt::GetStr((int)JsKMeans->DistType));
         }
         switch (JsKMeans->CentType) {
         case ctDense:
-            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "centroidType")), v8::String::NewFromUtf8(Isolate, "Dense"));
+            JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "centroidType")), v8::String::NewFromUtf8(Isolate, "Dense"));
             break;
         case ctSparse:
-            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "centroidType")), v8::String::NewFromUtf8(Isolate, "Sparse"));
+            JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "centroidType")), v8::String::NewFromUtf8(Isolate, "Sparse"));
             break;
         default:
             throw TExcept::New("KMeans.GetParams: unsupported centroid type " + TInt::GetStr((int)JsKMeans->CentType));
@@ -2469,7 +2469,7 @@ TNodeJsKMeans::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Arg
             JsIntV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsIntV>(Args, 1);
         }
         else if (Args[1]->IsArray()) {
-            v8::Handle<v8::Array> Arr = v8::Handle<v8::Array>::Cast(Args[1]);
+            v8::Local<v8::Array> Arr = v8::Local<v8::Array>::Cast(Args[1]);
             const int Len = Arr->Length();
             JsArr = new TNodeJsIntV(Len);
             TNodeJsUtil::GetArgIntV(Args, 1, JsArr->Vec);
@@ -2480,7 +2480,7 @@ TNodeJsKMeans::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Arg
     }
 }
 
-v8::Handle<v8::Function> TNodeJsKMeans::TFitTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+v8::Local<v8::Function> TNodeJsKMeans::TFitTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     if (TNodeJsUtil::IsArgFun(Args, 1)) {
         return TNodeJsUtil::GetArgFun(Args, 1);
     }
@@ -3130,7 +3130,7 @@ void TNodeJsDpMeans::CleanUp() {
     }
 }
 
-void TNodeJsDpMeans::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsDpMeans::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -3216,47 +3216,47 @@ void TNodeJsDpMeans::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) 
         if (!JsDpMeans->DenseFitMatrix.Empty() || !JsDpMeans->SparseFitMatrix.Empty()) {
             v8::Local<v8::Object> FitStart = v8::Object::New(Isolate);
             if (!JsDpMeans->DenseFitMatrix.Empty()) {
-                FitStart->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "C")), TNodeJsFltVV::New(JsDpMeans->DenseFitMatrix));
+                FitStart->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "C")), TNodeJsFltVV::New(JsDpMeans->DenseFitMatrix));
             }
             else {
-                FitStart->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "C")), TNodeJsSpMat::New(JsDpMeans->SparseFitMatrix));
+                FitStart->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "C")), TNodeJsSpMat::New(JsDpMeans->SparseFitMatrix));
             }
-            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "fitStart")), FitStart);
+            JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "fitStart")), FitStart);
         }
-        JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "iter")), v8::Integer::New(Isolate, JsDpMeans->Iter));
-        JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "lambda")), v8::Number::New(Isolate, JsDpMeans->Lambda));
-        JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "minClusters")), v8::Integer::New(Isolate, JsDpMeans->MnClusts));
+        JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "iter")), v8::Integer::New(Isolate, JsDpMeans->Iter));
+        JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "lambda")), v8::Number::New(Isolate, JsDpMeans->Lambda));
+        JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "minClusters")), v8::Integer::New(Isolate, JsDpMeans->MnClusts));
         if (JsDpMeans->MxClusts != TInt::Mx) {
-            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "maxClusters")), v8::Integer::New(Isolate, JsDpMeans->MxClusts));
+            JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "maxClusters")), v8::Integer::New(Isolate, JsDpMeans->MxClusts));
         }
-        JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "verbose")), v8::Boolean::New(Isolate, JsDpMeans->Verbose));
-        JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "allowEmpty")), v8::Boolean::New(Isolate, JsDpMeans->AllowEmptyP));
-        JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "calcDistQual")), v8::Boolean::New(Isolate, JsDpMeans->CalcDistQualP));
+        JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "verbose")), v8::Boolean::New(Isolate, JsDpMeans->Verbose));
+        JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "allowEmpty")), v8::Boolean::New(Isolate, JsDpMeans->AllowEmptyP));
+        JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "calcDistQual")), v8::Boolean::New(Isolate, JsDpMeans->CalcDistQualP));
 
         if (!JsDpMeans->FitIdx.Empty()) {
-            v8::Handle<v8::Array> FitIdx = v8::Array::New(Isolate, JsDpMeans->FitIdx.Len());
+            v8::Local<v8::Array> FitIdx = v8::Array::New(Isolate, JsDpMeans->FitIdx.Len());
             for (int ElN = 0; ElN < JsDpMeans->FitIdx.Len(); ElN++) {
                 FitIdx->Set(ElN, v8::Integer::New(Isolate, JsDpMeans->FitIdx.GetVal(ElN).Val));
             }
-            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "fitIdx")), FitIdx);
+            JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "fitIdx")), FitIdx);
         }
 
         switch (JsDpMeans->DistType) {
         case TDistanceType::dtEuclid:
-            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "distanceType")), v8::String::NewFromUtf8(Isolate, "Euclid"));
+            JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "distanceType")), v8::String::NewFromUtf8(Isolate, "Euclid"));
             break;
         case TDistanceType::dtCos:
-            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "distanceType")), v8::String::NewFromUtf8(Isolate, "Cos"));
+            JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "distanceType")), v8::String::NewFromUtf8(Isolate, "Cos"));
             break;
         default:
             throw TExcept::New("DpMeans.GetParams: unsupported distance type " + TInt::GetStr((int)JsDpMeans->DistType));
         }
         switch (JsDpMeans->CentType) {
         case TCentroidType::ctDense:
-            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "centroidType")), v8::String::NewFromUtf8(Isolate, "Dense"));
+            JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "centroidType")), v8::String::NewFromUtf8(Isolate, "Dense"));
             break;
         case TCentroidType::ctSparse:
-            JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "centroidType")), v8::String::NewFromUtf8(Isolate, "Sparse"));
+            JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "centroidType")), v8::String::NewFromUtf8(Isolate, "Sparse"));
             break;
         default:
             throw TExcept::New("DpMeans.GetParams: unsupported centroid type " + TInt::GetStr((int)JsDpMeans->CentType));
@@ -3334,7 +3334,7 @@ TNodeJsDpMeans::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Ar
             JsIntV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsIntV>(Args, 1);
         }
         else if (Args[1]->IsArray()) {
-            v8::Handle<v8::Array> Arr = v8::Handle<v8::Array>::Cast(Args[1]);
+            v8::Local<v8::Array> Arr = v8::Local<v8::Array>::Cast(Args[1]);
             const int Len = Arr->Length();
             JsArr = new TNodeJsIntV(Len);
             TNodeJsUtil::GetArgIntV(Args, 1, JsArr->Vec);
@@ -3345,7 +3345,7 @@ TNodeJsDpMeans::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Ar
     }
 }
 
-v8::Handle<v8::Function> TNodeJsDpMeans::TFitTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+v8::Local<v8::Function> TNodeJsDpMeans::TFitTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     if (TNodeJsUtil::IsArgFun(Args, 1)) {
         return TNodeJsUtil::GetArgFun(Args, 1);
     }
@@ -3859,7 +3859,7 @@ int TNodeJsDpMeans::GetClusts() const {
 /////////////////////////////////////////////
 // TDigest
 
-void TNodeJsTDigest::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsTDigest::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -3999,7 +3999,7 @@ void TNodeJsTDigest::memory(v8::Local<v8::Name> Name, const v8::PropertyCallback
 
 ///////////////////////////////////////////////////////
 // Greenwald-Khanna quantile estimation algorithm
-void TNodeJsGk::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsGk::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -4100,7 +4100,7 @@ void TNodeJsGk::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TFltV PValV; TNodeJsUtil::GetArgFltV(Args, 0, PValV);
         TFltV QuantV; Gk.Query(PValV, QuantV);
 
-        v8::Handle<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
+        v8::Local<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
         for (int QuantN = 0; QuantN < QuantV.Len(); ++QuantN) {
             QuantArr->Set(QuantN, v8::Number::New(Isolate, QuantV[QuantN]));
         }
@@ -4155,7 +4155,7 @@ void TNodeJsGk::memory(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<
 
 ////////////////////////////////////////////
 // CKMS algorithm for biased quantiles
-void TNodeJsBiasedGk::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsBiasedGk::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -4275,7 +4275,7 @@ void TNodeJsBiasedGk::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TFltV PValV; TNodeJsUtil::GetArgFltV(Args, 0, PValV);
         TFltV QuantV; Gk.Query(PValV, QuantV);
 
-        v8::Handle<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
+        v8::Local<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
         for (int QuantN = 0; QuantN < QuantV.Len(); ++QuantN) {
             QuantArr->Set(QuantN, v8::Number::New(Isolate, QuantV[QuantN]));
         }
@@ -4343,7 +4343,7 @@ TQuant::TBiasedGk::TCompressStrategy TNodeJsBiasedGk::ExtractCompressStrategy(co
 
 ///////////////////////////////////////////////////////
 // Greenwald-Khanna quantile estimation for fixed size window
-void TNodeJsCountWindowGk::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsCountWindowGk::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -4456,7 +4456,7 @@ void TNodeJsCountWindowGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args)
 
 ///////////////////////////////////////////////////////
 // Greenwald-Khanna quantile estimation for time window
-void TNodeJsTimeWindowGk::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsTimeWindowGk::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -4624,7 +4624,7 @@ void TNodeJsRecommenderSys::Save(TSOut& SOut) const {
     V.Save(SOut);
 }
 
-void TNodeJsRecommenderSys::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsRecommenderSys::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -4712,8 +4712,8 @@ void TNodeJsRecommenderSys::getModel(const v8::FunctionCallbackInfo<v8::Value>& 
     TNodeJsRecommenderSys* JsRecSys = ObjectWrap::Unwrap<TNodeJsRecommenderSys>(Args.Holder());
 
     v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result
-    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "U")), TNodeJsFltVV::New(JsRecSys->U));
-    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "V")), TNodeJsFltVV::New(JsRecSys->V));
+    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "U")), TNodeJsFltVV::New(JsRecSys->U));
+    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "V")), TNodeJsFltVV::New(JsRecSys->V));
     Args.GetReturnValue().Set(JsObj);
 }
 
@@ -4736,7 +4736,7 @@ TNodeJsRecommenderSys::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Val
     }
 }
 
-v8::Handle<v8::Function> TNodeJsRecommenderSys::TFitTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+v8::Local<v8::Function> TNodeJsRecommenderSys::TFitTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     if (TNodeJsUtil::IsArgFun(Args, 1)) {
         return TNodeJsUtil::GetArgFun(Args, 1);
     }
@@ -4790,7 +4790,7 @@ void TNodeJsRecommenderSys::save(const v8::FunctionCallbackInfo<v8::Value>& Args
 // QMiner-JavaScript-Graph-Cascade
 
 
-void TNodeJsGraphCascade::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsGraphCascade::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 

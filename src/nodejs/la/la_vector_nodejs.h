@@ -21,7 +21,7 @@ class TNodeJsFltVV;
 class TAuxFltV {
 public:
     static const TStr ClassId; //ClassId is set to TNodeJsFltV::GetClassId().CStr()
-    static v8::Handle<v8::Value> GetObjVal(const double& Val) {
+    static v8::Local<v8::Value> GetObjVal(const double& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope HandleScope(Isolate);
         return HandleScope.Escape(v8::Number::New(Isolate, Val));
@@ -40,7 +40,7 @@ public:
 class TAuxIntV {
 public:
     static const TStr ClassId; //ClassId is set to TNodeJsIntV::GetClassId().CStr()
-    static v8::Handle<v8::Value> GetObjVal(const int& Val) {
+    static v8::Local<v8::Value> GetObjVal(const int& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope HandleScope(Isolate);
         return HandleScope.Escape(v8::Integer::New(Isolate, Val));
@@ -59,7 +59,7 @@ public:
 class TAuxStrV {
 public:
     static const TStr ClassId; //ClassId is set to TNodeJsStrV::GetClassId().CStr()
-    static v8::Handle<v8::Value> GetObjVal(const TStr& Val) {
+    static v8::Local<v8::Value> GetObjVal(const TStr& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope HandleScope(Isolate);
         return HandleScope.Escape(v8::String::NewFromUtf8(Isolate, Val.CStr()));
@@ -79,7 +79,7 @@ public:
 class TAuxBoolV {
 public:
     static const TStr ClassId; //ClassId is set to TNodeJsBoolV::GetClassId().CStr()
-    static v8::Handle<v8::Value> GetObjVal(const TBool& Val) {
+    static v8::Local<v8::Value> GetObjVal(const TBool& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope HandleScope(Isolate);
         return v8::Boolean::New(Isolate, Val);
@@ -98,7 +98,7 @@ public:
 class TAuxJsonV {
 public:
     static const TStr ClassId;  // set to JsonVector
-    static v8::Handle<v8::Value> GetObjVal(const PJsonVal& Val) {
+    static v8::Local<v8::Value> GetObjVal(const PJsonVal& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope HandleScope(Isolate);
         return TNodeJsUtil::ParseJson(Isolate, Val);
@@ -124,7 +124,7 @@ public:
     ~TJsVecComparator(){
         Callback.Reset();
     }
-    TJsVecComparator(v8::Handle<v8::Function> _Callback) {     Callback.Reset(v8::Isolate::GetCurrent(), _Callback);}
+    TJsVecComparator(v8::Local<v8::Function> _Callback) {     Callback.Reset(v8::Isolate::GetCurrent(), _Callback);}
     bool operator()(const TVal& Val1, const TVal& Val2) const {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::HandleScope HandleScope(Isolate);
@@ -172,7 +172,7 @@ class TNodeJsVec : public node::ObjectWrap {
 public: // So we can register the class 
     const static TStr GetClassId() { return TAux::ClassId; }
 
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
 
     static v8::Local<v8::Object> New(const TVec<TVal>& Vec);
 
@@ -186,8 +186,8 @@ public: // So we can register the class
         v8::Local<v8::Object> Instance;
         EAssertR(MaybeInstance.ToLocal(&Instance), "TNodeJsVec<TFlt, TAuxFltV>::New: failed to create instance (empty)");
 
-        v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-        v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxFltV::ClassId.CStr());
+        v8::Local<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+        v8::Local<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxFltV::ClassId.CStr());
         TNodeJsUtil::SetPrivate(Instance, Key, Value);
 
         int Len = IntV.Len();
@@ -211,8 +211,8 @@ public: // So we can register the class
         v8::Local<v8::Object> Instance;
         EAssertR(MaybeInstance.ToLocal(&Instance), "TNodeJsVec<TInt, TAuxFltV>::New: failed to create instance (empty)");
 
-        v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-        v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxIntV::ClassId.CStr());
+        v8::Local<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+        v8::Local<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxIntV::ClassId.CStr());
         TNodeJsUtil::SetPrivate(Instance, Key, Value);
 
         int Len = FltV.Len();
@@ -747,8 +747,8 @@ inline v8::Local<v8::Object> TNodeJsVec<TVal, TAux>::New(const TVec<TVal>& ValV)
     v8::Local<v8::Object> Instance;
     EAssertR(MaybeInstance.ToLocal(&Instance), "TNodeJsVec<TVal, TAux>::New: failed to create instance (empty)");
 
-    v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-    v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAux::ClassId.CStr());
+    v8::Local<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+    v8::Local<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAux::ClassId.CStr());
     TNodeJsUtil::SetPrivate(Instance, Key, Value);
 
     TNodeJsVec<TVal, TAux>* JsVec = new TNodeJsVec<TVal, TAux>(ValV);
@@ -763,7 +763,7 @@ inline v8::Local<v8::Object> TNodeJsVec<TVal, TAux>::New(const TVec<T>&) {
 }
 
 template <typename TVal, typename TAux>
-void TNodeJsVec<TVal, TAux>::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsVec<TVal, TAux>::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
     TStr Name = TAux::ClassId;
@@ -1076,14 +1076,14 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
         //printf("vector construct call, class = %s, nargs: %d\n", TAux::ClassId.CStr(), Args.Length());
         TNodeJsVec<TVal, TAux>* JsVec = new TNodeJsVec<TVal, TAux>();
 
-        v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-        v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAux::ClassId.CStr());
+        v8::Local<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+        v8::Local<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAux::ClassId.CStr());
         v8::Local<v8::Object> Instance = Args.This();
 
         // If we got Javascript array on the input: vector.new([1,2,3]) 
         if (Args[0]->IsArray()) {
             //printf("vector construct call, class = %s, input array\n", TAux::ClassId.CStr());
-            v8::Handle<v8::Array> Arr = v8::Handle<v8::Array>::Cast(Args[0]);
+            v8::Local<v8::Array> Arr = v8::Local<v8::Array>::Cast(Args[0]);
             const int Len = Arr->Length();
             for (int ElN = 0; ElN < Len; ++ElN) { JsVec->Vec.Add(TAux::CastVal(Context, Arr->Get(ElN))); }
         }
@@ -1136,8 +1136,8 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
         v8::Local<v8::Object> Instance;
         EAssertR(MaybeInstance.ToLocal(&Instance), "TNodeJsVec<TVal, TAux>::New: failed to create instance (empty)");
 
-        v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-        v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAux::ClassId.CStr());
+        v8::Local<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+        v8::Local<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAux::ClassId.CStr());
         Instance->Set(Key, Value);
 
         Args.GetReturnValue().Set(Instance);
@@ -1166,7 +1166,7 @@ void TNodeJsVec<TVal, TAux>::subVec(const v8::FunctionCallbackInfo<v8::Value>& A
     TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec>(Args.This());
     if (Args.Length() > 0) {
         if (Args[0]->IsArray()) {
-            v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
+            v8::Local<v8::Array> Array = v8::Local<v8::Array>::Cast(Args[0]);
             const int Len = Array->Length();
             TVec<TVal> ResultVec(Len);
             for (int ElN = 0; ElN < Len; ++ElN) {

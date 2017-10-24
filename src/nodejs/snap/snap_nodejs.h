@@ -29,7 +29,7 @@
 */
 class TNodeJsSnap : public node::ObjectWrap {
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
         // **Functions and properties:**
         // 
         // - `ugraph = new snap.UndirectedGraph` - returns undirected graph.
@@ -46,7 +46,7 @@ template <class T>
 class TNodeJsGraph : public node::ObjectWrap {
 public:
     TPt<T> Graph;
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static v8::Local<v8::Object> New();
     static v8::Local<v8::Object> New(TStr path);
     static v8::Local<v8::Object> New(TPt<T> _graph);
@@ -326,7 +326,7 @@ class TNodeJsNode : public node::ObjectWrap {
 public:
     typename T::TNodeI Node;
 
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static v8::Local<v8::Object> New(const typename T::TNodeI Node);
     
 public:
@@ -363,7 +363,7 @@ class TNodeJsEdge : public node::ObjectWrap {
 public:
     typename T::TEdgeI Edge;
 
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static v8::Local<v8::Object> New(const typename T::TEdgeI Edge);
 
 public:
@@ -846,7 +846,7 @@ template <class T>
 v8::Persistent<v8::Function> TNodeJsNode<T>::Constructor;
 
 template <class T>
-void TNodeJsNode<T>::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsNode<T>::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
@@ -1069,7 +1069,7 @@ template <class T>
 v8::Persistent<v8::Function> TNodeJsEdge<T>::Constructor;
 
 template <class T>
-void TNodeJsEdge<T>::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsEdge<T>::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
