@@ -3181,6 +3181,7 @@ private:
         int GetPos(const int& PosN) const;
 
         /// Add new position to the item and return true if the item became full
+        /// the positions are always added in increasing order - every added position should be higher than the last
         bool Add(const int& Pos);
         /// Intersect keeping bigger positions that are within MaxDiff difference:
         /// Assumes that this is before Item and we only keep position when Item
@@ -3286,6 +3287,13 @@ private:
     bool DoQuerySmall(const TPt<TQmGixExpItemSmall>& ExpItem, TVec<TQmGixItemFull>& RecIdFqV) const;
     /// Executes GIX query expression against the tiny index
     bool DoQueryTiny(const TPt<TQmGixExpItemTiny>& ExpItem, TVec<TQmGixItemFull>& RecIdFqV) const;
+
+    /// Executes GIX join query against the full index
+    void DoJoinQueryFull(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& RecIdFqV) const;
+    /// Executes GIX join query against the small index
+    void DoJoinQuerySmall(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& RecIdFqV) const;
+    /// Executes GIX join query against the tiny index
+    void DoJoinQueryTiny(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& RecIdFqV) const;
 
     /// Execute Position query. Result is vector of record ids and frequency of phrase occurences.
     void DoQueryPos(const int& KeyId, const TUInt64V& WordIdV, const int& MaxDiff, TUInt64IntKdV& RecIdFqV) const;

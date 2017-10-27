@@ -20,8 +20,8 @@
 #include "thread.h"
 
 #define JsDeclareProperty(Function) \
-    static void Function(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
-    static void _ ## Function(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
+    static void Function(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
+    static void _ ## Function(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
         v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
         v8::HandleScope HandleScope(Isolate); \
         try { \
@@ -70,8 +70,8 @@
     }
 
 #define JsDeclareSetProperty(GetFunction, SetFunction) \
-    static void GetFunction(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
-    static void _ ## GetFunction(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
+    static void GetFunction(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
+    static void _ ## GetFunction(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
         v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
         v8::HandleScope HandleScope(Isolate); \
         try { \
@@ -81,8 +81,8 @@
             v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
       } \
     } \
-    static void SetFunction(v8::Local<v8::String> Name, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info); \
-    static void _ ## SetFunction(v8::Local<v8::String> Name, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info) { \
+    static void SetFunction(v8::Local<v8::Name> Name, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info); \
+    static void _ ## SetFunction(v8::Local<v8::Name> Name, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info) { \
         v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
         v8::HandleScope HandleScope(Isolate); \
         try { \
@@ -177,7 +177,6 @@ public:
     static PJsonVal GetObjJson(const v8::Local<v8::Value>& Val, const bool& IgnoreFunc=false, const bool& IgnoreWrappedObj=false);
     static PJsonVal GetObjProps(const v8::Local<v8::Object>& Obj) { return GetObjJson(Obj, true); }
     static PJsonVal GetObjToNmJson(const v8::Local<v8::Value>& Val);
-
     /// Convert GLib Json (PJsonVal) to v8 Json
     static v8::Local<v8::Value> ParseJson(v8::Isolate* Isolate, const PJsonVal& JsonVal);
     /// Transform V8 string to TStr

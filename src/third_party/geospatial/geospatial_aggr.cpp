@@ -7,7 +7,7 @@
 * This source code is licensed under the FreeBSD license found in the
 * LICENSE file in the root directory of this source tree.
 */
-
+#include <stdio.h>
 #include "geospatial_aggr.h"
 
 namespace TQm {
@@ -31,10 +31,12 @@ TGPSMeasurement::TGPSMeasurement(const PJsonVal& Rec) {
         Distance = Rec->GetObjKey("distanceDiff")->GetNum();
         Speed = Rec->GetObjKey("speed")->GetNum();
         TimeDiff = Rec->GetObjKey("timeDiff")->GetInt64();
-
         if (Rec->IsObjKey("activities")) {
             Rec->GetObjKey("activities")->GetArrIntV(SensorActivities);
         }//if it has activities
+        if (Rec->IsObjKey("accelerometer")) {
+            Accelerometer = Rec->GetObjKey("accelerometer")->GetStr();
+        }//if it has accelerometer
 
         int SensLen = SensorActivities.Len();
         if (SensLen < TGPSMeasurement::NumOfSensorActs) {
@@ -64,6 +66,7 @@ PJsonVal TGPSMeasurement::ToJson() const {
     Json->AddToObj("speed", Speed);
     Json->AddToObj("distanceDiff", Distance);
     Json->AddToObj("timeDiff", (int64)TimeDiff);
+    Json->AddToObj("accelerometer", Accelerometer);
 
     PJsonVal JsonSensActivities = TJsonVal::NewArr();
     //TODO: This is temporal until we have special aggregate - 17 is due to
@@ -125,7 +128,7 @@ TGeoCluster::TGeoCluster(const PJsonVal& Rec):
     AvgAccuracy = Rec->GetObjNum("avg_accuracy", 0);
     Distance = Rec->GetObjNum("distance", 0);
     MStartIdx = Rec->GetObjInt("startIdx", -1);
-    MEndIdx = Rec->GetObjInt("endIdx", -1);   
+    MEndIdx = Rec->GetObjInt("endIdx", -1);  
     
     if (Rec->IsObjKey("activities")) {
         AvgSensorActs.Clr();
@@ -164,6 +167,8 @@ void TGeoCluster::AddPoint(const int& Idx,
     Depart = CurrentGPS.Time;
     MEndIdx = Idx;
     int Len = this->Len();
+    //distance
+    Distance = Distance + CurrentGPS.Distance;
     // incremental averaging (m_n = m_n-1 + ((a_n-m_n-1)/n)
     // m_n = avg value we want to calculate
     // m_n-1 = previous avg value
@@ -174,19 +179,19 @@ void TGeoCluster::AddPoint(const int& Idx,
     CenterPoint.Lon = CenterPoint.Lon +
         ((CurrentGPS.LatLon.Lon - CenterPoint.Lon) / Len);
     AvgSpeed = AvgSpeed +
-        ((CurrentGPS.Speed - AvgSpeed) / Len);
+    ((CurrentGPS.Distance + 1) * (CurrentGPS.Speed - AvgSpeed) / (Distance + Len));
     AvgAccuracy = AvgAccuracy +
         ((CurrentGPS.Accuracy - AvgAccuracy) / Len);
     
-    //distance
-    Distance = Distance + CurrentGPS.Distance;
     //avg sensor act
+    // incremental average on weighted average -- weights are distances!
+    // using Laplace smoothing to avoid division by 0 --- adding 1 and Len to distances
     for (int iSensorAct = 0; iSensorAct < TGPSMeasurement::NumOfSensorActs;
         iSensorAct++)
     {
-        AvgSensorActs[iSensorAct] = AvgSensorActs[iSensorAct] +
-            ((CurrentGPS.SensorActivities[iSensorAct] - 
-                AvgSensorActs[iSensorAct]) / (double)Len);
+        AvgSensorActs[iSensorAct] = AvgSensorActs[iSensorAct] +	
+          ((CurrentGPS.Distance + 1) * (CurrentGPS.SensorActivities[iSensorAct] - 
+          AvgSensorActs[iSensorAct]) / (Distance + Len));
     }
 }//TGeoCluster::addPoint
 
@@ -290,8 +295,16 @@ TStayPointDetector::TStayPointDetector(
     AccuracyFieldId = Store->GetFieldId(AccuracyFieldName);
     TStr ActivitiesFieldName = ParamVal->GetObjStr("activitiesField");
     ActivitiesField = Store->GetFieldId(ActivitiesFieldName);
+    TStr SpeedFieldName = ParamVal->GetObjStr("speedField");
+    SpeedFieldId = Store->GetFieldId(SpeedFieldName);
+    TStr DistanceFieldName = ParamVal->GetObjStr("distanceField");
+    DistanceFieldId = Store->GetFieldId(DistanceFieldName);
+    TStr AccelerometerFieldName = ParamVal->GetObjStr("accelerometerField");
+    AccelerometerFieldId = Store->GetFieldId(AccelerometerFieldName);
 }//TStayPointDetector::constructor
 
+///
+/// main aggregate record receiver mtethod, and main SPD algo entry
 void TStayPointDetector::OnAddRec(const TRec& Rec,
     const TWPt<TStreamAggr>& CallerAggr)
 {
@@ -314,6 +327,7 @@ void TStayPointDetector::OnAddRec(const TRec& Rec,
     }
     TGPSMeasurement* NewRec = PrepareGPSRecord(Rec);
     if (NewRec == NULL) {//rejected record
+    printf("REJECTED RECORD\n");
         return;
     }
     TInt CurrStateIdx = StateGpsMeasurementsV.Len() - 1;
@@ -480,22 +494,35 @@ PJsonVal TStayPointDetector::SaveStateJson() const {
 /// otherwise True
 ///
 bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
+    //get time of the record
     TTm Timestamp; 
     Rec.GetFieldTm(TimeFieldId, Timestamp);
-    uint64 Time =
+    Gps.Time = 
         TTm::GetUnixMSecsFromWinMSecs(Timestamp.GetMSecsFromTm(Timestamp));
-   
+    
     double Lat = Rec.GetFieldFltPr(LocationFieldId).Val1;
     double Lon = Rec.GetFieldFltPr(LocationFieldId).Val2;
-
-    double Accuracy = 0;
-    if (!Rec.IsFieldNull(AccuracyFieldId)) {
-        Accuracy = Rec.GetFieldByte(AccuracyFieldId);
-    }
-    Gps.Time = Time;
     Gps.LatLon = TPoint(Lat, Lon);
-    Gps.Accuracy = Accuracy;
-    
+
+    Gps.Accuracy = 0;
+    if (!Rec.IsFieldNull(AccuracyFieldId)) {
+        Gps.Accuracy = Rec.GetFieldByte(AccuracyFieldId);
+    }
+    Gps.Speed = -1.0;
+    if (!Rec.IsFieldNull(SpeedFieldId)) {
+        Gps.Speed = Rec.GetFieldFlt(SpeedFieldId);
+    }
+
+    Gps.Distance = -1.0;
+    if (!Rec.IsFieldNull(DistanceFieldId)) {
+        Gps.Distance = Rec.GetFieldFlt(DistanceFieldId);
+    }
+
+    Gps.Accelerometer = "";
+    if (!Rec.IsFieldNull(AccelerometerFieldId)) {
+        Gps.Accelerometer = Rec.GetFieldStr(AccelerometerFieldId);
+    }
+
     if (!Rec.IsFieldNull(ActivitiesField)) {
         //TODO: This sensorActivities will go into a separate Aggregate
         //once we construct the pipeline - this is a temporary functionality
@@ -517,15 +544,18 @@ bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
         if (lastRecord->Time >= Gps.Time) {
             return false;
         }
-        Gps.Distance = TGeoUtils::QuickDist(Gps.LatLon, lastRecord->LatLon);
-        Gps.TimeDiff = (Gps.Time - lastRecord->Time);
+        if (Gps.Distance == -1.0) {
+            Gps.Distance = TGeoUtils::QuickDist(Gps.LatLon, lastRecord->LatLon);
+        }
+        
+        Gps.TimeDiff = (Gps.Time - lastRecord->Time)/1000;
         if (Gps.Speed == -1.0) {
             Gps.Speed = Gps.Distance / Gps.TimeDiff;
         }
     }
     else {
         if (Gps.Speed == -1.0) { Gps.Speed = 0; }
-        Gps.Distance = 0;
+        if (Gps.Distance == -1.0) { Gps.Distance = 0; }
     }
     return true;
 }//parseRecord

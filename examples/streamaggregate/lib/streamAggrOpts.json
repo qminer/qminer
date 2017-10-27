@@ -1,0 +1,61 @@
+{
+    "singleStore": [
+        {
+            "store": "Stats",
+            "opts": {
+                "name": "StatWindow",
+                "type": "timeSeriesWinBuf",
+                "store": "Stats",
+                "timestamp": "Time",
+                "value": "Value",
+                "winsize": 10000
+            }
+        }, {
+            "store": "Stats",
+            "opts": {
+                "name": "StatAverage",
+                "type": "ma",
+                "store": "Stats",
+                "inAggr": "StatWindow"
+            }
+        }, {
+            "store": "Random",
+            "opts": {
+                "name": "ResamplerAggr",
+                "type": "resampler",
+                "store": "Random",
+                "outStore": "Resampler",
+                "timestamp": "Time",
+                "fields": [
+                    { "name": "Value", "interpolator": "previous" }
+                ],
+                "createStore": false,
+                "interval": 1000
+            }
+        }
+    ],
+    "multiStore": [{
+        "store": "Merger",
+        "opts": {
+            "name": "MergerAggr",
+            "type": "merger",
+            "outStore": "Merger",
+            "createStore": false,
+            "timestamp": "Time",
+            "fields": [
+                { "source": "Gauss", "inField": "Value", "outField": "FirstValue", "interpolation": "linear", "timestamp": "Time" },
+                { "source": "OtherGauss", "inField": "Value", "outField": "SecondValue", "interpolation": "linear", "timestamp": "Time" }
+            ]
+        }
+    }],
+
+    "emitSocketOpts": [
+        { "storeName": "Stats", "streamName": "statsPush", "socketName": "getStats" },
+        { "storeName": "Average", "streamName": "averagePush", "socketName": "getAverage" },
+        { "storeName": "Random", "streamName": "randomPush", "socketName": "getRandom" },
+        { "storeName": "Resampler", "streamName": "resamplerPush", "socketName": "getResampler" },
+        { "storeName": "Gauss", "streamName": "gaussPush", "socketName": "getGauss" },
+        { "storeName": "OtherGauss", "streamName": "otherGaussPush", "socketName": "getOtherGauss" },
+        { "storeName": "Merger", "streamName": "mergerPush", "socketName": "getMerger" }
+    ]
+}
