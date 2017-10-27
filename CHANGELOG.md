@@ -1,5 +1,38 @@
 # QMiner Change Log
 
+## 27 October 2017
+
+**Version 9.0.0**
+
+**Breaking with new features**
+
+Breaking changes:
+- SVC and SVR models are backward binary incompatible
+
+Features:
+- LIBSVM nonlinear classification supported (previously only linear models were wrapped)
+- Active learning (javascript implementation in analytics module): uses SVC (preferably LIBSVC)
+  and maximum uncertainty criterion for semisupervised classification
+- Json parsing extended to support scalar values for strings and floats
+- Faster index joins to go over hash tables and not binary tree
+
+Bugfix:
+- Lock gets deleted when creating a base with createClean
+- Added a fix for the text positional index
+- Fixed division by zero in zscore
+- Fixed unit test silent failing
+- Fixed stream aggregate example unit test that was halting
+- Fixed when parsing string literal with escaped null character
+- Fixed resize for TCHa larger then 1GB
+- When parsing json-s we ignore invalid escape characters
+- Fixed TDir::Exists for Linux
+- Fixed TVec::Resize to not crash in case of 64bit index and size being TInt::Mx - 1024
+
+Other:
+- Fixed V8 API deprecated warnings
+- C++ unit tests for TJsonVal and TDir
+- Added performance tests for memory allocations
+
 ## 8 September 2017
 
 **Version 8.6.1**

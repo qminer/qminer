@@ -14,7 +14,6 @@ module.exports = exports = function (pathQmBinary) {
     var stat = qm.statistics;
     exports = qm.deprecated;
 
-    var sget = require('sget');
     var assert = require('assert');
 
     var qm_util = require(__dirname + '/qm_util.js');
