@@ -52,7 +52,6 @@ void TLinModel::Save(TSOut& SOut) const {
     Param.Save(SOut);
 }
 
-/// Update params
 void TLinModel::UpdateParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("c")) { Param.Cost = ParamVal->GetObjNum("c"); }
     if (ParamVal->IsObjKey("j")) { Param.Unbalance = ParamVal->GetObjNum("j"); }
@@ -64,7 +63,7 @@ void TLinModel::UpdateParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("verbose")) { Param.Verbose = ParamVal->GetObjBool("verbose"); }
 }
 
-/// Get params
+
 PJsonVal TLinModel::GetParams() const {
     PJsonVal ParamVal = TJsonVal::NewObj();
     ParamVal->AddToObj("c", Param.Cost);
@@ -116,7 +115,7 @@ void TLinModel::FitRegression(const TVec<TIntFltKdV>& VecV, const int& Dims, con
 
 template <class TVecV>
 void TLinModel::SolveClassification(const TVecV& VecV, const int& Dims, const int& Vecs,
-        const TFltV& TargetV, const PNotify& LogNotify, const PNotify& ErrorNotify) {
+        const TFltV& TargetV, const PNotify& _LogNotify, const PNotify& ErrorNotify) {
 
     // asserts for input parameters
     EAssertR(Dims > 0, "Dimensionality must be positive!");
@@ -125,6 +124,9 @@ void TLinModel::SolveClassification(const TVecV& VecV, const int& Dims, const in
     EAssertR(Param.Cost > 0.0, "Cost parameter must be positive!");
     EAssertR(Param.SampleSize > 0, "Sampling size must be positive!");
     EAssertR(Param.MxIter > 1, "Number of iterations to small!");
+
+    // hide output if not verbose
+    PNotify LogNotify = Param.Verbose ? _LogNotify : TNotify::NullNotify;
 
     LogNotify->OnStatusFmt("SVM parameters: c=%.2f, j=%.2f", Param.Cost, Param.Unbalance);
 
@@ -244,7 +246,7 @@ void TLinModel::SolveClassification(const TVecV& VecV, const int& Dims, const in
 
 template <class TVecV>
 void TLinModel::SolveRegression(const TVecV& VecV, const int& Dims, const int& Vecs,
-        const TFltV& TargetV, const PNotify& LogNotify, const PNotify& ErrorNotify) {
+        const TFltV& TargetV, const PNotify& _LogNotify, const PNotify& ErrorNotify) {
 
     // asserts for input parameters
     EAssertR(Dims > 0, "Dimensionality must be positive!");
@@ -254,6 +256,9 @@ void TLinModel::SolveRegression(const TVecV& VecV, const int& Dims, const int& V
     EAssertR(Param.SampleSize > 0, "Sampling size must be positive!");
     EAssertR(Param.MxIter > 1, "Number of iterations to small!");
     EAssertR(Param.MnDiff >= 0, "Min difference must be nonnegative!");
+
+    // hide output if not verbose
+    PNotify LogNotify = Param.Verbose ? _LogNotify : TNotify::NullNotify;
 
     // initialization
     TRnd Rnd(1);
@@ -495,7 +500,6 @@ void TLibSvmModel::Save(TSOut& SOut) const {
     NSupportVectors.Save(SOut);
 }
 
-/// Update params
 void TLibSvmModel::UpdateParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("kernel")) {
         TStr KernelStr = ParamVal->GetObjStr("kernel");
@@ -527,7 +531,6 @@ void TLibSvmModel::UpdateParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("verbose")) { Param.Verbose = ParamVal->GetObjBool("verbose"); }
 }
 
-/// Get params
 PJsonVal TLibSvmModel::GetParams() const {
     PJsonVal ParamVal = TJsonVal::NewObj();
     TStr KernelStr = "LINEAR";
@@ -588,12 +591,12 @@ svm_model_t* TLibSvmModel::GetModelStruct() const {
     for (int Idx = 0; Idx < DimX; Idx++){
       svm_model->rho[Idx] = Rho[Idx];
     }
-    /// not needed (and therefore not saved)
+    // not needed (and therefore not saved)
     svm_model->free_sv = 0;
     svm_model->probA = NULL;
     svm_model->probB = NULL;
     svm_model->sv_indices = NULL;
-    /// classification specific
+    // classification specific
     svm_model->nSV = NULL;
     svm_model->label = NULL;
     if (Param.Type == C_SVC || Param.Type == NU_SVC){
@@ -678,7 +681,6 @@ void TLibSvmModel::ConvertResults(svm_model_t* svm_model, int Dim){
     free(svm_model);
 }
 
-/// Classify full vector
 double TLibSvmModel::Predict(const TFltV& Vec) const {
     if (Param.Kernel == LINEAR){
         return TLinAlg::DotProduct(WgtV, Vec) + Bias;
@@ -700,7 +702,6 @@ double TLibSvmModel::Predict(const TFltV& Vec) const {
     return result;
 }
 
-/// Classify sparse vector
 double TLibSvmModel::Predict(const TIntFltKdV& SpVec) const {
     if (Param.Kernel == LINEAR){
         return TLinAlg::DotProduct(WgtV, SpVec) + Bias;
@@ -718,7 +719,6 @@ double TLibSvmModel::Predict(const TIntFltKdV& SpVec) const {
     return Predict(Vec);
 }
 
-/// Classify matrix column vector
 double TLibSvmModel::Predict(const TFltVV& Mat, const int& ColN) const {
     if (Param.Kernel == LINEAR){
         return TLinAlg::DotProduct(Mat, ColN, WgtV) + Bias;
@@ -729,9 +729,8 @@ double TLibSvmModel::Predict(const TFltVV& Mat, const int& ColN) const {
     return Predict(Col);
 }
 
-/// LIBSVM for sparse input
 void TLibSvmModel::FitClassification(const TVec<TIntFltKdV>& VecV, const int& DimsA, const int& VecsA,
-    const TFltV& TargetV, const PNotify& LogNotify, const PNotify& ErrorNotify) {
+    const TFltV& TargetV, const PNotify& _LogNotify, const PNotify& ErrorNotify) {
 
     printf("inside FitClassification\n");
 
@@ -775,22 +774,23 @@ void TLibSvmModel::FitClassification(const TVec<TIntFltKdV>& VecV, const int& Di
     const char* error_msg = svm_check_parameter(&svm_problem, &svm_parameter);
     EAssertR(error_msg == NULL, error_msg);
 
-    /// train the model
+    // hide output if not verbose
+    PNotify LogNotify = Param.Verbose ? _LogNotify : TNotify::NullNotify;
+    // train the model
     svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter, LogNotify(), ErrorNotify());
 
-    /// save model and clean up
+    // save model and clean up
     ConvertResults(svm_model, Dim);
 
-    /// clean up
+    // clean up
     svm_destroy_param(&svm_parameter);
     free(svm_problem.y);
     free(svm_problem.x);
     free(x_space);
 }
 
-/// Use LIBSVM for dense input
 void TLibSvmModel::FitClassification(const TFltVV& VecV, const int& DimsA, const int& VecsA,
-    const TFltV& TargetV, const PNotify& LogNotify, const PNotify& ErrorNotify) {
+    const TFltV& TargetV, const PNotify& _LogNotify, const PNotify& ErrorNotify) {
 
     if (Param.Type == DEFAULT) { Param.Type = LIBSVM_CSVC; }
 
@@ -830,13 +830,15 @@ void TLibSvmModel::FitClassification(const TFltVV& VecV, const int& DimsA, const
     const char* error_msg = svm_check_parameter(&svm_problem, &svm_parameter);
     EAssertR(error_msg == NULL, error_msg);
 
-    /// train model
+    // hide output if not verbose
+    PNotify LogNotify = Param.Verbose ? _LogNotify : TNotify::NullNotify;
+    // train model
     svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter, LogNotify(), ErrorNotify());
 
-    /// save model and clean up
+    // save model and clean up
     ConvertResults(svm_model, DimN);
 
-    /// clean up
+    // clean up
     svm_destroy_param(&svm_parameter);
     free(svm_problem.y);
     free(svm_problem.x);
