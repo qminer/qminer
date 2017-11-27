@@ -148,6 +148,7 @@ binding-1.gyp
 /test/nodejs/*.txt
 /test/nodejs/example*.js
 /test/cpp/gtest*
+/test/perf/memheap/memheap
 
 # GIT FILES
 *.orig
