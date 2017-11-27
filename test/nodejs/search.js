@@ -1549,7 +1549,7 @@ describe('Gix Position Tests', function () {
         "Kraft wins final Planica event and ski-jumping World Cup",
         "Germany, Norway neck-and-neck after the first series in Planica",
         "aa aa aa aa aa bb aa aa aa aa aa cc aa dd",
-        "kk " + Array(1023).join("xx ") + "ll mm nn",
+        "kk " + Array(1022).join("xx ") + "kk mm mm nn",
         "oo pp " + Array(1022).join("rr ") + "ss tt uu"
     ]
 
@@ -1636,15 +1636,15 @@ describe('Gix Position Tests', function () {
             assert.equal(base.search({ $from: "TestStore", Value: "aa bb" }).length, 1);
             assert.equal(base.search({ $from: "TestStore", Value: "aa cc" }).length, 1);
             assert.equal(base.search({ $from: "TestStore", Value: "kk xx" }).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: "xx ll" }).length, 1);
             // no items where kk and ll are together
             assert.equal(base.search({ $from: "TestStore", Value: "kk ll" }).length, 0);
-            // one false positive where kk and mm are together - due to modulo 1023
+            // one valid and one false positive where kk and mm are together - due to modulo 1023
             assert.equal(base.search({ $from: "TestStore", Value: "kk mm" }).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: "kk mm" })[0].$fq, 2);
             assert.equal(base.search({ $from: "TestStore", Value: "kk nn" }).length, 0);
 
             assert.equal(base.search({ $from: "TestStore", Value: "xx" }).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: "xx" })[0].$fq, 1022);
+            assert.equal(base.search({ $from: "TestStore", Value: "xx" })[0].$fq, 1021);
 
             // false positives (due to modulo positions)
             assert.equal(base.search({ $from: "TestStore", Value: "oo tt" }).length, 1);
