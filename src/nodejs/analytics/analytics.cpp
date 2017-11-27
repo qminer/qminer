@@ -154,7 +154,7 @@ void TNodeJsSvmModel::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args)
     try {
         TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
         PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
-        
+
         if (ParamVal->IsObjKey("algorithm")) { throw TExcept::New("svm.setParams: cannot safely change algorithm"); }
         else { JsModel->UpdateParams(ParamVal); }
 
@@ -228,7 +228,7 @@ void TNodeJsSvmModel::decisionFunction(const v8::FunctionCallbackInfo<v8::Value>
 
     try {
         TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
-        
+
         if ((JsModel->Model->GetWgtV()).Len() == 0) {
             throw TExcept::New("svm.decisionFunction: fit was not called yet");
         }
@@ -277,7 +277,7 @@ void TNodeJsSvmModel::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     try {
         TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
-        
+
         if ((JsModel->Model->GetWgtV()).Len() == 0) {
             throw TExcept::New("svm.predict: fit was not called yet");
         }
@@ -319,7 +319,7 @@ void TNodeJsSvmModel::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 void TNodeJsSvmModel::UpdateParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("algorithm")) { Algorithm = ParamVal->GetObjStr("algorithm"); }
-    if (!Model) { 
+    if (!Model) {
         if (Algorithm == "LIBSVM") { Model = new TSvm::TLibSvmModel(); }
         else { Model = new TSvm::TLinModel(); }
     }
@@ -386,7 +386,7 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             TVec<TIntFltKdV>& VecV = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject())->Mat;
             if (JsModel->Algorithm == "SGD" || JsModel->Algorithm == "LIBSVM") {
                 JsModel->Model->FitClassification(VecV, TLinAlgSearch::GetMaxDimIdx(VecV) + 1,
-                    VecV.Len(), ClsV);
+                    VecV.Len(), ClsV, TQm::TEnv::Debug, TQm::TEnv::Error);
             }
             else {
                 throw TExcept::New("SVC.fit: unknown algorithm " + JsModel->Algorithm);
@@ -395,7 +395,8 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         else if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
             TFltVV& VecV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject())->Mat;
             if (JsModel->Algorithm == "SGD" || JsModel->Algorithm == "LIBSVM") {
-                JsModel->Model->FitClassification(VecV, VecV.GetRows(), VecV.GetCols(), ClsV);
+                JsModel->Model->FitClassification(VecV, VecV.GetRows(),
+                    VecV.GetCols(), ClsV, TQm::TEnv::Debug, TQm::TEnv::Error);
             }
             else {
                 throw TExcept::New("SVC.fit: unknown algorithm " + JsModel->Algorithm);
@@ -446,7 +447,7 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     try {
         TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
-   
+
         // check target vector is actually a vector
         EAssertR(TNodeJsUtil::IsArgWrapObj<TNodeJsFltV>(Args, 1), "SVR.fit: second argument expected to be la.Vector!");
         TFltV& ClsV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltV>(Args, 1)->Vec;
@@ -456,7 +457,7 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             TVec<TIntFltKdV>& VecV = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject())->Mat;
             if (JsModel->Algorithm == "SGD" || JsModel->Algorithm == "LIBSVM") {
                 JsModel->Model->FitRegression(VecV, TLinAlgSearch::GetMaxDimIdx(VecV) + 1,
-                    VecV.Len(), ClsV);
+                    VecV.Len(), ClsV, TQm::TEnv::Debug, TQm::TEnv::Error);
             }
             else {
                 throw TExcept::New("SVR.fit: unknown algorithm " + JsModel->Algorithm);
@@ -466,7 +467,7 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             TFltVV& VecV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject())->Mat;
             if (JsModel->Algorithm == "SGD" || JsModel->Algorithm == "LIBSVM") {
                 JsModel->Model->FitRegression(VecV, VecV.GetRows(),
-                    VecV.GetCols(), ClsV);
+                    VecV.GetCols(), ClsV, TQm::TEnv::Debug, TQm::TEnv::Error);
             }
             else {
                 throw TExcept::New("SVR.fit: unknown algorithm " + JsModel->Algorithm);
