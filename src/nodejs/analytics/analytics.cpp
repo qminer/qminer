@@ -3315,7 +3315,7 @@ void TNodeJsDpMeans::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) 
     }
 }
 
-TNodeJsDpMeans::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args) :
+TNodeJsDpMeans::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool&) :
         TNodeTask(Args) {
 
     JsDpMeans = ObjectWrap::Unwrap<TNodeJsDpMeans>(Args.Holder());
