@@ -945,7 +945,8 @@ void TNodeTask::AfterRun() {
     if (HasExcept()) {
         TNodeJsUtil::ExecuteErr(Fun, Except);
     } else {
-        TNodeJsUtil::ExecuteVoid(Fun, v8::Undefined(Isolate), WrapResult());
+        v8::Local<v8::Value> Result = WrapResult();
+        TNodeJsUtil::ExecuteVoid(Fun, v8::Undefined(Isolate), Result);
     }
 }
 

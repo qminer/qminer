@@ -47,7 +47,7 @@ private:
         double Tol;
 
     public:
-        TSVDTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        TSVDTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool&);
 
         v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
