@@ -2165,6 +2165,119 @@ PJsonVal TTDigest::SaveJson(const int& Limit) const {
 }
 
 ///////////////////////////////
+/// SW-GK - sliding window quantiles
+PStreamAggr TSwGk::New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
+    return new TSwGk(Base, ParamVal);
+}
+
+int TSwGk::GetVals() const {
+    return Gk.GetSummarySize();
+}
+
+void TSwGk::GetVal(const int& QuantN, TFlt& Val) const {
+    Assert(0 <= QuantN && QuantN < ProbV.Len());
+    // XXX not good practice, using const cast to
+    // make the object unmutable
+    TQuant::TSwGk& MutableGk = const_cast<TQuant::TSwGk&>(Gk);
+    Val = MutableGk.Query(ProbV[QuantN]);
+}
+
+void TSwGk::GetValV(TFltV& QuantV) const {
+    if (QuantV.Len() != ProbV.Len()) { QuantV.Gen(ProbV.Len(), ProbV.Len()); }
+
+    // XXX not good practice, using const cast to
+    // make the object unmutable
+    TQuant::TSwGk& MutableGk = const_cast<TQuant::TSwGk&>(Gk);
+    MutableGk.Query(ProbV, QuantV);
+}
+
+void TSwGk::LoadState(TSIn& SIn) {
+    Gk = TQuant::TSwGk(SIn);
+    ProbV.Load(SIn);
+}
+
+void TSwGk::SaveState(TSOut& SOut) const {
+    Gk.Save(SOut);
+    ProbV.Save(SOut);
+}
+
+PJsonVal TSwGk::SaveJson(const int&) const {
+    PJsonVal Val = TJsonVal::NewObj();
+
+    // XXX not good practice, using const cast to
+    // make the object unmutable
+    TSwGk& MutableThis = const_cast<TSwGk&>(*this);
+
+    PJsonVal QuantilesVal = TJsonVal::NewArr();
+    for (int ElN = 0; ElN < ProbV.Len(); ElN++) {
+        TFlt Quant; MutableThis.GetVal(ElN, Quant);
+
+        PJsonVal QuantileVal = TJsonVal::NewObj();
+        QuantileVal->AddToObj("quantile", ProbV[ElN]);
+        QuantileVal->AddToObj("value", Quant);
+
+        QuantilesVal->AddToArr(QuantileVal);
+    }
+    Val->AddToObj("quantiles", QuantilesVal);
+
+    return Val;
+}
+
+bool TSwGk::IsInit() const {
+    return true;
+}
+
+void TSwGk::Reset() {
+    Gk.Reset();
+}
+
+TStr TSwGk::Type() const {
+    return GetType();
+}
+
+TSwGk::TSwGk(const TWPt<TBase>& Base, const PJsonVal& ParamVal):
+        TStreamAggr(Base, ParamVal),
+        Gk(ParamVal->GetObjNum("quantileEps"), ParamVal->GetObjNum("countEps")) {
+
+    InAggr = ParseAggr(ParamVal, "inAggr");
+    InAggrTmIOCast = Cast<TStreamAggrOut::ITmIO>(InAggr, false);
+    InAggrFltIOCast = Cast<TStreamAggrOut::IFltIO>(InAggr, false);
+
+    // vector of target probabilities
+    ParamVal->GetObjFltV("quantiles", ProbV);
+
+    QmAssertR(!InAggrTmIOCast.Empty(), "Invalid input time window aggregate!");
+    QmAssertR(!InAggrFltIOCast.Empty(), "Invalid input float window aggregate!");
+
+    // check that the quantiles are sorted
+    for (int PValN = 1; PValN < ProbV.Len(); PValN++) {
+        EAssertR(ProbV[PValN-1] <= ProbV[PValN], "SW-GK: p-values should be sorted!");
+    }
+}
+
+void TSwGk::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
+
+    // forget old values, it is enough to move the window to the newest
+    // time
+    TUInt64V ForgetTmV; InAggrTmIOCast->GetOutTmMSecsV(ForgetTmV);  // TODO can I assume that ForgetTmV.Last() has the largest timestamp???
+    uint64 MxVal = TUInt64::Mn;
+    for (int TmN = 0; TmN < ForgetTmV.Len(); TmN++) {
+        if (ForgetTmV[TmN] > MxVal) {
+            MxVal = ForgetTmV[TmN];
+        }
+    }
+    Gk.Forget(MxVal);
+
+    // add new values
+    TFltV AddValV;   InAggrFltIOCast->GetInValV(AddValV);
+    TUInt64V AddTmV;    InAggrTmIOCast->GetInTmMSecsV(AddTmV);
+    for (int ValN = 0; ValN < AddValV.Len(); ValN++) {
+        Gk.Insert(AddTmV[ValN], AddValV[ValN]);
+    }
+}
+
+///////////////////////////////
 /// Chi square stream aggregate
 void TChiSquare::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
     TScopeStopWatch StopWatch(ExeTm);
@@ -2572,7 +2685,7 @@ void THistogramAD::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
 
         // Fit
         TFltV Hist; HistAggr->GetValV(Hist);
-        Model.GetPMF(Hist, PMF, Count % AutoBandwidthSkip == 0);
+        Model.GetPMF(Hist, PMF, (Count % AutoBandwidthSkip == 0) || (Model.Bandwidth == 0.0));
         Model.ClassifyAnomalies(PMF, Severities);
         Count++;
     }
@@ -2587,22 +2700,59 @@ THistogramAD::THistogramAD(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : 
 }
 
 void THistogramAD::LoadState(TSIn& SIn) {
-    Severity.Load(SIn);
-    LastHistIdx.Load(SIn);
-    PMF.Load(SIn);
-    Severities.Load(SIn);
-    Explanation = TJsonVal::Load(SIn);
-    Count.Load(SIn);
+    TInt Version(SIn);
+    Severity.Load(SIn); // v0
+    LastHistIdx.Load(SIn); // v0
+    PMF.Load(SIn); // v0
+    Severities.Load(SIn); // v0
+    Explanation = TJsonVal::Load(SIn); // v0
+    Count.Load(SIn); // v0
+    if (Version >= 1) {
+        Model.Bandwidth = TFlt(SIn); // v1
+    }
 }
 
 void THistogramAD::SaveState(TSOut& SOut) const {
-    Severity.Save(SOut);
-    LastHistIdx.Save(SOut);
-    PMF.Save(SOut);
-    Severities.Save(SOut);
-    Explanation->Save(SOut);
-    Count.Save(SOut);
+    SOut.Save(1); // Version=1
+    Severity.Save(SOut); // v0
+    LastHistIdx.Save(SOut); // v0
+    PMF.Save(SOut); // v0
+    Severities.Save(SOut); // v0
+    Explanation->Save(SOut); // v0
+    Count.Save(SOut); // v0
+    Model.Bandwidth.Save(SOut); // v1
 }
+
+int THistogramAD::GetNmInt(const TStr& Nm) const {
+    if (Nm == "index") {
+        return LastHistIdx;
+    } else if (Nm == "severity") {
+        return Severity;
+    } else if (Nm == "largestNormalIndex") {
+        int Idx = Severities.Len() - 1;
+        while (Idx >= 0) {
+            if (Severities[Idx] == 0) { break; }
+            Idx--;
+        }
+        return Idx;
+    } else {
+        throw TExcept::New("THistoramAD::GetNmInt unknown key: " + Nm);
+    }
+}
+
+double THistogramAD::GetNmFlt(const TStr& Nm) const {
+    if (Nm == "largestNormalValue") {
+        int Idx = Severities.Len() - 1;
+        while (Idx >= 0) {
+            if (Severities[Idx] == 0) { break; }
+            Idx--;
+        }
+        return HistAggr->GetBoundN(Idx + 1);
+    } else {
+        throw TExcept::New("THistoramAD::GetNmFlt unknown key: " + Nm);
+    }
+}
+
 
 void THistogramAD::Reset() {
     Severity = -1;
@@ -2624,6 +2774,7 @@ PJsonVal THistogramAD::SaveJson(const int& Limit) const {
         Obj->AddToObj("pmf", TJsonVal::NewArr(PMFClip));
         Obj->AddToObj("severities", TJsonVal::NewArr(SevClip));
     }
+    Obj->AddToObj("bandwidth", Model.Bandwidth);
     Obj->AddToObj("explain", Explanation);
     Obj->AddToObj("thresholds", TJsonVal::NewArr(Model.Thresholds));
     Obj->AddToObj("tol", Model.Tol);

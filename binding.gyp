@@ -9,7 +9,9 @@
         'LIN_ALG_LIB%': '',
         #64 bit indexing for BLAS
         'INDEX_64%': 'NINDEX_64',
-        'INTEL%': 'NINTEL'
+        'INTEL%': 'NINTEL',
+        'ADDITIONAL_QMINER_INCLUDE_DIRS%': '',
+        'ADDITIONAL_QMINER_SOURCES%': ''
     },
     'target_defaults': {
         'default_configuration': 'Release',
@@ -167,7 +169,8 @@
                 'src/nodejs/qm/qm_nodejs_streamaggr.h',
                 'src/nodejs/qm/qm_param.h',
                 'src/nodejs/snap/snap_nodejs.h',
-                'src/nodejs/statistics/stat_nodejs.h'
+                'src/nodejs/statistics/stat_nodejs.h',
+                '<@(ADDITIONAL_QMINER_SOURCES)'
             ],
             'include_dirs': [
                 'src/nodejs/qm',
@@ -194,7 +197,8 @@
                 'src/third_party/Snap/qlib-core',
                 'src/snap_ext',
                 '<(LIN_ALG_INCLUDE)',
-                '<(LIN_EIGEN_INCLUDE)'
+                '<(LIN_EIGEN_INCLUDE)',
+                '<@(ADDITIONAL_QMINER_INCLUDE_DIRS)'
             ],
             'dependencies': [
                 'glib',
@@ -222,17 +226,22 @@
                 'src/third_party/streamstory/streamstory.cpp',
                 # Geospatial
                 'src/third_party/geospatial/geospatial_aggr.h',
-                'src/third_party/geospatial/geospatial_aggr.cpp'
+                'src/third_party/geospatial/geospatial_aggr.cpp',
+                # External sources
+                '<@(ADDITIONAL_QMINER_SOURCES)'
             ],
             'include_dirs': [
                 'src/qminer',
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',
+                'src/glib/concurrent/',
                 'src/third_party/geospatial/',
                 'src/third_party/sole/',
                 '<(LIN_ALG_INCLUDE)',
-                '<(LIN_EIGEN_INCLUDE)'
+                '<(LIN_EIGEN_INCLUDE)',
+                # External include dirs
+                '<@(ADDITIONAL_QMINER_INCLUDE_DIRS)'
             ],
         },
         {

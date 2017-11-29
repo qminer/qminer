@@ -137,7 +137,7 @@ exports = {}; require.modules.qminer_ht = exports;
     * // get key id of 'foo' 
     * var key = h.keyId('foo'); // returns 0
     */
- exports.StrStrMap.prototype.key = function(n) { return ; }	
+ exports.StrStrMap.prototype.keyId = function(n) { return ; }	
 /**
 	* Returns n-th dat.
 	* @param {number} n - Hashmap dat index number. Should be between 0 and length-1.
@@ -343,7 +343,7 @@ exports = {}; require.modules.qminer_ht = exports;
     * // get key id of 'foo' 
     * var key = h.keyId('foo'); // returns 0
     */
- exports.StrIntMap.prototype.key = function(n) { return ; }	
+ exports.StrIntMap.prototype.keyId = function(n) { return ; }	
 /**
 	* Returns n-th dat.
 	* @param {number} n - Hashmap dat index number. Should be between 0 and length-1.
@@ -549,7 +549,7 @@ exports = {}; require.modules.qminer_ht = exports;
     * // get key id of 'foo' 
     * var key = h.keyId('foo'); // returns 0
     */
- exports.StrFltMap.prototype.key = function(n) { return ; }	
+ exports.StrFltMap.prototype.keyId = function(n) { return ; }	
 /**
 	* Returns n-th dat.
 	* @param {number} n - Hashmap dat index number. Should be between 0 and length-1.
@@ -755,7 +755,7 @@ exports = {}; require.modules.qminer_ht = exports;
     * // get key id of 10 
     * var key = h.keyId(10); // returns 0
     */
- exports.IntStrMap.prototype.key = function(n) { return 0; }	
+ exports.IntStrMap.prototype.keyId = function(n) { return 0; }	
 /**
 	* Returns n-th dat.
 	* @param {number} n - Hashmap dat index number. Should be between 0 and length-1.
@@ -961,7 +961,7 @@ exports = {}; require.modules.qminer_ht = exports;
     * // get key id of 5 
     * var key = h.keyId(5); // returns 0
     */
- exports.IntIntMap.prototype.key = function(n) { return 0; }	
+ exports.IntIntMap.prototype.keyId = function(n) { return 0; }	
 /**
 	* Returns n-th dat.
 	* @param {number} n - Hashmap dat index number. Should be between 0 and length-1.
@@ -1167,7 +1167,7 @@ exports = {}; require.modules.qminer_ht = exports;
     * // get key id of 5 
     * var key = h.keyId(5); // returns 0
     */
- exports.IntFltMap.prototype.key = function(n) { return 0; }	
+ exports.IntFltMap.prototype.keyId = function(n) { return 0; }	
 /**
 	* Returns n-th dat.
 	* @param {number} n - Hashmap dat index number. Should be between 0 and length-1.

@@ -259,19 +259,18 @@ public:
    const double& ConvergEps, const int& MnDocsPerClust,
    const TIntFltPrV& DocIdWgtPrV=TIntFltPrV());
   static PBowDocPart GetDPMeansPartForDocWgtBs(
-     const PNotify& Notify,
-     const PBowDocWgtBs& BowDocWgtBs,
-     const PBowDocBs& BowDocBs,
-     const PBowSim& BowSim,
-     TRnd& Rnd,
-     const double& Lambda,
-     const int& MinDocsPerClust, const int& MaxClusts,
-     const double& ConvergEps,
-     const TInt& MaxIter = 10000,
-     const TBowClustInitScheme& InitType = TBowClustInitScheme::tbcDiam,
-     const int& InitParam = -1,
-     const TIntFltPrV& DocIdWgtPrV=TIntFltPrV()
-    );
+   const PNotify& Notify,
+   const PBowDocWgtBs& BowDocWgtBs,
+   const PBowDocBs& BowDocBs,
+   const PBowSim& BowSim,
+   TRnd& Rnd,
+   const double& Lambda,
+   const int& MinDocsPerClust, const int& MaxClusts,
+   const double& ConvergEps,
+   const TInt& MaxIter = 10000,
+   const TBowClustInitScheme& InitType = TBowClustInitScheme::tbcDiam,
+   const int& InitParam = -1,
+   const TIntFltPrV& DocIdWgtPrV=TIntFltPrV());
   static PBowDocPart GetHPartForDocWgtBs(
    const PNotify& Notify,
    const PBowDocWgtBs& BowDocWgtBs,

@@ -86,7 +86,7 @@ namespace TQm {
             /// Delete the first DelRecs records (the records that were inserted first)
             virtual void DeleteFirstRecs(const int& DelRecs) { throw TQmExcept::New("Not implemented"); }
             /// Delete specific records
-            virtual void DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK = true) { throw TQmExcept::New("Not implemented"); }
+            virtual void DeleteRecs(const TUInt64V& DelRecIdV, const int& MxTimeMSecs = -1, const bool& AssertOK = true) { throw TQmExcept::New("Not implemented"); }
 
             /// Get field value using field id (default implementation throws exception)
             virtual int GetFieldInt(const uint64& RecId, const int& FieldId) const;

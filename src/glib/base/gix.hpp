@@ -67,7 +67,7 @@ int TGixItemSet<TKey, TItem>::FirstDirtyChild() {
 }
 
 template <class TKey, class TItem>
-int TGixItemSet<TKey, TItem>::FirstChildToMerge() {
+int TGixItemSet<TKey, TItem>::GetFirstChildToMerge() {
     // start checking either from 0 or 1 depending on whether we allow the first child to be
     for (int ChildN = 0; ChildN < ChildInfoV.Len(); ChildN++) {
         // the child at least needs to be dirty to be merged
@@ -93,19 +93,19 @@ int TGixItemSet<TKey, TItem>::FirstChildToMerge() {
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::PushWorkBufferToChildren() {
     // push work-buffer into children array
-    int split_len = Gix->GetSplitLen();
-    while (ItemV.Len() >= split_len) {
-        // create a vector of split_len items
-        TVec<TItem> tmp;
-        ItemV.GetSubValV(0, split_len - 1, tmp);
+    int SplitLen = Gix->GetSplitLen();
+    while (ItemV.Len() >= SplitLen) {
+        // create a vector of SplitLen items
+        TVec<TItem> SplitItemV;
+        ItemV.GetSubValV(0, SplitLen - 1, SplitItemV);
         // create the child info for the vector and also push the vector to a blob
-        TChildInfo child_info(tmp[0], tmp.Last(), split_len, Gix->EnlistChildVector(tmp));
-        child_info.LoadedP = false;
-        child_info.DirtyP = false;
-        ChildInfoV.Add(child_info);
+        TChildInfo ChildInfo(SplitItemV[0], SplitItemV.Last(), SplitLen, Gix->EnlistChildVector(SplitItemV));
+        ChildInfo.LoadedP = false;
+        ChildInfo.DirtyP = false;
+        ChildInfoV.Add(ChildInfo);
         // add an empty vector to ChildV - the data for this vector will be loaded from the blob when necessary
         ChildV.Add(TVec<TItem>());
-        ItemV.Del(0, split_len - 1);
+        ItemV.Del(0, SplitLen - 1);
         DirtyP = true;
     }
 }
@@ -116,42 +116,42 @@ void TGixItemSet<TKey, TItem>::InjectWorkBufferToChildren() {
     if (ChildInfoV.Len() > 0 && ItemV.Len() > 0) {
         // find the first Child index into which we need to insert the first value
         // since items in ItemV will most likely have the highest values, it makes sense to go from end backwards
-        int j = ChildInfoV.Len()-1;
-        const TItem& firstVal = ItemV[0];
-        while (j > 0 && Gix->GetMerger()->IsLt(firstVal, ChildInfoV[j].MinItem)) {
-            j--;
+        int ChildN = ChildInfoV.Len()-1;
+        const TItem& FirstItem = ItemV[0];
+        while (ChildN > 0 && Gix->GetItemHandler()->IsLt(FirstItem, ChildInfoV[ChildN].MinItem)) {
+            ChildN--;
         }
-        // go from j onward, inserting items from ItemV into ChildInfoV
-        int i = 0;
+        // go from ChildN onward, inserting items from ItemV into ChildInfoV
+        int ItemN = 0;
         TIntSet TouchedVectorH;
-        while (i < ItemV.Len()) {
-            const TItem& val = ItemV[i];
-            while (j < ChildInfoV.Len() && Gix->GetMerger()->IsLt(ChildInfoV[j].MaxItem, val)) {
-                j++;
+        while (ItemN < ItemV.Len()) {
+            const TItem& Item = ItemV[ItemN];
+            while (ChildN < ChildInfoV.Len() && Gix->GetItemHandler()->IsLt(ChildInfoV[ChildN].MaxItem, Item)) {
+                ChildN++;
             }
             // if val is larger than MaxItem in last ChildInfoV vector, then all remaining values in input buffer will not be inserted into child vectors
-            if (j >= ChildInfoV.Len()) {
+            if (ChildN >= ChildInfoV.Len()) {
                 break;
             }
             // ok, insert into j-th child
-            LoadChildVector(j);
-            ChildV[j].Add(val);
-            ChildInfoV[j].Len = ChildV[j].Len();
-            ChildInfoV[j].DirtyP = true;
-            TouchedVectorH.AddKey(j);
-            i++;
+            LoadChildVector(ChildN);
+            ChildV[ChildN].Add(Item);
+            ChildInfoV[ChildN].Len = ChildV[ChildN].Len();
+            ChildInfoV[ChildN].DirtyP = true;
+            TouchedVectorH.AddKey(ChildN);
+            ItemN++;
         }
 
         // delete items from work-buffer that have been inserted into child vectors
-        if (i > 0) {
+        if (ItemN > 0) {
             // we made at least one insertion into the children, mark itemset as dirty
             DirtyP = true;
-            if (i == ItemV.Len()) {
+            if (ItemN == ItemV.Len()) {
                 // we inserted all items into children - clear the working buffer
                 ItemV.Clr();
             } else {
                 // clear only the items that were already inserted into children
-                ItemV.Del(0, i - 1);
+                ItemV.Del(0, ItemN - 1);
             }
         }
 
@@ -160,7 +160,7 @@ void TGixItemSet<TKey, TItem>::InjectWorkBufferToChildren() {
             int ind = TouchedVectorH.GetKey(KeyId);
             LoadChildVector(ind); // just in case - they should be in memory at this point anyway
             TVec<TItem>& cd = ChildV[ind];
-            Gix->GetMerger()->Merge(cd, false);
+            Gix->GetItemHandler()->Merge(cd, false);
             ChildInfoV[ind].Len = cd.Len();
             ChildInfoV[ind].DirtyP = true;
             if (cd.Len() > 0) {
@@ -175,39 +175,39 @@ template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::PushMergedDataBackToChildren(
         const int& FirstChildToMerge, const TVec<TItem>& MergedItems) {
 
-    int curr_index = 0;
-    int remaining = MergedItems.Len() - curr_index;
-    int child_index = FirstChildToMerge;
-    while (curr_index < MergedItems.Len()) {
-        if (child_index < ChildInfoV.Len() && remaining > Gix->GetSplitLen()) {
-            ChildV[child_index].Clr();
-            MergedItems.GetSubValV(curr_index, curr_index + Gix->GetSplitLen() - 1, ChildV[child_index]);
-            ChildInfoV[child_index].Len = ChildV[child_index].Len();
-            ChildInfoV[child_index].MinItem = ChildV[child_index][0];
-            ChildInfoV[child_index].MaxItem = ChildV[child_index].Last();
-            ChildInfoV[child_index].DirtyP = true;
-            ChildInfoV[child_index].LoadedP = true;
-            curr_index += ChildInfoV[child_index].Len;
-            remaining = MergedItems.Len() - curr_index;
-            child_index++;
+    int MergedItemN = 0;
+    int Remaining = MergedItems.Len() - MergedItemN;
+    int ChildN = FirstChildToMerge;
+    while (MergedItemN < MergedItems.Len()) {
+        if (ChildN < ChildInfoV.Len() && Remaining > Gix->GetSplitLen()) {
+            ChildV[ChildN].Clr();
+            MergedItems.GetSubValV(MergedItemN, MergedItemN + Gix->GetSplitLen() - 1, ChildV[ChildN]);
+            ChildInfoV[ChildN].Len = ChildV[ChildN].Len();
+            ChildInfoV[ChildN].MinItem = ChildV[ChildN][0];
+            ChildInfoV[ChildN].MaxItem = ChildV[ChildN].Last();
+            ChildInfoV[ChildN].DirtyP = true;
+            ChildInfoV[ChildN].LoadedP = true;
+            MergedItemN += ChildInfoV[ChildN].Len;
+            Remaining = MergedItems.Len() - MergedItemN;
+            ChildN++;
         } else {
             // put the remaining data into work-buffer
             ItemV.Clr();
-            MergedItems.GetSubValV(curr_index, curr_index + remaining - 1, ItemV);
+            MergedItems.GetSubValV(MergedItemN, MergedItemN + Remaining - 1, ItemV);
             break;
         }
     }
 
     // remove children that became empty
     // remove them first from BLOB storage
-    for (int ind = child_index; ind < ChildInfoV.Len(); ind++) {
-        Gix->DeleteChildVector(ChildInfoV[ind].Pt);
+    for (int Ind = ChildN; Ind < ChildInfoV.Len(); Ind++) {
+        Gix->DeleteChildVector(ChildInfoV[Ind].Pt);
     }
 
     // finally remove them from memory
-    if (child_index < ChildInfoV.Len()) {
-        ChildInfoV.Del(child_index, ChildInfoV.Len() - 1);
-        ChildV.Del(child_index, ChildV.Len() - 1);
+    if (ChildN < ChildInfoV.Len()) {
+        ChildInfoV.Del(ChildN, ChildInfoV.Len() - 1);
+        ChildV.Del(ChildN, ChildV.Len() - 1);
     }
     DirtyP = true;
 }
@@ -219,31 +219,31 @@ void TGixItemSet<TKey, TItem>::ProcessDeletes() {
         int ItemVNewI = 0;
 
         // go over all indices in ItemVDel that represent which items in ItemV are keys to delete
-        for (int i = 0; i < ItemVDel.Len(); i++) {
+        for (int ItemVDelN = 0; ItemVDelN < ItemVDel.Len(); ItemVDelN++) {
             // get the value to delete
-            const TItem& val = ItemV[ItemVDel[i]];
+            const TItem& ValToDel = ItemV[ItemVDel[ItemVDelN]];
             // find the children vector from which we need to delete the value.
             // since deletes are often called on the oldest items we immediately test
             // if val is in the first vector - if not, go from last vector backward
-            int j = (ChildInfoV.Len() > 0 && Gix->GetMerger()->IsLtE(val, ChildInfoV[0].MaxItem)) ? 0 : ChildInfoV.Len() - 1;
-            while (j >= 0 && Gix->GetMerger()->IsLtE(val, ChildInfoV[j].MaxItem)) {
-                if (Gix->GetMerger()->IsLtE(ChildInfoV[j].MinItem, val)) {
-                    LoadChildVector(j);
-                    Gix->GetMerger()->Delete(val, ChildV[j]);
-                    ChildInfoV[j].Len = ChildV[j].Len();
-                    ChildInfoV[j].DirtyP = true;
+            int ChildN = (ChildInfoV.Len() > 0 && Gix->GetItemHandler()->IsLtE(ValToDel, ChildInfoV[0].MaxItem)) ? 0 : ChildInfoV.Len() - 1;
+            while (ChildN >= 0 && Gix->GetItemHandler()->IsLtE(ValToDel, ChildInfoV[ChildN].MaxItem)) {
+                if (Gix->GetItemHandler()->IsLtE(ChildInfoV[ChildN].MinItem, ValToDel)) {
+                    LoadChildVector(ChildN);
+                    Gix->GetItemHandler()->Delete(ValToDel, ChildV[ChildN]);
+                    ChildInfoV[ChildN].Len = ChildV[ChildN].Len();
+                    ChildInfoV[ChildN].DirtyP = true;
                     // since we have already found and deleted the item, we can stop iterating over children vectors
                     break;
                     // we don't update stats (min & max), because they are still usable.
                 }
-                j--;
+                ChildN--;
             }
             // copy from ItemV to ItemVNew items up to index ItemVDel[i]
-            while (ItemVNewI <= ItemVDel[i]) {
+            while (ItemVNewI <= ItemVDel[ItemVDelN]) {
                 ItemVNew.Add(ItemV[ItemVNewI++]);
             }
             // it is possible that value val appears multiple times in ItemVNew so we have to delete all it's instances
-            Gix->GetMerger()->Delete(val, ItemVNew);
+            Gix->GetItemHandler()->Delete(ValToDel, ItemVNew);
         }
         // copy the remaining items from the last item to delete to the end of the vector ItemV and copy items to ItemVNew
         while (ItemVNewI < ItemV.Len()) {
@@ -325,7 +325,8 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem, const bool& NotifyC
         if (IsFull()) {
             PushWorkBufferToChildren();
         }
-        // TODO: why is next RecalcTotalCnt needed? Def() already calls it if anything is changed. It might be needed only if IsFull() was true.
+        // TODO: why is next RecalcTotalCnt needed? Def() already calls it if anything is changed.
+        // It might be needed only if IsFull() was true.
         RecalcTotalCnt(); // work buffer might have been merged
         Gix->AddToNewCacheSizeInc(OldSize, GetMemUsed());
     }
@@ -338,10 +339,10 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem, const bool& NotifyC
             MergedP = true;
         } else if (ItemV.Len() == 0 && ChildInfoV.Len() != 0) {
             // compare with the last item of the last child
-            MergedP = Gix->GetMerger()->IsLt(ChildInfoV.Last().MaxItem, NewItem);
+            MergedP = Gix->GetItemHandler()->IsLt(ChildInfoV.Last().MaxItem, NewItem);
         } else {
             // compare to the last item in the work buffer
-            MergedP = Gix->GetMerger()->IsLt(ItemV.Last(), NewItem);
+            MergedP = Gix->GetItemHandler()->IsLt(ItemV.Last(), NewItem);
         }
     }
     const uint64 OldItemVSize = ItemV.GetMemUsed();
@@ -368,30 +369,44 @@ void TGixItemSet<TKey, TItem>::AddItemV(const TVec<TItem>& NewItemV) {
 template <class TKey, class TItem>
 const TItem& TGixItemSet<TKey, TItem>::GetItem(const int& ItemN) const {
     AssertR(ItemN >= 0 && ItemN < TotalCnt, TStr() + "Index: " + TInt::GetStr(ItemN) + ", TotalCnt: " + TInt::GetStr(TotalCnt));
-    int index = ItemN;
-    for (int i = 0; i < ChildInfoV.Len(); i++) {
-        if (index < ChildInfoV[i].Len) {
+    int Offset = ItemN;
+    for (int ChildN = 0; ChildN < ChildInfoV.Len(); ChildN++) {
+        if (Offset < ChildInfoV[ChildN].Len) {
             // load child vector only if needed
-            LoadChildVector(i);
-            return ChildV[i][index];
+            LoadChildVector(ChildN);
+            return ChildV[ChildN][Offset];
         }
-        index -= ChildInfoV[i].Len;
+        Offset -= ChildInfoV[ChildN].Len;
     }
-    return ItemV[index];
+    return ItemV[Offset];
 }
 
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::GetItemV(TVec<TItem>& _ItemV) {
+    // reserve place for all the elements
+    _ItemV.Gen(TotalCnt, 0);
+    // load items
     if (ChildInfoV.Len() > 0) {
         // collect data from child itemsets
         LoadChildVectors();
         for (int i = 0; i < ChildInfoV.Len(); i++) {
-            //_ItemV.AddVMemCpy(ChildV[i]);
             _ItemV.AddV(ChildV[i]);
         }
     }
-    //_ItemV.AddVMemCpy(ItemV);
     _ItemV.AddV(ItemV);
+}
+
+template <class TKey, class TItem>
+template <typename THandler>
+void TGixItemSet<TKey, TItem>::GetItemV(THandler& Handler) {
+    if (ChildInfoV.Len() > 0) {
+        // collect data from child itemsets
+        LoadChildVectors();
+        for (int i = 0; i < ChildInfoV.Len(); i++) {
+            Handler(ChildV[i]);
+        }
+    }
+    Handler(ItemV);
 }
 
 template <class TKey, class TItem>
@@ -439,26 +454,26 @@ void TGixItemSet<TKey, TItem>::Def() {
     // call merger to pack items, if not merged yet
     if (!MergedP) {
         ProcessDeletes(); // "execute" deletes, possibly leaving some child vectors too short
-        Gix->GetMerger()->Merge(ItemV, true); // first do local merge of work-buffer
+        Gix->GetItemHandler()->Merge(ItemV, true); // first do local merge of work-buffer
         DirtyP = true;
         InjectWorkBufferToChildren(); // inject data into child vectors
 
-        int firstChildToMerge = FirstChildToMerge();
-        if (firstChildToMerge >= 0 || (ChildInfoV.Len() > 0 && ItemV.Len() > 0)) {
-            if (firstChildToMerge < 0) {
-                firstChildToMerge = ChildInfoV.Len();
+        int FirstChildToMerge = GetFirstChildToMerge();
+        if (FirstChildToMerge >= 0 || (ChildInfoV.Len() > 0 && ItemV.Len() > 0)) {
+            if (FirstChildToMerge < 0) {
+                FirstChildToMerge = ChildInfoV.Len();
             }
 
             // collect all data from subsequent child vectors and work-buffer
             TVec<TItem> MergedItems;
-            for (int i = firstChildToMerge; i < ChildInfoV.Len(); i++) {
+            for (int i = FirstChildToMerge; i < ChildInfoV.Len(); i++) {
                 LoadChildVector(i);
                 MergedItems.AddV(ChildV[i]);
             }
             MergedItems.AddV(ItemV);
-            Gix->GetMerger()->Merge(MergedItems, false); // perform global merge
+            Gix->GetItemHandler()->Merge(MergedItems, false); // perform global merge
 
-            PushMergedDataBackToChildren(firstChildToMerge, MergedItems); // now save them back
+            PushMergedDataBackToChildren(FirstChildToMerge, MergedItems); // now save them back
             PushWorkBufferToChildren(); // it could happen that data in work buffer is still too large
         }
 
@@ -482,10 +497,10 @@ void TGixItemSet<TKey, TItem>::DefLocal() {
     if (!MergedP) {
         if (ItemVDel.Len() == 0) { // deletes are not treated as local - merger would get confused
             const int OldItemVLen = ItemV.Len();
-            Gix->GetMerger()->Merge(ItemV, true); // perform local merge
+            Gix->GetItemHandler()->Merge(ItemV, true); // perform local merge
             DirtyP = true;
             if (ChildInfoV.Len() > 0 && ItemV.Len() > 0) {
-                if (Gix->GetMerger()->IsLt(ChildInfoV.Last().MaxItem, ItemV[0])) {
+                if (Gix->GetItemHandler()->IsLt(ChildInfoV.Last().MaxItem, ItemV[0])) {
                     MergedP = true; // local merge achieved global merge
                 }
             } else {
@@ -545,7 +560,7 @@ TBlobPt TGix<TKey, TItem>::AddKeyId(const TKey& Key) {
     if (IsKey(Key)) { return KeyIdH.GetDat(Key); }
     // we don't have this key, create an empty item set and return pointer to it
     AssertReadOnly(); // check if we are allowed to write
-    PGixItemSet ItemSet = TGixItemSet<TKey, TItem>::New(Key, &Merger, this);
+    PGixItemSet ItemSet = TGixItemSet<TKey, TItem>::New(Key, &ItemHandler, this);
     TBlobPt KeyId = EnlistItemSet(ItemSet);
     KeyIdH.AddDat(Key, KeyId); // remember the new key and its Id
     return KeyId;
@@ -624,9 +639,9 @@ void TGix<TKey, TItem>::RefreshStats() const {
 
 template <class TKey, class TItem>
 TGix<TKey, TItem>::TGix(const TStr& Nm, const TStr& FPath, const TFAccess& _Access,
-    const TGixMerger<TKey, TItem>* _Merger, const int64& CacheSize, const int _SplitLen,
+    const TGixItemHandler<TKey, TItem>* _ItemHandler, const int64& CacheSize, const int _SplitLen,
     const bool _FirstChildBeUnfilledP, const int _SplitLenMin, const int _SplitLenMax) :
-        Access(_Access), Merger(_Merger), ItemSetCache(CacheSize, 1000000, GetVoidThis()),
+        Access(_Access), ItemHandler(_ItemHandler), ItemSetCache(CacheSize, 1000000, GetVoidThis()),
         SplitLen(_SplitLen), SplitLenMin(_SplitLenMin), SplitLenMax(_SplitLenMax),
         FirstChildBeUnfilledP(_FirstChildBeUnfilledP) {
 
@@ -686,7 +701,21 @@ TPt<TGixItemSet<TKey, TItem> > TGix<TKey, TItem>::GetItemSet(const TBlobPt& KeyI
 
 template <class TKey, class TItem>
 void TGix<TKey, TItem>::GetItemV(const TKey& Key, TVec<TItem>& ItemV) const {
-    return GetItemSet(Key)->GetItemV(ItemV);
+    PGixItemSet ItemSet = GetItemSet(Key);
+    // first call Def() so that we can process some pending actions (like deletes) first
+    ItemSet->Def();
+    // get the items for the key
+    return ItemSet->GetItemV(ItemV);
+}
+
+template <class TKey, class TItem>
+template <typename THandler>
+void TGix<TKey, TItem>::GetItemV(const TKey& Key, THandler& Handler) const {
+    PGixItemSet ItemSet = GetItemSet(Key);
+    // first call Def() so that we can process some pending actions (like deletes) first
+    ItemSet->Def();
+    // get the items for the key
+    return ItemSet->GetItemV(Handler);
 }
 
 template <class TKey, class TItem>
@@ -835,7 +864,7 @@ int64 TGix<TKey, TItem>::GetMemUsed() const {
     res += 3 * sizeof(int);
     res += sizeof(bool);
     res += sizeof(PBlobBs);
-    res += Merger->GetMemUsed();
+    res += ItemHandler->GetMemUsed();
     res += sizeof(TGixStats);
     res += GixFNm.GetMemUsed();
     res += GixBlobFNm.GetMemUsed();
@@ -933,43 +962,43 @@ void TGix<TKey, TItem>::PrintStats() {
 
 /////////////////////////////////////////////////
 // General-Inverted-Index Expression-Item
-template <class TKey, class TItem>
-void TGixExpItem<TKey, TItem>::PutAnd(const TPt<TGixExpItem<TKey, TItem> >& _LeftExpItem,
-    const TPt<TGixExpItem<TKey, TItem> >& _RightExpItem) {
+template <class TKey, class TItem, class TResItem>
+void TGixExpItem<TKey, TItem, TResItem>::PutAnd(const TPt<TGixExpItem<TKey, TItem, TResItem> >& _LeftExpItem,
+    const TPt<TGixExpItem<TKey, TItem, TResItem> >& _RightExpItem) {
 
     ExpType = getAnd;
     LeftExpItem = _LeftExpItem;
     RightExpItem = _RightExpItem;
 }
 
-template <class TKey, class TItem>
-void TGixExpItem<TKey, TItem>::PutOr(const TPt<TGixExpItem<TKey, TItem> >& _LeftExpItem,
-    const TPt<TGixExpItem<TKey, TItem> >& _RightExpItem) {
+template <class TKey, class TItem, class TResItem>
+void TGixExpItem<TKey, TItem, TResItem>::PutOr(const TPt<TGixExpItem<TKey, TItem, TResItem> >& _LeftExpItem,
+    const TPt<TGixExpItem<TKey, TItem, TResItem> >& _RightExpItem) {
 
     ExpType = getOr;
     LeftExpItem = _LeftExpItem;
     RightExpItem = _RightExpItem;
 }
 
-template <class TKey, class TItem>
-TPt<TGixExpItem<TKey, TItem> > TGixExpItem<TKey, TItem>::NewAndV(
-    const TVec<TPt<TGixExpItem<TKey, TItem> > >& ExpItemV) {
+template <class TKey, class TItem, class TResItem>
+TPt<TGixExpItem<TKey, TItem, TResItem> > TGixExpItem<TKey, TItem, TResItem>::NewAndV(
+    const TVec<TPt<TGixExpItem<TKey, TItem, TResItem> > >& ExpItemV) {
 
     // return empty item if no key is given
-    if (ExpItemV.Empty()) { return TGixExpItem<TKey, TItem>::NewEmpty(); }
+    if (ExpItemV.Empty()) { return TGixExpItem<TKey, TItem, TResItem>::NewEmpty(); }
     // otherwise we start with the first key
-    TPt<TGixExpItem<TKey, TItem> > TopExpItem = ExpItemV[0];
+    TPt<TGixExpItem<TKey, TItem, TResItem> > TopExpItem = ExpItemV[0];
     // prepare a queue, which points to the next item (left) to be expanded to tree (and left right)
-    TQQueue<TPt<TGixExpItem<TKey, TItem> > > NextExpItemQ;
+    TQQueue<TPt<TGixExpItem<TKey, TItem, TResItem> > > NextExpItemQ;
     // we start with the top
     NextExpItemQ.Push(TopExpItem);
     // add the rest of the items to the expresion tree
     for (int ExpItemN = 1; ExpItemN < ExpItemV.Len(); ExpItemN++) {
-        const TPt<TGixExpItem<TKey, TItem> >& RightExpItem = ExpItemV[ExpItemN];
+        const TPt<TGixExpItem<TKey, TItem, TResItem> >& RightExpItem = ExpItemV[ExpItemN];
         // which item should we expand
-        TPt<TGixExpItem<TKey, TItem> > ExpItem = NextExpItemQ.Top(); NextExpItemQ.Pop();
+        TPt<TGixExpItem<TKey, TItem, TResItem> > ExpItem = NextExpItemQ.Top(); NextExpItemQ.Pop();
         // clone the item to be expanded
-        TPt<TGixExpItem<TKey, TItem> > LeftExpItem = ExpItem->Clone();
+        TPt<TGixExpItem<TKey, TItem, TResItem> > LeftExpItem = ExpItem->Clone();
         // and make a new subtree
         ExpItem->PutAnd(LeftExpItem, RightExpItem);
         // update the queue
@@ -979,25 +1008,25 @@ TPt<TGixExpItem<TKey, TItem> > TGixExpItem<TKey, TItem>::NewAndV(
     return TopExpItem;
 }
 
-template <class TKey, class TItem>
-TPt<TGixExpItem<TKey, TItem> > TGixExpItem<TKey, TItem>::NewOrV(
-    const TVec<TPt<TGixExpItem<TKey, TItem> > >& ExpItemV) {
+template <class TKey, class TItem, class TResItem>
+TPt<TGixExpItem<TKey, TItem, TResItem> > TGixExpItem<TKey, TItem, TResItem>::NewOrV(
+    const TVec<TPt<TGixExpItem<TKey, TItem, TResItem> > >& ExpItemV) {
 
     // return empty item if no key is given
-    if (ExpItemV.Empty()) { return TGixExpItem<TKey, TItem>::NewEmpty(); }
+    if (ExpItemV.Empty()) { return TGixExpItem<TKey, TItem, TResItem>::NewEmpty(); }
     // otherwise we start with the first key
-    TPt<TGixExpItem<TKey, TItem> > TopExpItem = ExpItemV[0];
+    TPt<TGixExpItem<TKey, TItem, TResItem> > TopExpItem = ExpItemV[0];
     // prepare a queue, which points to the next item (left) to be expanded to tree (and left right)
-    TQQueue<TPt<TGixExpItem<TKey, TItem> > > NextExpItemQ;
+    TQQueue<TPt<TGixExpItem<TKey, TItem, TResItem> > > NextExpItemQ;
     // we start with the top
     NextExpItemQ.Push(TopExpItem);
     // add the rest of the items to the expresion tree
     for (int ExpItemN = 1; ExpItemN < ExpItemV.Len(); ExpItemN++) {
-        const TPt<TGixExpItem<TKey, TItem> >& RightExpItem = ExpItemV[ExpItemN];
+        const TPt<TGixExpItem<TKey, TItem, TResItem> >& RightExpItem = ExpItemV[ExpItemN];
         // which item should we expand
-        TPt<TGixExpItem<TKey, TItem> > ExpItem = NextExpItemQ.Top(); NextExpItemQ.Pop();
+        TPt<TGixExpItem<TKey, TItem, TResItem> > ExpItem = NextExpItemQ.Top(); NextExpItemQ.Pop();
         // clone the item to be expanded
-        TPt<TGixExpItem<TKey, TItem> > LeftExpItem = ExpItem->Clone();
+        TPt<TGixExpItem<TKey, TItem, TResItem> > LeftExpItem = ExpItem->Clone();
         // and make a new subtree
         ExpItem->PutOr(LeftExpItem, RightExpItem);
         // update the queue
@@ -1007,33 +1036,33 @@ TPt<TGixExpItem<TKey, TItem> > TGixExpItem<TKey, TItem>::NewOrV(
     return TopExpItem;
 }
 
-template <class TKey, class TItem>
-TPt<TGixExpItem<TKey, TItem> > TGixExpItem<TKey, TItem>::NewAndV(const TVec<TKey>& KeyV) {
-    TVec<TPt<TGixExpItem<TKey, TItem> > > ExpItemV(KeyV.Len(), 0);
+template <class TKey, class TItem, class TResItem>
+TPt<TGixExpItem<TKey, TItem, TResItem> > TGixExpItem<TKey, TItem, TResItem>::NewAndV(const TVec<TKey>& KeyV) {
+    TVec<TPt<TGixExpItem<TKey, TItem, TResItem> > > ExpItemV(KeyV.Len(), 0);
     for (int KeyN = 0; KeyN < KeyV.Len(); KeyN++) {
-        ExpItemV.Add(TGixExpItem<TKey, TItem>::NewItem(KeyV[KeyN]));
+        ExpItemV.Add(TGixExpItem<TKey, TItem, TResItem>::NewItem(KeyV[KeyN]));
     }
     return NewAndV(ExpItemV);
 }
 
-template <class TKey, class TItem>
-TPt<TGixExpItem<TKey, TItem> > TGixExpItem<TKey, TItem>::NewOrV(const TVec<TKey>& KeyV) {
-    TVec<TPt<TGixExpItem<TKey, TItem> > > ExpItemV(KeyV.Len(), 0);
+template <class TKey, class TItem, class TResItem>
+TPt<TGixExpItem<TKey, TItem, TResItem> > TGixExpItem<TKey, TItem, TResItem>::NewOrV(const TVec<TKey>& KeyV) {
+    TVec<TPt<TGixExpItem<TKey, TItem, TResItem> > > ExpItemV(KeyV.Len(), 0);
     for (int KeyN = 0; KeyN < KeyV.Len(); KeyN++) {
-        ExpItemV.Add(TGixExpItem<TKey, TItem>::NewItem(KeyV[KeyN]));
+        ExpItemV.Add(TGixExpItem<TKey, TItem, TResItem>::NewItem(KeyV[KeyN]));
     }
     return NewOrV(ExpItemV);
 }
 
-template <class TKey, class TItem>
-bool TGixExpItem<TKey, TItem>::Eval(const TPt<TGix<TKey, TItem> >& Gix,
-    TVec<TItem>& ResItemV, const TGixMerger<TKey, TItem>* Merger) {
+template <class TKey, class TItem, class TResItem>
+bool TGixExpItem<TKey, TItem, TResItem>::Eval(const TPt<TGix<TKey, TItem> >& Gix,
+    TVec<TResItem>& ResItemV, const TGixMerger<TKey, TItem, TResItem>* Merger) {
 
     // prepare place for result
     ResItemV.Clr();
     if (ExpType == getOr) {
         EAssert(!LeftExpItem.Empty() && !RightExpItem.Empty());
-        TVec<TItem> RightItemV;
+        TVec<TResItem> RightItemV;
         const bool NotLeft = LeftExpItem->Eval(Gix, ResItemV, Merger);
         const bool NotRight = RightExpItem->Eval(Gix, RightItemV, Merger);
         if (NotLeft && NotRight) {
@@ -1041,7 +1070,7 @@ bool TGixExpItem<TKey, TItem>::Eval(const TPt<TGix<TKey, TItem> >& Gix,
         } else if (!NotLeft && !NotRight) {
             Merger->Union(ResItemV, RightItemV);
         } else {
-            TVec<TItem> MinusItemV;
+            TVec<TResItem> MinusItemV;
             if (NotLeft) {
                 Merger->Minus(ResItemV, RightItemV, MinusItemV);
             } else {
@@ -1052,7 +1081,7 @@ bool TGixExpItem<TKey, TItem>::Eval(const TPt<TGix<TKey, TItem> >& Gix,
         return (NotLeft || NotRight);
     } else if (ExpType == getAnd) {
         EAssert(!LeftExpItem.Empty() && !RightExpItem.Empty());
-        TVec<TItem> RightItemV;
+        TVec<TResItem> RightItemV;
         const bool NotLeft = LeftExpItem->Eval(Gix, ResItemV, Merger);
         const bool NotRight = RightExpItem->Eval(Gix, RightItemV, Merger);
         if (NotLeft && NotRight) {
@@ -1060,8 +1089,12 @@ bool TGixExpItem<TKey, TItem>::Eval(const TPt<TGix<TKey, TItem> >& Gix,
         } else if (!NotLeft && !NotRight) {
             Merger->Intrs(ResItemV, RightItemV);
         } else {
-            TVec<TItem> MinusItemV;
-            if (NotLeft) { Merger->Minus(RightItemV, ResItemV, MinusItemV); } else { Merger->Minus(ResItemV, RightItemV, MinusItemV); }
+            TVec<TResItem> MinusItemV;
+            if (NotLeft) {
+                Merger->Minus(RightItemV, ResItemV, MinusItemV);
+            } else {
+                Merger->Minus(ResItemV, RightItemV, MinusItemV);
+            }
             ResItemV = MinusItemV;
         }
         return (NotLeft && NotRight);
@@ -1069,8 +1102,8 @@ bool TGixExpItem<TKey, TItem>::Eval(const TPt<TGix<TKey, TItem> >& Gix,
         PGixItemSet ItemSet = Gix->GetItemSet(Key);
         if (!ItemSet.Empty()) {
             ItemSet->Def();
-            ItemSet->GetItemV(ResItemV);
-            Merger->Def(ItemSet->GetKey(), ResItemV);
+            TVec<TItem> ItemV; ItemSet->GetItemV(ItemV);
+            Merger->Def(ItemSet->GetKey(), ItemV, ResItemV);
         }
         return false;
     } else if (ExpType == getNot) {

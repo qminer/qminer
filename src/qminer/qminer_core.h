@@ -28,6 +28,24 @@ class TRecFilter; typedef TPt<TRecFilter> PRecFilter;
 class TFtrExt; typedef TPt<TFtrExt> PFtrExt;
 class TFtrSpace; typedef TPt<TFtrSpace> PFtrSpace;
 
+typedef void(*TVoidVoidF)();
+struct TExternalAggr {
+    static TFunRouter<TVoidVoidF>& CreateOnce() {
+        static TFunRouter<TVoidVoidF> * NewRouter = new TFunRouter<TVoidVoidF>;
+        return *NewRouter;
+    }
+};
+
+#define INIT_EXTERN_AGGR(Name) \
+class Autogen ## Name { \
+public: \
+    Autogen ## Name() { \
+        TFunRouter<TQm::TVoidVoidF>& Router = TQm::TExternalAggr::CreateOnce(); \
+        Router.Register(#Name, Name); \
+    } \
+}; \
+Autogen ## Name Autogen_ ## Name; \
+
 ///////////////////////////////
 /// Store windowing type
 typedef enum {
@@ -183,6 +201,9 @@ public:
     static void Init();
     /// Checks if initialization done
     static bool IsInit() { return InitP; }
+
+    /// Calls init functions for external aggregates
+    static void InitExternalAggr();
 
     /// Initialize logger.
     /// @param FPath        Specify logger output (standard output `std'; No output `null')
@@ -796,13 +817,13 @@ public:
     bool HasJoin(const TStr& JoinNm, const uint64& RecId) const;
 
     /// Signal to purge any old stuff, e.g. records that fall out of time window when store has one
-    virtual void GarbageCollect() { }
+    virtual void GarbageCollect(const int& MxTimeMSecs = -1) { }
     /// Deletes all records
     virtual void DeleteAllRecs() = 0;
     /// Delete the first DelRecs records (the records that were inserted first)
     virtual void DeleteFirstRecs(const int& DelRecs) = 0;
-    /// Delete specific records
-    virtual void DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK = true) = 0;
+    /// Delete specific records. If given a max time delete stops when time limit reached.
+    virtual void DeleteRecs(const TUInt64V& DelRecIdV, const int& MxTimeMSecs = -1, const bool& AssertOK = true) = 0;
 
     /// Check if the value of given field for a given record is NULL
     virtual bool IsFieldNull(const uint64& RecId, const int& FieldId) const { return false; }
@@ -1370,7 +1391,7 @@ private:
     /// New constructor delegate
     typedef PRecFilter(*TNewF)(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     /// Filter New constructor router
-    static TFunRouter<PRecFilter, TNewF> NewRouter;
+    static TFunRouter<TNewF> NewRouter;
 
 public:
     /// Register default record filters
@@ -1640,8 +1661,20 @@ public:
     bool Filter(const TRec& Rec) const;
 };
 
+class TRecFilterByFieldByteSet : public TRecFilterByField {
+private:
+    /// Set of values
+    TUChSet ValSet;
+
+public:
+    /// Constructor
+    TRecFilterByFieldByteSet(const TWPt<TBase>& _Base, const int& _FieldId, const TUChSet& ValSet_, const bool& _FilterNullP = true);
+    /// Filter function
+    bool Filter(const TRec& Rec) const;
+};
+
 ///////////////////////////////
-/// Record filter by integer field.
+/// Record filter by unsigned integer field.
 class TRecFilterByFieldUInt : public TRecFilterByField {
 private:
     /// Minimal value
@@ -1652,6 +1685,18 @@ private:
 public:
     /// Constructor
     TRecFilterByFieldUInt(const TWPt<TBase>& _Base, const int& _FieldId, const uint& _MinVal, const uint& _MaxVal, const bool& _FilterNullP = true);
+    /// Filter function
+    bool Filter(const TRec& Rec) const;
+};
+
+class TRecFilterByFieldUIntSet : public TRecFilterByField {
+private:
+    /// Set of values
+    TUIntSet ValSet;
+
+public:
+    /// Constructor
+    TRecFilterByFieldUIntSet(const TWPt<TBase>& _Base, const int& _FieldId, const TUIntSet& ValSet_, const bool& _FilterNullP = true);
     /// Filter function
     bool Filter(const TRec& Rec) const;
 };
@@ -1684,6 +1729,18 @@ private:
 public:
     /// Constructor
     TRecFilterByFieldUInt64(const TWPt<TBase>& _Base, const int& _FieldId, const uint64& _MinVal, const uint64& _MaxVal, const bool& _FilterNullP = true);
+    /// Filter function
+    bool Filter(const TRec& Rec) const;
+};
+
+class TRecFilterByFieldUInt64Set : public TRecFilterByField {
+private:
+    /// Set of values
+    TUInt64Set ValSet;
+
+public:
+    /// Constructor
+    TRecFilterByFieldUInt64Set(const TWPt<TBase>& _Base, const int& _FieldId, const TUInt64Set& ValSet_, const bool& _FilterNullP = true);
     /// Filter function
     bool Filter(const TRec& Rec) const;
 };
@@ -2078,8 +2135,12 @@ public:
     void FilterByFieldInt64(const int& FieldId, const int64& MinVal, const int64& MaxVal);
     /// Filter records to keep only the ones with values of a given field within given range
     void FilterByFieldByte(const int& FieldId, const uchar& MinVal, const uchar& MaxVal);
+    /// Filter records to keep only the ones with values in the given set of items
+    void FilterByFieldByteSet(const int& FieldId, const TUChSet& ValSet);
     /// Filter records to keep only the ones with values of a given field within given range
     void FilterByFieldUInt(const int& FieldId, const uint& MinVal, const uint& MaxVal);
+    /// Filter records to keep only the ones with values in the given set of items
+    void FilterByFieldUIntSet(const int& FieldId, const TUIntSet& ValSet);
     /// Filter records to keep only the ones with values of a given field within given range
     void FilterByFieldUInt16(const int& FieldId, const uint16& MinVal, const uint16& MaxVal);
     /// Filter records to keep only the ones with values of a given field within given range
@@ -2088,6 +2149,8 @@ public:
     void FilterByFieldSFlt(const int& FieldId, const float& MinVal, const float& MaxVal);
     /// Filter records to keep only the ones with values of a given field within given range
     void FilterByFieldUInt64(const int& FieldId, const uint64& MinVal, const uint64& MaxVal);
+    /// Filter records to keep only the ones with values in the given set of items
+    void FilterByFieldUInt64Set(const int& FieldId, const TUInt64Set& ValSet);
     /// Filter records to keep only the ones with values of a given field equal to `FldVal'
     void FilterByFieldStr(const int& FieldId, const TStr& FldVal);
     /// Filter records to keep only the ones with values of a given field between `FldValMin' and `FldValMax' (both inclusive)
@@ -2976,23 +3039,12 @@ private:
     /// We are indexing by (KeyId, WordId) pairs
     typedef TKeyWord TQmGixKey;
 
-    /// Merger which sums up the frequencies of items
+    /// ItemHandler which sums up the frequencies of items
     template <class TQmGixItem>
-    class TQmGixSumMerger : public TGixMerger<TQmGixKey, TQmGixItem> {
+    class TQmGixSumItemHandler : public TGixItemHandler<TQmGixKey, TQmGixItem> {
     public:
-        /// Union sums up frequencies of overlapping items
-        void Union(TVec<TQmGixItem>& MainV, const TVec<TQmGixItem>& JoinV) const;
-        /// Intersection sums up frequencies of overlapping items
-        void Intrs(TVec<TQmGixItem>& MainV, const TVec<TQmGixItem>& JoinV) const;
-        /// Minus does not deal with frequencies
-        void Minus(const TVec<TQmGixItem>& MainV, const TVec<TQmGixItem>& JoinV, TVec<TQmGixItem>& ResV) const;
-
-        /// No initialization necessary
-        void Def(const TQmGixKey& Key, TVec<TQmGixItem>& MainV) const { }
-
         /// Merge given items when they have same record ID. Frequency is sumed together
         void Merge(TVec<TQmGixItem>& ItemV, const bool& IsLocal) const;
-
         /// Remove given item from the list
         void Delete(const TQmGixItem& Item, TVec<TQmGixItem>& MainV) const { return MainV.DelAll(Item); }
         /// < comparator between items
@@ -3001,23 +3053,58 @@ private:
         bool IsLtE(const TQmGixItem& Item1, const TQmGixItem& Item2) const { return Item1 <= Item2; }
 
         /// Memory footprint
-        uint64 GetMemUsed() const { return sizeof(TQmGixSumMerger<TQmGixItem>); }
+        uint64 GetMemUsed() const { return sizeof(TQmGixSumItemHandler<TQmGixItem>); }
+    };
+
+    /// Merger which sums up the frequencies of items.
+    /// Assumes TGixResItem is a TKeyDat< , >.
+    template <class TQmGixItem, class TQmGixResItem>
+    class TQmGixSumMerger : public TGixMerger<TQmGixKey, TQmGixItem, TQmGixResItem> {
+    public:
+        /// Union sums up frequencies of overlapping items
+        void Union(TVec<TQmGixResItem>& MainV, const TVec<TQmGixResItem>& JoinV) const;
+        /// Intersection sums up frequencies of overlapping items
+        void Intrs(TVec<TQmGixResItem>& MainV, const TVec<TQmGixResItem>& JoinV) const;
+        /// Minus does not deal with frequencies
+        void Minus(const TVec<TQmGixResItem>& MainV, const TVec<TQmGixResItem>& JoinV, TVec<TQmGixResItem>& ResV) const;
+    };
+
+    /// Specialization for case when TQmGixItem == TQmGixResItem.
+    template <class TQmGixItem>
+    class TQmGixSumWithFqMerger : public TQmGixSumMerger<TQmGixItem, TQmGixItem> {
+    public:
+        /// Move MainV to ResV since no changes needed
+        void Def(const TQmGixKey& Key, TVec<TQmGixItem>& MainV, TVec<TQmGixItem>& ResV) const;
+
+        /// Memory footprint
+        uint64 GetMemUsed() const { return sizeof(TQmGixSumWithFqMerger<TQmGixItem>); }
+    };
+
+    /// Specialization for case when index has implied frequency of 1 (e.g. tiny)
+    template <class TQmGixItem, class TQmGixResItem>
+    class TQmGixSumWithoutFqMerger : public TQmGixSumMerger<TQmGixItem, TQmGixResItem> {
+    public:
+        /// Copy MainV to ResV and init frequency to 1
+        void Def(const TQmGixKey& Key, TVec<TQmGixItem>& MainV, TVec<TQmGixResItem>& ResV) const;
+
+        /// Memory footprint
+        uint64 GetMemUsed() const { return sizeof(TQmGixSumWithoutFqMerger<TQmGixItem, TQmGixResItem>); }
     };
 
     /// Normal version of inverted index contains full record ID and frequency count values
     typedef TKeyDat<TUInt64, TInt> TQmGixItemFull; // [RecId, Freq]
     /// Expression for executing gix queries for full records
-    typedef TGixExpItem<TQmGixKey, TQmGixItemFull> TQmGixExpItemFull;
+    typedef TGixExpItem<TQmGixKey, TQmGixItemFull, TQmGixItemFull> TQmGixExpItemFull;
 
     /// Small version of inverted index which works when we have less then 2^32 records
     typedef TKeyDat<TUInt, TSInt> TQmGixItemSmall; // [RecId, Freq]
     /// Expression for executing gix queries for small records
-    typedef TGixExpItem<TQmGixKey, TQmGixItemSmall > TQmGixExpItemSmall;
+    typedef TGixExpItem<TQmGixKey, TQmGixItemSmall, TQmGixItemSmall> TQmGixExpItemSmall;
 
     /// Tiny version of inverted index which works when we have less then 2^32 records
     typedef TUInt TQmGixItemTiny; // [RecId]
     /// Expression for executing gix queries for tiny records
-    typedef TGixExpItem<TQmGixKey, TQmGixItemTiny > TQmGixExpItemTiny;
+    typedef TGixExpItem<TQmGixKey, TQmGixItemTiny, TQmGixItemFull> TQmGixExpItemTiny;
 
     /// Giving pretty names to GIX keys when printing debug statistics
     class TQmGixKeyStr : public TGixKeyStr<TQmGixKey> {
@@ -3036,44 +3123,66 @@ private:
 private:
     /// Gix item to be used for storing records together with token positions
     class TQmGixItemPos {
-    private:
-        /// Number of positions
-        static int MaxPos;
+    public:
+        // struct used to store the positions in text where the word appears. Positions are set by modulo 2^10.
+        // values in the object are stored in incremental order. If multiple instances of TQmGixPosVals are stored in
+        // gix for the same word (when more than 3 occurances of the word in the document) then the ordering of values
+        // across the TQmGixPosVals instances also holds (Val3 is smaller than Val1 of the following TQmGixPosVals)
+        struct TQmGixPosVals {
+            uint Pos1 : 10;
+            uint Pos2 : 10;
+            uint Pos3 : 10;
+            uint Len : 2;
+
+            TQmGixPosVals() { memset(this, 0, sizeof(TQmGixPosVals)); };
+        };
+        // union required for serialization of the TQmGixPosVals struct
+        union TBitsetConverter {
+            TQmGixPosVals PosV;
+            TInt Int;
+            // we have to have a nontrivial constructor, otherwise we get some compile errors
+            TBitsetConverter() { memset(this, 0, sizeof(TBitsetConverter)); };
+        };
     private:
         /// Record Id
         TUInt RecId;
         /// Vector of word positions stored as (Pos % 0xFF + 1).
         /// Emtpy positions are marked as 0
-        TUCh PosV[8];
-
-        /// Add new position that is already properly trimed
-        void _Add(const int& Pos);
+        TQmGixPosVals PosV;
 
     public:
+        /// Number of positions
+        // 2^10 - modulo used to compute the position value+
+        const static int Modulo;
+
         /// Default constructor for vectors
         TQmGixItemPos(): RecId(TUInt::Mx) { }
         /// Start with record and no positons
-        TQmGixItemPos(const uint64& _RecId): RecId((uint)_RecId) { }
+        TQmGixItemPos(const uint64& _RecId): RecId((uint)_RecId) { Assert(_RecId < TUInt::Mx); }
         /// Load from stream
         TQmGixItemPos(TSIn& SIn);
 
         /// Save to stream
         void Save(TSOut& SOut) const;
 
+        static int GetPosByModulo(const int& Pos) { return (Pos % TQmGixItemPos::Modulo) + 1; }
+
         /// Get record id stored in the item
         uint64 GetRecId() const { return (uint64) RecId; }
+        void SetRecId(const uint64& _RecId);
 
         /// Check if the item is empty (== first position is set to 0)
-        bool Empty() const { return PosV[0].Val == (uchar)0; }
+        bool Empty() const { return PosV.Pos1 == 0; }
         /// Check if we still have space (== last position is set to 0)
-        bool IsSpace() const { return PosV[MaxPos - 1].Val == (uchar)0; }
+        bool IsSpace() const { return PosV.Pos3 == 0; }
         /// Get number of positions stored
-        int GetPosLen() const;
+        int GetPosLen() const { return PosV.Len; }
         /// Get position converted to int for easier handling outside
         int GetPos(const int& PosN) const;
 
-        /// Add new position to the item
-        void Add(const int& Pos);
+        /// Add new position to the item and return true if the item became full
+        /// the positions are always added in increasing order - every added position should be higher than the last
+        bool Add(const int& Pos);
         /// Intersect keeping bigger positions that are within MaxDiff difference:
         /// Assumes that this is before Item and we only keep position when Item
         /// position is <= MaxDiff ahead of this. This contains only positions that
@@ -3081,19 +3190,23 @@ private:
         /// which makes it easier to intersect with the next word.
         TQmGixItemPos Intersect(const TQmGixItemPos& Item, const int& MaxDiff) const;
 
-        /// Two items are same if they have same record id
-        bool operator==(const TQmGixItemPos& ItemPos) const { return RecId == ItemPos.RecId; }
-        /// Items are ordered according to record id
-        bool operator<(const TQmGixItemPos& ItemPos) const { return RecId < ItemPos.RecId; }
+        /// since we can have multiple items with same record id, two items are same if they have same record id and have the matching first position
+        /// each position can appear only once for the same record.
+        bool operator==(const TQmGixItemPos& ItemPos) const { return RecId == ItemPos.RecId && PosV.Pos1 == ItemPos.PosV.Pos1; }
+        /// Items are ordered according to record id followed by position. Each position value can appear only once.
+        // Item with same RecId but higher position should appear later in the vector
+        bool operator<(const TQmGixItemPos& ItemPos) const { return RecId < ItemPos.RecId || (RecId == ItemPos.RecId && PosV.Pos1 < ItemPos.PosV.Pos1); }
 
         /// Memory footprint
         uint64 GetMemUsed() const { return sizeof(TQmGixItemPos); }
     };
 
+    /// ItemHandler for combining position records
+    typedef TGixDefItemHandler<TQmGixKey, TQmGixItemPos> TQmGixItemHandlerPos;
     /// Merger for combining position records
-    typedef TGixDefMerger<TQmGixKey, TQmGixItemPos> TQmGixMergerPos;
+    typedef TGixDefMerger<TQmGixKey, TQmGixItemPos, TQmGixItemPos> TQmGixMergerPos;
     /// Expression for executing gix position queries
-    typedef TGixExpItem<TQmGixKey, TQmGixItemPos> TQmGixExpItemPos;
+    typedef TGixExpItem<TQmGixKey, TQmGixItemPos, TQmGixItemPos> TQmGixExpItemPos;
 
 private:
     // b-tree definitions
@@ -3147,14 +3260,24 @@ private:
 
     /// Index Vocabulary
     PIndexVoc IndexVoc;
+
+    /// Inverted Index Default ItemHandler Full
+    const TGixItemHandler<TQmGixKey, TQmGixItemFull>* SumItemHandlerFull;
+    /// Inverted Index Default ItemHandler Small
+    const TGixItemHandler<TQmGixKey, TQmGixItemSmall>* SumItemHandlerSmall;
+    /// Inverted Index Default ItemHandler Tiny
+    const TGixItemHandler<TQmGixKey, TQmGixItemTiny>* ItemHandlerTiny;
+    /// Inverted Index Default ItemHandler Position
+    const TGixItemHandler<TQmGixKey, TQmGixItemPos>* ItemHandlerPos;
+
     /// Inverted Index Default Merger Full
-    const TGixMerger<TQmGixKey, TQmGixItemFull>* SumMergerFull;
+    const TGixMerger<TQmGixKey, TQmGixItemFull, TQmGixItemFull>* SumMergerFull;
     /// Inverted Index Default Merger Small
-    const TGixMerger<TQmGixKey, TQmGixItemSmall>* SumMergerSmall;
+    const TGixMerger<TQmGixKey, TQmGixItemSmall, TQmGixItemSmall>* SumMergerSmall;
     /// Inverted Index Default Merger Tiny
-    const TGixMerger<TQmGixKey, TQmGixItemTiny>* MergerTiny;
+    const TGixMerger<TQmGixKey, TQmGixItemTiny, TQmGixItemFull>* MergerTiny;
     /// Inverted Index Default Merger Position
-    const TGixMerger<TQmGixKey, TQmGixItemPos>* MergerPos;
+    const TGixMerger<TQmGixKey, TQmGixItemPos, TQmGixItemPos>* MergerPos;
 
     /// Determines which Gix should be used for given KeyId
     TIndexKeyGixType GetGixType(const int& KeyId) const { return IndexVoc->GetKey(KeyId).GetGixType(); }
@@ -3165,8 +3288,18 @@ private:
     /// Executes GIX query expression against the tiny index
     bool DoQueryTiny(const TPt<TQmGixExpItemTiny>& ExpItem, TVec<TQmGixItemFull>& RecIdFqV) const;
 
+    /// Executes GIX join query against the full index
+    void DoJoinQueryFull(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& RecIdFqV) const;
+    /// Executes GIX join query against the small index
+    void DoJoinQuerySmall(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& RecIdFqV) const;
+    /// Executes GIX join query against the tiny index
+    void DoJoinQueryTiny(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& RecIdFqV) const;
+
     /// Execute Position query. Result is vector of record ids and frequency of phrase occurences.
     void DoQueryPos(const int& KeyId, const TUInt64V& WordIdV, const int& MaxDiff, TUInt64IntKdV& RecIdFqV) const;
+
+    /// method that computes the GixItemPos items for the provided list of words
+    void ComputeWordItemPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId, TVec<TPair<TUInt64, TQmGixItemPos>>& WordIdPosPrV);
 
     /// Constructor
     TIndex(const TStr& _IndexFPath, const TFAccess& _Access, const PIndexVoc& IndexVoc,
@@ -3192,7 +3325,7 @@ public:
     /// Get index vocabulary
     TWPt<TIndexVoc> GetIndexVoc() const { return IndexVoc; }
     /// Get sum merger of recID/FQ vectors
-    const TGixMerger<TQmGixKey, TQmGixItemFull>* GetSumMerger() const { return SumMergerFull; }
+    const TGixMerger<TQmGixKey, TQmGixItemFull, TQmGixItemFull>* GetSumMerger() const { return SumMergerFull; }
 
     /// Index RecId under (Key, Word). WordStr is sent through index vocabulary.
     void IndexValue(const int& KeyId, const TStr& WordStr, const uint64& RecId);
@@ -3353,7 +3486,7 @@ private:
     typedef PAggr (*TNewF)(const TWPt<TBase>& Base, const TStr& AggrNm,
         const PRecSet& RecSet, const PJsonVal& ParamVal);
     /// Stream aggregate descriptions
-    static TFunRouter<PAggr, TNewF> NewRouter;
+    static TFunRouter<TNewF> NewRouter;
 public:
     /// Register default aggregates
     static void Init();
@@ -3397,7 +3530,7 @@ private:
     /// New constructor delegate
     typedef PStreamAggr (*TNewF)(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
     /// Stream aggregate New constructor router
-    static TFunRouter<PStreamAggr, TNewF> NewRouter;
+    static TFunRouter<TNewF> NewRouter;
 
 public:
     /// Register default stream aggregates
@@ -3455,7 +3588,7 @@ public:
     virtual bool IsInit() const { return true; }
 
     /// Reset the state of the aggregate
-    virtual void Reset() = 0;
+    virtual void Reset() {};
 
     /// Update state of the aggregate
     virtual void OnStep(const TWPt<TStreamAggr>& CallerAggr) { }
@@ -3474,7 +3607,7 @@ public:
     /// Print latest statistics to logger
     virtual void PrintStat() const { }
     /// Serialization current status to JSon
-    virtual PJsonVal SaveJson(const int& Limit) const = 0;
+    virtual PJsonVal SaveJson(const int& Limit) const { return TJsonVal::NewNull(); };
     /// Returns the memory footprint (the number of bytes) of the aggregate
     virtual uint64 GetMemUsed() const;
     /// Get access to the timmer
@@ -3719,20 +3852,22 @@ private:
     void SaveBaseConf(const TStr& FPath) const;
 
     /// Create new base on the given folder
-    TBase(const TStr& _FPath, const int64& IndexCacheSize, const int& SplitLen, const bool& StrictNmP);
+    TBase(const TStr& _FPath, const int64& IndexCacheSize, const TStrUInt64H& IndexTypeCacheSizeH, const int& SplitLen, const bool& StrictNmP);
     /// Open existing base from the given folder
-    TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize, const int& SplitLen);
+    TBase(const TStr& _FPath, const TFAccess& _FAccess, const int64& IndexCacheSize, const TStrUInt64H& IndexTypeCacheSizeH, const int& SplitLen);
 
 public:
     ~TBase();
 
     /// Create new base on the given folder
-    static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize, const int& SplitLen, const bool& StrictNmP) {
-        return new TBase(FPath, IndexCacheSize, SplitLen, StrictNmP);
+    static TWPt<TBase> New(const TStr& FPath, const int64& IndexCacheSize, const TStrUInt64H& IndexTypeCacheSizeH,
+        const int& SplitLen, const bool& StrictNmP) {
+        return new TBase(FPath, IndexCacheSize, IndexTypeCacheSizeH, SplitLen, StrictNmP);
     }
     /// Open existing base from the given folder
-    static TWPt<TBase> Load(const TStr& FPath, const TFAccess& FAccess, const int64& IndexCacheSize, const int& SplitLen) {
-        return new TBase(FPath, FAccess, IndexCacheSize, SplitLen);
+    static TWPt<TBase> Load(const TStr& FPath, const TFAccess& FAccess, const int64& IndexCacheSize,
+        const TStrUInt64H& IndexTypeCacheSizeH, const int& SplitLen) {
+        return new TBase(FPath, FAccess, IndexCacheSize, IndexTypeCacheSizeH, SplitLen);
     }
 
     /// Check if base already exists at a given folder
@@ -3814,10 +3949,11 @@ public:
     /// Searching records (default search interface)
     PRecSet Search(const PJsonVal& QueryVal);
 
-    /// Execute garbage collection on all stores
-    void GarbageCollect();
+    /// Execute garbage collection on all stores.
+    /// Each store is given MxTimeMSecs for the collection.
+    void GarbageCollect(const int& MxTimeMSecs = -1);
     /// Perform partial flush of data
-    int PartialFlush(int WndInMsec = 500);
+    int PartialFlush(const int& WndInMSec = 500);
 
     /// asserts if a field name is valid
     void AssertValidNm(const TStr& FldNm) const { NmValidator.AssertValidNm(FldNm); }

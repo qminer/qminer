@@ -1051,7 +1051,7 @@ describe('Gix Tests', function () {
             store.push({ Value: "D", Count: 10 });
         }
 
-        function prepareJoinStore() {
+        function prepareJoinStore1() {
             base.createStore([{
                 name: 'TestStore1',
                 fields: [ { name: 'Value', type: 'string' } ],
@@ -1116,7 +1116,7 @@ describe('Gix Tests', function () {
                 }).length, 0);
             })
             it('should return correct number of records for join query', function () {
-                prepareJoinStore();
+                prepareJoinStore1();
                 assert.equal(base.store("TestStore1").length, 10);
                 assert.equal(base.store("TestStore2").length, 3);
                 // x < y < z
@@ -1153,7 +1153,9 @@ describe('Gix Tests', function () {
                 });
                 assert.equal(res3.length, 2);
                 assert.equal(res3[0].Value, "y");
+                assert.equal(res3[0].$fq, 1);
                 assert.equal(res3[1].Value, "z");
+                assert.equal(res3[1].$fq, 2);
                 //A => [x] => [A, D, D, D]
                 var res4 = base.search({
                     $join: {
@@ -1170,12 +1172,16 @@ describe('Gix Tests', function () {
                 });
                 assert.equal(res4.length, 4);
                 assert.equal(res4[0].Value, "A");
+                assert.equal(res4[0].$fq, 1);
                 assert.equal(res4[1].Value, "D");
+                assert.equal(res4[1].$fq, 1);
                 assert.equal(res4[2].Value, "D");
+                assert.equal(res4[2].$fq, 1);
                 assert.equal(res4[3].Value, "D");
+                assert.equal(res4[3].$fq, 1);
             })
             it('should return correct number of records for join query after delete', function () {
-                prepareJoinStore();
+                prepareJoinStore1();
                 // x => [D, D, D]
                 base.store("TestStore1").clear(1);
                 var res1 = base.search({
@@ -1190,7 +1196,7 @@ describe('Gix Tests', function () {
                 assert.equal(res1[2].Value, "D");
             })
             it('should return correct number of records for join query after delete', function () {
-                prepareJoinStore();
+                prepareJoinStore1();
                 // delete x
                 base.store("TestStore2").clear(1);
                 //C => [y, z]
@@ -1221,7 +1227,309 @@ describe('Gix Tests', function () {
     testGixSearch("full");
     testGixSearch("small");
     testGixSearch("tiny");
-});
+
+    function testGixFrequency1(gixType) {
+        function prepareJoinStore() {
+            base.createStore([{
+                name: 'TestStore1',
+                fields: [ { name: 'Value', type: 'string', primary: true } ],
+                joins: [ { name: 'Join', type: 'index', store: 'TestStore2', inverse: 'Join', storage: gixType } ],
+                keys: [ { field: 'Value', type: 'value', storage: gixType } ]
+            }, {
+                name: 'TestStore2',
+                fields: [ { name: 'Value', type: 'string', primary: true } ],
+                joins: [ { name: 'Join', type: 'index', store: 'TestStore1', inverse: 'Join', storage: gixType } ],
+                keys: [ { field: 'Value', type: 'value', storage: gixType } ]
+            }]);
+            var store1 = base.store("TestStore1");
+            store1.push({ Value: "A" });
+            store1.push({ Value: "B" });
+            store1.push({ Value: "C" });
+            store1.push({ Value: "D" });
+            var store2 = base.store("TestStore2");
+            store2.push({ Value: "x" });
+            store2.push({ Value: "y" });
+            store2.push({ Value: "z" });
+            store1[0].$addJoin("Join", store2[0], 1); // A->x:1
+            store1[0].$addJoin("Join", store2[1], 2); // A->y:2
+            store1[0].$addJoin("Join", store2[2], 4); // A->z:4
+            store1[1].$addJoin("Join", store2[0], 5); // B->x:5
+            store1[1].$addJoin("Join", store2[1], 6); // B->y:6
+            store1[2].$addJoin("Join", store2[2], 1); // C->z:1
+            store1[3].$addJoin("Join", store2[0], 2); // D->x:2
+        }
+        describe('Test explicit frequencies xfor gix type "' + gixType + '"', function () {
+            it('should return correct frequencies for records when doing direct join on record', function () {
+                prepareJoinStore()
+                // first direct joins, without search
+                var rec1 = base.store("TestStore1").recordByName("A");
+                assert.equal(rec1.Join.length, 3);
+                assert.equal(rec1.Join[0].Value, "x");
+                assert.equal(rec1.Join[0].$id, 0);
+                assert.equal(rec1.Join[0].$fq, 1);
+                assert.equal(rec1.Join[1].Value, "y");
+                assert.equal(rec1.Join[1].$id, 1);
+                assert.equal(rec1.Join[1].$fq, 2);
+                assert.equal(rec1.Join[2].Value, "z");
+                assert.equal(rec1.Join[2].$id, 2);
+                assert.equal(rec1.Join[2].$fq, 4);
+
+                var rec2 = base.store("TestStore1").recordByName("B");
+                assert.equal(rec2.Join.length, 2);
+                assert.equal(rec2.Join[0].Value, "x");
+                assert.equal(rec2.Join[0].$id, 0);
+                assert.equal(rec2.Join[0].$fq, 5);
+                assert.equal(rec2.Join[1].Value, "y");
+                assert.equal(rec2.Join[1].$id, 1);
+                assert.equal(rec2.Join[1].$fq, 6);
+
+                var rec3 = base.store("TestStore1").recordByName("C");
+                assert.equal(rec3.Join.length, 1);
+                assert.equal(rec3.Join[0].Value, "z");
+                assert.equal(rec3.Join[0].$id, 2);
+                assert.equal(rec3.Join[0].$fq, 1);
+
+                var rec4 = base.store("TestStore1").recordByName("D");
+                assert.equal(rec4.Join.length, 1);
+                assert.equal(rec4.Join[0].Value, "x");
+                assert.equal(rec4.Join[0].$id, 0);
+                assert.equal(rec4.Join[0].$fq, 2);
+
+                var rec5 = base.store("TestStore2").recordByName("x");
+                assert.equal(rec5.Join.length, 3);
+                assert.equal(rec5.Join[0].Value, "A");
+                assert.equal(rec5.Join[0].$id, 0);
+                assert.equal(rec5.Join[0].$fq, 1);
+                assert.equal(rec5.Join[1].Value, "B");
+                assert.equal(rec5.Join[1].$id, 1);
+                assert.equal(rec5.Join[1].$fq, 5);
+                assert.equal(rec5.Join[2].Value, "D");
+                assert.equal(rec5.Join[2].$id, 3);
+                assert.equal(rec5.Join[2].$fq, 2);
+
+                var rec6 = base.store("TestStore2").recordByName("y");
+                assert.equal(rec6.Join.length, 2);
+                assert.equal(rec6.Join[0].Value, "A");
+                assert.equal(rec6.Join[0].$id, 0);
+                assert.equal(rec6.Join[0].$fq, 2);
+                assert.equal(rec6.Join[1].Value, "B");
+                assert.equal(rec6.Join[1].$id, 1);
+                assert.equal(rec6.Join[1].$fq, 6);
+
+                var rec7 = base.store("TestStore2").recordByName("z");
+                assert.equal(rec7.Join.length, 2);
+                assert.equal(rec7.Join[0].Value, "A");
+                assert.equal(rec7.Join[0].$id, 0);
+                assert.equal(rec7.Join[0].$fq, 4);
+                assert.equal(rec7.Join[1].Value, "C");
+                assert.equal(rec7.Join[1].$id, 2);
+                assert.equal(rec7.Join[1].$fq, 1);
+            })
+            it('should return correct frequencies for records when doing direct join or recordset', function () {
+                prepareJoinStore()
+                // first direct joins, without search
+                var rec1 = base.search({ $from: "TestStore1", Value: "A" }).join("Join");
+                assert.equal(rec1.length, 3);
+                assert.equal(rec1[0].Value, "x");
+                assert.equal(rec1[0].$id, 0);
+                assert.equal(rec1[0].$fq, 1);
+                assert.equal(rec1[1].Value, "y");
+                assert.equal(rec1[1].$id, 1);
+                assert.equal(rec1[1].$fq, 2);
+                assert.equal(rec1[2].Value, "z");
+                assert.equal(rec1[2].$id, 2);
+                assert.equal(rec1[2].$fq, 4);
+
+                var rec2 = base.search({ $from: "TestStore1", Value: "B" }).join("Join");
+                assert.equal(rec2.length, 2);
+                assert.equal(rec2[0].Value, "x");
+                assert.equal(rec2[0].$id, 0);
+                assert.equal(rec2[0].$fq, 5);
+                assert.equal(rec2[1].Value, "y");
+                assert.equal(rec2[1].$id, 1);
+                assert.equal(rec2[1].$fq, 6);
+
+                var rec3 = base.search({ $from: "TestStore1", Value: "C" }).join("Join");
+                assert.equal(rec3.length, 1);
+                assert.equal(rec3[0].Value, "z");
+                assert.equal(rec3[0].$id, 2);
+                assert.equal(rec3[0].$fq, 1);
+
+                var rec4 = base.search({ $from: "TestStore1", Value: "D" }).join("Join");
+                assert.equal(rec4.length, 1);
+                assert.equal(rec4[0].Value, "x");
+                assert.equal(rec4[0].$id, 0);
+                assert.equal(rec4[0].$fq, 2);
+
+                var rec5 = base.search({ $from: "TestStore2", Value: "x" }).join("Join");
+                assert.equal(rec5.length, 3);
+                assert.equal(rec5[0].Value, "A");
+                assert.equal(rec5[0].$id, 0);
+                assert.equal(rec5[0].$fq, 1);
+                assert.equal(rec5[1].Value, "B");
+                assert.equal(rec5[1].$id, 1);
+                assert.equal(rec5[1].$fq, 5);
+                assert.equal(rec5[2].Value, "D");
+                assert.equal(rec5[2].$id, 3);
+                assert.equal(rec5[2].$fq, 2);
+
+                var rec6 = base.search({ $from: "TestStore2", Value: "y" }).join("Join");
+                assert.equal(rec6.length, 2);
+                assert.equal(rec6[0].Value, "A");
+                assert.equal(rec6[0].$id, 0);
+                assert.equal(rec6[0].$fq, 2);
+                assert.equal(rec6[1].Value, "B");
+                assert.equal(rec6[1].$id, 1);
+                assert.equal(rec6[1].$fq, 6);
+
+                var rec7 = base.search({ $from: "TestStore2", Value: "z" }).join("Join");
+                assert.equal(rec7.length, 2);
+                assert.equal(rec7[0].Value, "A");
+                assert.equal(rec7[0].$id, 0);
+                assert.equal(rec7[0].$fq, 4);
+                assert.equal(rec7[1].Value, "C");
+                assert.equal(rec7[1].$id, 2);
+                assert.equal(rec7[1].$fq, 1);
+            })
+            it('should return correct frequencies for records when doing search join', function () {
+                prepareJoinStore()
+                // first direct joins, without search
+                var rec1 = base.search({ $join: { $name: "Join", $query: { $from: "TestStore1", Value: "A" }}});
+                assert.equal(rec1.length, 3);
+                assert.equal(rec1[0].Value, "x");
+                assert.equal(rec1[0].$id, 0);
+                assert.equal(rec1[0].$fq, 1);
+                assert.equal(rec1[1].Value, "y");
+                assert.equal(rec1[1].$id, 1);
+                assert.equal(rec1[1].$fq, 2);
+                assert.equal(rec1[2].Value, "z");
+                assert.equal(rec1[2].$id, 2);
+                assert.equal(rec1[2].$fq, 4);
+
+                var rec2 = base.search({ $join: { $name: "Join", $query: { $from: "TestStore1", Value: "B" }}});
+                assert.equal(rec2.length, 2);
+                assert.equal(rec2[0].Value, "x");
+                assert.equal(rec2[0].$id, 0);
+                assert.equal(rec2[0].$fq, 5);
+                assert.equal(rec2[1].Value, "y");
+                assert.equal(rec2[1].$id, 1);
+                assert.equal(rec2[1].$fq, 6);
+
+                var rec3 = base.search({ $join: { $name: "Join", $query: { $from: "TestStore1", Value: "C" }}});
+                assert.equal(rec3.length, 1);
+                assert.equal(rec3[0].Value, "z");
+                assert.equal(rec3[0].$id, 2);
+                assert.equal(rec3[0].$fq, 1);
+
+                var rec4 = base.search({ $join: { $name: "Join", $query: { $from: "TestStore1", Value: "D" }}});
+                assert.equal(rec4.length, 1);
+                assert.equal(rec4[0].Value, "x");
+                assert.equal(rec4[0].$id, 0);
+                assert.equal(rec4[0].$fq, 2);
+
+                var rec5 = base.search({ $join: { $name: "Join", $query: { $from: "TestStore2", Value: "x" }}});
+                assert.equal(rec5.length, 3);
+                assert.equal(rec5[0].Value, "A");
+                assert.equal(rec5[0].$id, 0);
+                assert.equal(rec5[0].$fq, 1);
+                assert.equal(rec5[1].Value, "B");
+                assert.equal(rec5[1].$id, 1);
+                assert.equal(rec5[1].$fq, 5);
+                assert.equal(rec5[2].Value, "D");
+                assert.equal(rec5[2].$id, 3);
+                assert.equal(rec5[2].$fq, 2);
+
+                var rec6 = base.search({ $join: { $name: "Join", $query: { $from: "TestStore2", Value: "y" }}});
+                assert.equal(rec6.length, 2);
+                assert.equal(rec6[0].Value, "A");
+                assert.equal(rec6[0].$id, 0);
+                assert.equal(rec6[0].$fq, 2);
+                assert.equal(rec6[1].Value, "B");
+                assert.equal(rec6[1].$id, 1);
+                assert.equal(rec6[1].$fq, 6);
+
+                var rec7 = base.search({ $join: { $name: "Join", $query: { $from: "TestStore2", Value: "z" }}});
+                assert.equal(rec7.length, 2);
+                assert.equal(rec7[0].Value, "A");
+                assert.equal(rec7[0].$id, 0);
+                assert.equal(rec7[0].$fq, 4);
+                assert.equal(rec7[1].Value, "C");
+                assert.equal(rec7[1].$id, 2);
+                assert.equal(rec7[1].$fq, 1);
+            })
+        })
+    }
+    testGixFrequency1("full");
+    testGixFrequency1("small");
+
+    function testGixFrequency2(gixType) {
+        function prepareJoinStore() {
+            base.createStore([{
+                name: 'TestStore1',
+                fields: [ { name: 'Value', type: 'string', primary: true } ],
+                joins: [ { name: 'Join', type: 'index', store: 'TestStore2', inverse: 'Join', storage: gixType } ],
+                keys: [ { field: 'Value', type: 'value', storage: gixType } ]
+            }, {
+                name: 'TestStore2',
+                fields: [ { name: 'Value', type: 'string', primary: true } ],
+                joins: [ { name: 'Join', type: 'index', store: 'TestStore1', inverse: 'Join', storage: gixType } ],
+                keys: [ { field: 'Value', type: 'value', storage: gixType } ]
+            }]);
+            var store1 = base.store("TestStore1");
+            store1.push({ Value: "A" });
+            store1.push({ Value: "B" });
+            store1.push({ Value: "C" });
+            store1.push({ Value: "D" });
+            var store2 = base.store("TestStore2");
+            store2.push({ Value: "x" });
+            store2.push({ Value: "y" });
+            store2.push({ Value: "z" });
+            store1[0].$addJoin("Join", store2[0]); // A->x
+            store1[1].$addJoin("Join", store2[0]); // B->x
+            store1[2].$addJoin("Join", store2[0]); // C->x
+            store1[3].$addJoin("Join", store2[0]); // D->x
+            store1[0].$addJoin("Join", store2[1]); // A->y
+            store1[1].$addJoin("Join", store2[1]); // B->y
+            store1[2].$addJoin("Join", store2[1]); // C->y
+            store1[0].$addJoin("Join", store2[2]); // A->z
+            store1[1].$addJoin("Join", store2[2]); // B->z
+        }
+        describe('Test implicit frequencies for gix type "' + gixType + '"', function () {
+            it('should return correct frequencies for records when doing direct join on record', function () {
+                prepareJoinStore()
+                var rec1 = base.store("TestStore1").allRecords.join("Join");
+                assert.equal(rec1.length, 3);
+                assert.equal(rec1[0].Value, "x");
+                assert.equal(rec1[0].$id, 0);
+                assert.equal(rec1[0].$fq, 4);
+                assert.equal(rec1[1].Value, "y");
+                assert.equal(rec1[1].$id, 1);
+                assert.equal(rec1[1].$fq, 3);
+                assert.equal(rec1[2].Value, "z");
+                assert.equal(rec1[2].$id, 2);
+                assert.equal(rec1[2].$fq, 2);
+                var rec2 = base.store("TestStore2").allRecords.join("Join");
+                assert.equal(rec2.length, 4);
+                assert.equal(rec2[0].Value, "A");
+                assert.equal(rec2[0].$id, 0);
+                assert.equal(rec2[0].$fq, 3);
+                assert.equal(rec2[1].Value, "B");
+                assert.equal(rec2[1].$id, 1);
+                assert.equal(rec2[1].$fq, 3);
+                assert.equal(rec2[2].Value, "C");
+                assert.equal(rec2[2].$id, 2);
+                assert.equal(rec2[2].$fq, 2);
+                assert.equal(rec2[3].Value, "D");
+                assert.equal(rec2[3].$id, 3);
+                assert.equal(rec2[3].$fq, 1);
+
+            })
+        })
+    }
+    testGixFrequency2("full");
+    testGixFrequency2("small");
+    testGixFrequency2("tiny");
+})
 
 describe('Gix Position Tests', function () {
     var base = undefined;
@@ -1240,7 +1548,9 @@ describe('Gix Position Tests', function () {
         "Kraft clinches ski jump title with final-event win",
         "Kraft wins final Planica event and ski-jumping World Cup",
         "Germany, Norway neck-and-neck after the first series in Planica",
-        "aa aa aa aa aa bb aa aa aa aa aa cc aa dd"
+        "aa aa aa aa aa bb aa aa aa aa aa cc aa dd",
+        "kk " + Array(1022).join("xx ") + "kk mm mm nn",
+        "oo pp " + Array(1022).join("rr ") + "ss tt uu"
     ]
 
     describe('Test creating stores with position index', function () {
@@ -1266,13 +1576,10 @@ describe('Gix Position Tests', function () {
                 fields: [ { name: 'Value', type: 'string' } ],
                 keys: [ { field: 'Value', type: 'text_position' } ]
             });
-            store.push({ Value: text[0] });
-            store.push({ Value: text[1] });
-            store.push({ Value: text[2] });
-            store.push({ Value: text[3] });
-            store.push({ Value: text[4] });
-            store.push({ Value: text[5] });
-            assert.equal(store.length, 6);
+            for (var i=0; i < text.length; i++) {
+                store.push({ Value: text[i] });
+            }
+            assert.equal(store.length, text.length);
         });
         it('delete existing records', function () {
             var store = base.createStore({
@@ -1280,30 +1587,23 @@ describe('Gix Position Tests', function () {
                 fields: [ { name: 'Value', type: 'string' } ],
                 keys: [ { field: 'Value', type: 'text_position' } ]
             });
-            store.push({ Value: text[0] });
-            store.push({ Value: text[1] });
-            store.push({ Value: text[2] });
-            store.push({ Value: text[3] });
-            store.push({ Value: text[4] });
-            store.push({ Value: text[5] });
-
+            for (var i=0; i < text.length; i++) {
+                store.push({ Value: text[i] });
+            }
             store.clear(1);
-            assert.equal(store.length, 5);
+            assert.equal(store.length, text.length - 1);
             store.clear(2);
-            assert.equal(store.length, 3);
-            store.clear(3);
+            assert.equal(store.length, text.length - 3);
+            store.clear(text.length - 3);
             assert.equal(store.length, 0);
         });
     });
 
     describe('Test searching', function () {
         function populate(store) {
-            store.push({ Value: text[0] });
-            store.push({ Value: text[1] });
-            store.push({ Value: text[2] });
-            store.push({ Value: text[3] });
-            store.push({ Value: text[4] });
-            store.push({ Value: text[5] });
+            for (var i=0; i < text.length; i++) {
+                store.push({ Value: text[i] });
+            }
         }
 
         it('find single word', function () {
@@ -1316,7 +1616,7 @@ describe('Gix Position Tests', function () {
 
             assert.equal(base.search({ $from: "TestStore", Value: "kraft" }).length, 3);
             assert.equal(base.search({ $from: "TestStore", Value: "aa" }).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: "aa" })[0].$fq, 8);
+            assert.equal(base.search({ $from: "TestStore", Value: "aa" })[0].$fq, 11);
             assert.equal(base.search({ $from: "TestStore", Value: "pizza" }).length, 0);
         });
         it('two word phrases', function () {
@@ -1332,9 +1632,32 @@ describe('Gix Position Tests', function () {
             assert.equal(base.search({ $from: "TestStore", Value: "planica tralala" }).length, 0);
             assert.equal(base.search({ $from: "TestStore", Value: "tralala planica" }).length, 0);
             assert.equal(base.search({ $from: "TestStore", Value: "aa aa" }).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: "aa aa" })[0].$fq, 6);
+            assert.equal(base.search({ $from: "TestStore", Value: "aa aa" })[0].$fq, 8);
             assert.equal(base.search({ $from: "TestStore", Value: "aa bb" }).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: "aa cc" }).length, 0);
+            assert.equal(base.search({ $from: "TestStore", Value: "aa cc" }).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: "kk xx" }).length, 1);
+            // no items where kk and ll are together
+            assert.equal(base.search({ $from: "TestStore", Value: "kk ll" }).length, 0);
+            // one valid and one false positive where kk and mm are together - due to modulo 1023
+            assert.equal(base.search({ $from: "TestStore", Value: "kk mm" }).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: "kk mm" })[0].$fq, 2);
+            assert.equal(base.search({ $from: "TestStore", Value: "kk nn" }).length, 0);
+
+            assert.equal(base.search({ $from: "TestStore", Value: "xx" }).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: "xx" })[0].$fq, 1021);
+
+            // false positives (due to modulo positions)
+            assert.equal(base.search({ $from: "TestStore", Value: "oo tt" }).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: "ss pp" }).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: "tt rr" }).length, 1);
+
+            assert.equal(base.search({ $from: "TestStore", Value: "ss rr" }).length, 0);
+            assert.equal(base.search({ $from: "TestStore", Value: { $str: "ss rr", $diff: 2 } }).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: { $str: "ss rr", $diff: 3 } }).length, 1);
+            // overlapping indices
+            assert.equal(base.search({ $from: "TestStore", Value: "oo ss" }).length, 0);
+            assert.equal(base.search({ $from: "TestStore", Value: "pp tt" }).length, 0);
+
         });
         it('long word phrases', function () {
             var store = base.createStore({
@@ -1347,7 +1670,7 @@ describe('Gix Position Tests', function () {
             assert.equal(base.search({ $from: "TestStore", Value: "Kraft wins first individual ski flying event at Planica" }).length, 1);
             assert.equal(base.search({ $from: "TestStore", Value: "planica event" }).length, 1);
             assert.equal(base.search({ $from: "TestStore", Value: "aa aa aa" }).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: "aa aa aa" })[0].$fq, 4);
+            assert.equal(base.search({ $from: "TestStore", Value: "aa aa aa" })[0].$fq, 6);
         });
         it('phrases with gaps', function () {
             var store = base.createStore({

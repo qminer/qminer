@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.0.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.0.0</a>
       </div>
     </div>
   </nav>
@@ -44,7 +44,7 @@
                     <dt><a href="module-qm.Base.html#createStore">createStore(storeDef[, storeSizeInMB])</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-qm.Base.html#garbageCollect">garbageCollect()</a></dt>
+                    <dt><a href="module-qm.Base.html#garbageCollect">garbageCollect([max_time])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-qm.Base.html#getStats">getStats()</a></dt>
@@ -265,8 +265,38 @@ base.close();</code></pre>
                   <p><code>(<a href="module-qm.Store.html">module:qm.Store</a> or Array of <a href="module-qm.Store.html">module:qm.Store</a>)</code>&nbsp;- Returns a store or an array of stores (if the schema definition was an array).</p>
                 </dd>
               </dl>
-              <h3 id="garbageCollect"><span class="symbol-name">garbageCollect</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <h3 id="garbageCollect"><span class="symbol-name">garbageCollect</span><span class="signature"><span class="signature-params">([max_time])</span></span></h3>
               <p>Calls qminer garbage collector to remove records outside time windows. For application example see <a href="module-qm.html#~SchemaTimeWindowDef">module:qm~SchemaTimeWindowDef</a>.</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>max_time</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Maximal number of time each store can spend on cleaning backlog in milisecons. If -1 then no limit is applied.</p>
+                        <p>Defaults to <code>-1</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
               <dl class="dl-compact">
               </dl>
               <h3 id="getStats"><span class="symbol-name">getStats</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.html#~PerformanceStatBase">module:qm~PerformanceStatBase</a></span></span></h3>

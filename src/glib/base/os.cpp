@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -265,8 +265,8 @@ TTm TSysTm::GetUniTmFromLocTm(const TTm& Tm){
   LocSysTm.wMilliseconds=WORD(Tm.GetMSec());
   // convert system-time
   SYSTEMTIME UniSysTm=LocSysTm;
-  Fail; // BCB5.0 doesn't find TzSpecificLocalTimeToSystemTime
-  //TzSpecificLocalTimeToSystemTime(&TzInf, &LocSysTm, &UniSysTm);
+  //Fail; // BCB5.0 doesn't find TzSpecificLocalTimeToSystemTime
+  TzSpecificLocalTimeToSystemTime(&TzInf, &LocSysTm, &UniSysTm);
   // return system-time
   return TTm(UniSysTm.wYear, UniSysTm.wMonth, UniSysTm.wDay, UniSysTm.wDayOfWeek,
    UniSysTm.wHour, UniSysTm.wMinute, UniSysTm.wSecond, UniSysTm.wMilliseconds);
@@ -824,7 +824,7 @@ bool TSysProc::ExeProc(const TStr& ExeFNm, TStr& ParamStr) {
   execvp(argv[0], argv);
 
   //BF: moved role of TSysMsg to TLoop and TSockSys in net.h, hence removed the following inline
-  //TSysMsg::Quit(); 
+  //TSysMsg::Quit();
   kill(getpid(), SIGINT);
   return false;
 }
@@ -838,8 +838,8 @@ TSysMemStat::TSysMemStat() {
     // read process information
     FILE *f = fopen("/proc/self/statm", "r");
     EAssertR(f != NULL, "Error reading /proc/self/statm");
-    EAssertR(7 == fscanf(f, "%ld %ld %ld %ld %ld %ld %ld", &result.size, 
-        &result.resident, &result.share, &result.text, &result.lib, 
+    EAssertR(7 == fscanf(f, "%ld %ld %ld %ld %ld %ld %ld", &result.size,
+        &result.resident, &result.share, &result.text, &result.lib,
         &result.data, &result.dt), "Error parsing /proc/self/statm");
     // close file
     fclose(f);

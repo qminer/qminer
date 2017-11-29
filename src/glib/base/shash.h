@@ -1006,7 +1006,7 @@ public:
     XSaveHd(Nm); XSave(Key); }
 
   int GetMemUsed() const {
-      return sizeof(THashSetKey<TKey>) +
+      return sizeof(THashSetKey<TKey>) + (int)
           TMemUtils::GetExtraMemberSize(Key); }
 
   THashSetKey& operator=(const THashSetKey& SetKey) {

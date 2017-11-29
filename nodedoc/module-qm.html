@@ -13,7 +13,7 @@
                 <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
         <div id="jsdoc-navbar-content">
-            <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.0.0</a>
+            <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.0.0</a>
         </div>
     </div>
 </nav>
@@ -23,7 +23,7 @@
                                 <div id="jsdoc-content-container">
                                         <div id="jsdoc-main" role="main">
                     <header class="page-header">
-        <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">qm</span></h1>        <p class="source-link">Source: <a href="qminer_aggrdoc.js.html#source-line-8">qminer_aggrdoc.<wbr>js:8</a></p>
+        <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">qm</span></h1>        <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-8">qminerdoc.<wbr>js:8</a></p>
             <div class="symbol-description">
                     <p>QMiner module.</p>
 
@@ -223,14 +223,14 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
                 <dt><a href="module-qm.html#~PerformanceStatBase">PerformanceStatBase</a></dt>
                 <dd>
                 </dd>
+                <dt><a href="module-qm.html#~PerformanceStatStore">PerformanceStatStore</a></dt>
+                <dd>
+                </dd>
         </dl>
 </div>
 
                     <div class="summary-column">
         <dl class="dl-summary-callout">
-                <dt><a href="module-qm.html#~PerformanceStatStore">PerformanceStatStore</a></dt>
-                <dd>
-                </dd>
                 <dt><a href="module-qm.html#~QMinerFlags">QMinerFlags</a></dt>
                 <dd>
                 </dd>
@@ -282,17 +282,17 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
                 <dt><a href="module-qm.html#~StreamAggrMin">StreamAggrMin</a></dt>
                 <dd>
                 </dd>
-        </dl>
-</div>
-
-                    <div class="summary-column">
-        <dl class="dl-summary-callout">
                 <dt><a href="module-qm.html#~StreamAggrMovingAverage">StreamAggrMovingAverage</a></dt>
                 <dd>
                 </dd>
                 <dt><a href="module-qm.html#~StreamAggrMovingCorrelation">StreamAggrMovingCorrelation</a></dt>
                 <dd>
                 </dd>
+        </dl>
+</div>
+
+                    <div class="summary-column">
+        <dl class="dl-summary-callout">
                 <dt><a href="module-qm.html#~StreamAggrMovingCovariance">StreamAggrMovingCovariance</a></dt>
                 <dd>
                 </dd>
@@ -339,6 +339,9 @@ var qm = require(&#x27;qminer&#x27;);</code></pre>
                 <dd>
                 </dd>
                 <dt><a href="module-qm.html#~StreamAggrVecDiff">StreamAggrVecDiff</a></dt>
+                <dd>
+                </dd>
+                <dt><a href="module-qm.html#~StreamAggrWindowQuantiles">StreamAggrWindowQuantiles</a></dt>
                 <dd>
                 </dd>
         </dl>
@@ -1514,7 +1517,7 @@ var ftr = new qm.FeatureSpace(base, { type: &quot;categorical&quot;, source: &qu
 base.store(&quot;Class&quot;).push({ Name: &quot;Fred&quot;, StudyGroup: &quot;A&quot; });
 base.store(&quot;Class&quot;).push({ Name: &quot;Wilma&quot;, StudyGroup: &quot;B&quot; });
 base.store(&quot;Class&quot;).push({ Name: &quot;Barney&quot;, StudyGroup: &quot;C&quot; });
-// update the feature space to get the categories 
+// update the feature space to get the categories
 ftr.updateRecords(base.store(&quot;Class&quot;).allRecords);
 // get the feature vector for the first record
 var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]); // returns vector [1, 0, 0]
@@ -2447,7 +2450,7 @@ var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;C
 // add a new record to the base
 base.store(&quot;Class&quot;).push({ Name: &quot;Peterson&quot;, Grade: 9 });
 base.store(&quot;Class&quot;).push({ Name: &quot;Ericsson&quot;, Grade: 8 });
-// update the feature space for scaling 
+// update the feature space for scaling
 ftr.updateRecords(base.store(&quot;Class&quot;).allRecords);
 // get the features of the first record
 var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]); // the vector with the random value
@@ -10607,6 +10610,242 @@ base.close();</code></pre>
         </td>
         <td>
                 <p>The name of the second stream aggregator to which it connects and gets data.</p>
+        </td>
+</tr>
+
+        </tbody>
+</table>
+
+    </section>
+
+
+    <dl class="dl-compact">
+        
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        
+        
+        
+        
+        
+    </dl>
+
+                <h3 id="~StreamAggrWindowQuantiles"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">StreamAggrWindowQuantiles</span><small class="property-type">
+            &nbsp;<a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></small></h3>
+        <p>This stream aggregate computes approximate quantiles on a sliding time window using
+the SW-GK algorithm proposed in:
+http://dl.acm.org/citation.cfm?id=2954329</p>
+<p>The quantile values are returned using <a href="module-qm.StreamAggr.html#getFloatVector">module:qm.StreamAggr#getFloatVector</a>.</p>
+
+        <section>
+        <h4>
+            Example
+        </h4>
+                <div>
+    <pre class="prettyprint"><code>var assert = require(&#x27;assert&#x27;);
+var qm = require(&#x27;qminer&#x27;);
+
+// variables
+var batchSize = 1000;
+var nbatches = 10;
+
+var dt = 10;
+var windowMSec = batchSize*dt;
+
+var quantileEps = 0.01;
+var countEps = 0.0001;
+
+var maxRelErr = quantileEps + 2*countEps;
+
+var targetQuants = (function () {
+    var quants = [];
+    for (var prob = 0; prob &lt;= 1; prob += 0.001) {
+        quants.push(prob);
+    }
+    return quants;
+})();
+
+// create a base with a simple store
+// the store records results of throwing two independent fair dices
+var base = new qm.Base({
+    mode: &quot;createClean&quot;,
+    schema: [
+    {
+        name: &quot;hugeDie&quot;,
+        fields: [
+            { name: &quot;value&quot;, type: &quot;float&quot; },
+            { name: &quot;time&quot;, type: &quot;datetime&quot; }
+        ]
+    }]
+});
+var store = base.store(&#x27;hugeDie&#x27;);
+
+// create a new time series stream aggregator for the &#x27;Dice&#x27; store, that takes the expected values of throwing a dice
+// and the timestamp from the &#x27;Time&#x27; field. The size of the window is 1 day.
+var windowAggr = store.addStreamAggr({
+    name: &#x27;TimeSeries1&#x27;,
+    type: &#x27;timeSeriesWinBuf&#x27;,
+    store: store,
+    timestamp: &#x27;time&#x27;,
+    value: &#x27;value&#x27;,
+    winsize: windowMSec
+});
+
+var gk = store.addStreamAggr({
+type: &#x27;windowQuantiles&#x27;,
+    inAggr: windowAggr,
+    quantileEps: quantileEps,
+    countEps: countEps,
+    quantiles: targetQuants
+})
+
+var vals = [];
+for (var i = 0; i &lt; batchSize; i++) {
+    vals.push(i);
+}
+for (var batchN = 0; batchN &lt; nbatches; batchN++) {
+    // shuffle the array
+    for (var i = 0; i &lt; batchSize; i++) {
+        var swapN = Math.floor(Math.random()*batchSize);
+        var temp = vals[i];
+        vals[i] = vals[swapN];
+        vals[swapN] = temp;
+    }
+
+    for (var i = 0; i &lt; batchSize; i++) {
+        var time = (batchN*batchSize + i)*dt;
+        store.push({ time: time, value: vals[i] })
+    }
+
+    var result = gk.getFloatVector();
+    for (var i = 0; i &lt; targetQuants.length; i++) {
+        var pval = targetQuants[i];
+        var quant_hat = result[i];
+        assert(Math.floor((pval - maxRelErr)*batchSize) &lt;= quant_hat);
+        assert(Math.ceil((pval + maxRelErr)*batchSize) &gt;= quant_hat);
+    }
+}</code></pre>
+</div>
+
+    </section>
+
+    
+        <section>
+        <h4>Properties</h4>
+            <table class="jsdoc-details-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Optional</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+                <tr>
+        <td>
+            <p>name</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The given name of the stream aggregator.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>type</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>Must use type 'windowQuantiles'.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>inAggr</p>
+        </td>
+        <td>
+                <p>string</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>The name of the stream aggregate which defines the time window.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>quantiles</p>
+        </td>
+        <td>
+                <p>Array of number</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>An array of p-values for which the algorithm will return quantiles.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>quantileEps</p>
+        </td>
+        <td>
+                <p>number</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>Maximal relative error of the quantile estimation procedure.</p>
+        </td>
+</tr>
+
+                <tr>
+        <td>
+            <p>countEps</p>
+        </td>
+        <td>
+                <p>number</p>
+        </td>
+        <td>
+                <p>&nbsp;</p>
+        </td>
+        <td>
+                <p>Maximal relative error of the count procedure.</p>
+<p>If the number of items in the window is N, then the algorithms error is bound by
+N<em>(quantileEps + 2</em>countEps + O(countEps^2)). However in practice, the error should
+be less.</p>
         </td>
 </tr>
 

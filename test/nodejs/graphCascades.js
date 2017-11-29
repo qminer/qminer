@@ -9,6 +9,9 @@
 var qm = require('qminer');
 var assert = require("../../src/nodejs/scripts/assert.js");
 
+var testPrecision = 0.05;
+var numSamples = 40000;
+
 describe("Graph cascades", function () {
     describe("s -> a -> b test", function () {
         it("should return the correct posterior after observing s", function () {
@@ -42,7 +45,7 @@ describe("Graph cascades", function () {
             for (var i = 0; i < observSeen; i++) {
                 graphPred.observeNode(obsArr[i].node, obsArr[i].date);
             }
-            graphPred.computePosterior(obsArr[observSeen - 1].date, 10000);
+            graphPred.computePosterior(obsArr[observSeen - 1].date, numSamples);
 
             var psum = [0, 0, 0, 0, 0]; // sum is 0, 1, 2, 3, or 4
             for (var i = 0; i < 3; i++) {
@@ -56,7 +59,7 @@ describe("Graph cascades", function () {
             // test that cdf jumps at the predicted places
             for (var i = 0; i < psum.length - 1; i++) {
                 cumsum += psum[i];
-                var quantiles = [cumsum - 0.01, cumsum + 0.01];
+                var quantiles = [cumsum - testPrecision, cumsum + testPrecision];
                 // clip
                 quantiles = quantiles.map(function (x) { return x > 1 ? 1.0 : (x < 0 ? 0 : x); });
                 var posterior = graphPred.getPosterior({
@@ -100,14 +103,14 @@ describe("Graph cascades", function () {
             for (var i = 0; i < observSeen; i++) {
                 graphPred.observeNode(obsArr[i].node, obsArr[i].date);
             }
-            graphPred.computePosterior(obsArr[observSeen - 1].date, 20000);
+            graphPred.computePosterior(obsArr[observSeen - 1].date, numSamples);
 
             var psum = pred.nodeModels.b;
             var cumsum = 0.0;
             // test that cdf jumps at the predicted places
             for (var i = 0; i < psum.length - 1; i++) {
                 cumsum += psum[i];
-                var quantiles = [cumsum - 0.01, cumsum + 0.01];
+                var quantiles = [cumsum - testPrecision, cumsum + testPrecision];
                 // clip
                 quantiles = quantiles.map(function (x) { return x > 1 ? 1.0 : (x < 0 ? 0 : x); });
                 var posterior = graphPred.getPosterior({
@@ -155,7 +158,7 @@ describe("Graph cascades", function () {
             for (var i = 0; i < observSeen; i++) {
                 graphPred.observeNode(obsArr[i].node, obsArr[i].date);
             }
-            graphPred.computePosterior(obsArr[observSeen - 1].date, 10000);
+            graphPred.computePosterior(obsArr[observSeen - 1].date, numSamples);
 
             var psum = [0, 0, 0]; // max is 0, 1 or 2
             for (var i = 0; i < 3; i++) {
@@ -169,7 +172,7 @@ describe("Graph cascades", function () {
             // test that cdf jumps at the predicted places
             for (var i = 0; i < psum.length - 1; i++) {
                 cumsum += psum[i];
-                var quantiles = [cumsum - 0.01, cumsum + 0.01];
+                var quantiles = [cumsum - testPrecision, cumsum + testPrecision];
                 // clip
                 quantiles = quantiles.map(function (x) { return x > 1 ? 1.0 : (x < 0 ? 0 : x); });
                 var posterior = graphPred.getPosterior({
@@ -215,7 +218,7 @@ describe("Graph cascades", function () {
             for (var i = 0; i < observSeen; i++) {
                 graphPred.observeNode(obsArr[i].node, obsArr[i].date);
             }
-            graphPred.computePosterior(obsArr[observSeen - 1].date, 10000);
+            graphPred.computePosterior(obsArr[observSeen - 1].date, numSamples);
 
             var posterior = graphPred.getPosterior({
                     quantiles: [0.01, 0.32, 0.34, 0.99]

@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.0.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.0.0</a>
       </div>
     </div>
   </nav>
@@ -118,7 +118,7 @@ var str = fin.readLine();</code></pre>
                     <dt><a href="module-fs.html#.readCsvLines">readCsvLines(buffer, opts)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-fs.html#.readLines">readLines(buffer, onLine, onEnd, onError)</a></dt>
+                    <dt><a href="module-fs.html#.readLines">readLines(buffer, onLine(line), onEnd(err))</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-fs.html#.rename">rename(source, dest)</a></dt>
@@ -170,7 +170,7 @@ var fout = fs.openWrite(&#x27;text.txt&#x27;);
 // close the stream
 fout.close();
 // copy the file
-var destination = fs.copy(&#x27;text.txt&#x27;, &#x27;copy.txt&#x27;);</code></pre>
+// var destination = fs.copy(&#x27;text.txt&#x27;, &#x27;copy.txt&#x27;);</code></pre>
                 </div>
               </section>
               <section>
@@ -509,7 +509,7 @@ var fout = fs.openWrite(&#x27;text.txt&#x27;);
 // close the stream
 fout.close();
 // move the file
-var destination = fs.move(&#x27;text.txt&#x27;, &#x27;move.txt&#x27;);</code></pre>
+// var destination = fs.move(&#x27;text.txt&#x27;, &#x27;move.txt&#x27;);</code></pre>
                 </div>
               </section>
               <section>
@@ -624,7 +624,7 @@ var fs = require(&#x27;qminer&#x27;).fs;
 var fout = fs.openWrite(&#x27;read_text.txt&#x27;);
 // write to file
 fout.write(&#x27;This is awesome!&#x27;);
-// close the stream 
+// close the stream
 fout.close();
 // open file to read
 var fin = fs.openRead(&#x27;read_text.txt&#x27;);</code></pre>
@@ -676,7 +676,7 @@ var fin = fs.openRead(&#x27;read_text.txt&#x27;);</code></pre>
 var fs = require(&#x27;qminer&#x27;).fs;
 // open file to write
 var fout = fs.openWrite(&#x27;write_text.txt&#x27;);
-// close the stream 
+// close the stream
 fout.close();</code></pre>
                 </div>
               </section>
@@ -855,7 +855,7 @@ var fs = require(&#x27;qminer&#x27;).fs;
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id=".readLines"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">readLines</span><span class="signature"><span class="signature-params">(buffer, onLine, onEnd, onError)</span></span></h3>
+              <h3 id=".readLines"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">readLines</span><span class="signature"><span class="signature-params">(buffer, onLine(line), onEnd(err))</span></span></h3>
               <p>Reads a buffer line by line and calls a callback for each line.</p>
               <section>
                 <h4>
@@ -871,18 +871,17 @@ fout.close();
 // open the file in read mode
 var fin = fs.openRead(&#x27;poem.txt&#x27;);
 // read the file line by line and call functions
-//var numberOfLines = 0;
-//function onLine(line) {
-//    console.log(line);
-//    numberOfLines += 1;
-//}
-//function onEnd(line) {
-//    console.log(&quot;Number of lines&quot;, numberOfLines);
-//}
-//function onError(err) {
-//    console.log(err);
-//}
-//fs.readLines(fin, onLine, onEnd, onError);</code></pre>
+var numberOfLines = 0;
+function onLine(line) {
+    console.log(line);
+    numberOfLines += 1;
+    return true;
+}
+function onEnd(err) {
+    if (err) { console.log(&quot;Error:&quot;, err); }
+    console.log(&quot;Number of lines&quot;, numberOfLines);
+}
+fs.readLines(fin, onLine, onEnd);</code></pre>
                 </div>
               </section>
               <section>
@@ -913,7 +912,7 @@ var fin = fs.openRead(&#x27;poem.txt&#x27;);
                     </tr>
                     <tr>
                       <td>
-                        <p>onLine</p>
+                        <p>onLine(line)</p>
                       </td>
                       <td>
                         <p>function()</p>
@@ -922,12 +921,12 @@ var fin = fs.openRead(&#x27;poem.txt&#x27;);
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>A callback that gets called on each line (for example: <code>function (line) {}</code>).</p>
+                        <p>A callback that gets called on each line (for example: <code>function (line) {}</code>). Function must return <code>true</code> to continue reading, else reading is stoped and <code>onEnd</code> is called.</p>
                       </td>
                     </tr>
                     <tr>
                       <td>
-                        <p>onEnd</p>
+                        <p>onEnd(err)</p>
                       </td>
                       <td>
                         <p>function()</p>
@@ -936,21 +935,7 @@ var fin = fs.openRead(&#x27;poem.txt&#x27;);
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>A callback that gets returned after all the lines have been read.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>onError</p>
-                      </td>
-                      <td>
-                        <p>function()</p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>A callback that gets called if an error occurs.</p>
+                        <p>A callback that gets returned after all the lines have been read or function <code>onLine</code> returned <code>false</code>. If error was due to exception, the exception is provided in <code>err</code>.</p>
                       </td>
                     </tr>
                   </tbody>

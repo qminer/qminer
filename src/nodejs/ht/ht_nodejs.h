@@ -309,7 +309,7 @@ public:
     * // get key id of <% key1 %> 
     * var key = h.keyId(<% key1 %>); // returns 0
     */
-    //# exports.<% className %>.prototype.key = function(n) { return <% defaultKey %>; }	
+    //# exports.<% className %>.prototype.keyId = function(n) { return <% defaultKey %>; }	
     JsDeclareFunction(keyId);
 
 	/**
@@ -627,7 +627,7 @@ void TNodeJsHash<TKey, TDat, TAux>::sortDat(const v8::FunctionCallbackInfo<v8::V
 }
 
 template<class TKey, class TDat, class TAux>
-void TNodeJsHash<TKey, TDat, TAux>::length(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsHash<TKey, TDat, TAux>::length(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Info.Holder());

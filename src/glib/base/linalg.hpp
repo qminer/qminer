@@ -54,7 +54,7 @@ void TSparseOps<TKey, TDat>::SparseMerge(const TVec<TKeyDat<TKey, TDat> >& SrcV1
 template <class TKey, class TDat>
 void TSparseOps<TKey, TDat>::SparseLinComb(const double& p, const TVec<TKeyDat<TKey, TDat> >& SrcV1,
         const double& q, const TVec<TKeyDat<TKey, TDat> >& SrcV2, TVec<TKeyDat<TKey, TDat> >& DstV) {
-
+    AssertR(&SrcV1 != &DstV && &SrcV2 != &DstV, "Should not use source as destination in sparse lin comb!");
     DstV.Clr();
     const int Src1Len = SrcV1.Len();
     const int Src2Len = SrcV2.Len();
@@ -73,6 +73,40 @@ void TSparseOps<TKey, TDat>::SparseLinComb(const double& p, const TVec<TKeyDat<T
     }
     while (Src1N < Src1Len) { DstV.Add(TKeyDat<TKey, TDat>(SrcV1[Src1N].Key, p * SrcV1[Src1N].Dat)); Src1N++; }
     while (Src2N < Src2Len) { DstV.Add(TKeyDat<TKey, TDat>(SrcV2[Src2N].Key, q * SrcV2[Src2N].Dat)); Src2N++; }
+}
+
+template <class TType, class TSizeTy, bool ColMajor>
+void TLinAlgStat::Mean(const TVec<TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>, TSizeTy>& ColVV,
+        TVec<TNum<TType>, TSizeTy>& MeanV, const TMatDim& Dim) {
+
+    if (Dim == TMatDim::mdCols) {
+        TVec<TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>, TSizeTy> RowVV;
+        TLinAlg::Transpose(ColVV, RowVV);
+        Mean(RowVV, MeanV, TMatDim::mdRows);
+    }
+    else {
+        // calculate the average column
+        const TSizeTy NCols = ColVV.Len();
+
+        // first find the max dimension
+        TSizeTy MxDim = 0;
+        for (TSizeTy ColN = 0; ColN < NCols; ++ColN) {
+            const TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>& ColV = ColVV[ColN];
+            if (ColV.Last().Key > MxDim) { MxDim = ColV.Last().Key; }
+        }
+
+        MeanV.Gen(MxDim+1, MxDim+1);
+
+        for (TSizeTy ColN = 0; ColN < NCols; ++ColN) {
+            const TVec<TKeyDat<TNum<TSizeTy>, TNum<TType>>, TSizeTy>& ColV = ColVV[ColN];
+
+            const TSizeTy ColLen = ColV.Len();
+            for (TSizeTy ValN = 0; ValN < ColLen; ++ValN) {
+                const TKeyDat<TNum<TSizeTy>, TNum<TType>>& SpEntry = ColV[ValN];
+                MeanV[SpEntry.Key] += SpEntry.Dat / double(NCols);
+            }
+        }
+    }
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1991,7 +2025,8 @@ void TLinAlg::MultiplyT(const TPair<TVec<IndexType, TSizeTy>, TVec<TType, TSizeT
 // TEST Move to BLAS
 // y := A' * x
 template <class TType, class TSizeTy, bool ColMajor>
-void TLinAlg::MultiplyT(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A, const TVec<TNum<TType>, TSizeTy>& x, TVec<TNum<TType>, TSizeTy>& y) {
+void TLinAlg::MultiplyT(const TVVec<TNum<TType>, TSizeTy, ColMajor>& A, const TVec<TNum<TType>, TSizeTy>& x,
+        TVec<TNum<TType>, TSizeTy>& y) {
     if (y.Empty()) y.Gen(A.GetCols());
     EAssert(A.GetRows() == x.Len() && A.GetCols() == y.Len());
     TSizeTy n = A.GetCols(), m = A.GetRows();
