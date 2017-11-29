@@ -15,7 +15,7 @@ void TNodeJsAnalytics::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_METHOD(exports, "nmfAsync", _nmfAsync);
 }
 
-TNodeJsAnalytics::TNMFTask::TNMFTask(const v8::FunctionCallbackInfo<v8::Value>& Args) :
+TNodeJsAnalytics::TNMFTask::TNMFTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool&) :
         TNodeTask(Args),
         JsFltVV(nullptr),
         JsSpVV(nullptr),
@@ -2063,7 +2063,7 @@ TNodeJsMDS* TNodeJsMDS::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& A
     }
 }
 
-TNodeJsMDS::TFitTransformTask::TFitTransformTask(const v8::FunctionCallbackInfo<v8::Value>& Args):
+TNodeJsMDS::TFitTransformTask::TFitTransformTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool&):
         TNodeTask(Args),
         JsMDS(nullptr),
         JsFltVV(nullptr),
@@ -2530,7 +2530,7 @@ void TNodeJsKMeans::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     }
 }
 
-TNodeJsKMeans::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args) :
+TNodeJsKMeans::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool&) :
         TNodeTask(Args),
         JsKMeans(nullptr),
         JsFltVV(nullptr),
@@ -3278,7 +3278,7 @@ void TNodeJsRecommenderSys::getModel(const v8::FunctionCallbackInfo<v8::Value>& 
     Args.GetReturnValue().Set(JsObj);
 }
 
-TNodeJsRecommenderSys::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args) :
+TNodeJsRecommenderSys::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool&) :
     TNodeTask(Args),
     JsRecSys(nullptr),
     JsFltVV(nullptr),

@@ -72,7 +72,7 @@ private:
         TIntV DerivFtrIdV;
 
     public:
-        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool&);
 
         v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
