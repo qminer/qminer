@@ -1,6 +1,6 @@
 # QMiner Change Log
 
-## 27 October 2017
+## 1 December 2017
 
 **Version 9.1.0**
 
@@ -12,6 +12,7 @@ Feature:
 Bugfix:
 - Removed `TQm` dependancy from glib/mine/svm
 
+## 27 October 2017
 
 **Version 9.0.0**
 
