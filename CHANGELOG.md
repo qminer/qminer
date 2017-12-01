@@ -2,6 +2,17 @@
 
 ## 27 October 2017
 
+**Version 9.1.0**
+
+**Non-breaking with new feature and a bug fix**
+
+Feature:
+- TNodeTask aware if executed in async mode
+
+Bugfix:
+- Removed `TQm` dependancy from glib/mine/svm
+
+
 **Version 9.0.0**
 
 **Breaking with new features**
