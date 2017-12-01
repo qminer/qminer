@@ -9,7 +9,6 @@
 #define bd_h
 
 #include <cstdint>
-/* #include <memory> */
 
 /////////////////////////////////////////////////
 // Basic-Macro-Definitions
