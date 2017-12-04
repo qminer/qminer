@@ -3530,7 +3530,7 @@ private:
         TNodeJsRecByValV* JsRecV;
 
     public:
-        TUpdateRecsTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        TUpdateRecsTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool&);
 
         v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
@@ -3543,7 +3543,7 @@ private:
         TNodeJsFltVV* JsFtrVV;
 
     public:
-        TExtractMatrixTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        TExtractMatrixTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool&);
 
         v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();

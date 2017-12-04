@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -10,20 +10,9 @@ namespace TSvm {
 
 ///////////////////////////////////////////////////////////////////////////////
 // TLinParam
-  
-TLinParam::TLinParam(TSIn& SIn):
-    Cost(TFlt(SIn)),
-    Unbalance(TFlt(SIn)),
-    Eps(TFlt(SIn)),
-    SampleSize(TInt(SIn)),
-    MxIter(TInt(SIn)),
-    MxTime(TInt(SIn)),
-    MnDiff(TFlt(SIn)),
-    Verbose(TBool(SIn)),
-    Notify(TNotify::NullNotify()){ 
-        if (Verbose) { Notify = TQm::TEnv::Debug(); } 
-}
-      
+
+TLinParam::TLinParam(TSIn& SIn) { Load(SIn); }
+
 void TLinParam::Load(TSIn& SIn){
     Cost.Load(SIn);
     Unbalance.Load(SIn);
@@ -33,10 +22,8 @@ void TLinParam::Load(TSIn& SIn){
     MxTime.Load(SIn);
     MnDiff.Load(SIn);
     Verbose.Load(SIn);
-    Notify = TNotify::NullNotify();
-    if (Verbose) { Notify = TQm::TEnv::Debug(); }
 }
-    
+
 void TLinParam::Save(TSOut& SOut) const {
     TFlt(Cost).Save(SOut);
     TFlt(Unbalance).Save(SOut);
@@ -47,29 +34,25 @@ void TLinParam::Save(TSOut& SOut) const {
     TFlt(MnDiff).Save(SOut);
     TBool(Verbose).Save(SOut);
 }
-  
+
 ///////////////////////////////////////////////////////////////////////////////
 // TLinModel
 
-TLinModel::TLinModel(TSIn& SIn):
-    WgtV(SIn),
-    Bias(SIn),
-    Param(SIn){  }
-    
+TLinModel::TLinModel(TSIn& SIn) { Load(SIn); }
+
 void TLinModel::Load(TSIn& SIn){
     WgtV.Load(SIn);
     Bias.Load(SIn);
     Param.Load(SIn);
 }
-        
-void TLinModel::Save(TSOut& SOut) const { 
+
+void TLinModel::Save(TSOut& SOut) const {
     WgtV.Save(SOut);
     Bias.Save(SOut);
     Param.Save(SOut);
 }
-    
-/// Update params
-void TLinModel::UpdateParams(const PJsonVal& ParamVal) { 
+
+void TLinModel::UpdateParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("c")) { Param.Cost = ParamVal->GetObjNum("c"); }
     if (ParamVal->IsObjKey("j")) { Param.Unbalance = ParamVal->GetObjNum("j"); }
     if (ParamVal->IsObjKey("eps")) { Param.Eps = ParamVal->GetObjNum("eps"); }
@@ -77,13 +60,10 @@ void TLinModel::UpdateParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("maxIterations")) { Param.MxIter = ParamVal->GetObjInt("maxIterations"); }
     if (ParamVal->IsObjKey("maxTime")) { Param.MxTime = TFlt::Round(1000.0 * ParamVal->GetObjNum("maxTime")); }
     if (ParamVal->IsObjKey("minDiff")) { Param.MnDiff = ParamVal->GetObjNum("minDiff"); }
-    if (ParamVal->IsObjKey("verbose")) {
-        Param.Verbose = ParamVal->GetObjBool("verbose");
-        Param.Notify = Param.Verbose ? TQm::TEnv::Debug() : TNotify::NullNotify();
-    }
+    if (ParamVal->IsObjKey("verbose")) { Param.Verbose = ParamVal->GetObjBool("verbose"); }
 }
-    
-/// Get params
+
+
 PJsonVal TLinModel::GetParams() const {
     PJsonVal ParamVal = TJsonVal::NewObj();
     ParamVal->AddToObj("c", Param.Cost);
@@ -91,35 +71,51 @@ PJsonVal TLinModel::GetParams() const {
     ParamVal->AddToObj("eps", Param.Eps);
     ParamVal->AddToObj("batchSize", Param.SampleSize);
     ParamVal->AddToObj("maxIterations", Param.MxIter);
-    ParamVal->AddToObj("maxTime", Param.MxTime / 1000); // convert from miliseconds to seconds
+    ParamVal->AddToObj("maxTime", Param.MxTime / 1000.0); // convert from miliseconds to seconds
     ParamVal->AddToObj("minDiff", Param.MnDiff);
     ParamVal->AddToObj("verbose", Param.Verbose);
     return ParamVal;
 }
 
+double TLinModel::Predict(const TFltV& Vec) const {
+    return TLinAlg::DotProduct(WgtV, Vec) + Bias;
+}
+
+double TLinModel::Predict(const TIntFltKdV& SpVec) const {
+    return TLinAlg::DotProduct(WgtV, SpVec) + Bias;
+}
+
+double TLinModel::Predict(const TFltVV& Mat, const int& ColN) const {
+    return TLinAlg::DotProduct(Mat, ColN, WgtV) + Bias;
+}
+
 void TLinModel::FitClassification(const TFltVV& VecV, const int& Dims, const int& Vecs,
-    const TFltV& TargetV){
-    SolveClassification(VecV, Dims, Vecs, TargetV);
+    const TFltV& TargetV, const PNotify& LogNotify, const PNotify& ErrorNotify) {
+
+    SolveClassification(VecV, Dims, Vecs, TargetV, LogNotify, ErrorNotify);
 }
-    
+
 void TLinModel::FitRegression(const TFltVV& VecV, const int& Dims, const int& Vecs,
-    const TFltV& TargetV){
-    SolveRegression(VecV, Dims, Vecs, TargetV);
+    const TFltV& TargetV, const PNotify& LogNotify, const PNotify& ErrorNotify) {
+
+    SolveRegression(VecV, Dims, Vecs, TargetV, LogNotify, ErrorNotify);
 }
-    
+
 void TLinModel::FitClassification(const TVec<TIntFltKdV>& VecV, const int& Dims, const int& Vecs,
-    const TFltV& TargetV){
-    SolveClassification(VecV, Dims, Vecs, TargetV);
+    const TFltV& TargetV, const PNotify& LogNotify, const PNotify& ErrorNotify) {
+
+    SolveClassification(VecV, Dims, Vecs, TargetV, LogNotify, ErrorNotify);
 }
-    
+
 void TLinModel::FitRegression(const TVec<TIntFltKdV>& VecV, const int& Dims, const int& Vecs,
-    const TFltV& TargetV){
-    SolveRegression(VecV, Dims, Vecs, TargetV);
+    const TFltV& TargetV, const PNotify& LogNotify, const PNotify& ErrorNotify) {
+
+    SolveRegression(VecV, Dims, Vecs, TargetV, LogNotify, ErrorNotify);
 }
 
 template <class TVecV>
 void TLinModel::SolveClassification(const TVecV& VecV, const int& Dims, const int& Vecs,
-        const TFltV& TargetV) {
+        const TFltV& TargetV, const PNotify& _LogNotify, const PNotify& ErrorNotify) {
 
     // asserts for input parameters
     EAssertR(Dims > 0, "Dimensionality must be positive!");
@@ -128,11 +124,14 @@ void TLinModel::SolveClassification(const TVecV& VecV, const int& Dims, const in
     EAssertR(Param.Cost > 0.0, "Cost parameter must be positive!");
     EAssertR(Param.SampleSize > 0, "Sampling size must be positive!");
     EAssertR(Param.MxIter > 1, "Number of iterations to small!");
-    
-    Param.Notify->OnStatusFmt("SVM parameters: c=%.2f, j=%.2f", Param.Cost, Param.Unbalance);
-    
-    // initialization 
-    TRnd Rnd(1); 
+
+    // hide output if not verbose
+    PNotify LogNotify = Param.Verbose ? _LogNotify : TNotify::NullNotify;
+
+    LogNotify->OnStatusFmt("SVM parameters: c=%.2f, j=%.2f", Param.Cost, Param.Unbalance);
+
+    // initialization
+    TRnd Rnd(1);
     const double Lambda = 1.0 / (double(Vecs) * Param.Cost);
     // we start with random normal vector
     WgtV = TFltV(Dims); TLinAlgTransform::FillRnd(WgtV, Rnd); TLinAlg::Normalize(WgtV);
@@ -141,7 +140,7 @@ void TLinModel::SolveClassification(const TVecV& VecV, const int& Dims, const in
     // allocate space for updates
     TFltV NewWgtV(Dims);
 
-    // split vectors into positive and negative 
+    // split vectors into positive and negative
     TIntV PosVecIdV, NegVecIdV;
     for (int VecN = 0; VecN < Vecs; VecN++) {
         if (TargetV[VecN] > 0.0) {
@@ -157,12 +156,13 @@ void TLinModel::SolveClassification(const TVecV& VecV, const int& Dims, const in
     //  - if larger then 1.0, then there is bias towards positives
     double SamplingRatio = (double(PosVecs) * Param.Unbalance) /
         (double(PosVecs) * Param.Unbalance + double(NegVecs));
-    Param.Notify->OnStatusFmt("Sampling ration 1 positive vs %.2f negative [%.2f]", 
+    LogNotify->OnStatusFmt("Sampling ration 1 positive vs %.2f negative [%.2f]",
         (1.0 / SamplingRatio - 1.0), SamplingRatio);
-    
+
     TTmTimer Timer(Param.MxTime); int Iters = 0; double Diff = 1.0;
-    Param.Notify->OnStatusFmt("Limits: %d iterations, %.3f seconds, %.8f weight difference", Param.MxIter, (double)Param.MxTime /1000.0, Param.MnDiff);
-    // initialize profiler    
+    LogNotify->OnStatusFmt("Limits: %d iterations, %.3f seconds, %.8f weight difference",
+        Param.MxIter, (double)Param.MxTime /1000.0, Param.MnDiff);
+    // initialize profiler
     TTmProfiler Profiler;
     const int ProfilerPre = Profiler.AddTimer("Pre");
     const int ProfilerBatch = Profiler.AddTimer("Batch");
@@ -171,15 +171,15 @@ void TLinModel::SolveClassification(const TVecV& VecV, const int& Dims, const in
     // function for writing progress reports
     int PosCount = 0, NegCount = 0;
     auto ProgressNotify = [&]() {
-        Param.Notify->OnStatusFmt("  %d iterations, %.3f seconds, last weight difference %g, ratio %.2f", 
-            Iters, Timer.GetStopWatch().GetMSec() / 1000.0, Diff, 
+        LogNotify->OnStatusFmt("  %d iterations, %.3f seconds, last weight difference %g, ratio %.2f",
+            Iters, Timer.GetStopWatch().GetMSec() / 1000.0, Diff,
             (double)PosCount / (double)(PosCount + NegCount));
         PosCount = 0; NegCount = 0;
     };
-       
+
     for (int IterN = 0; IterN < Param.MxIter; IterN++) {
         if (IterN % 100 == 0) { ProgressNotify(); }
-        
+
         Profiler.StartTimer(ProfilerPre);
         // tells how much we can move
         const double Nu = 1.0 / (Lambda * double(IterN + 2)); // ??
@@ -187,7 +187,7 @@ void TLinModel::SolveClassification(const TVecV& VecV, const int& Dims, const in
         // initialize updated normal vector
         TLinAlg::MultiplyScalar((1.0 - Nu * Lambda), WgtV, NewWgtV);
         Profiler.StopTimer(ProfilerPre);
-        
+
         // classify examples from the sample
         Profiler.StartTimer(ProfilerBatch);
         int DiffCount = 0;
@@ -204,7 +204,7 @@ void TLinModel::SolveClassification(const TVecV& VecV, const int& Dims, const in
             }
             const double VecCfyVal = TargetV[VecN];
             const double CfyVal = VecCfyVal * TLinAlg::DotProduct(VecV, VecN, WgtV);
-            if (CfyVal < 1.0) { 
+            if (CfyVal < 1.0) {
                 // with update from the stochastic sub-gradient
                 TLinAlg::AddVec(VecUpdate * VecCfyVal, VecV, VecN, NewWgtV, NewWgtV);
                 DiffCount++;
@@ -226,29 +226,27 @@ void TLinModel::SolveClassification(const TVecV& VecV, const int& Dims, const in
         Iters++;
         // check stopping criteria with respect to time
         if (Timer.IsTimeUp()) {
-            Param.Notify->OnStatusFmt("Finishing due to reached time limit of %.3f seconds", (double)Param.MxTime / 1000.0);
-            break; 
+            LogNotify->OnStatusFmt("Finishing due to reached time limit of %.3f seconds", (double)Param.MxTime / 1000.0);
+            break;
         }
         // check stopping criteria with respect to result difference
-        //if (DiffCount > 0 && (1.0 - DiffCos) < MnDiff) { 
-        if (DiffCount > 0 && Diff < Param.MnDiff) { 
-            Param.Notify->OnStatusFmt("Finishing due to reached difference limit of %g", Param.MnDiff);
+        //if (DiffCount > 0 && (1.0 - DiffCos) < MnDiff) {
+        if (DiffCount > 0 && Diff < Param.MnDiff) {
+            LogNotify->OnStatusFmt("Finishing due to reached difference limit of %g", Param.MnDiff);
             break;
         }
     }
-    if (Iters == Param.MxIter) { 
-        Param.Notify->OnStatusFmt("Finished due to iteration limit of %d", Iters);
+    if (Iters == Param.MxIter) {
+        LogNotify->OnStatusFmt("Finished due to iteration limit of %d", Iters);
     }
-    
+
     ProgressNotify();
-    Profiler.PrintReport(Param.Notify);
-            
-    //return new TLinModel(WgtV);
+    Profiler.PrintReport(LogNotify);
 }
-        
+
 template <class TVecV>
 void TLinModel::SolveRegression(const TVecV& VecV, const int& Dims, const int& Vecs,
-    const TFltV& TargetV) {
+        const TFltV& TargetV, const PNotify& _LogNotify, const PNotify& ErrorNotify) {
 
     // asserts for input parameters
     EAssertR(Dims > 0, "Dimensionality must be positive!");
@@ -259,7 +257,10 @@ void TLinModel::SolveRegression(const TVecV& VecV, const int& Dims, const int& V
     EAssertR(Param.MxIter > 1, "Number of iterations to small!");
     EAssertR(Param.MnDiff >= 0, "Min difference must be nonnegative!");
 
-    // initialization 
+    // hide output if not verbose
+    PNotify LogNotify = Param.Verbose ? _LogNotify : TNotify::NullNotify;
+
+    // initialization
     TRnd Rnd(1);
     const double Lambda = 1.0 / (double(Vecs) * Param.Cost);
     // we start with random normal vector
@@ -275,15 +276,16 @@ void TLinModel::SolveRegression(const TVecV& VecV, const int& Dims, const int& V
     double Normw = 1.0 / (2.0 * TMath::Sqrt(Lambda));
 
     TTmTimer Timer(Param.MxTime); int Iters = 0; double Diff = 1.0;
-    Param.Notify->OnStatusFmt("Limits: %d iterations, %.3f seconds, %.8f weight difference", Param.MxIter, (double)Param.MxTime / 1000.0, Param.MnDiff);
-    // initialize profiler    
+    LogNotify->OnStatusFmt("Limits: %d iterations, %.3f seconds, %.8f weight difference",
+        Param.MxIter, (double)Param.MxTime / 1000.0, Param.MnDiff);
+    // initialize profiler
     TTmProfiler Profiler;
     const int ProfilerPre = Profiler.AddTimer("Pre");
     const int ProfilerBatch = Profiler.AddTimer("Batch");
 
     // function for writing progress reports
     auto ProgressNotify = [&]() {
-        Param.Notify->OnStatusFmt("  %d iterations, %.3f seconds, last weight difference %g",
+        LogNotify->OnStatusFmt("  %d iterations, %.3f seconds, last weight difference %g",
                 Iters, Timer.GetStopWatch().GetMSec() / 1000.0, Diff);
     };
 
@@ -296,10 +298,10 @@ void TLinModel::SolveRegression(const TVecV& VecV, const int& Dims, const int& V
         Profiler.StartTimer(ProfilerPre);
         // tells how much we can move
         const double Nu = 1.0 / (Lambda * double(IterN + 2));
-        // update Coef which counters Norm              
+        // update Coef which counters Norm
         Coef /= (1 - Nu * Lambda);
         const double VecUpdate = Nu / (double(Param.SampleSize)) * Coef;
-        
+
         Profiler.StopTimer(ProfilerPre);
         // Track the upper bound on the change of norm of WgtV
         Diff = 0.0;
@@ -307,7 +309,7 @@ void TLinModel::SolveRegression(const TVecV& VecV, const int& Dims, const int& V
         Profiler.StartTimer(ProfilerBatch);
         // store which examples will lead to gradient updates (and their factors)
         TVec<TPair<TFlt, TInt> > Updates(Param.SampleSize, 0);
-        
+
         // in the first pass we find which samples will lead to updates
         for (int SampleN = 0; SampleN < Param.SampleSize; SampleN++) {
             const int VecN = Rnd.GetUniDevInt(Vecs);
@@ -317,7 +319,7 @@ void TLinModel::SolveRegression(const TVecV& VecV, const int& Dims, const int& V
             double Dot = TLinAlg::DotProduct(VecV, VecN, WgtV);
             // Used in bound computation
             double NorX = TLinAlg::Norm(VecV, VecN);
-            // For predictions we need to use the Norm to scale correctly                       
+            // For predictions we need to use the Norm to scale correctly
             const double Pred = Norm * Dot;
 
             // difference
@@ -331,7 +333,7 @@ void TLinModel::SolveRegression(const TVecV& VecV, const int& Dims, const int& V
                 // update the bound on the change of norm of WgtV
                 Diff += VecUpdate * NorX;
             } else if (Loss > Param.Eps) { // y_i - z > eps
-                // update from the negative stochastic sub-gradient: x                          
+                // update from the negative stochastic sub-gradient: x
                 Updates.Add(TPair<TFlt, TInt>(VecUpdate, VecN));
                 // update the norm of WgtV
                 Normw = sqrt(Normw*Normw + 2 * VecUpdate * Dot + VecUpdate * VecUpdate * NorX * NorX);
@@ -351,54 +353,39 @@ void TLinModel::SolveRegression(const TVecV& VecV, const int& Dims, const int& V
         Profiler.StopTimer(ProfilerBatch);
 
         // renormalizing is not needed according to new results:
-        //"Pegasos: Primal Estimated sub-GrAdient SOlver for SVM" Shai Shalev-Shwartz, Yoram Singer, Nathan Srebro, Andrew Cotter." Mathematical Programming, Series B, 127(1):3-30, 2011.
+        // "Pegasos: Primal Estimated sub-GrAdient SOlver for SVM"
+        // Shai Shalev-Shwartz, Yoram Singer, Nathan Srebro, Andrew Cotter.
+        // Mathematical Programming, Series B, 127(1):3-30, 2011.
 
         // count
         Iters++;
         // check stopping criteria with respect to time
         if (Timer.IsTimeUp()) {
-            Param.Notify->OnStatusFmt("Finishing due to reached time limit of %.3f seconds", (double)Param.MxTime / 1000.0);
+            LogNotify->OnStatusFmt("Finishing due to reached time limit of %.3f seconds", (double)Param.MxTime / 1000.0);
             break;
         }
         // check stopping criteria with respect to result difference
         if (Diff < Param.MnDiff) {
-            Param.Notify->OnStatusFmt("Finishing due to reached difference limit of %g", Param.MnDiff);
+            LogNotify->OnStatusFmt("Finishing due to reached difference limit of %g", Param.MnDiff);
             break;
         }
     }
     if (Iters == Param.MxIter) {
-        Param.Notify->OnStatusFmt("Finished due to iteration limit of %d", Iters);
+        LogNotify->OnStatusFmt("Finished due to iteration limit of %d", Iters);
     }
     // Finally we use the Norm factor to rescale the weight vector
     TLinAlg::MultiplyScalar(Norm, WgtV, WgtV);
 
     ProgressNotify();
 
-    Profiler.PrintReport(Param.Notify);
-
-    //return new TLinModel(WgtV);
+    Profiler.PrintReport(LogNotify);
 }
-  
+
 ///////////////////////////////////////////////////////////////////////////////
 // TSvmLibParam
 
-TLibSvmParam::TLibSvmParam(TSIn& SIn):
-    Type(TInt(SIn)),
-    Kernel(TInt(SIn)),
-    Cost(TFlt(SIn)),
-    Unbalance(TFlt(SIn)),
-    Eps(TFlt(SIn)),
-    Gamma(TFlt(SIn)),
-    P(TFlt(SIn)),
-    Degree(TInt(SIn)),
-    Nu(TFlt(SIn)),
-    Coef0(TFlt(SIn)),
-    CacheSize(TFlt(SIn)),
-    Verbose(TBool(SIn)),
-    Notify(TNotify::NullNotify()){
-        if (Verbose) { Notify = TQm::TEnv::Debug(); }
-}
-      
+TLibSvmParam::TLibSvmParam(TSIn& SIn) { Load(SIn); }
+
 void TLibSvmParam::Load(TSIn& SIn){
     Type.Load(SIn);
     Kernel.Load(SIn);
@@ -412,10 +399,8 @@ void TLibSvmParam::Load(TSIn& SIn){
     Coef0.Load(SIn);
     CacheSize.Load(SIn);
     Verbose.Load(SIn);
-    Notify = TNotify::NullNotify();
-    if (Verbose) { Notify = TQm::TEnv::Debug(); }
 }
-    
+
 void TLibSvmParam::Save(TSOut& SOut) const {
     TInt(Type).Save(SOut);
     TInt(Kernel).Save(SOut);
@@ -423,14 +408,14 @@ void TLibSvmParam::Save(TSOut& SOut) const {
     TFlt(Unbalance).Save(SOut);
     TFlt(Eps).Save(SOut);
     TFlt(Gamma).Save(SOut);
-    TFlt(P).Save(SOut);      
+    TFlt(P).Save(SOut);
     TInt(Degree).Save(SOut);
     TFlt(Nu).Save(SOut);
     TFlt(Coef0).Save(SOut);
     TFlt(CacheSize).Save(SOut);
     TBool(Verbose).Save(SOut);
 }
-    
+
 svm_parameter_t TLibSvmParam::GetParamStruct() const {//returns svm_parameter_t for LIBSVM train
     svm_parameter_t svm_parameter;
     svm_parameter.svm_type = Type;//default
@@ -438,10 +423,10 @@ svm_parameter_t TLibSvmParam::GetParamStruct() const {//returns svm_parameter_t 
     svm_parameter.degree = Degree;
     svm_parameter.gamma = Gamma;
     svm_parameter.coef0 = Coef0;
-    
+
     // training only
     svm_parameter.C = Cost;
-    svm_parameter.nu = Nu;      
+    svm_parameter.nu = Nu;
     svm_parameter.nr_weight = 2;
     svm_parameter.weight_label = (int *)malloc(2 * sizeof(int)); // deleted in svm_destroy_param
     svm_parameter.weight_label[0] = -1;
@@ -455,18 +440,13 @@ svm_parameter_t TLibSvmParam::GetParamStruct() const {//returns svm_parameter_t 
     svm_parameter.shrinking = 0;
     svm_parameter.probability = 0;
     return svm_parameter;
-}    
-  
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 // TSvmLibModelPredictParam
 
-TLibSvmPredictParam::TLibSvmPredictParam(TSIn& SIn):
-    Type(TInt(SIn)),
-    Kernel(TInt(SIn)),
-    Gamma(TFlt(SIn)),
-    Degree(TInt(SIn)),
-    Coef0(TFlt(SIn)){  }
-      
+TLibSvmPredictParam::TLibSvmPredictParam(TSIn& SIn) { Load(SIn); }
+
 void TLibSvmPredictParam::Load(TSIn& SIn){
     Type.Load(SIn);
     Kernel.Load(SIn);
@@ -474,7 +454,7 @@ void TLibSvmPredictParam::Load(TSIn& SIn){
     Degree.Load(SIn);
     Coef0.Load(SIn);
 }
-    
+
 void TLibSvmPredictParam::Save(TSOut& SOut) const {
     TInt(Type).Save(SOut);
     TInt(Kernel).Save(SOut);
@@ -482,7 +462,7 @@ void TLibSvmPredictParam::Save(TSOut& SOut) const {
     TInt(Degree).Save(SOut);
     TFlt(Coef0).Save(SOut);
 }
-  
+
 svm_parameter_t TLibSvmPredictParam::GetPredictParamStruct() const {//returns svm_parameter_t for LIBSVM predict
     svm_parameter_t svm_parameter;
     svm_parameter.svm_type = Type;//default
@@ -496,16 +476,8 @@ svm_parameter_t TLibSvmPredictParam::GetPredictParamStruct() const {//returns sv
 ///////////////////////////////////////////////////////////////////////////////
 // TLibSvmModel
 
-TLibSvmModel::TLibSvmModel(TSIn& SIn):
-    WgtV(SIn),
-    Bias(SIn),
-    Param(SIn),
-    PredictParam(SIn),
-    SupportVectors(SIn),
-    Coef(SIn),
-    Rho(SIn),
-    NSupportVectors(SIn){  }
-        
+TLibSvmModel::TLibSvmModel(TSIn& SIn) { Load(SIn); }
+
 void TLibSvmModel::Load(TSIn& SIn){
     WgtV.Load(SIn);
     Bias.Load(SIn);
@@ -516,8 +488,8 @@ void TLibSvmModel::Load(TSIn& SIn){
     Rho.Load(SIn);
     NSupportVectors.Load(SIn);
 }
-        
-void TLibSvmModel::Save(TSOut& SOut) const { 
+
+void TLibSvmModel::Save(TSOut& SOut) const {
     WgtV.Save(SOut);
     Bias.Save(SOut);
     Param.Save(SOut);
@@ -527,15 +499,14 @@ void TLibSvmModel::Save(TSOut& SOut) const {
     Rho.Save(SOut);
     NSupportVectors.Save(SOut);
 }
-    
-/// Update params
-void TLibSvmModel::UpdateParams(const PJsonVal& ParamVal) { 
+
+void TLibSvmModel::UpdateParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("kernel")) {
-        TStr KernelStr = ParamVal->GetObjStr("kernel"); 
+        TStr KernelStr = ParamVal->GetObjStr("kernel");
         Param.Kernel = LIBSVM_LINEAR;
         if (KernelStr == "LINEAR") { Param.Kernel = LIBSVM_LINEAR; }
         else if (KernelStr == "POLY") { Param.Kernel = LIBSVM_POLY; }
-        else if (KernelStr == "RBF") { Param.Kernel = LIBSVM_RBF; }        
+        else if (KernelStr == "RBF") { Param.Kernel = LIBSVM_RBF; }
         else if (KernelStr == "SIGMOID") { Param.Kernel = LIBSVM_SIGMOID; }
         else if (KernelStr == "PRECOMPUTED") { Param.Kernel = LIBSVM_PRECOMPUTED; }
     }
@@ -557,13 +528,9 @@ void TLibSvmModel::UpdateParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("nu")) { Param.Nu = ParamVal->GetObjNum("nu"); }
     if (ParamVal->IsObjKey("coef0")) { Param.Coef0 = ParamVal->GetObjNum("coef0"); }
     if (ParamVal->IsObjKey("cacheSize")) { Param.CacheSize = ParamVal->GetObjNum("cacheSize"); }
-    if (ParamVal->IsObjKey("verbose")) {
-        Param.Verbose = ParamVal->GetObjBool("verbose");
-        Param.Notify = Param.Verbose ? TQm::TEnv::Debug() : TNotify::NullNotify();
-    }
+    if (ParamVal->IsObjKey("verbose")) { Param.Verbose = ParamVal->GetObjBool("verbose"); }
 }
-    
-/// Get params
+
 PJsonVal TLibSvmModel::GetParams() const {
     PJsonVal ParamVal = TJsonVal::NewObj();
     TStr KernelStr = "LINEAR";
@@ -593,7 +560,7 @@ PJsonVal TLibSvmModel::GetParams() const {
     ParamVal->AddToObj("verbose", Param.Verbose);
     return ParamVal;
 }
-  
+
 svm_model_t* TLibSvmModel::GetModelStruct() const {
     svm_model_t* svm_model = new svm_model_t;
     svm_model->param = PredictParam.GetPredictParamStruct();
@@ -624,14 +591,14 @@ svm_model_t* TLibSvmModel::GetModelStruct() const {
     for (int Idx = 0; Idx < DimX; Idx++){
       svm_model->rho[Idx] = Rho[Idx];
     }
-    /// not needed (and therefore not saved)
+    // not needed (and therefore not saved)
     svm_model->free_sv = 0;
     svm_model->probA = NULL;
     svm_model->probB = NULL;
     svm_model->sv_indices = NULL;
-    /// classification specific
+    // classification specific
     svm_model->nSV = NULL;
-    svm_model->label = NULL;        
+    svm_model->label = NULL;
     if (Param.Type == C_SVC || Param.Type == NU_SVC){
       DimX = NSupportVectors.Len();
       svm_model->nSV = (int *)malloc(DimX * sizeof(int));
@@ -646,7 +613,7 @@ svm_model_t* TLibSvmModel::GetModelStruct() const {
     }
     return svm_model;
 }
-    
+
 void TLibSvmModel::DeleteModelStruct(svm_model_t* svm_model) const {
     // free svm_model->SV
     int DimX = SupportVectors.GetXDim();
@@ -666,7 +633,7 @@ void TLibSvmModel::DeleteModelStruct(svm_model_t* svm_model) const {
     svm_model->sv_coef = NULL;
     // free svm_model->rho
     free(svm_model->rho);
-    svm_model->rho = NULL;        
+    svm_model->rho = NULL;
     // free svm_model->nSV and svm_model->label if allocated
     if (Param.Type == C_SVC || Param.Type == NU_SVC){
       free(svm_model->nSV);
@@ -674,11 +641,11 @@ void TLibSvmModel::DeleteModelStruct(svm_model_t* svm_model) const {
       free(svm_model->label);
       svm_model->label = NULL;
     }
-    
+
     delete svm_model;
     svm_model = NULL;
 }
-    
+
 void TLibSvmModel::ConvertResults(svm_model_t* svm_model, int Dim){
     PredictParam = TLibSvmPredictParam(Param.Type, Param.Kernel, Param.Gamma, Param.Degree, Param.Coef0);
     WgtV = TFltV(Dim);
@@ -714,10 +681,9 @@ void TLibSvmModel::ConvertResults(svm_model_t* svm_model, int Dim){
     free(svm_model);
 }
 
-/// Classify full vector
 double TLibSvmModel::Predict(const TFltV& Vec) const {
     if (Param.Kernel == LINEAR){
-        return TLinAlg::DotProduct(WgtV, Vec) + Bias; 
+        return TLinAlg::DotProduct(WgtV, Vec) + Bias;
     }
     svm_model_t* model = GetModelStruct();
     svm_node_t *x = (svm_node_t *)malloc((Vec.Len() + 1) * sizeof(svm_node_t));
@@ -729,14 +695,13 @@ double TLibSvmModel::Predict(const TFltV& Vec) const {
     x[Vec.Len()].index = -1;
     svm_predict_values(model, x, dec_val);
     double result = dec_val[0];
-    
+
     free(x);
     free(dec_val);
     DeleteModelStruct(model);
     return result;
 }
-    
-/// Classify sparse vector
+
 double TLibSvmModel::Predict(const TIntFltKdV& SpVec) const {
     if (Param.Kernel == LINEAR){
         return TLinAlg::DotProduct(WgtV, SpVec) + Bias;
@@ -754,7 +719,6 @@ double TLibSvmModel::Predict(const TIntFltKdV& SpVec) const {
     return Predict(Vec);
 }
 
-/// Classify matrix column vector
 double TLibSvmModel::Predict(const TFltVV& Mat, const int& ColN) const {
     if (Param.Kernel == LINEAR){
         return TLinAlg::DotProduct(Mat, ColN, WgtV) + Bias;
@@ -764,17 +728,17 @@ double TLibSvmModel::Predict(const TFltVV& Mat, const int& ColN) const {
     Mat.GetCol(ColN, Col);
     return Predict(Col);
 }
-    
-/// LIBSVM for sparse input
-void TLibSvmModel::FitClassification(const TVec<TIntFltKdV>& VecV, const int& DimsA, const int& VecsA, const TFltV& TargetV) {
-  
+
+void TLibSvmModel::FitClassification(const TVec<TIntFltKdV>& VecV, const int& DimsA, const int& VecsA,
+    const TFltV& TargetV, const PNotify& _LogNotify, const PNotify& ErrorNotify) {
+
     printf("inside FitClassification\n");
-    
+
     if (Param.Type == DEFAULT) { Param.Type = LIBSVM_CSVC; }
-  
+
     // load training parameters
     svm_parameter_t svm_parameter = Param.GetParamStruct();
-            
+
     // Asserts for input arguments
     EAssertR(Param.Cost > 0.0, "Cost parameter has to be positive.");
 
@@ -810,27 +774,29 @@ void TLibSvmModel::FitClassification(const TVec<TIntFltKdV>& VecV, const int& Di
     const char* error_msg = svm_check_parameter(&svm_problem, &svm_parameter);
     EAssertR(error_msg == NULL, error_msg);
 
-    /// train the model
-    svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter, TQm::TEnv::Debug(), TQm::TEnv::Error());
-    
-    /// save model and clean up
+    // hide output if not verbose
+    PNotify LogNotify = Param.Verbose ? _LogNotify : TNotify::NullNotify;
+    // train the model
+    svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter, LogNotify(), ErrorNotify());
+
+    // save model and clean up
     ConvertResults(svm_model, Dim);
-    
-    /// clean up
+
+    // clean up
     svm_destroy_param(&svm_parameter);
     free(svm_problem.y);
     free(svm_problem.x);
     free(x_space);
 }
-    
-/// Use LIBSVM for dense input
-void TLibSvmModel::FitClassification(const TFltVV& VecV, const int& DimsA, const int& VecsA, const TFltV& TargetV) {
-    
+
+void TLibSvmModel::FitClassification(const TFltVV& VecV, const int& DimsA, const int& VecsA,
+    const TFltV& TargetV, const PNotify& _LogNotify, const PNotify& ErrorNotify) {
+
     if (Param.Type == DEFAULT) { Param.Type = LIBSVM_CSVC; }
-    
+
     // load training parameters
     svm_parameter_t svm_parameter = Param.GetParamStruct();
-    
+
     // Asserts for input arguments
     EAssertR(Param.Cost > 0.0, "Cost parameter has to be positive.");
 
@@ -864,27 +830,33 @@ void TLibSvmModel::FitClassification(const TFltVV& VecV, const int& DimsA, const
     const char* error_msg = svm_check_parameter(&svm_problem, &svm_parameter);
     EAssertR(error_msg == NULL, error_msg);
 
-    /// train model
-    svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter, TQm::TEnv::Debug(), TQm::TEnv::Error());
-    
-    /// save model and clean up
+    // hide output if not verbose
+    PNotify LogNotify = Param.Verbose ? _LogNotify : TNotify::NullNotify;
+    // train model
+    svm_model_t* svm_model = svm_train(&svm_problem, &svm_parameter, LogNotify(), ErrorNotify());
+
+    // save model and clean up
     ConvertResults(svm_model, DimN);
-    
-    /// clean up
+
+    // clean up
     svm_destroy_param(&svm_parameter);
     free(svm_problem.y);
     free(svm_problem.x);
     free(x_space);
 }
 
-void TLibSvmModel::FitRegression(const TVec<TIntFltKdV>& VecV, const int& Dims, const int& Vecs, const TFltV& TargetV){
+void TLibSvmModel::FitRegression(const TVec<TIntFltKdV>& VecV, const int& Dims, const int& Vecs,
+    const TFltV& TargetV, const PNotify& LogNotify, const PNotify& ErrorNotify) {
+
     if (Param.Type == DEFAULT) { Param.Type = LIBSVM_EPSILONSVR; }
-    FitClassification(VecV, Dims, Vecs, TargetV);
+    FitClassification(VecV, Dims, Vecs, TargetV, LogNotify, ErrorNotify);
 }
 
-void TLibSvmModel::FitRegression(const TFltVV& VecV, const int& Dims, const int& Vecs, const TFltV& TargetV){
+void TLibSvmModel::FitRegression(const TFltVV& VecV, const int& Dims, const int& Vecs,
+    const TFltV& TargetV, const PNotify& LogNotify, const PNotify& ErrorNotify) {
+
     if (Param.Type == DEFAULT) { Param.Type = LIBSVM_EPSILONSVR; }
-    FitClassification(VecV, Dims, Vecs, TargetV);
+    FitClassification(VecV, Dims, Vecs, TargetV, LogNotify, ErrorNotify);
 }
 
 }// end namespace
