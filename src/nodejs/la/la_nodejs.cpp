@@ -22,7 +22,7 @@ void TNodeJsLinAlg::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_METHOD(exports, "qr", _qr);
 }
 
-TNodeJsLinAlg::TSVDTask::TSVDTask(const v8::FunctionCallbackInfo<v8::Value>& Args) :
+TNodeJsLinAlg::TSVDTask::TSVDTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool&) :
         TNodeTask(Args),
         JsFltVV(nullptr),
         JsSpVV(nullptr),
