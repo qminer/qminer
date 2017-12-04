@@ -100,8 +100,8 @@ void TNodeJsFs::TReadLinesCallback::Run() {
     }
 }
 
-TNodeJsFs::TReadCsvTask::TReadCsvTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool&):
-            TNodeTask(Args),
+TNodeJsFs::TReadCsvTask::TReadCsvTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync):
+            TNodeTask(Args, IsAsync),
             LinesCallback(nullptr) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
