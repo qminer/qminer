@@ -21,6 +21,7 @@ int Pow2Rnd(const int& MaxVecSize) {
 
 template <typename TRndFun>
 void RandAlloc(TVec<TIntV>& IntVV, TRndFun& RndFun, const int& MaxVecSize, const bool& FillP) {
+    IntVV.Shuffle(Rnd);
     for (TIntV& IntV : IntVV) {
         // create new vector
         const TSize NewSize = RndFun(MaxVecSize);
@@ -36,6 +37,7 @@ void RandAlloc(TVec<TIntV>& IntVV, TRndFun& RndFun, const int& MaxVecSize, const
 
 template <typename TRndFun>
 void Pow2Alloc(TVec<TIntV>& IntVV, TRndFun& RndFun, const int& MaxVecSize, const bool& FillP) {
+    IntVV.Shuffle(Rnd);
     for (TIntV& IntV : IntVV) {
         // create new vector
         const TSize NewSize = RndFun(MaxVecSize);

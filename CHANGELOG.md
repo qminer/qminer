@@ -1,5 +1,17 @@
 # QMiner Change Log
 
+## 1 December 2017
+
+**Version 9.1.0**
+
+**Non-breaking with new feature and a bug fix**
+
+Feature:
+- TNodeTask aware if executed in async mode
+
+Bugfix:
+- Removed `TQm` dependancy from glib/mine/svm
+
 ## 27 October 2017
 
 **Version 9.0.0**
