@@ -4009,8 +4009,8 @@ TNodeJsFtrSpace* TNodeJsFtrSpace::NewFromArgs(const v8::FunctionCallbackInfo<v8:
     return new TNodeJsFtrSpace(FtrSpace);
 }
 
-TNodeJsFtrSpace::TUpdateRecsTask::TUpdateRecsTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool&):
-        TNodeTask(Args) {
+TNodeJsFtrSpace::TUpdateRecsTask::TUpdateRecsTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync):
+        TNodeTask(Args, IsAsync) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -4038,8 +4038,8 @@ void TNodeJsFtrSpace::TUpdateRecsTask::Run() {
     }
 }
 
-TNodeJsFtrSpace::TExtractMatrixTask::TExtractMatrixTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool&):
-            TNodeTask(Args) {
+TNodeJsFtrSpace::TExtractMatrixTask::TExtractMatrixTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync):
+            TNodeTask(Args, IsAsync) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 

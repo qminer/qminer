@@ -403,9 +403,10 @@ private:
     v8::Persistent<v8::Function> Callback;
     v8::Persistent<v8::Array> ArgPersist;
     PExcept Except;
+    bool AsyncP;
 
 public:
-    TNodeTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+    TNodeTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
     virtual ~TNodeTask();
     /// extracts the callback argument from `Args`
     virtual v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) = 0;
@@ -423,6 +424,7 @@ public:
     virtual void SetExcept(const PExcept& _Except) { Except = _Except; }
 
 protected:
+    bool IsAsync() const { return AsyncP; }
     bool HasExcept() const { return !Except.Empty(); }
 };
 

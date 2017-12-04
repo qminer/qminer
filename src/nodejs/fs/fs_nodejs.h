@@ -92,7 +92,7 @@ private:
         TMainThreadHandle* LinesHandle;
 
     public:
-        TReadCsvTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool&);
+        TReadCsvTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
         ~TReadCsvTask();
 
         v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
