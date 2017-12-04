@@ -210,6 +210,7 @@ void TNodeJsSvmModel::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
         // get output stream from argumetns
         TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+        EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
         // save model
         JsModel->Save(*JsFOut->SOut);
         // return output stream for convenience
@@ -618,7 +619,7 @@ void TNodeJsRidgeReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Args.Holder());
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
-
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     JsModel->Model.Save(*JsFOut->SOut);
 
     Args.GetReturnValue().Set(Args[0]);
@@ -768,7 +769,7 @@ void TNodeJsSigmoid::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     TNodeJsSigmoid* JsModel = ObjectWrap::Unwrap<TNodeJsSigmoid>(Args.Holder());
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
-
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     JsModel->Sigmoid.Save(*JsFOut->SOut);
 
     Args.GetReturnValue().Set(Args[0]);
@@ -892,6 +893,7 @@ void TNodeJsNNAnomalies::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(Args.Length() == 1, "NearestNeighborAD.save: expects 1 argument!");
     // get the arguments
     TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     // save model
     JsModel->Save(*JsFOut->SOut);
     // return fout
@@ -1197,6 +1199,7 @@ void TNodeJsRecLinReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     }
     else {
         TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+        EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
         SOut = JsFOut->SOut;
     }
 
@@ -1373,7 +1376,7 @@ void TNodeJsLogReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     TNodeJsLogReg* JsModel = ObjectWrap::Unwrap<TNodeJsLogReg>(Args.Holder());
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
-
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     JsModel->LogReg.Save(*JsFOut->SOut);
 
     Args.GetReturnValue().Set(Args[0]);
@@ -1514,7 +1517,7 @@ void TNodeJsPropHaz::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     TNodeJsPropHaz* JsModel = ObjectWrap::Unwrap<TNodeJsPropHaz>(Args.Holder());
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
-
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     JsModel->Model.Save(*JsFOut->SOut);
 
     Args.GetReturnValue().Set(Args[0]);
@@ -1755,7 +1758,7 @@ void TNodeJsNNet::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
         EAssertR(Args.Length() == 1, "Should have 1 argument!");
         TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
-
+        EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
         PSOut SOut = JsFOut->SOut;
 
         Model->Model->Save(*SOut);
@@ -2088,6 +2091,7 @@ void TNodeJsMDS::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TNodeJsMDS* JsMDS = ObjectWrap::Unwrap<TNodeJsMDS>(Args.Holder());
         // get output stream from argumetns
         TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+        EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
         // save model
         JsMDS->Save(*JsFOut->SOut);
         // return output stream for convenience
@@ -2872,6 +2876,7 @@ void TNodeJsKMeans::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TNodeJsKMeans* JsKMeans = ObjectWrap::Unwrap<TNodeJsKMeans>(Args.Holder());
         // get output stream from argumetns
         TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+        EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
         // save model
         JsKMeans->Save(*JsFOut->SOut);
         // return output stream for convenience
@@ -3735,6 +3740,7 @@ void TNodeJsDpMeans::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TNodeJsDpMeans* JsDpMeans = ObjectWrap::Unwrap<TNodeJsDpMeans>(Args.Holder());
         // get output stream from argumetns
         TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+        EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
         // save model
         JsDpMeans->Save(*JsFOut->SOut);
         // return output stream for convenience
@@ -3965,6 +3971,7 @@ void TNodeJsTDigest::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TNodeJsTDigest* JsTDigest = ObjectWrap::Unwrap<TNodeJsTDigest>(Args.Holder());
     // get output stream from arguments
     TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     // save model
     JsTDigest->Model.SaveState(*JsFOut->SOut);
     // return output stream for convenience
@@ -4130,6 +4137,7 @@ void TNodeJsGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     const TQuant::TGk& Gk = JsGk->Gk;
 
     TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     Gk.Save(*JsFOut->SOut);
 
     // return the output stream
@@ -4305,6 +4313,7 @@ void TNodeJsBiasedGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     const TQuant::TBiasedGk& Gk = JsGk->Gk;
 
     TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     Gk.Save(*JsFOut->SOut);
 
     // return the output stream
@@ -4448,6 +4457,7 @@ void TNodeJsCountWindowGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args)
     const TQuant::TCountWindowGk& Gk = JsGk->Gk;
 
     TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     Gk.Save(*JsFOut->SOut);
 
     // return the output stream
@@ -4569,6 +4579,7 @@ void TNodeJsTimeWindowGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args) 
     const TQuant::TTimeWindowGk& Gk = JsGk->Gk;
 
     TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     Gk.Save(*JsFOut->SOut);
 
     // return the output stream
@@ -4777,6 +4788,7 @@ void TNodeJsRecommenderSys::save(const v8::FunctionCallbackInfo<v8::Value>& Args
         TNodeJsRecommenderSys* JsRecSys = ObjectWrap::Unwrap<TNodeJsRecommenderSys>(Args.Holder());
         // get output stream from arguments
         TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+        EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
         // save model
         JsRecSys->Save(*JsFOut->SOut);
         // return output stream for convenience

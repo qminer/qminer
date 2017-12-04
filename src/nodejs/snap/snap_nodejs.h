@@ -835,6 +835,7 @@ void TNodeJsGraph<T>::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TNodeJsGraph* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Args.Holder());
 
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     PSOut SOut = JsFOut->SOut;
     JsGraph->Graph->Save(*SOut);
     Args.GetReturnValue().Set(Args[0]);

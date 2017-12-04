@@ -645,8 +645,8 @@ void TNodeJsFOut::flush(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::HandleScope HandleScope(Isolate);
 
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args.This());
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
     JsFOut->SOut->Flush();
-
     Args.GetReturnValue().Set(Args.Holder());
 }
 
@@ -655,7 +655,10 @@ void TNodeJsFOut::close(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::HandleScope HandleScope(Isolate);
 
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args.This());
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
+
     JsFOut->SOut->Flush();
     JsFOut->SOut.Clr();
+
     Args.GetReturnValue().Set(Args.Holder());
 }

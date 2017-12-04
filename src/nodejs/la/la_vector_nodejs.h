@@ -1491,6 +1491,7 @@ void TNodeJsVec<TVal, TAux>::save(const v8::FunctionCallbackInfo<v8::Value>& Arg
         "Expected a TNodeJsFOut object");
     TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     PSOut SOut = JsFOut->SOut;
     JsVec->Vec.Save(*SOut);
 
@@ -1521,6 +1522,7 @@ void TNodeJsVec<TVal, TAux>::saveascii(const v8::FunctionCallbackInfo<v8::Value>
         "Expected a TNodeJsFOut object");
     TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     PSOut SOut = JsFOut->SOut;
     const int Rows = JsVec->Vec.Len();
     for (int RowId = 0; RowId < Rows; RowId++) {
@@ -1540,6 +1542,7 @@ inline void TNodeJsVec<PJsonVal, TAuxJsonV>::saveascii(const v8::FunctionCallbac
         "Expected a TNodeJsFOut object");
     TNodeJsJsonV* JsVec = ObjectWrap::Unwrap<TNodeJsJsonV>(Args.Holder());
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     PSOut SOut = JsFOut->SOut;
     const int Rows = JsVec->Vec.Len();
     for (int RowId = 0; RowId < Rows; RowId++) {
