@@ -23,7 +23,7 @@ const TStr TAuxJsonV::ClassId = "JsonVector";
 // NodeJs-Qminer-FltVV
 v8::Persistent<v8::Function> TNodeJsFltVV::Constructor;
 
-void TNodeJsFltVV::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsFltVV::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
     v8::Local<v8::FunctionTemplate> Tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsFltVV>);
@@ -85,7 +85,7 @@ TNodeJsFltVV* TNodeJsFltVV::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value
     TFltVV Mat;
     if (Args.Length() > 0) {
         if (Args[0]->IsArray()) {
-            v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
+            v8::Local<v8::Array> Array = v8::Local<v8::Array>::Cast(Args[0]);
             int Rows = Array->Length();
             if (Rows > 0) {
                 // are the objects arrays
@@ -93,7 +93,7 @@ TNodeJsFltVV* TNodeJsFltVV::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value
                 for (int RowN = 0; RowN < Rows; RowN++) {
                     EAssertR(Array->Get(RowN)->IsArray(),
                         "Object is not an array of arrays in TJsLinAlg::newMat()");
-                    v8::Handle<v8::Array> Row = v8::Handle<v8::Array>::Cast(Array->Get(RowN));
+                    v8::Local<v8::Array> Row = v8::Local<v8::Array>::Cast(Array->Get(RowN));
                     if (RowN == 0) {
                         Cols = Row->Length();
                         Mat.Gen(Rows, Cols);
@@ -642,6 +642,7 @@ void TNodeJsFltVV::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
         "Expected a TNodeJsFOut object");
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     PSOut SOut = JsFOut->SOut;
     // Save to stream
     JsFltVV->Mat.Save(*SOut);
@@ -672,6 +673,7 @@ void TNodeJsFltVV::saveascii(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
         "Expected a TNodeJsFOut object");
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     PSOut SOut = JsFOut->SOut;
     TLinAlgIO::SaveMatlabTFltVV(JsFltVV->Mat, *SOut);
 
@@ -717,7 +719,7 @@ void TNodeJsFltVV::rows(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo
 // Sparse-Vector
 v8::Persistent<v8::Function> TNodeJsSpVec::Constructor;
 
-void TNodeJsSpVec::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsSpVec::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     // template for creating function from javascript using "new", uses _NewJs callback
@@ -782,11 +784,11 @@ TNodeJsSpVec* TNodeJsSpVec::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value
     if (Args.Length() > 0) {
         // If we got Javascript array on the input: vector.new([1,2,3])
         if (Args[0]->IsArray()) {
-            v8::Handle<v8::Array> Arr = v8::Handle<v8::Array>::Cast(Args[0]);
+            v8::Local<v8::Array> Arr = v8::Local<v8::Array>::Cast(Args[0]);
             const int Len = Arr->Length();
             for (int ElN = 0; ElN < Len; ++ElN) {
                 EAssertR(Arr->Get(ElN)->IsArray(), "TNodeJsSpVec::New: array constructor, found an element which is not an array (should be an array with two elements)");
-                v8::Handle<v8::Array> CrrArr = v8::Handle<v8::Array>::Cast(Arr->Get(ElN));
+                v8::Local<v8::Array> CrrArr = v8::Local<v8::Array>::Cast(Arr->Get(ElN));
                 EAssertR(CrrArr->Length() == 2 && CrrArr->Get(0)->IsInt32() &&
                     CrrArr->Get(1)->IsNumber(), "Expected a key-value pair.");
                 Vec.Add(TIntFltKd(
@@ -1055,7 +1057,7 @@ void TNodeJsSpVec::dim(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<
 // NodeJs-QMiner-Sparse-Col-Matrix
 v8::Persistent<v8::Function> TNodeJsSpMat::Constructor;
 
-void TNodeJsSpMat::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsSpMat::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     // template for creating function from javascript using "new", uses _NewJs callback
@@ -1139,16 +1141,16 @@ TNodeJsSpMat* TNodeJsSpMat::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value
                 RowIdxV->Vec, ColIdxV->Vec, ValV->Vec, Mat, Cols);
         }
         else if (Args[0]->IsArray()) {
-            v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(Args[0]);
+            v8::Local<v8::Array> Array = v8::Local<v8::Array>::Cast(Args[0]);
             int Cols = Array->Length();
             Mat.Gen(Cols);
             for (int ColN = 0; ColN < Cols; ColN++) {
                 if (Array->Get(ColN)->IsArray()) {
-                    v8::Handle<v8::Array> SpVecArray = v8::Handle<v8::Array>::Cast(Array->Get(ColN));
+                    v8::Local<v8::Array> SpVecArray = v8::Local<v8::Array>::Cast(Array->Get(ColN));
                     int Els = SpVecArray->Length();
                     for (int ElN = 0; ElN < Els; ElN++) {
                         if (SpVecArray->Get(ElN)->IsArray()) {
-                            v8::Handle<v8::Array> KdPair = v8::Handle<v8::Array>::Cast(SpVecArray->Get(ElN));
+                            v8::Local<v8::Array> KdPair = v8::Local<v8::Array>::Cast(SpVecArray->Get(ElN));
                             if (KdPair->Length() >= 2) {
                                 if (KdPair->Get(0)->IsInt32() && KdPair->Get(1)->IsNumber() && KdPair->Get(1)->NumberValue() != 0.0) {
                                     Mat[ColN].Add(TIntFltKd(KdPair->Get(0)->Int32Value(), KdPair->Get(1)->NumberValue()));
@@ -1292,7 +1294,7 @@ void TNodeJsSpMat::indexSet(uint32_t Index, v8::Local<v8::Value> Value, const v8
 
     TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Info.Holder());
     // EAssertR(Index < (uint32_t)JsSpMat->Mat.Len(), "Sparse matrix index set: index out of bounds");
-    v8::Handle<v8::Object> ValObj = v8::Handle<v8::Object>::Cast(Value);
+    v8::Local<v8::Object> ValObj = v8::Local<v8::Object>::Cast(Value);
     JsSpMat->Mat[Index] = ObjectWrap::Unwrap<TNodeJsSpVec>(ValObj)->Vec;
     Info.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -1719,6 +1721,7 @@ void TNodeJsSpMat::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(Args.Length() <= 2 && Args[0]->IsObject(), "Expected TJsNodeFOut object");
     TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     PSOut SOut = JsFOut->SOut;
 
     bool SaveMatlab = TNodeJsUtil::GetArgBool(Args, 1, false);
