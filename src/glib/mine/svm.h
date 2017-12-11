@@ -12,8 +12,6 @@
 #include "../base/base.h"
 #include "libsvm.h"
 
-#include "../../qminer/qminer_core.h"
-
 namespace TSvm {
 
 class TSvmModel {

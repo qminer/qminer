@@ -54,7 +54,7 @@ TStr TNodeJsFPath::GetCanonicalPath(const TStr& FPath) {
 
 ///////////////////////////////
 // NodeJs-Filesystem
-void TNodeJsFs::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsFs::Init(v8::Local<v8::Object> exports) {
     // Add all prototype methods, getters and setters here.
     NODE_SET_METHOD(exports, "openRead", _openRead);
     NODE_SET_METHOD(exports, "openWrite", _openWrite);
@@ -100,8 +100,8 @@ void TNodeJsFs::TReadLinesCallback::Run() {
     }
 }
 
-TNodeJsFs::TReadCsvTask::TReadCsvTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool&):
-            TNodeTask(Args),
+TNodeJsFs::TReadCsvTask::TReadCsvTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync):
+            TNodeTask(Args, IsAsync),
             LinesCallback(nullptr) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
@@ -138,7 +138,7 @@ TNodeJsFs::TReadCsvTask::~TReadCsvTask() {
     TNodeJsAsyncUtil::DelHandle(LinesHandle);
 }
 
-v8::Handle<v8::Function> TNodeJsFs::TReadCsvTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+v8::Local<v8::Function> TNodeJsFs::TReadCsvTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     return TNodeJsUtil::GetArgFun(Args, 3);
 }
 
@@ -297,7 +297,7 @@ void TNodeJsFs::fileInfo(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     const uint64 LastAccessTm = TFile::GetLastAccessTm(FNm);
     const uint64 LastWriteTm = TFile::GetLastWriteTm(FNm);
     const uint64 Size = TFile::GetSize(FNm);
-    v8::Handle<v8::Object> Obj = v8::Object::New(Isolate);
+    v8::Local<v8::Object> Obj = v8::Object::New(Isolate);
     Obj->Set(v8::String::NewFromUtf8(Isolate, "createTime"),
         v8::String::NewFromUtf8(Isolate, TTm::GetTmFromMSecs(CreateTm).GetWebLogDateTimeStr().CStr()));
     Obj->Set(v8::String::NewFromUtf8(Isolate, "lastAccessTime"),
@@ -348,7 +348,7 @@ void TNodeJsFs::listFile(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TStrV FNmV;
     TFFile::GetFNmV(FPath, FExtV, RecurseP, FNmV);
     FNmV.Sort();
-    v8::Handle<v8::Array> FNmArr = v8::Array::New(Isolate, FNmV.Len());
+    v8::Local<v8::Array> FNmArr = v8::Array::New(Isolate, FNmV.Len());
     for(int FldN = 0; FldN < FNmV.Len(); ++FldN) {
         FNmArr->Set(v8::Integer::New(Isolate, FldN), v8::String::NewFromUtf8(Isolate, FNmV.GetVal(FldN).CStr()));
     }
@@ -380,8 +380,8 @@ void TNodeJsFs::readLines(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         SIn = new TThinMIn(Buff, (int)BuffLen);
     }
 
-    v8::Handle<v8::Function> LineCallback = TNodeJsUtil::GetArgFun(Args, 1);
-    v8::Handle<v8::Function> EndCallback = TNodeJsUtil::GetArgFun(Args, 2);
+    v8::Local<v8::Function> LineCallback = TNodeJsUtil::GetArgFun(Args, 1);
+    v8::Local<v8::Function> EndCallback = TNodeJsUtil::GetArgFun(Args, 2);
 
     TStr LineStr;
     while (SIn->GetNextLn(LineStr)) {
@@ -405,7 +405,7 @@ void TNodeJsFs::readLines(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 // NodeJs-FIn
 v8::Persistent<v8::Function> TNodeJsFIn::Constructor;
 
-void TNodeJsFIn::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsFIn::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     // template for creating function from javascript using "new", uses _NewJs callback
@@ -543,7 +543,7 @@ void TNodeJsFIn::length(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo
 // NodeJs-FOut
 v8::Persistent<v8::Function> TNodeJsFOut::Constructor;
 
-void TNodeJsFOut::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsFOut::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     // template for creating function from javascript using "new", uses _NewJs callback
@@ -645,8 +645,8 @@ void TNodeJsFOut::flush(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::HandleScope HandleScope(Isolate);
 
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args.This());
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
     JsFOut->SOut->Flush();
-
     Args.GetReturnValue().Set(Args.Holder());
 }
 
@@ -655,7 +655,10 @@ void TNodeJsFOut::close(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::HandleScope HandleScope(Isolate);
 
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args.This());
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
+
     JsFOut->SOut->Flush();
     JsFOut->SOut.Clr();
+
     Args.GetReturnValue().Set(Args.Holder());
 }

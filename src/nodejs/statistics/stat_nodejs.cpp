@@ -10,7 +10,7 @@
 ///////////////////////////////
 // NodeJs-QMiner-Stat
 
-void TNodeJsStat::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsStat::Init(v8::Local<v8::Object> exports) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
 
