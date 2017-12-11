@@ -33,7 +33,7 @@
 class TNodeJsQm : public node::ObjectWrap {
 public:
     // Node framework
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     // TNodeJsRec needs this to select a template. TODO remove, see comment in
     //   v8::Local<v8::Object> TNodeJsRec::New(const TQm::TRec& Rec, const TInt& _Fq)
     static THash<TStr, TUInt> BaseFPathToId;
@@ -434,7 +434,7 @@ private:
     ~TNodeJsBase() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
     static const int MAX_BASES;
-    static void Init(v8::Handle<v8::Object> Exports);
+    static void Init(v8::Local<v8::Object> Exports);
     static const TStr GetClassId() { return "Base"; }
     // wrapped C++ object
     TWPt<TQm::TBase> Base;
@@ -958,7 +958,7 @@ private:
     ~TNodeJsStore() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
     // Node framework
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "Store"; }
     // Wrapped C++ object
     TWPt<TQm::TStore> Store;
@@ -1913,7 +1913,7 @@ private:
     ~TNodeJsRecByValV() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
     // Node framework
-    static void Init(v8::Handle<v8::Object> Exports);
+    static void Init(v8::Local<v8::Object> Exports);
     static const TStr GetClassId() { return "RecordVector"; }
     // Object that knows if Base is valid
     PNodeJsBaseWatcher Watcher;
@@ -2020,7 +2020,7 @@ private:
     ~TNodeJsRecSet() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
     // Node framework
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "RecSet"; }
     // C++ wrapped object
     TQm::PRecSet RecSet;
@@ -2915,7 +2915,7 @@ private:
 
 public:
     // Node framework
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "StoreIter"; }
 
     // C++ wrapped object
@@ -2995,7 +2995,7 @@ private:
     v8::Persistent<v8::Function> Callback;
 
 public:
-    TJsRecFilter(TWPt<TQm::TStore> _Store, v8::Handle<v8::Function> _Callback);
+    TJsRecFilter(TWPt<TQm::TStore> _Store, v8::Local<v8::Function> _Callback);
     /// We need to clean reference to callback
     ~TJsRecFilter() { Callback.Reset(); }
     /// Filter function
@@ -3012,7 +3012,7 @@ private:
     v8::Persistent<v8::Function> Callback;
 
 public:
-    TJsRecPairFilter(TWPt<TQm::TStore> _Store, v8::Handle<v8::Function> _Callback);
+    TJsRecPairFilter(TWPt<TQm::TStore> _Store, v8::Local<v8::Function> _Callback);
     /// We need to clean reference to callback
     ~TJsRecPairFilter() { Callback.Reset(); }
     /// Comparator
@@ -3029,7 +3029,7 @@ private:
     ~TNodeJsIndexKey() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
     // Node framework
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "IndexKey"; }
     // C++ wrapped object
     TWPt<TQm::TStore> Store;
@@ -3058,12 +3058,12 @@ class TNodeJsFuncFtrExt : public TQm::TFtrExt, public node::ObjectWrap {
 private:
     // private constructor
     TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal,
-        const v8::Handle<v8::Function> _Fun, v8::Isolate* Isolate);
+        const v8::Local<v8::Function> _Fun, v8::Isolate* Isolate);
     ~TNodeJsFuncFtrExt() { Fun.Reset(); }
 public:
     // public smart pointer
     static TQm::PFtrExt NewFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal,
-        const v8::Handle<v8::Function>& Fun, v8::Isolate* Isolate);
+        const v8::Local<v8::Function>& Fun, v8::Isolate* Isolate);
 private:
     // Core part
     TInt Dim;
@@ -3513,7 +3513,7 @@ private:
     ~TNodeJsFtrSpace() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
     // Node framework
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "FeatureSpace"; }
 
     TQm::PFtrSpace FtrSpace;
@@ -3530,9 +3530,9 @@ private:
         TNodeJsRecByValV* JsRecV;
 
     public:
-        TUpdateRecsTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool&);
+        TUpdateRecsTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
 
-        v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
     };
 
@@ -3543,9 +3543,9 @@ private:
         TNodeJsFltVV* JsFtrVV;
 
     public:
-        TExtractMatrixTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool&);
+        TExtractMatrixTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
 
-        v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
         v8::Local<v8::Value> WrapResult();
     };
@@ -4118,7 +4118,7 @@ public:
 private:
     static TQm::PFtrExt NewFtrExtFromFunc(const TWPt<TQm::TBase>& Base, v8::Local<v8::Object>& Settings, v8::Isolate* Isolate) {
         PJsonVal ParamVal = TNodeJsUtil::GetObjProps(Settings);
-        v8::Handle<v8::Function> Func = v8::Handle<v8::Function>::Cast(Settings->Get(v8::String::NewFromUtf8(Isolate, "fun")));
+        v8::Local<v8::Function> Func = v8::Local<v8::Function>::Cast(Settings->Get(v8::String::NewFromUtf8(Isolate, "fun")));
         return TNodeJsFuncFtrExt::NewFtrExt(Base, ParamVal, Func, Isolate);
     }
 };

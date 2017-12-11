@@ -29,7 +29,7 @@
 class TNodeJsAnalytics : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
 
 private:
     class TNMFTask : public TNodeTask {
@@ -44,9 +44,9 @@ private:
         TWPt<TNotify> Notify;
 
     public:
-        TNMFTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool&);
+        TNMFTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
 
-        v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
         v8::Local<v8::Value> WrapResult();
     };
@@ -194,7 +194,7 @@ private:
 
 class TNodeJsSVC : public TNodeJsSvmModel {
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
 
     /**
     * Gets the SVC parameters.
@@ -374,7 +374,7 @@ public:
 
 class TNodeJsSVR : public TNodeJsSvmModel {
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
 
     /**
     * Gets the SVR parameters.
@@ -559,7 +559,7 @@ public:
 class TNodeJsRidgeReg : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "RidgeReg"; }
     ~TNodeJsRidgeReg() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 
@@ -744,7 +744,7 @@ public:
 class TNodeJsSigmoid : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "Sigmoid"; }
     ~TNodeJsSigmoid() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 
@@ -938,7 +938,7 @@ public:
 class TNodeJsNNAnomalies : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "NearestNeighborAD"; }
     ~TNodeJsNNAnomalies() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 
@@ -1211,7 +1211,7 @@ private:
     TSignalProc::POnlineLinReg Model;
     TNodeJsRecLinReg(const TSignalProc::POnlineLinReg& Model);
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "RecLinReg"; }
     ~TNodeJsRecLinReg() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 private:
@@ -1410,7 +1410,7 @@ private:
 class TNodeJsLogReg : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "LogReg"; }
     ~TNodeJsLogReg() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 
@@ -1574,7 +1574,7 @@ public:
 class TNodeJsPropHaz : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "PropHazards"; }
     ~TNodeJsPropHaz() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 
@@ -1757,7 +1757,7 @@ private:
     static TNodeJsNNet* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "NNet"; }
     ~TNodeJsNNet() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 
@@ -1898,7 +1898,7 @@ private:
     TNodeJsTokenizer(const PTokenizer& _Tokenizer):
         Tokenizer(_Tokenizer) { }
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "Tokenizer"; }
     ~TNodeJsTokenizer() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
     static TNodeJsTokenizer* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
@@ -2004,7 +2004,7 @@ public:
 class TNodeJsMDS : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "MDS"; }
     ~TNodeJsMDS() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 
@@ -2028,9 +2028,9 @@ private:
         TWPt<TNotify> Notify;
 
     public:
-        TFitTransformTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool&);
+        TFitTransformTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
 
-        v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
         v8::Local<v8::Value> WrapResult();
     };
@@ -2174,7 +2174,7 @@ private:
 class TNodeJsKMeans : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "KMeans"; }
 
 private:
@@ -2221,9 +2221,9 @@ private:
         TNodeJsIntV*   JsArr;
 
     public:
-        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool&);
+        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
 
-        v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
     };
 
@@ -2502,7 +2502,7 @@ private:
 class TNodeJsDpMeans : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "DpMeans"; }
 
     using TDenseModel = TClustering::TDpMeans<TFltVV>;
@@ -2556,9 +2556,9 @@ private:
         TNodeJsIntV*   JsArr {nullptr};
 
     public:
-        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool&);
+        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
 
-        v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
     };
 
@@ -2843,7 +2843,7 @@ private:
 class TNodeJsTDigest : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "TDigest"; }
 
 private:
@@ -3044,7 +3044,7 @@ public:
 class TNodeJsGk : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "Gk"; }
 
 private:
@@ -3215,7 +3215,7 @@ public:
 class TNodeJsBiasedGk : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "BiasedGk"; }
 
 private:
@@ -3397,7 +3397,7 @@ private:
 class TNodeJsCountWindowGk : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "CountWindowGk"; }
 
 private:
@@ -3571,7 +3571,7 @@ public:
 class TNodeJsTimeWindowGk : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "TimeWindowGk"; }
 
 private:
@@ -3727,7 +3727,7 @@ public:
 class TNodeJsRecommenderSys : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "RecommenderSys"; }
     ~TNodeJsRecommenderSys() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 
@@ -3753,9 +3753,9 @@ private:
         TNodeJsSpMat*  JsSpVV;
 
     public:
-        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool&);
+        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
 
-        v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
     };
 
@@ -3881,7 +3881,7 @@ private:
 class TNodeJsGraphCascade : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "GraphCascade"; }
     ~TNodeJsGraphCascade() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 

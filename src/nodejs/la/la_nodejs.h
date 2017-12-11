@@ -31,7 +31,7 @@
 class TNodeJsLinAlg : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
 
 private:
 
@@ -47,9 +47,9 @@ private:
         double Tol;
 
     public:
-        TSVDTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool&);
+        TSVDTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
 
-        v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
         v8::Local<v8::Value> WrapResult();
     };

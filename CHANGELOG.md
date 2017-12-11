@@ -1,5 +1,15 @@
 # QMiner Change Log
 
+## 8 December 2017
+
+**Version 9.1.1**
+
+**Non-breaking with bug fixes**
+
+Bugfix:
+- Replaced deprecated v8 API usages 
+- Assert output stream not closed before write or close
+
 ## 1 December 2017
 
 **Version 9.1.0**
