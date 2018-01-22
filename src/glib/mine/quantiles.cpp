@@ -1103,9 +1103,6 @@ namespace TQuant {
         const TGk& Dist1 = *this;
         const TGk& Dist2 = Other;
 
-        /* const TSummary& Summary1 = Dist1.Summary; */
-        /* const TSummary& Summary2 = Dist2.Summary; */
-
         const int TotalVals = Dist1.GetSummarySize() + Dist2.GetSummarySize();
 
         TFltV ValV;
@@ -1134,51 +1131,6 @@ namespace TQuant {
                 MxDiff = TMath::Abs(CdfV1[ValN] - CdfV2[ValN]);
             }
         }
-
-        return MxDiff;
-
-        /* const int Summary1Size = Summary1.Len(); */
-        /* const int Summary2Size = Summary2.Len(); */
-
-        /* int ValN1 = 0; */
-        /* int ValN2 = 0; */
-
-        /* double MxDiff = 0; */
-
-        /* while (ValN1 < Summary1Size && ValN2 < Summary2Size) { */
-        /*     const double Val1 = Summary1[ValN1].GetVal(); */
-        /*     const double Val2 = Summary2[ValN2].GetVal(); */
-
-        /*     const double CurrVal = TMath::Mn(Val1, Val2); */
-
-        /*     const double Cdf1 = Dist1.GetCdf(CurrVal); */
-        /*     const double Cdf2 = Dist2.GetCdf(CurrVal); */
-
-        /*     const double Diff = TMath::Abs(Cdf1 - Cdf2); */
-
-        /*     if (Diff > MxDiff) { */
-        /*         MxDiff = Diff; */
-        /*     } */
-
-        /*     if (Val1 <= Val2) { ++ValN1; } */
-        /*     if (Val2 <= Val1) { ++ValN2; } */
-        /* } */
-        // one of the CDFs is now 1 and the other is most likely smaller
-        // the smaller one will only become more, so the difference will lessen
-        // so no further checking is necessary
-
-        /* while (ValN1 < Summary1Size) { */
-        /*     const double Val1 = Summary1[ValN1].GetVal(); */
-        /*     const double Diff = 1.0 - Dist1.GetCdf(Val1); */
-        /*     if (Diff > MxDiff) { MxDiff = Diff; } */
-        /*     ++ValN1; */
-        /* } */
-        /* while (ValN2 < Summary2Size) { */
-        /*     const double Val2 = Summary2[ValN2].GetVal(); */
-        /*     const double Diff = 1.0 - Dist2.GetCdf(Val2); */
-        /*     if (Diff > MxDiff) { MxDiff = Diff; } */
-        /*     ++ValN2; */
-        /* } */
 
         return MxDiff;
     }

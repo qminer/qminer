@@ -168,67 +168,6 @@ namespace TQuant {
         using TGkMnUncertEqRightTuple = TGkMnUncertTuple<TEqRightCmp>;
         using TGkMnUncertEqRndTuple = TGkMnUncertTuple<TEqRndCmp>;
 
-        /////////////////////////////////
-        /// A tuple used by the GK-based algorithms which
-        /// minimizes the unceirtainty of its values rank
-        ///
-        /// Values equal to the value of the tuple are
-        /// regarded to be right of it in the summary
-        /* class TGkMnUncertEqRightTuple { */
-        /* public: */
-        /*     /// creates an empty tuple */
-        /*     TGkMnUncertEqRightTuple(): MxVal() {} */
-        /*     /// creates a new tuple with a single element with given value */
-        /*     TGkMnUncertEqRightTuple(const double&); */
-        /*     /// creates a new tuple with the given right neighbour */
-        /*     /// the new tuple's uncertainty is defined as g_{i+1} + delta_{i+1} - 1 */
-        /*     TGkMnUncertEqRightTuple(const double& Val, const uint&, const TGkMnUncertEqRightTuple& RightTuple); */
-
-        /*     // SERIALIZATION */
-        /*     TGkMnUncertEqRightTuple(TSIn&); */
-        /*     void Save(TSOut&) const; */
-
-        /*     /// adds all the items the argument summarizes to its own summary */
-        /*     void Swallow(const TGkMnUncertEqRightTuple&); */
-        /*     /// adds one item to its own summary */
-        /*     void SwallowOne(); */
-
-        /*     /// returns the maximal value in the summary */
-        /*     const TFlt& GetVal() const { return MxVal; } */
-        /*     /// returns the size of the tuples' summary */
-        /*     const TUInt& GetTupleSize() const { return TupleSize; } */
-        /*     /// returns the uncertainty of the max values rank due to the merges */
-        /*     /// happening on the right of this tuple */
-        /*     const TUInt& GetUncert() const { return UncertRight; } */
-        /*     /// returns the total uncertainty of the values' rank */
-        /*     uint GetTotalUncert() const { return GetTupleSize() + GetUncert(); } */
-
-        /*     bool IsRightOf(const double& Val) const { */
-        /*         return Val < MxVal; */
-        /*     } */
-
-        /*     bool IsRightOfNegDir(const double& Val) const { */
-        /*         return Val > MxVal; */
-        /*     } */
-
-
-        /*     // DEBUGGING */
-        /*     uint64 GetMemUsed() const; */
-
-        /*     friend std::ostream& operator <<(std::ostream& os, const TGkMnUncertEqRightTuple& Tuple) { */
-        /*         return os << "<" */
-        /*                   << Tuple.GetVal() << ", " */
-        /*                   << Tuple.GetTupleSize() << "," */
-        /*                   << Tuple.GetUncert() */
-        /*                   << ">"; */
-        /*     } */
-
-        /* private: */
-        /*     TFlt MxVal;             // the max value in this tuple */
-        /*     TUInt TupleSize {1u};   // how many tuples has this tuple swallowed */
-        /*     TUInt UncertRight {};   // how many items on the right could be smaller than this tuple */
-        /* }; */
-
         ///////////////////////////////////
         /// Helper for the merge operation
         /// for basic intervals
