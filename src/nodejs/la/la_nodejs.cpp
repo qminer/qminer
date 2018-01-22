@@ -22,8 +22,8 @@ void TNodeJsLinAlg::Init(v8::Local<v8::Object> exports) {
     NODE_SET_METHOD(exports, "qr", _qr);
 }
 
-TNodeJsLinAlg::TSVDTask::TSVDTask(const v8::FunctionCallbackInfo<v8::Value>& Args) :
-        TNodeTask(Args),
+TNodeJsLinAlg::TSVDTask::TSVDTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync) :
+        TNodeTask(Args, IsAsync),
         JsFltVV(nullptr),
         JsSpVV(nullptr),
         U(nullptr),

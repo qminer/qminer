@@ -2504,6 +2504,7 @@ void TNodeJsRecByValV::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     TNodeJsRecByValV* JsRecV = ObjectWrap::Unwrap<TNodeJsRecByValV>(Args.Holder());
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
 
     // Cannot serialize directly as vector, since there is no TRec(SIn) constructor
     // that we can use to load it later. We serialize manually
@@ -4008,8 +4009,8 @@ TNodeJsFtrSpace* TNodeJsFtrSpace::NewFromArgs(const v8::FunctionCallbackInfo<v8:
     return new TNodeJsFtrSpace(FtrSpace);
 }
 
-TNodeJsFtrSpace::TUpdateRecsTask::TUpdateRecsTask(const v8::FunctionCallbackInfo<v8::Value>& Args):
-        TNodeTask(Args) {
+TNodeJsFtrSpace::TUpdateRecsTask::TUpdateRecsTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync):
+        TNodeTask(Args, IsAsync) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -4037,8 +4038,8 @@ void TNodeJsFtrSpace::TUpdateRecsTask::Run() {
     }
 }
 
-TNodeJsFtrSpace::TExtractMatrixTask::TExtractMatrixTask(const v8::FunctionCallbackInfo<v8::Value>& Args):
-            TNodeTask(Args) {
+TNodeJsFtrSpace::TExtractMatrixTask::TExtractMatrixTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync):
+            TNodeTask(Args, IsAsync) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -4125,6 +4126,7 @@ void TNodeJsFtrSpace::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         PSOut SOut = TNodeJsUtil::IsArgStr(Args, 0) ?
             TFOut::New(TNodeJsUtil::GetArgStr(Args, 0), true) :
             ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject())->SOut;
+        EAssertR(!SOut.Empty(), "Output stream closed!");
 
         // save to stream
         JsFtrSpace->FtrSpace->Save(*SOut);

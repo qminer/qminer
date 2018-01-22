@@ -15,8 +15,8 @@ void TNodeJsAnalytics::Init(v8::Local<v8::Object> exports) {
     NODE_SET_METHOD(exports, "nmfAsync", _nmfAsync);
 }
 
-TNodeJsAnalytics::TNMFTask::TNMFTask(const v8::FunctionCallbackInfo<v8::Value>& Args) :
-        TNodeTask(Args),
+TNodeJsAnalytics::TNMFTask::TNMFTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync) :
+        TNodeTask(Args, IsAsync),
         JsFltVV(nullptr),
         JsSpVV(nullptr),
         U(nullptr),
@@ -154,7 +154,7 @@ void TNodeJsSvmModel::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args)
     try {
         TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
         PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
-        
+
         if (ParamVal->IsObjKey("algorithm")) { throw TExcept::New("svm.setParams: cannot safely change algorithm"); }
         else { JsModel->UpdateParams(ParamVal); }
 
@@ -210,6 +210,7 @@ void TNodeJsSvmModel::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
         // get output stream from argumetns
         TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+        EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
         // save model
         JsModel->Save(*JsFOut->SOut);
         // return output stream for convenience
@@ -228,7 +229,7 @@ void TNodeJsSvmModel::decisionFunction(const v8::FunctionCallbackInfo<v8::Value>
 
     try {
         TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
-        
+
         if ((JsModel->Model->GetWgtV()).Len() == 0) {
             throw TExcept::New("svm.decisionFunction: fit was not called yet");
         }
@@ -277,7 +278,7 @@ void TNodeJsSvmModel::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     try {
         TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
-        
+
         if ((JsModel->Model->GetWgtV()).Len() == 0) {
             throw TExcept::New("svm.predict: fit was not called yet");
         }
@@ -319,7 +320,7 @@ void TNodeJsSvmModel::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 void TNodeJsSvmModel::UpdateParams(const PJsonVal& ParamVal) {
     if (ParamVal->IsObjKey("algorithm")) { Algorithm = ParamVal->GetObjStr("algorithm"); }
-    if (!Model) { 
+    if (!Model) {
         if (Algorithm == "LIBSVM") { Model = new TSvm::TLibSvmModel(); }
         else { Model = new TSvm::TLinModel(); }
     }
@@ -386,7 +387,7 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             TVec<TIntFltKdV>& VecV = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject())->Mat;
             if (JsModel->Algorithm == "SGD" || JsModel->Algorithm == "LIBSVM") {
                 JsModel->Model->FitClassification(VecV, TLinAlgSearch::GetMaxDimIdx(VecV) + 1,
-                    VecV.Len(), ClsV);
+                    VecV.Len(), ClsV, TQm::TEnv::Debug, TQm::TEnv::Error);
             }
             else {
                 throw TExcept::New("SVC.fit: unknown algorithm " + JsModel->Algorithm);
@@ -395,7 +396,8 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         else if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
             TFltVV& VecV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject())->Mat;
             if (JsModel->Algorithm == "SGD" || JsModel->Algorithm == "LIBSVM") {
-                JsModel->Model->FitClassification(VecV, VecV.GetRows(), VecV.GetCols(), ClsV);
+                JsModel->Model->FitClassification(VecV, VecV.GetRows(),
+                    VecV.GetCols(), ClsV, TQm::TEnv::Debug, TQm::TEnv::Error);
             }
             else {
                 throw TExcept::New("SVC.fit: unknown algorithm " + JsModel->Algorithm);
@@ -446,7 +448,7 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     try {
         TNodeJsSvmModel* JsModel = ObjectWrap::Unwrap<TNodeJsSvmModel>(Args.Holder());
-   
+
         // check target vector is actually a vector
         EAssertR(TNodeJsUtil::IsArgWrapObj<TNodeJsFltV>(Args, 1), "SVR.fit: second argument expected to be la.Vector!");
         TFltV& ClsV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltV>(Args, 1)->Vec;
@@ -456,7 +458,7 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             TVec<TIntFltKdV>& VecV = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject())->Mat;
             if (JsModel->Algorithm == "SGD" || JsModel->Algorithm == "LIBSVM") {
                 JsModel->Model->FitRegression(VecV, TLinAlgSearch::GetMaxDimIdx(VecV) + 1,
-                    VecV.Len(), ClsV);
+                    VecV.Len(), ClsV, TQm::TEnv::Debug, TQm::TEnv::Error);
             }
             else {
                 throw TExcept::New("SVR.fit: unknown algorithm " + JsModel->Algorithm);
@@ -466,7 +468,7 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             TFltVV& VecV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject())->Mat;
             if (JsModel->Algorithm == "SGD" || JsModel->Algorithm == "LIBSVM") {
                 JsModel->Model->FitRegression(VecV, VecV.GetRows(),
-                    VecV.GetCols(), ClsV);
+                    VecV.GetCols(), ClsV, TQm::TEnv::Debug, TQm::TEnv::Error);
             }
             else {
                 throw TExcept::New("SVR.fit: unknown algorithm " + JsModel->Algorithm);
@@ -617,7 +619,7 @@ void TNodeJsRidgeReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Args.Holder());
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
-
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     JsModel->Model.Save(*JsFOut->SOut);
 
     Args.GetReturnValue().Set(Args[0]);
@@ -767,7 +769,7 @@ void TNodeJsSigmoid::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     TNodeJsSigmoid* JsModel = ObjectWrap::Unwrap<TNodeJsSigmoid>(Args.Holder());
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
-
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     JsModel->Sigmoid.Save(*JsFOut->SOut);
 
     Args.GetReturnValue().Set(Args[0]);
@@ -891,6 +893,7 @@ void TNodeJsNNAnomalies::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(Args.Length() == 1, "NearestNeighborAD.save: expects 1 argument!");
     // get the arguments
     TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     // save model
     JsModel->Save(*JsFOut->SOut);
     // return fout
@@ -1196,6 +1199,7 @@ void TNodeJsRecLinReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     }
     else {
         TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+        EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
         SOut = JsFOut->SOut;
     }
 
@@ -1372,7 +1376,7 @@ void TNodeJsLogReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     TNodeJsLogReg* JsModel = ObjectWrap::Unwrap<TNodeJsLogReg>(Args.Holder());
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
-
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     JsModel->LogReg.Save(*JsFOut->SOut);
 
     Args.GetReturnValue().Set(Args[0]);
@@ -1513,7 +1517,7 @@ void TNodeJsPropHaz::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     TNodeJsPropHaz* JsModel = ObjectWrap::Unwrap<TNodeJsPropHaz>(Args.Holder());
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
-
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     JsModel->Model.Save(*JsFOut->SOut);
 
     Args.GetReturnValue().Set(Args[0]);
@@ -1754,7 +1758,7 @@ void TNodeJsNNet::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
         EAssertR(Args.Length() == 1, "Should have 1 argument!");
         TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
-
+        EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
         PSOut SOut = JsFOut->SOut;
 
         Model->Model->Save(*SOut);
@@ -1972,8 +1976,8 @@ TNodeJsMDS* TNodeJsMDS::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& A
     }
 }
 
-TNodeJsMDS::TFitTransformTask::TFitTransformTask(const v8::FunctionCallbackInfo<v8::Value>& Args):
-        TNodeTask(Args),
+TNodeJsMDS::TFitTransformTask::TFitTransformTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync):
+        TNodeTask(Args, IsAsync),
         JsMDS(nullptr),
         JsFltVV(nullptr),
         JsSpVV(nullptr),
@@ -2087,6 +2091,7 @@ void TNodeJsMDS::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TNodeJsMDS* JsMDS = ObjectWrap::Unwrap<TNodeJsMDS>(Args.Holder());
         // get output stream from argumetns
         TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+        EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
         // save model
         JsMDS->Save(*JsFOut->SOut);
         // return output stream for convenience
@@ -2444,8 +2449,8 @@ void TNodeJsKMeans::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     }
 }
 
-TNodeJsKMeans::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args) :
-        TNodeTask(Args),
+TNodeJsKMeans::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync) :
+        TNodeTask(Args, IsAsync),
         JsKMeans(nullptr),
         JsFltVV(nullptr),
         JsSpVV(nullptr),
@@ -2871,6 +2876,7 @@ void TNodeJsKMeans::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TNodeJsKMeans* JsKMeans = ObjectWrap::Unwrap<TNodeJsKMeans>(Args.Holder());
         // get output stream from argumetns
         TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+        EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
         // save model
         JsKMeans->Save(*JsFOut->SOut);
         // return output stream for convenience
@@ -3314,8 +3320,8 @@ void TNodeJsDpMeans::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) 
     }
 }
 
-TNodeJsDpMeans::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args) :
-        TNodeTask(Args) {
+TNodeJsDpMeans::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync) :
+        TNodeTask(Args, IsAsync) {
 
     JsDpMeans = ObjectWrap::Unwrap<TNodeJsDpMeans>(Args.Holder());
 
@@ -3734,6 +3740,7 @@ void TNodeJsDpMeans::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TNodeJsDpMeans* JsDpMeans = ObjectWrap::Unwrap<TNodeJsDpMeans>(Args.Holder());
         // get output stream from argumetns
         TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+        EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
         // save model
         JsDpMeans->Save(*JsFOut->SOut);
         // return output stream for convenience
@@ -3964,6 +3971,7 @@ void TNodeJsTDigest::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TNodeJsTDigest* JsTDigest = ObjectWrap::Unwrap<TNodeJsTDigest>(Args.Holder());
     // get output stream from arguments
     TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     // save model
     JsTDigest->Model.SaveState(*JsFOut->SOut);
     // return output stream for convenience
@@ -4129,6 +4137,7 @@ void TNodeJsGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     const TQuant::TGk& Gk = JsGk->Gk;
 
     TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     Gk.Save(*JsFOut->SOut);
 
     // return the output stream
@@ -4304,6 +4313,7 @@ void TNodeJsBiasedGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     const TQuant::TBiasedGk& Gk = JsGk->Gk;
 
     TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     Gk.Save(*JsFOut->SOut);
 
     // return the output stream
@@ -4447,6 +4457,7 @@ void TNodeJsCountWindowGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args)
     const TQuant::TCountWindowGk& Gk = JsGk->Gk;
 
     TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     Gk.Save(*JsFOut->SOut);
 
     // return the output stream
@@ -4568,6 +4579,7 @@ void TNodeJsTimeWindowGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args) 
     const TQuant::TTimeWindowGk& Gk = JsGk->Gk;
 
     TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     Gk.Save(*JsFOut->SOut);
 
     // return the output stream
@@ -4717,8 +4729,8 @@ void TNodeJsRecommenderSys::getModel(const v8::FunctionCallbackInfo<v8::Value>& 
     Args.GetReturnValue().Set(JsObj);
 }
 
-TNodeJsRecommenderSys::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args) :
-    TNodeTask(Args),
+TNodeJsRecommenderSys::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync) :
+    TNodeTask(Args, IsAsync),
     JsRecSys(nullptr),
     JsFltVV(nullptr),
     JsSpVV(nullptr) {
@@ -4776,6 +4788,7 @@ void TNodeJsRecommenderSys::save(const v8::FunctionCallbackInfo<v8::Value>& Args
         TNodeJsRecommenderSys* JsRecSys = ObjectWrap::Unwrap<TNodeJsRecommenderSys>(Args.Holder());
         // get output stream from arguments
         TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+        EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
         // save model
         JsRecSys->Save(*JsFOut->SOut);
         // return output stream for convenience

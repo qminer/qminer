@@ -903,10 +903,11 @@ TNodeJsAsyncUtil::TMainBlockTaskWrapper::TMainBlockTaskWrapper(TMainThreadTask* 
         TMainTaskWrapper(Task, DelTask),
         Semaphore() {}
 
-TNodeTask::TNodeTask(const v8::FunctionCallbackInfo<v8::Value>& Args):
+TNodeTask::TNodeTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync):
         Callback(),
         ArgPersist(),
-        Except() {
+        Except(),
+        AsyncP(IsAsync) {
 
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
@@ -945,7 +946,8 @@ void TNodeTask::AfterRun() {
     if (HasExcept()) {
         TNodeJsUtil::ExecuteErr(Fun, Except);
     } else {
-        TNodeJsUtil::ExecuteVoid(Fun, v8::Undefined(Isolate), WrapResult());
+        v8::Local<v8::Value> Result = WrapResult();
+        TNodeJsUtil::ExecuteVoid(Fun, v8::Undefined(Isolate), Result);
     }
 }
 

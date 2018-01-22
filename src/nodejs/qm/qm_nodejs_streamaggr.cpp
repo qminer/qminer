@@ -290,6 +290,7 @@ void TNodeJsStreamAggr::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     // unwrap
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
     TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     // save
     JsSA->SA->SaveState(*JsFOut->SOut);
     JsFOut->SOut->Flush();
@@ -1206,6 +1207,7 @@ void TNodeJsFuncStreamAggr::SaveState(TSOut& SOut) const {
 
         PSOut POut(&SOut);
         TNodeJsFOut* FOut = new TNodeJsFOut(POut);
+        EAssertR(!FOut->SOut.Empty(), "Output stream closed!");
         v8::Local<v8::Object> JsFOut = TNodeJsUtil::NewInstance<TNodeJsFOut>(FOut);
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, SaveFun);

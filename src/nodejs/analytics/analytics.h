@@ -44,7 +44,7 @@ private:
         TWPt<TNotify> Notify;
 
     public:
-        TNMFTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        TNMFTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
 
         v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
@@ -2028,7 +2028,7 @@ private:
         TWPt<TNotify> Notify;
 
     public:
-        TFitTransformTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        TFitTransformTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
 
         v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
@@ -2221,7 +2221,7 @@ private:
         TNodeJsIntV*   JsArr;
 
     public:
-        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
 
         v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
@@ -2556,7 +2556,7 @@ private:
         TNodeJsIntV*   JsArr {nullptr};
 
     public:
-        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
 
         v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
@@ -3753,7 +3753,7 @@ private:
         TNodeJsSpMat*  JsSpVV;
 
     public:
-        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
 
         v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();

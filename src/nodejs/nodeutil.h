@@ -126,7 +126,7 @@
     static void Function(const v8::FunctionCallbackInfo<v8::Value>& Args) { \
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();   \
         v8::HandleScope HandleScope(Isolate);   \
-        TTask* Task = new TTask(Args);  \
+        TTask* Task = new TTask(Args, true);  \
         Task->ExtractCallback(Args);    \
         TNodeJsAsyncUtil::ExecuteOnWorker(Task);    \
         Args.GetReturnValue().Set(v8::Undefined(Isolate));  \
@@ -137,7 +137,7 @@
     static void Function(const v8::FunctionCallbackInfo<v8::Value>& Args) { \
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();   \
         v8::HandleScope HandleScope(Isolate);   \
-        TTask Task(Args);   \
+        TTask Task(Args, false);   \
         Task.Run(); \
         Task.AfterRunSync(Args);    \
     };  \
@@ -403,12 +403,15 @@ private:
     v8::Persistent<v8::Function> Callback;
     v8::Persistent<v8::Array> ArgPersist;
     PExcept Except;
+    bool AsyncP;
 
 public:
-    TNodeTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+    TNodeTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
     virtual ~TNodeTask();
-
+    /// extracts the callback argument from `Args`
     virtual v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) = 0;
+    /// wraps the result as a v8 object so it can be passed either to the
+    /// callback or returned
     virtual v8::Local<v8::Value> WrapResult();
 
     void AfterRun();
@@ -416,9 +419,12 @@ public:
 
     void ExtractCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
-    void SetExcept(const PExcept& _Except) { Except = _Except; }
+    /// sets an exception which happened during task execution
+    /// the exception is either passed to the callback or thrown
+    virtual void SetExcept(const PExcept& _Except) { Except = _Except; }
 
 protected:
+    bool IsAsync() const { return AsyncP; }
     bool HasExcept() const { return !Except.Empty(); }
 };
 
@@ -501,8 +507,9 @@ public:
     /// method will yield an execution. For example, when ExecuteOnMain is
     /// called 5 times before a task is executed, the task will be executed only once
     /// all the other tasks will be deleted (freed)
-    static void ExecuteOnMain(TMainThreadTask* Task, TMainThreadHandle* UvAsync,
-            const bool& DelData);
+    static void ExecuteOnMain(TMainThreadTask* Task,
+            TMainThreadHandle* MainThreadHandle,
+            const bool& DelTask);
     /// executes the task on a worker thread
     static void ExecuteOnWorker(TAsyncTask* Task);
 };

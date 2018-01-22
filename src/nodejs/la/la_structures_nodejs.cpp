@@ -642,6 +642,7 @@ void TNodeJsFltVV::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
         "Expected a TNodeJsFOut object");
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     PSOut SOut = JsFOut->SOut;
     // Save to stream
     JsFltVV->Mat.Save(*SOut);
@@ -672,6 +673,7 @@ void TNodeJsFltVV::saveascii(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
         "Expected a TNodeJsFOut object");
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     PSOut SOut = JsFOut->SOut;
     TLinAlgIO::SaveMatlabTFltVV(JsFltVV->Mat, *SOut);
 
@@ -1719,6 +1721,7 @@ void TNodeJsSpMat::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(Args.Length() <= 2 && Args[0]->IsObject(), "Expected TJsNodeFOut object");
     TNodeJsSpMat* JsSpMat = ObjectWrap::Unwrap<TNodeJsSpMat>(Args.Holder());
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     PSOut SOut = JsFOut->SOut;
 
     bool SaveMatlab = TNodeJsUtil::GetArgBool(Args, 1, false);

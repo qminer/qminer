@@ -160,8 +160,8 @@ TNodeJsStreamStory* TNodeJsStreamStory::NewFromArgs(const v8::FunctionCallbackIn
     }
 }
 
-TNodeJsStreamStory::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args):
-        TNodeTask(Args),
+TNodeJsStreamStory::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync):
+        TNodeTask(Args, IsAsync),
         JsStreamStory(nullptr),
         JsObservFtrVV(nullptr),
         JsControlFtrVV(nullptr),
