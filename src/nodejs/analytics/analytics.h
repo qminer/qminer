@@ -3403,28 +3403,6 @@ public:
     JsDeclareProperty(memory);
 };
 
-class TNodeJsExactQuant : public node::ObjectWrap {
-    friend class ::TNodeJsUtil;
-public:
-    static void Init(v8::Handle<v8::Object> exports);
-    static const TStr GetClassId() { return "ExactQuant"; }
-
-private:
-    TQuant::TExact Model;
-
-    TNodeJsExactQuant();
-    ~TNodeJsExactQuant() {}
-
-    static TNodeJsExactQuant* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
-
-public:
-    JsDeclareFunction(insert);
-    JsDeclareFunction(quantile);
-    JsDeclareProperty(init);
-    JsDeclareProperty(size);
-    JsDeclareProperty(memory);
-};
-
 
 /**
 * @typedef {Object} BiasedGkParam

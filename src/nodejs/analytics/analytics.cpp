@@ -4186,7 +4186,7 @@ void TNodeJsBuffTDigest::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     Args.GetReturnValue().Set(Args[0]);
 }
 
-void TNodeJsBuffTDigest::init(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsBuffTDigest::init(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -4195,7 +4195,7 @@ void TNodeJsBuffTDigest::init(v8::Local<v8::String> Name, const v8::PropertyCall
     Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Model.GetSampleN() > 0));
 }
 
-void TNodeJsBuffTDigest::size(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsBuffTDigest::size(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -4204,7 +4204,7 @@ void TNodeJsBuffTDigest::size(v8::Local<v8::String> Name, const v8::PropertyCall
     Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Model.GetSummarySize()));
 }
 
-void TNodeJsBuffTDigest::memory(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsBuffTDigest::memory(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -4425,7 +4425,7 @@ void TNodeJsGk::init(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8
     Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Gk.GetSampleN() > 0));
 }
 
-void TNodeJsGk::size(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsGk::size(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -4452,104 +4452,6 @@ void TNodeJsGk::memory(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<
     Info.GetReturnValue().Set(v8::Integer::New(Isolate, (int) JsModel->Gk.GetMemUsed()));
 }
 
-void TNodeJsExactQuant::Init(v8::Handle<v8::Object> exports) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
-
-    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(
-            Isolate,
-            TNodeJsUtil::_NewJs<TNodeJsExactQuant>
-    );
-    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
-    // ObjectWrap uses the first internal field to store the wrapped pointer.
-    tpl->InstanceTemplate()->SetInternalFieldCount(1);
-
-    // Add all methods, getters and setters here.
-    NODE_SET_PROTOTYPE_METHOD(tpl, "insert", _insert);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "quantile", _quantile);
-
-    // properties
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "init"), _init);
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "size"), _size);
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "memory"), _memory);
-
-    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
-}
-
-TNodeJsExactQuant::TNodeJsExactQuant(): Model() {}
-
-TNodeJsExactQuant* TNodeJsExactQuant::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
-
-    return new TNodeJsExactQuant;
-}
-
-void TNodeJsExactQuant::insert(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
-
-    TNodeJsExactQuant* JsGk = ObjectWrap::Unwrap<TNodeJsExactQuant>(Args.Holder());
-    TQuant::TExact& Model = JsGk->Model;
-
-    const double Val = TNodeJsUtil::GetArgFlt(Args, 0);
-    Model.Insert(Val);
-
-    // return self
-    Args.GetReturnValue().Set(Args.Holder());
-}
-
-void TNodeJsExactQuant::quantile(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
-
-    TNodeJsExactQuant* JsGk = ObjectWrap::Unwrap<TNodeJsExactQuant>(Args.Holder());
-    const TQuant::TExact& Model = JsGk->Model;
-
-    if (TNodeJsUtil::IsArgFlt(Args, 0)) {
-        const double PVal = TNodeJsUtil::GetArgFlt(Args, 0);
-        const double Quant = Model.Query(PVal);
-
-        Args.GetReturnValue().Set(v8::Number::New(Isolate, Quant));
-    } else {
-        TFltV PValV; TNodeJsUtil::GetArgFltV(Args, 0, PValV);
-        TFltV QuantV; Model.Query(PValV, QuantV);
-
-        v8::Handle<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
-        for (int QuantN = 0; QuantN < QuantV.Len(); ++QuantN) {
-            QuantArr->Set(QuantN, v8::Number::New(Isolate, QuantV[QuantN]));
-        }
-
-        Args.GetReturnValue().Set(QuantArr);
-    }
-}
-
-void TNodeJsExactQuant::init(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
-
-    const TNodeJsExactQuant* JsModel = ObjectWrap::Unwrap<TNodeJsExactQuant>(Info.Holder());
-
-    Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Model.GetSampleN() > 0));
-}
-
-void TNodeJsExactQuant::size(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
-
-    const TNodeJsExactQuant* JsModel = ObjectWrap::Unwrap<TNodeJsExactQuant>(Info.Holder());
-
-    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Model.GetSummarySize()));
-}
-
-void TNodeJsExactQuant::memory(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
-
-    const TNodeJsExactQuant* JsModel = ObjectWrap::Unwrap<TNodeJsExactQuant>(Info.Holder());
-
-    Info.GetReturnValue().Set(v8::Number::New(Isolate, JsModel->Model.GetMemUsed()));
-}
 
 ////////////////////////////////////////////
 // CKMS algorithm for biased quantiles
@@ -4889,7 +4791,7 @@ void TNodeJsCountWindowGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args)
     Args.GetReturnValue().Set(Args[0]);
 }
 
-void TNodeJsCountWindowGk::init(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsCountWindowGk::init(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -4898,7 +4800,7 @@ void TNodeJsCountWindowGk::init(v8::Local<v8::String> Name, const v8::PropertyCa
     Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Gk.GetSampleN() > 0));
 }
 
-void TNodeJsCountWindowGk::size(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsCountWindowGk::size(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -4907,7 +4809,7 @@ void TNodeJsCountWindowGk::size(v8::Local<v8::String> Name, const v8::PropertyCa
     Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Gk.GetSummarySize()));
 }
 
-void TNodeJsCountWindowGk::memory(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsCountWindowGk::memory(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -5052,7 +4954,7 @@ void TNodeJsTimeWindowGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args) 
     Args.GetReturnValue().Set(Args[0]);
 }
 
-void TNodeJsTimeWindowGk::init(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsTimeWindowGk::init(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -5061,7 +4963,7 @@ void TNodeJsTimeWindowGk::init(v8::Local<v8::String> Name, const v8::PropertyCal
     Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Gk.GetSampleN() > 0));
 }
 
-void TNodeJsTimeWindowGk::size(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsTimeWindowGk::size(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -5070,7 +4972,7 @@ void TNodeJsTimeWindowGk::size(v8::Local<v8::String> Name, const v8::PropertyCal
     Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Gk.GetSummarySize()));
 }
 
-void TNodeJsTimeWindowGk::memory(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsTimeWindowGk::memory(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
