@@ -4,8 +4,6 @@
 #include <list>
 #include <iostream>
 #include <functional>
-#include <ext/pb_ds/assoc_container.hpp>
-#include <ext/pb_ds/tree_policy.hpp>
 
 namespace TQuant {
 
