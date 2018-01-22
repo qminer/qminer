@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -97,7 +97,7 @@ public:
     for (int ChN=0; ChN<Str.Len(); ChN++){GetCh(Str[ChN]);} return Str;}
   const char* GetStr(const char *Str){
 	int Len = (int) strlen(Str);
-    for (int ChN=0; ChN<Len; ChN++){GetCh(Str[ChN]);} 
+    for (int ChN=0; ChN<Len; ChN++){GetCh(Str[ChN]);}
 	return Str;
   }
 
@@ -227,7 +227,7 @@ void TUrl::GetAbsFromBase(const TStr& RelUrlStr, const TStr& BaseUrlStr){
   }}
 
   const char *CurDirStr="/.";
-  
+
   int OldLen;
   int NewLen;
   do {
@@ -280,7 +280,7 @@ TUrl::TUrl(const TStr& _RelUrlStr, const TStr& _BaseUrlStr):
   */
 }
 
-TUrl::TUrl(TSIn& SIn) : 
+TUrl::TUrl(TSIn& SIn) :
   Scheme(usUndef),
   UrlStr(),
   SchemeNm(), HostNm(),
@@ -322,7 +322,7 @@ void TUrl::Save(TSOut& SOut)
 
 	TBool IsHttpRq = IsHttpRqStr();
 	IsHttpRq.Save(SOut);
-	
+
 	if (IsHttpRq)
 		HttpRqStr.Save(SOut);
 }
@@ -466,6 +466,53 @@ TStr TUrl::DecodeUrlStr(const TStr& UrlStr) {
     }
   }
   return OutChA;
+}
+
+TStr TUrl::UnquoteUrlStr(const TStr& UrlStr) {
+    TChA InChA = UrlStr; TChA OutChA;
+    for (int ChN = 0; ChN<InChA.Len(); ChN++) {
+        const char Ch = InChA[ChN];
+        // if we found % then convert the next two hex chars into a single character.
+        // if we don't get two hex chars afterwars then add the original chars
+        if (Ch == '%') {
+            ChN++;
+            // string ended. add at least the %
+            if (ChN == InChA.Len()) {
+                OutChA += '%';
+                break;
+            }
+            const char FirstCh = InChA[ChN];
+            // if the char after % is not a hex value, just add the % and then check this char again in the loop
+            // (the first char could be %, followed by two hex chars)
+            if (!TCh::IsHex(FirstCh)) {
+                OutChA += '%'; ChN--;
+                continue;
+            }
+            ChN++;
+            if (ChN == InChA.Len()) {
+                // if the string ends before we get two numbers, add what we've read
+                OutChA += '%'; OutChA += FirstCh;
+                break;
+            }
+            const char SecondCh = InChA[ChN];
+            if (!TCh::IsHex(SecondCh)) {
+                // add % and the first char, but process the second char again in the loop (could be that we found %)
+                OutChA += '%'; OutChA += FirstCh; ChN--;
+                continue;
+            }
+            // if we find %00 we don't decode it. otherwise we can have problems processing such a string
+            if (FirstCh == '0' && SecondCh == '0') {
+                OutChA += "%00";
+                continue;
+            }
+            // we successfully read the %XX. replace them with a single character equivalent
+            OutChA += char(TCh::GetHex(FirstCh) * 16 + TCh::GetHex(SecondCh));
+        }
+        else {
+            OutChA += Ch;
+        }
+    }
+    return OutChA;
 }
 
 TStr TUrl::GetDocStrFromUrlStr(const TStr& UrlStr, const int& Copies){

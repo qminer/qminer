@@ -1,5 +1,24 @@
 # QMiner Change Log
 
+## 5 January 2018
+
+**Version 9.1.2**
+
+**Non-breaking with bug fixes**
+
+Bugfix:
+- Added UTF-16 surrogate pair encoding for seralization of non-BMP characters
+
+## 8 December 2017
+
+**Version 9.1.1**
+
+**Non-breaking with bug fixes**
+
+Bugfix:
+- Replaced deprecated v8 API usages 
+- Assert output stream not closed before write or close
+
 ## 1 December 2017
 
 **Version 9.1.0**
