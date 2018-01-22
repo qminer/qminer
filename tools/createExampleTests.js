@@ -21,9 +21,9 @@ var exampleTemplate = fs.readFileSync('templates/example.js').toString();
 
 // constructs the it('should something', function () { ... }) test
 var constructExample = function (describe, str, i) {   
-	return exampleTemplate.replace(/\$\{number\}/g, i)
-						  .replace('${describe}', describe)
-						  .replace('${content}', str.replace(/\n/g, '\n\t\t\t\t\t'));
+    return exampleTemplate.replace(/\$\{number\}/g, i)
+                          .replace('${describe}', describe)
+                          .replace('${content}', str.replace(/\n/g, '\n\t\t\t\t\t'));
 }
 
 var fout = null;
@@ -70,22 +70,22 @@ for (var i = 0; i < JSFiles.length; i++) {
         var exampleIdx = str.indexOf('@example');
         if (exampleIdx != -1) {
             // create the it block/test
-			str = str.slice(exampleIdx);
-			examples = str.split('@example');
-			for (var ExpN = 0; ExpN < examples.length; ExpN++) {
-				var example = examples[ExpN];
-				//console.log(example);
-				if (example == '') { continue; }
-				if (example.indexOf('</caption>') != -1) {
-					example = example.slice(example.indexOf('</caption>') + 10);
-				}
-				count += 1;
-				example = example.replace(/(\n\s*)\*/g, '$1');
-				if (example.indexOf('*/') != -1) { example = example.slice(0, example.length - 2);}
-				else { example = example.slice(0, example.length - 1); }
-				
-				examplesContent += constructExample(describe, example, count);
-			}
+            str = str.slice(exampleIdx);
+            examples = str.split('@example');
+            for (var ExpN = 0; ExpN < examples.length; ExpN++) {
+                var example = examples[ExpN];
+                //console.log(example);
+                if (example == '') { continue; }
+                if (example.indexOf('</caption>') != -1) {
+                    example = example.slice(example.indexOf('</caption>') + 10);
+                }
+                count += 1;
+                example = example.replace(/(\n\s*)\*/g, '$1');
+                if (example.indexOf('*/') != -1) { example = example.slice(0, example.length - 2);}
+                else { example = example.slice(0, example.length - 1); }
+                var exampleContent = constructExample(describe, example, count);
+                examplesContent += exampleContent;
+            }
         }
     }
     

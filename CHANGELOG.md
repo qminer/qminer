@@ -1,5 +1,114 @@
 # QMiner Change Log
 
+## 5 January 2018
+
+**Version 9.1.2**
+
+**Non-breaking with bug fixes**
+
+Bugfix:
+- Added UTF-16 surrogate pair encoding for seralization of non-BMP characters
+
+## 8 December 2017
+
+**Version 9.1.1**
+
+**Non-breaking with bug fixes**
+
+Bugfix:
+- Replaced deprecated v8 API usages 
+- Assert output stream not closed before write or close
+
+## 1 December 2017
+
+**Version 9.1.0**
+
+**Non-breaking with new feature and a bug fix**
+
+Feature:
+- TNodeTask aware if executed in async mode
+
+Bugfix:
+- Removed `TQm` dependancy from glib/mine/svm
+
+## 27 October 2017
+
+**Version 9.0.0**
+
+**Breaking with new features**
+
+Breaking changes:
+- SVC and SVR models are backward binary incompatible
+
+Features:
+- LIBSVM nonlinear classification supported (previously only linear models were wrapped)
+- Active learning (javascript implementation in analytics module): uses SVC (preferably LIBSVC)
+  and maximum uncertainty criterion for semisupervised classification
+- Json parsing extended to support scalar values for strings and floats
+- Faster index joins to go over hash tables and not binary tree
+
+Bugfix:
+- Lock gets deleted when creating a base with createClean
+- Added a fix for the text positional index
+- Fixed division by zero in zscore
+- Fixed unit test silent failing
+- Fixed stream aggregate example unit test that was halting
+- Fixed when parsing string literal with escaped null character
+- Fixed resize for TCHa larger then 1GB
+- When parsing json-s we ignore invalid escape characters
+- Fixed TDir::Exists for Linux
+- Fixed TVec::Resize to not crash in case of 64bit index and size being TInt::Mx - 1024
+
+Other:
+- Fixed V8 API deprecated warnings
+- C++ unit tests for TJsonVal and TDir
+- Added performance tests for memory allocations
+
+## 8 September 2017
+
+**Version 8.6.1**
+
+**Non-breaking with no new features**
+
+Bugfix:
+- Analytics `PNotify` segfault bug fixed (smartpoitners to static notify objects changed to weak pointers)
+- Unit testing silent failing fix + improved example unit test generation 
+- Several unit tests fixed that were failing
+- Division by zero fixed in bag-of-words feature extractor (unknown words + IDF weighting bug)
+- Fixed #550: frequency is computed correctly for tiny joins
+- Fixed #459 : `PJsonVal` returning temporary strings given as default value by reference
+- Fixed #446 : Added timeout parameter to `TStore::GarbageCollect()`
+- Fixes #455 : Fixed documentation and example for `fs.readLines(...)`
+
+## 1 September 2017
+
+**Version 8.6.0**
+
+**Non-breaking with new features**
+
+Features:
+- Greenwald-Khanna algorithm for online quantile estimation exposed in
+  nodejs (analytics.Gk).
+- CKMS algorithm for onine biased quantie estimation exposed in nodejs
+  (analytics.BiasdeGk). This algorithm is more accurate on extreme
+  values (example q=0.0001).
+- TimeWindowGk algorithm accuracy and speed optimized.
+- external stream aggregate extensions
+- external qm nodejs extensions
+- Added a configuration hash table that can be used to 
+  specify custom sizes for cache for different index types
+  (storage memory improvement).
+- histogramAD API extended to return largest normal bin/value
+
+Bugfix:
+- LinAlgStat::Mean index out of bounds fix (sparse vector case)
+- Bugfix for TNodeJsRecSet::getVector (doesn't crash on null fields)
+- LIBSVM j parameter supported (was ignored before)
+
+Documentation:
+- histogram anomaly detection updated
+- Greenwald-Khanna and CKMS (analytics module)
+
 ## 21 July 2017
 
 **Version 8.5.0**

@@ -56,14 +56,22 @@ exports = {}; require.modules.qminer_analytics = exports;
 /**
 * @typedef {Object} SVMParam
 * SVM constructor parameters. Used for the construction of {@link module:analytics.SVC} and {@link module:analytics.SVR}.
-* @property  {string} [algorithm='SGD'] - The algorithm procedure. Possible options are `'SGD'`, `'PR_LOQO'` and `'LIBSVM'`.
+* @property  {string} [algorithm='SGD'] - The algorithm procedure. Possible options are `'SGD'` and `'LIBSVM'`. `'PR_LOQO'`is not supported anymore.
 * @property  {number} [c=1.0] - Cost parameter. Increasing the parameter forces the model to fit the training data more accurately (setting it too large may lead to overfitting) .
-* @property  {number} [j=1.0] - Unbalance parameter. Increasing it gives more weight to the positive examples (getting a better fit on the positive training examples gets a higher priority). Setting c=n is like adding n-1 copies of the positive training examples to the data set.
-* @property  {number} [eps=1e-1] - Epsilon insensitive loss parameter. Larger values result in fewer support vectors (smaller model complexity)
+* @property  {number} [j=1.0] - Unbalance parameter. Increasing it gives more weight to the positive examples (getting a better fit on the positive training examples gets a higher priority). Setting j=n is like adding n-1 copies of the positive training examples to the data set.
+* @property  {number} [eps=1e-3] - Epsilon insensitive loss parameter. Larger values result in fewer support vectors (smaller model complexity)
 * @property  {number} [batchSize=1000] - Number of examples used in the subgradient estimation. Higher number of samples slows down the algorithm, but makes the local steps more accurate.
 * @property  {number} [maxIterations=10000] - Maximum number of iterations.
 * @property  {number} [maxTime=1] - Maximum runtime in seconds.
 * @property  {number} [minDiff=1e-6] - Stopping criterion tolerance.
+* @property  {string} [type='C_SVC'] - The subalgorithm procedure in LIBSVM. Possible options are `'C_SVC'`, `'NU_SVC'` and `'ONE_CLASS'` for classification and `'EPSILON_SVR'`, `'NU_SVR'` and `'ONE_CLASS'` for regression.
+* @property  {string} [kernel='LINEAR'] - Kernel type in LIBSVM. Possible options are `'LINEAR'`, `'POLY'`, 'RBF'`, 'SIGMOID'`  and `'PRECOMPUTED'`.
+* @property  {number} [gamma=1.0] - Gamma parameter in LIBSVM. Set gamma in kernel function.
+* @property  {number} [p=1e-1] - P parameter in LIBSVM. Set the epsilon in loss function of epsilon-SVR.
+* @property  {number} [degree=1] - Degree parameter in LIBSVM. Set degree in kernel function.
+* @property  {number} [nu=1e-2] - Nu parameter in LIBSVM. Set the parameter nu of nu-SVC, one-class SVM, and nu-SVR.
+* @property  {number} [coef0=1.0] - Coef0 parameter in LIBSVM. Set coef0 in kernel function.
+* @property  {number} [cacheSize=100] - Set cache memory size in MB (default 100) in LIBSVM.
 * @property  {boolean} [verbose=false] - Toggle verbose output in the console.
 */
 /**
@@ -1848,10 +1856,12 @@ exports = {}; require.modules.qminer_analytics = exports;
      * var analytics = require('qminer').analytics;
      * // create a new KMeans object
      * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * KMeans.fit(X);
      * // get the centroids
      * var centroids = KMeans.centroids;
-     * // print the first centroid
-     * console.log(centroids.getCol(0));
      */
  exports.KMeans.prototype.centroids = Object.create(require('qminer').la.Matrix.prototype);
 /**
@@ -1861,6 +1871,10 @@ exports = {}; require.modules.qminer_analytics = exports;
     * var analytics = require('qminer').analytics;
     * // create a new KMeans object
     * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+    * // create a matrix to be fitted
+    * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+    * // create the model with the matrix X
+    * KMeans.fit(X);
     * // get the centroids
     * var medoids = KMeans.medoids;
     */
@@ -1872,6 +1886,10 @@ exports = {}; require.modules.qminer_analytics = exports;
     * var analytics = require('qminer').analytics;
     * // create a new KMeans object
     * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+    * // create a matrix to be fitted
+    * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+    * // create the model with the matrix X
+    * KMeans.fit(X);
     * // get the idxv
     * var idxv = KMeans.idxv;
     */
@@ -2027,7 +2045,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 /**
      * Permutates the clusters, and with it {@link module:analytics.DpMeans#centroids}, {@link module:analytics.DpMeans#medoids} and {@link module:analytics.DpMeans#idxv}.
      * @param {module:la.IntVector} mapping - The mapping, where `mapping[4] = 2` means "map cluster 4 into cluster 2".
-     * @returns {module:analytics.DpMeans} Self. The clusters has been permutated.
+     * @returns {module:analytics.DpMeans} Self. The clusters have been permuted.
      * @example
      * // import the modules
      * var analytics = require('qminer').analytics;
@@ -2038,10 +2056,14 @@ exports = {}; require.modules.qminer_analytics = exports;
      * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
      * // create the model with the matrix X
      * DpMeans.fit(X);
-     * // create the mapping vector
-     * var Mapping = new la.IntVector([1, 0, 2]);
-     * // permutate the clusters.
-     * DpMeans.permuteCentroids(Mapping);
+     * if (DpMeans.centroids.cols > 1) {
+     *     // create the mapping vector: swap first two centroids
+     *     var Mapping = new la.IntVector([1, 0, 2, 3, 4, 5].splice(0,DpMeans.centroids.cols));
+     *     console.log(DpMeans.centroids.toString());
+     *     // permutate the clusters.
+     *     DpMeans.permuteCentroids(Mapping);
+     *     console.log(DpMeans.centroids.toString());
+     * }
      */
  exports.DpMeans.prototype.permuteCentroids = function (mapping) { return Object.create(require('qminer').analytics.DpMeans.prototype); }
 /**
@@ -2074,8 +2096,13 @@ exports = {}; require.modules.qminer_analytics = exports;
      * @example
      * // import the modules
      * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
      * // create a new DpMeans object
      * var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * DpMeans.fit(X);
      * // get the centroids
      * var centroids = DpMeans.centroids;
      * // print the first centroid
@@ -2135,6 +2162,7 @@ exports = {}; require.modules.qminer_analytics = exports;
 * @example
 * // import modules
 * var qm = require('qminer');
+* var fs = qm.fs;
 * var analytics = qm.analytics;
 * // create the default TDigest object
 * var tdigest = new analytics.TDigest();
@@ -2224,6 +2252,7 @@ exports = {}; require.modules.qminer_analytics = exports;
     * @example
     * // import modules
     * var qm = require('qminer');
+    * var fs = require('qminer').fs;
     * var analytics = qm.analytics;
     * var fs = qm.fs;
     * // create the default TDigest object
@@ -2253,6 +2282,291 @@ exports = {}; require.modules.qminer_analytics = exports;
     * if (tdigest.init) { console.log("Ready to initialize"); }
     */
  exports.TDigest.prototype.init = false;
+/**
+     * Returns the current size of the algorithms summary in number of tuples.
+     */
+ exports.TDigest.size = 0;
+/**
+     * Returns the models current memory consumption.
+     */
+ exports.TDigest.memory = 0;
+/**
+* @typedef {Object} GkParam
+* An object used for the construction of {@link module:analytics.Gk}.
+* @property {number} [eps=0.01] - Determines the relative error of the algorithm.
+* @property {boolean} [autoCompress=true] - Whether the summary should be compresses automatically or manually.
+*/
+/**
+ * @classdesc Greenwald - Khanna algorithm for online quantile estimation. Given
+ *   a comulative probability p, the algorithm returns the approximate value of
+ *   the p-th quantile.
+ *
+ *   The algorithm works by keeping a summary of buckets, each summarizing a
+ *   range of values. Through the run of the algorithm new buckets are created
+ *   and periodically merged if possible.
+ *
+ *   It is was first explained in:
+ *   "Space-Efficient Online Computation of Quantile Summaries"
+ *   http://infolab.stanford.edu/~datar/courses/cs361a/papers/quantiles.pdf
+ *
+ *   The error is bounded by the rank of the output element (not by the absolute value).
+ *   Specifically, the worst case error in rank is bounded by eps*n, where n is the
+ *   number of elements in the summary.
+ *
+ * @class
+ * @param {module:analytics~GkParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
+ * <br>1. Using the {@link module:analytics~GkParam} object,
+ * <br>2. using the file input stream {@link module:fs.FIn}.
+ *
+ * @example
+ * // import modules
+ * var qm = require('qminer');
+ * var fs = require('qminer').fs;
+ * var analytics = qm.analytics;
+ *
+ * // create the Gk object
+ * var gk = new analytics.Gk({
+ *     eps: 0.001,
+ *     autoCompress: true
+ * });
+ *
+ * // create the data used for calculating quantiles
+ * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+ *
+ * // fit the model
+ * for (var i = 0; i < inputs.length; i++) {
+ *     gk.partialFit(inputs[i]);
+ * }
+ *
+ * // make the prediction for the 0.1 quantile
+ * var prediction = gk.predict(0.1);
+ * // save the model
+ * gk.save(fs.openWrite('gk.bin')).close();
+ * // open the gk model under a new variable
+ * var gk2 = new analytics.Gk(fs.openRead('gk.bin'));
+ */
+ exports.Gk = function (arg) { return Object.create(require('qminer').analytics.Gk.prototype); }
+/**
+     * Returns the models' parameters as a JavaScript object (JSON). These parameters
+     * are the same as are set through the constructor.
+     *
+     * @returns {module:analytics~GkParam} The construction parameters.
+     *
+     * var analytics = qm.analytics;
+     * var gk = new analytics.Gk();
+     * var params = gk.getParams();
+     *
+     * console.log(params.eps);
+     * console.log(params.autoCompress);
+     */
+ exports.Gk.prototype.getParams = function () { return { }; }
+/**
+     * Adds a new value to the summary.
+     *
+     * @param {number} val - the value
+     * @returns {module:analytics.Gk} reference to self
+     *
+     * @example
+     * var qm = require('qminer');
+     *
+     * var gk = new qm.analytics.CountWindowGk();
+     * gk.partialFit(1.0);
+     * gk.partialFit(2.0);
+     */
+ exports.Gk.compress = function (fout) { return Object.create(require('qminer').analytics.Gk.prototype); }
+/**
+     * Given an input cumulative probability, returns a quantile associated with that
+     * probability (e.g. for input 0.5 it will return the median).
+     *
+     * @param {number|Array} pVals - the p-values which we a querying
+     * @returns {number|Array} quantiles - depending whether the input was a single value or array the method returns a quantile or array of quantiles
+     *
+     * @example
+     * var qm = require('qminer');
+     *
+     * var gk = new qm.analytics.Gk({
+     *     eps: 0.1
+     * });
+     * gk.partialFit(1.0);
+     * gk.partialFit(2.0);
+     * gk.partialFit(1.0);
+     * gk.partialFit(3.0);
+     * gk.partialFit(2.0);
+     *
+     * console.log(gk.predict(0.01));   // prints the first percentile
+     * console.log(gk.predict(0.25));   // prints the first quartile
+     * console.log(gk.predict(0.5));    // prints the median
+     */
+ exports.Gk.prototype.predict = function (x) { return 0; }
+/**
+     * Manually runs the compression procedure.
+     *
+     * @returns reference to self
+     */
+ exports.Gk.compress = function (fout) { return Object.create(require('qminer').analytics.Gk.prototype); }
+/**
+     * Saves the objects state into the output stream.
+     *
+     * @param {module:fs.FOut} fout - the output stream
+     * @returns {module:fs.FOut} - the output stream
+     */
+ exports.Gk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+/**
+     * Returns the current size of the algorithms summary in number of tuples.
+     */
+ exports.Gk.size = 0;
+/**
+     * Returns the models current memory consumption.
+     */
+ exports.Gk.memory = 0;
+/**
+* @typedef {Object} BiasedGkParam
+* An object used for the construction of {@link module:analytics.BiasedGk}.
+* @property {number} [targetProb=0.01] - The probability where the algorithm is most accurate. Its accuracy is determined as eps*max(p, targetProb) when targetProb < 0.5 and eps*max(1-p, 1-targetProb) when targetProb >= 0.5. Higher values of `targetProb` allow for a smaller memory footprint.
+* @property {number} [eps=0.1] - Parameter which determines the accuracy.
+* @property {string} [compression="periodic"] - Determines when the algorithm compresses its summary. Options are: "periodic", "aggressive" and "manual".
+* @property {boolean} [useBands=true] - Whether the algorithm should use the 'band' subprocedure. Using this subprocedure should result in a smaller summary.
+*/
+/**
+ * @classdesc The CKMS (GK adapted for biased quantiles) algorithm for online
+ *   biased quantile estimation. Given a probability p the algorithm returns
+ *   the approximate value of the p-th quantile. The algorithm is most accurate
+ *   in one of the extremes (which extreme depends on the parameters).
+ *
+ *   The algorithm works by keeping a summary of buckets, each summarizing a
+ *   range of values. Through the run of the algorithm new buckets are created
+ *   and periodically merged if possible.
+ *
+ *   It was first explained in:
+ *   "Effective Computation of Biased Quantiles over Data Streams"
+ *   https://www.cs.rutgers.edu/~muthu/bquant.pdf
+ *
+ *   Only the biased version is implemented (the targeted version is flawed).
+ *
+ *   The error is bounded by the rank of the element (not the absolute value).
+ *   Specifically, the worst case relative error is bounded by max(eps*p, eps*p0)
+ *   where eps is an accuracy paramter, p0 is the `targetProb` and p is the
+ *   p-value set as the parameter of function `predict`.
+ *
+ * @class
+ * @param {module:analytics~BiasedGkParam | module:fs:FIn} [arg] - Constructor arguments. There are 2 ways of constructing:
+ * <br>1. Using the {@link module:analytics~BiasedGkParam} object,
+ * <br>2. using the file input stream {@link module:fs.FIn}.
+ *
+ * @example
+ * // import modules
+ * var qm = require('qminer');
+ * var fs = require('qminer').fs;
+ * var analytics = qm.analytics;
+ *
+ * // create the BiasedGk object
+ * var gk = new analytics.BiasedGk({
+ *     eps: 0.1,
+ *     targetProb: 0.99,
+ *     compression: 'periodic',
+ *     useBands: true
+ * });
+ *
+ * // create the data used for calculating quantiles
+ * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+ *
+ * // fit the model
+ * for (var i = 0; i < inputs.length; i++) {
+ *     gk.partialFit(inputs[i]);
+ * }
+ *
+ * // make the prediction for the 0.1 quantile
+ * var prediction = gk.predict(0.1);
+ * // save the model
+ * gk.save(fs.openWrite('gk.bin')).close();
+ * // open the gk model under a new variable
+ * var gk2 = new analytics.BiasedGk(fs.openRead('gk.bin'));
+ *
+ */
+ exports.BiasedGk = function (arg) { return Object.create(require('qminer').analytics.BiasedGk.prototype); }
+/**
+     * Returns the models' parameters as a JavaScript object (JSON). These parameters
+     * are the same as are set through the constructor.
+     *
+     * @returns {module:analytics~BiasedGkParam} The construction parameters.
+     *
+     * var analytics = qm.analytics;
+     * var gk = new analytics.BiasedGk();
+     * var params = gk.getParams();
+     *
+     * console.log(params.targetProb);
+     * console.log(params.eps);
+     * console.log(params.autoCompress);
+     * console.log(params.useBands);
+     */
+ exports.BiasedGk.prototype.getParams = function () { return { }; }
+/**
+     * Adds a new value to the summary.
+     *
+     * @param {number} val - the value
+     * @returns {module:analytics.Gk} reference to self
+     *
+     * @example
+     * var qm = require('qminer');
+     *
+     * var gk = new qm.analytics.BiasedGk();
+     * gk.partialFit(1.0);
+     * gk.partialFit(2.0);
+     */
+ exports.BiasedGk.compress = function (fout) { return Object.create(require('qminer').analytics.BiasedGk.prototype); }
+/**
+     * Given an input cumulative probability, returns a quantile associated with that
+     * probability (e.g. for input 0.5 it will return the median).
+     *
+     * @param {number|Array} pVals - the p-values which we a querying
+     * @returns {number|Array} quantiles - depending whether the input was a single value or array the method returns a quantile or array of quantiles
+     *
+     * @example
+     * var qm = require('qminer');
+     *
+     * var gk = new qm.analytics.BiasedGk({
+     *     eps: 0.1,
+     *     targetProb: 0.01
+     * });
+     * gk.partialFit(1.0);
+     * gk.partialFit(2.0);
+     * gk.partialFit(1.0);
+     * gk.partialFit(3.0);
+     * gk.partialFit(2.0);
+     *
+     * console.log(gk.predict(0.01));   // prints the first percentile
+     * console.log(gk.predict(0.25));   // prints the first quartile
+     * console.log(gk.predict(0.5));    // prints the median
+     */
+ exports.BiasedGk.prototype.predict = function (x) { return 0; }
+/**
+     * Manually runs the compression procedure.
+     *
+     * @returns reference to self
+     */
+ exports.BiasedGk.compress = function (fout) { return Object.create(require('qminer').analytics.BiasedGk.prototype); }
+/**
+     * Saves the objects state into the output stream.
+     *
+     * @param {module:fs.FOut} fout - the output stream
+     * @returns {module:fs.FOut} - the output stream
+     */
+ exports.BiasedGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+/**
+     * Returns the current size of the algorithms summary in number of tuples.
+     */
+ exports.BiasedGk.size = 0;
+/**
+     * Returns the models current memory consumption.
+     */
+ exports.BiasedGk.memory = 0;
+/**
+* @typedef {Object} CountWindowGkParam
+* An object used for the construction of {@link module:analytics.CountWindowGk}.
+* @property {number} [windowSize=10000] - Number of values to store in the window.
+* @property {number} [quantileEps=0.01] - Worst-case error of the quantile estimation procedure.
+* @property {number} [countEps=0.005] - Worst-case error of the sliding window (exponential histogram) procedure.
+*/
 /**
  * @classdesc Greenwald - Khanna algorithm for quantile estimation on sliding windows. Given
  *   a cumulative probability p, the algorithm returns the approximate value of the
@@ -2290,6 +2604,7 @@ exports = {}; require.modules.qminer_analytics = exports;
  * @example
  * // import modules
  * var qm = require('qminer');
+ * var fs = qm.fs;
  * var analytics = qm.analytics;
  *
  * // create the default TDigest object
@@ -2323,8 +2638,13 @@ exports = {}; require.modules.qminer_analytics = exports;
      * @returns {module:analytics~FixedWindowGkParam} The construction parameters.
      *
      * var analytics = qm.analytics;
-     * var gk = new analytics.CountWindowGk();
-     * var params = tdigest.getParams();
+     * var gk = new qm.analytics.CountWindowGk({ windowSize: 100 }); // window 100 elements long
+     * gk.partialFit(1.0);
+     * gk.partialFit(2.0);
+     * gk.partialFit(1.0);
+     * gk.partialFit(3.0);
+     * gk.partialFit(2.0);
+     * var params = gk.getParams();
      *
      * console.log(params.windowSize);
      * console.log(params.quantileEps);
@@ -2378,14 +2698,23 @@ exports = {}; require.modules.qminer_analytics = exports;
      * @returns {module:fs.FOut} the output stream `fout`
      *
      * @example
+     * var qm = require('qminer');
+     * var fs = qm.fs;
      * var gk = new qm.analytics.CountWindowGk();
      *
      * // save the model
-     * gk.save(fs.openWrite('tdigest.bin')).close();
-     * // open the tdigest model under a new variable
-     * var gk = new analytics.CountWindowGk(fs.openRead('tdigest.bin'));
+     * gk.save(fs.openWrite('gk.bin')).close();
+     * // open the model under a new variable
+     * var gk = new analytics.CountWindowGk(fs.openRead('gk.bin'));
      */
  exports.CountWindowGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+/**
+* @typedef {Object} TimeWindowGkParam
+* An object used for the construction of {@link module:analytics.TimeWindowGk}.
+* @property {number} [window=1000*60*60] - Duration of the time window.
+* @property {number} [quantileEps=0.01] - Worst-case error of the quantile estimation procedure.
+* @property {number} [countEps=0.005] - Worst-case error of the sliding window (exponential histogram) procedure.
+*/
 /**
  * @classdesc Greenwald - Khanna algorithm for quantile estimation on sliding windows. Given
  *   a cumulative probability p, the algorithm returns the approximate value of the
@@ -2423,9 +2752,10 @@ exports = {}; require.modules.qminer_analytics = exports;
  * @example
  * // import modules
  * var qm = require('qminer');
+ * var fs = qm.fs;
  * var analytics = qm.analytics;
  *
- * // create the default TDigest object
+ * // create the default object
  * var gk = new analytics.TimeWindowGk({
  *     window: 5,
  *     quantileEps: 0.001,
@@ -2436,7 +2766,7 @@ exports = {}; require.modules.qminer_analytics = exports;
  * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
  * var times = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
  *
- * // fit the TDigest model
+ * // fit the model
  * for (var i = 0; i < inputs.length; i++) {
  *     gk.partialFit(times[i], inputs[i]);
  * }
@@ -2455,9 +2785,26 @@ exports = {}; require.modules.qminer_analytics = exports;
      *
      * @returns {module:analytics~TimeWindowGkParam} The construction parameters.
      *
+     * var qm = require('qminer');
+     * var fs = qm.fs;
      * var analytics = qm.analytics;
-     * var gk = new analytics.TimeWindowGk();
-     * var params = tdigest.getParams();
+     *
+     * // create the default object
+     * var gk = new analytics.TimeWindowGk({
+     *     window: 5,
+     *     quantileEps: 0.001,
+     *     countEps: 0.0005
+     * });
+     *
+     * // create the data used for calculating quantiles
+     * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+     * var times = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+     *
+     * // fit the model
+     * for (var i = 0; i < inputs.length; i++) {
+     *     gk.partialFit(times[i], inputs[i]);
+     * }
+     * var params = gk.getParams();
      *
      * console.log(params.window);
      * console.log(params.quantileEps);
@@ -2514,12 +2861,20 @@ exports = {}; require.modules.qminer_analytics = exports;
      * @returns {module:fs.FOut} the output stream `fout`
      *
      * @example
-     * var gk = new qm.analytics.TimeWindowGk();
-     *
+     * var qm = require('qminer');
+     * var fs = qm.fs;
+     * var gk = new qm.analytics.TimeWindowGk({
+     *     window: 100    // window is 2 days
+     * });
+     * gk.partialFit(0, 1.0);
+     * gk.partialFit(1, 1.0);
+     * gk.partialFit(2, 1.0);
+     * gk.partialFit(3, 1.0);
+     * gk.partialFit(4, 1.0);
      * // save the model
-     * gk.save(fs.openWrite('tdigest.bin')).close();
-     * // open the tdigest model under a new variable
-     * var gk = new analytics.TimeWindowGk(fs.openRead('tdigest.bin'));
+     * gk.save(fs.openWrite('gk.bin')).close();
+     * // open the model under a new variable
+     * var gk = new analytics.TimeWindowGk(fs.openRead('gk.bin'));
      */
  exports.TimeWindowGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
@@ -2769,7 +3124,7 @@ exports = {}; require.modules.qminer_analytics = exports;
     * // get the properties of the model
     * var model = SVC.getModel();
     */
-    exports.SVC.prototype.getModel = function() { return { weights: this.weights }; }
+    exports.SVC.prototype.getModel = function() { return { weights: this.weights, bias: this.bias }; }
     /**
     * Get the model.
     * @returns {Object} The `svmModel` object containing the property:
@@ -2782,7 +3137,7 @@ exports = {}; require.modules.qminer_analytics = exports;
     * // get the properties of the model
     * var model = SVR.getModel();
     */
-    exports.SVR.prototype.getModel = function() { return { weights: this.weights }; }
+    exports.SVR.prototype.getModel = function() { return { weights: this.weights, bias: this.bias }; }
 
     // Ridge Regression
     /**
@@ -2834,7 +3189,7 @@ exports = {}; require.modules.qminer_analytics = exports;
     * // import analytics module
     * var analytics = require('qminer').analytics;
     * // create a new OneVsAll object with the model analytics.SVC
-    * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+    * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
     */
     exports.OneVsAll = function (arg) {
         // remember parameters
@@ -2852,10 +3207,10 @@ exports = {}; require.modules.qminer_analytics = exports;
         * // import analytics module
         * var analytics = require('qminer').analytics;
         * // create a new OneVsAll object with the model analytics.SVC
-        * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+        * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
         * // get the parameters
         * // returns the JSon object
-        * // { model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2, models: [] }
+        * // { model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2, models: [] }
         * var params = onevsall.getParams();
         */
         this.getParams = function () {
@@ -2870,7 +3225,7 @@ exports = {}; require.modules.qminer_analytics = exports;
         * // import analytics module
         * var analytics = require('qminer').analytics;
         * // create a new OneVsAll object with the model analytics.SVC
-        * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+        * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
         * // set the parameters
         * var params = onevsall.setParams({ model: analytics.SVR, modelParam: { c: 12, maxTime: 10000}, cats: 3, verbose: true });
         */
@@ -2894,7 +3249,7 @@ exports = {}; require.modules.qminer_analytics = exports;
          * var analytics = require('qminer').analytics;
          * var la = require('qminer').la;
          * // create a new OneVsAll object with the model analytics.SVC
-         * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+         * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
          * // create the data (matrix and vector) used to fit the model
          * var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
          * var vector = new la.Vector([0, 0, 1, 1]);
@@ -2941,7 +3296,7 @@ exports = {}; require.modules.qminer_analytics = exports;
          * var analytics = require('qminer').analytics;
          * var la = require('qminer').la;
          * // create a new OneVsAll object with the model analytics.SVC
-         * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+         * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
          * // create the data (matrix and vector) used to fit the model
          * var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
          * var vector = new la.Vector([0, 0, 1, 1]);
@@ -2982,7 +3337,7 @@ exports = {}; require.modules.qminer_analytics = exports;
          * var analytics = require('qminer').analytics;
          * var la = require('qminer').la;
          * // create a new OneVsAll object with the model analytics.SVC
-         * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+         * var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
          * // create the data (matrix and vector) used to fit the model
          * var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
          * var vector = new la.Vector([0, 0, 1, 1]);
@@ -4529,12 +4884,11 @@ exports = {}; require.modules.qminer_analytics = exports;
         var params = this.getParams();
         var norC2 = la.square(this.centroids.colNorms());
         var ones_n = la.ones(X.cols).multiply(0.5);
-        var ones_k = la.ones(params.k).multiply(0.5);
+        var ones_k = la.ones(this.centroids.cols).multiply(0.5);
         var norX2 = la.square(X.colNorms());
         var D = this.centroids.multiplyT(X).minus(norC2.outer(ones_n)).minus(ones_k.outer(norX2));
         var centroids = la.findMaxIdx(D);
         var medoidIDs = new la.IntVector(centroids);
-        assert(this.medoids.length == params.k);
         var result = [];
         for (var i = 0; i < centroids.length; i++) {
             var explanation = featureContrib(X.getCol(i), this.centroids.getCol(centroids[i]));
@@ -4562,9 +4916,9 @@ exports = {}; require.modules.qminer_analytics = exports;
     * // create a matrix to be fitted
     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
     * // create the model
-    * DpMeans.fit(X);
+    * dpmeans.fit(X);
     * // get the model
-    * var model = DpMeans.getModel();
+    * var model = dpmeans.getModel();
     */
     exports.DpMeans.prototype.getModel = function () { return { C: this.centroids, medoids: this.medoids, idxv: this.idxv }; }
 
@@ -4572,253 +4926,334 @@ exports = {}; require.modules.qminer_analytics = exports;
         return arg == undefined ? defaultval : arg;
     }
 
-    ///////////////////////////////
-    ////// code below not yet ported or verified for scikit
-    ///////////////////////////////
+    /**
+    * @typedef {Object} ActiveLearnerParam
+    * An object used for the construction of {@link module:analytics.ActiveLearner}.
+    * @property {Object} [learner] - Learner parameters
+    * @property {boolean} [learner.disableAsserts=false] - Disable input asserting
+    * @property {module:analytics~SVMParam} [SVC] - Support vector classifier parameters.
+    */
 
-    //!- `alModel = analytics.newActiveLearner(query, qRecSet, fRecSet, ftrSpace, settings)` -- initializes the
-    //!    active learning. The algorihm is run by calling `model.startLoop()`. The algorithm has two stages: query mode, where the algorithm suggests potential
-    //!    positive and negative examples based on the query text, and SVM mode, where the algorithm keeps
-    //!   selecting examples that are closest to the SVM margin (every time an example is labeled, the SVM
-    //!   is retrained.
-    //!   The inputs are: query (text), record set `qRecSet`, record set `fRecSet`,  the feature space `ftrSpace` and a
-    //!   `settings`JSON object. The settings object specifies:`textField` (string) which is the name
-    //!    of the field in records that is used to create feature vectors, `nPos` (integer) and `nNeg` (integer) set the number of positive and negative
-    //!    examples that have to be identified in the query mode before the program enters SVM mode.
-    //!   We can set two additional parameters `querySampleSize` and `randomSampleSize` which specify the sizes of subsamples of qRecSet and fRecSet, where the rest of the data is ignored in the active learning.
-    //!   Final parameters are all SVM parameters (c, j, batchSize, maxIterations, maxTime, minDiff, verbose).
-    exports.newActiveLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
-        return new exports.ActiveLearner(query, qRecSet, fRecSet, ftrSpace, stts);
+    /**
+    * @classdesc Active learner. Uses a SVM model and implements an uncertainty measure (distance to the margin)
+    * to select which unlabelled example should be labelled next.
+    * @class
+    * @param {(module:analytics~ActiveLearnerParam | module:fs~FIn | string)} [arg] - Construction arguments (JSON) or when loading: an input stream (fs.FIn) or a file name (string).
+    * @example
+    * // load libs
+    * var qm = require('qminer');
+    * var la = qm.la;
+    * // create model
+    * var al = new qm.analytics.ActiveLearner();
+    *
+    * // set data (4 labelled and 2 unlabelled examples)
+    * var X = new la.Matrix([
+    *     [-2, 1],
+    *     [-2, 0],
+    *     [-2, -1],
+    *     [0, 1],
+    *     [-0.9, 0],
+    *     [0, -1]
+    * ]).transpose(); // column examples
+    * al.setX(X);
+    *
+    * var y = [-1, 0, -1, 1, 0, 1];
+    * al.sety(y);
+    * // get the array containing 1 index of the unlabelled example
+    * // that is the closest to the hyperplane
+    * var qidx = al.getQueryIdx(1);
+    * console.log(qidx); // 4
+    */
+    class ActiveLearner {
+        constructor(opts) {
+            opts = opts || {};
+
+            if (opts instanceof qm.fs.FIn || typeof opts == "string") {
+                this.load(opts);
+            } else {
+                // SETTINGS
+                let settings = this._getDefaultSettings();
+                override(settings, opts.settings || {});
+                this._settings = settings;
+
+                // STATE
+                this._X = opts.X || null;
+                this._y = opts.y || new Map();
+                this._SVC = new exports.SVC(this._settings.SVC);
+            }
+        }
+
+        /**
+        * Returns default settings
+        */
+        _getDefaultSettings() {
+            return {
+                learner: {
+                    disableAsserts: false
+                },
+                SVC: {
+                    algorithm: "LIBSVM",
+                    c: 1.0,
+                    j: 1.0
+                }
+            };
+        }
+
+        /**
+        * Asserts if the object is a la matrix
+        */
+        _assertMatrix(X) {
+            if (this._settings.learner.disableAsserts) { return; }
+            assert(X instanceof la.Matrix || X instanceof la.SparseMatrix, "X should be a dense or a sparse matrix (qm.la object)");
+        }
+
+        /**
+        * Asserts if a label and the index are valid, given number of examples `cols`
+        */
+        _assertLabel(cols, idx, label) {
+            if (this._settings.learner.disableAsserts) { return; }
+            if (cols == undefined) { throw new Error("Columns not defined"); }
+            if (!isFinite(idx) || (idx >= cols) || (idx < 0)) { throw new Error("Label index out of range"); }
+            if ((label != -1) && (label != 1)) { throw new Error("Label should be either -1 or 1"); }
+        }
+
+        /**
+        * Asserts if a Map with labels is valid
+        */
+        _assertLabelSet(cols, y) {
+            if (this._settings.learner.disableAsserts) { return; }
+            assert(y instanceof Map, "y should be a map from data instance indices to +1 or -1");
+            // assert y indices and values
+            for (let pair of y.entries()) {
+                this._assertLabel(cols, pair[0], pair[1]);
+            }
+        }
+
+        /**
+        * Transforms an Array of labels to a Map from indices to labels
+        */
+        _getLabelMapFromArr(_y) {
+            assert(_y instanceof Array);
+            let y = new Map();
+            for (let i = 0; i < _y.length; i++) {
+                let lab = _y[i];
+                if (this._settings.learner.disableAsserts) {
+                    assert(lab === -1 || lab === 1 || lab === 0, "Label must be ither -1, 0 or 1");
+                }
+                if (lab !== 0) {
+                    y.set(i, lab);
+                }
+            }
+            return y;
+        }
+
+        /**
+        * Returns an array of indices of labelled examples
+        */
+        _getLabIdxArr(y) {
+            return Array.from(y.keys());
+        }
+
+        /**
+        * Returns an array of label values corresponding to the labelled examples
+        */
+        _getLabArr(y) {
+            return Array.from(y.values());
+        }
+
+        /**
+        * Returns an array of indices of unlabelled examples
+        */
+        _getUnlabIdxArr(cols, y) {
+            let unlabIdxArr = [];
+            for (let idx = 0; idx < cols; idx++) {
+                if (!y.has(idx)) {
+                    unlabIdxArr.push(idx);
+                }
+            }
+            return unlabIdxArr;
+        }
+
+        /**
+        * Retrains the SVC model
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} X - data matrix (column examples)
+        * @param {Map} y - a Map from indices to 1 or -1
+        * @param {module:analytics.SVC} SVC - a SVC model
+        */
+        _retrain(X, y, SVC) {
+            // asert y indices and values
+            this._assertMatrix(X);
+            let cols = X.cols;
+            this._assertLabelSet(cols, y);
+            if (y.size == 0) { throw new Error("No labelled information in y"); }
+
+            // get all labelled examples and fit SVM
+            let labIdxArr = this._getLabIdxArr(y);
+            let trainIdx = new la.IntVector(labIdxArr);
+            let Xsub = X.getColSubmatrix(trainIdx);
+            let yArr = this._getLabArr(y);
+            let yVec = new la.Vector(yArr);
+            SVC.fit(Xsub, yVec);
+        }
+
+        /**
+        * Retrains the SVC model
+        */
+        retrain() {
+            this._retrain(this._X, this._y, this._SVC);
+        }
+
+        /**
+        * Return an array of indices where the model has the highest uncertainty (1 element by default)
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} X - data matrix (column examples)
+        * @param {Map} y - a Map from indices to 1 or -1
+        * @param {module:analytics.SVC} SVC - a SVC model
+        * @param {number} [num=1] - the length of the array that is returned (top `num` indices where uncertainty is maximal)
+        * @returns {Array<number>} - array of indices of unlabelled examples
+        */
+        _getQueryIdx(X, y, SVC, num) {
+            num = (isFinite(num) && num > 0 && Number.isInteger(num)) ? num : 1;
+            // use the classifier on unlabelled examples and return
+            // get unlabelled indices
+            let unlabIdxArr = this._getUnlabIdxArr(X.cols, y);
+            if (unlabIdxArr.length == 0) { return []; } // exhausted
+            let unlabIdxVec = new la.IntVector(unlabIdxArr);
+            let Xsub = X.getColSubmatrix(unlabIdxVec);
+            if (SVC.weights.length == 0) {
+                this._retrain(X, y, SVC);
+            }
+            // get examples with largest uncertainty
+            let uncertaintyArr = SVC.decisionFunction(Xsub).toArray().map((x) =>Math.abs(x));
+            let u = new la.Vector(uncertaintyArr);
+            let su = u.sortPerm(); // sorted in ascending order
+            num = Math.min(num, u.length);
+            // take `num` unlabelled indices where we are most uncertain
+            let subVec = unlabIdxVec.subVec(su.perm.trunc(num));
+            return subVec.toArray();
+        }
+
+        /**
+        * Returns an array of 0 or more example indices sorted by uncertainty (first element is the closest to the hyperplane)
+        * @param {number} [num=1] - maximal length of the array
+        * @returns {Array<number>} array of unlabelled example indices
+        */
+        getQueryIdx(num) {
+            return this._getQueryIdx(this._X, this._y, this._SVC, num)
+        }
+
+        /**
+        * Sets the label
+        * @param {number} idx - instance index
+        * @param {number} label - should be either 1 or -1
+        */
+        setLabel(idx, label) {
+            let cols = this._X.cols;
+            this._assertLabel(cols, idx, label);
+            this._y.set(idx, label);
+        }
+
+        /**
+        * Sets the data matrix (column examples)
+        * @param {(module:la.Matrix | module:la.SparseMatrix)} X - data matrix (column examples)
+        */
+        setX(X) {
+            this._assertMatrix(X);
+            this._X = X
+        }
+
+        /**
+        * Sets the labels
+        * @param {(Array<number> | module.la.Vector | module.la.IntVector | Map)} _y - array (like) object that encodes labels
+        *                                                                        (-1, 0 or 1) or a Map from indices to 1 or -1
+        */
+        sety(_y) {
+            let y = _y;
+            this._assertMatrix(this._X);
+            let cols = this._X.cols;
+            if (_y instanceof Array) { y = this._getLabelMapFromArr(_y); }
+            if (_y.toArray != undefined) { y = this._getLabelMapFromArr(_y.toArray()); }
+            this._assertLabelSet(cols, y);
+            this._y = y;
+        }
+
+        /**
+        * Returns the SVC model
+        * @returns {module:analytics.SVC} SVC model
+        */
+        getSVC() { return this._SVC; }
+
+        /**
+        * Returns the data matrix (column examples)
+        * @returns {(module:la.Matrix | module:la.SparseMatrix)} data matrix (column examples)
+        */
+        getX() { return this._X; }
+
+        /**
+        * Returns the Map from example indices to labels (-1 or 1)
+        * @returns {Map} label map
+        */
+        gety() { return this._y; }
+
+        /**
+        * Loads instance matrix, labels and the model from the input stream
+        * @param {(string | module:fs.FIn)} input - a file name or an input stream
+        */
+        load(input) {
+            if (input instanceof qm.fs.FIn) {
+                this._settings = input.readJson();
+                let matrixType = input.readJson().matrixType;
+                if (matrixType == "null") {
+                    this._X = null;
+                } else if (matrixType == "full") {
+                    this._X = new la.Matrix();
+                    this._X.load(input);
+                } else if (matrixType == "sparse") {
+                    this._X = new la.SparseMatrix();
+                    this._X.load(input);
+                } else {
+                    throw new Error("Cannot load matrix, the type is not supported");
+                }
+                let y = input.readJson();
+                this._y = new Map(y);
+                this._SVC = new exports.SVC(input);
+                return input;
+            } else {
+                let fin = qm.fs.openRead(input);
+                this.load(fin).close();
+            }
+        }
+
+        /**
+        * Saves the instance matrix, labels and the model to the input stream
+        * @param {(string | module:fs.FOut)} output - a file name or an output stream
+        */
+        save(output) {
+            let X = this._X;
+            let y = this._y;
+            let SVC = this._SVC;
+            if (output instanceof qm.fs.FOut) {
+                output.writeJson(this._settings);
+                if (X == undefined) {
+                    output.writeJson({ matrixType: "null" });
+                } else if (X instanceof la.Matrix) {
+                    output.writeJson({ matrixType: "full" });
+                    X.save(output);
+                } else if (X instanceof la.SparseMatrix) {
+                    output.writeJson({ matrixType: "sparse" });
+                    X.save(output);
+                } else {
+                    throw new Error("Cannot save matrix, the type is not supported.");
+                }
+                output.writeJson(Array.from(this._y));
+                SVC.save(output);
+                return output;
+            } else {
+                let fout = qm.fs.openWrite(output);
+                this.save(fout).close();
+            }
+        }
     }
 
-    exports.ActiveLearner = function (query, qRecSet, fRecSet, ftrSpace, stts) {
-        var settings = defarg(stts, {});
-        settings.nPos = defarg(stts.nPos, 2);
-        settings.nNeg = defarg(stts.nNeg, 2);
-        settings.textField = defarg(stts.textField, "Text");
-        settings.querySampleSize = defarg(stts.querySampleSize, -1);
-        settings.randomSampleSize = defarg(stts.randomSampleSize, -1);
-        settings.c = defarg(stts.c, 1.0);
-        settings.j = defarg(stts.j, 1.0);
-        settings.batchSize = defarg(stts.batchSize, 100);
-        settings.maxIterations = defarg(stts.maxIterations, 100000);
-        settings.maxTime = defarg(stts.maxTime, 1); // 1 second for computation by default
-        settings.minDiff = defarg(stts.minDiff, 1e-6);
-        settings.verbose = defarg(stts.verbose, false);
-
-        // compute features or provide them
-        settings.extractFeatures = defarg(stts.extractFeatures, true);
-
-        if (!settings.extractFeatures) {
-            if (stts.uMat == null) { throw 'settings uMat not provided, extractFeatures = false'; }
-            if (stts.uRecSet == null) { throw 'settings uRecSet not provided, extractFeatures = false'; }
-            if (stts.querySpVec == null) { throw 'settings querySpVec not provided, extractFeatures = false'; }
-        }
-
-        // QUERY MODE
-        var queryMode = true;
-        // bow similarity between query and training set
-
-        var querySpVec;
-        var uRecSet;
-        var uMat;
-
-        if (settings.extractFeatures) {
-            var temp = {}; temp[settings.textField] = query;
-            var queryRec = qRecSet.store.newRecord(temp); // record
-            querySpVec = ftrSpace.extractSparseVector(queryRec);
-            // use sampling?
-            var sq = qRecSet;
-            if (settings.querySampleSize >= 0 && qRecSet != undefined) {
-                sq = qRecSet.sample(settings.querySampleSize);
-            }
-            var sf = fRecSet;
-            if (settings.randomSampleSize >= 0 && fRecSet != undefined) {
-                sf = fRecSet.sample(settings.randomSampleSize);
-            }
-            // take a union or just qset or just fset if some are undefined
-            uRecSet = (sq != undefined) ? ((sf != undefined) ? sq.setunion(sf) : sq) : sf;
-            if (uRecSet == undefined) { throw 'undefined record set for active learning!';}
-            uMat = ftrSpace.extractSparseMatrix(uRecSet);
-
-        } else {
-            querySpVec = stts.querySpVec;
-            uRecSet = stts.uRecSet;
-            uMat = stts.uMat;
-        }
-
-
-        querySpVec.normalize();
-        uMat.normalizeCols();
-
-        var X = new la.SparseMatrix();
-        var y = new la.Vector();
-        var simV = uMat.multiplyT(querySpVec); //similarities (q, recSet)
-        var sortedSimV = simV.sortPerm(); //ascending sort
-        var simVs = sortedSimV.vec; //sorted similarities (q, recSet)
-        var simVp = sortedSimV.perm; //permutation of sorted similarities (q, recSet)
-        //// counters for questions in query mode
-        var nPosQ = 0; //for traversing simVp from the end
-        var nNegQ = 0; //for traversing simVp from the start
-
-
-        // SVM MODE
-        var svm;
-        var posIdxV = new la.IntVector(); //indices in recordSet
-        var negIdxV = new la.IntVector(); //indices in recordSet
-
-        var posRecIdV = new la.IntVector(); //record IDs
-        var negRecIdV = new la.IntVector(); //record IDs
-
-        var classVec = new la.Vector({ "vals": uRecSet.length }); //svm scores for record set
-        var resultVec = new la.Vector({ "vals": uRecSet.length }); // non-absolute svm scores for record set
-
-
-        //!   - `rs = alModel.getRecSet()` -- returns the record set that is being used (result of sampling)
-        this.getRecSet = function () { return uRecSet };
-
-        //!   - `idx = alModel.selectedQuestionIdx()` -- returns the index of the last selected question in alModel.getRecSet()
-        this.selectedQuestionIdx = -1;
-
-        //!   - `bool = alModel.getQueryMode()` -- returns true if in query mode, false otherwise (SVM mode)
-        this.getQueryMode = function () { return queryMode; };
-
-        //!   - `numArr = alModel.getPos(thresh)` -- given a `threshold` (number) return the indexes of records classified above it as a javascript array of numbers. Must be in SVM mode.
-        this.getPos = function (threshold) {
-            if (this.queryMode) { return null; } // must be in SVM mode to return results
-            if (!threshold) { threshold = 0; }
-            var posIdxArray = [];
-            for (var recN = 0; recN < uRecSet.length; recN++) {
-                if (resultVec[recN] >= threshold) {
-                    posIdxArray.push(recN);
-                }
-            }
-            return posIdxArray;
-        };
-
-        this.debug = function () { debugger; }
-
-        this.getTop = function (limit) {
-            if (this.queryMode) { return null; } // must be in SVM mode to return results
-            if (!limit) { limit = 20; }
-            var idxArray = [];
-            var marginArray = [];
-            var sorted = resultVec.sortPerm(false);
-            for (var recN = 0; recN < uRecSet.length && recN < limit; recN++) {
-                idxArray.push(sorted.perm[recN]);
-                var val = sorted.vec[recN];
-                val = val == Number.POSITIVE_INFINITY ? Number.MAX_VALUE : val;
-                val = val == Number.NEGATIVE_INFINITY ? -Number.MAX_VALUE : val;
-                marginArray.push(val);
-            }
-            return { posIdx: idxArray, margins: marginArray };
-        };
-
-        //!   - `objJSON = alModel.getSettings()` -- returns the settings object
-        this.getSettings = function () { return settings; }
-
-        // returns record set index of the unlabeled record that is closest to the margin
-        //!   - `recSetIdx = alModel.selectQuestion()` -- returns `recSetIdx` - the index of the record in `recSet`, whose class is unknonw and requires user input
-        this.selectQuestion = function () {
-            if (posRecIdV.length >= settings.nPos && negRecIdV.length >= settings.nNeg) { queryMode = false; }
-            if (queryMode) {
-                if (posRecIdV.length < settings.nPos && nPosQ + 1 < uRecSet.length) {
-                    nPosQ = nPosQ + 1;
-                    console.log("query mode, try to get pos");
-                    this.selectedQuestionIdx = simVp[simVp.length - 1 - (nPosQ - 1)];
-                    return this.selectedQuestionIdx;
-                }
-                if (negRecIdV.length < settings.nNeg && nNegQ + 1 < uRecSet.length) {
-                    nNegQ = nNegQ + 1;
-                    // TODO if nNegQ == rRecSet.length, find a new sample
-                    console.log("query mode, try to get neg");
-                    this.selectedQuestionIdx = simVp[nNegQ - 1];
-                    return this.selectedQuestionIdx;
-                }
-            }
-            else {
-                ////call svm, get record closest to the margin
-                svm = new exports.SVC(settings);
-                svm.fit(X, y);//column examples, y float vector of +1/-1, default svm paramvals
-
-                // mark positives
-                for (var i = 0; i < posIdxV.length; i++) {
-                    classVec[posIdxV[i]] = Number.POSITIVE_INFINITY;
-                    resultVec[posIdxV[i]] = Number.POSITIVE_INFINITY;
-                }
-                // mark negatives
-                for (var i = 0; i < negIdxV.length; i++) {
-                    classVec[negIdxV[i]] = Number.POSITIVE_INFINITY;
-                    resultVec[negIdxV[i]] = Number.NEGATIVE_INFINITY;
-                }
-                var posCount = posIdxV.length;
-                var negCount = negIdxV.length;
-                // classify unlabeled
-                for (var recN = 0; recN < uRecSet.length; recN++) {
-                    if (classVec[recN] !== Number.POSITIVE_INFINITY) {
-                        var svmMargin = svm.predict(uMat.getCol(recN));
-                        if (svmMargin > 0) {
-                            posCount++;
-                        } else {
-                            negCount++;
-                        }
-                        classVec[recN] = Math.abs(svmMargin);
-                        resultVec[recN] = svmMargin;
-                    }
-                }
-                var sorted = classVec.sortPerm();
-                console.log("svm mode, margin: " + sorted.vec[0] + ", npos: " + posCount + ", nneg: " + negCount);
-                this.selectedQuestionIdx = sorted.perm[0];
-                return this.selectedQuestionIdx;
-            }
-
-        };
-        // asks the user for class label given a record set index
-        //!   - `alModel.getAnswer(ALAnswer, recSetIdx)` -- given user input `ALAnswer` (string) and `recSetIdx` (integer, result of model.selectQuestion) the training set is updated.
-        //!      The user input should be either "y" (indicating that recSet[recSetIdx] is a positive example), "n" (negative example).
-        this.getAnswer = function (ALanswer, recSetIdx) {
-            //todo options: ?newQuery
-            if (ALanswer === "y") {
-                posIdxV.push(recSetIdx);
-                posRecIdV.push(uRecSet[recSetIdx].$id);
-                //X.push(ftrSpace.extractSparseVector(uRecSet[recSetIdx]));
-                X.push(uMat.getCol(recSetIdx));
-                y.push(1.0);
-            } else {
-                negIdxV.push(recSetIdx);
-                negRecIdV.push(uRecSet[recSetIdx].$id);
-                //X.push(ftrSpace.extractSparseVector(uRecSet[recSetIdx]));
-                X.push(uMat.getCol(recSetIdx));
-                y.push(-1.0);
-            }
-            // +k query // rank unlabeled according to query, ask for k most similar
-            // -k query // rank unlabeled according to query, ask for k least similar
-        };
-        //!   - `alModel.startLoop()` -- starts the active learning loop in console
-        this.startLoop = function () {
-            while (true) {
-                var recSetIdx = this.selectQuestion();
-                var ALanswer = sget(uRecSet[recSetIdx].Text + ": y/(n)/s? Command s stops the process").trim();
-                if (ALanswer == "s") { break; }
-                if (posIdxV.length + negIdxV.length == uRecSet.length) { break; }
-                this.getAnswer(ALanswer, recSetIdx);
-            }
-        };
-        //!   - `alModel.saveSvmModel(fout)` -- saves the binary SVM model to an output stream `fout`. The algorithm must be in SVM mode.
-        this.saveSvmModel = function (outputStream) {
-            // must be in SVM mode
-            if (queryMode) {
-                console.log("AL.save: Must be in svm mode");
-                return;
-            }
-            svm.save(outputStream);
-        };
-
-        this.getWeights = function () {
-            return svm.weights;
-        }
-        //this.saveLabeled
-        //this.loadLabeled
-    };
+    exports.ActiveLearner = ActiveLearner;
 
     

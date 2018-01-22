@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
 #include "logger.h"
 
-void TLogger::NotifyVerbose(const int& VerbosityLevel, const char *Str) 
+void TLogger::NotifyVerbose(const int& VerbosityLevel, const char *Str)
 {
     if (this->VerbosityLevel >= VerbosityLevel)
         Notify(ntInfo, Str);
@@ -20,11 +20,11 @@ void TLogger::NotifyVerbose(const int& VerbosityLevel, const TNotifyType& Type, 
         Notify(Type, Str);
 }
 
-void TLogger::NotifyVerboseFmt(const int& VerbosityLevel, const char *FmtStr, ...) 
+void TLogger::NotifyVerboseFmt(const int& VerbosityLevel, const char *FmtStr, ...)
 {
     if (this->VerbosityLevel >= VerbosityLevel) {
-        va_list valist; va_start(valist, FmtStr);   
-        NotifyFmt(ntInfo, FmtStr, valist); va_end(valist); 
+        va_list valist; va_start(valist, FmtStr);
+        NotifyFmt(ntInfo, FmtStr, valist); va_end(valist);
     }
 }
 
@@ -51,10 +51,10 @@ void TLogger::NotifyErr(const char *Str)
     Notify(ntErr, Str);
 }
 
-void TLogger::NotifyInfoFmt(const char *FmtStr, ...) 
+void TLogger::NotifyInfoFmt(const char *FmtStr, ...)
 {
-    va_list valist; va_start(valist, FmtStr);   
-    NotifyFmt(ntInfo, FmtStr, valist); va_end(valist); 
+    va_list valist; va_start(valist, FmtStr);
+    NotifyFmt(ntInfo, FmtStr, valist); va_end(valist);
 }
 
 void TLogger::NotifyWarnFmt(const char *FmtStr, ...)
@@ -63,7 +63,7 @@ void TLogger::NotifyWarnFmt(const char *FmtStr, ...)
     NotifyFmt(ntWarn, FmtStr, valist); va_end(valist);
 }
 
-void TLogger::NotifyErrFmt(const char *FmtStr, ...) 
+void TLogger::NotifyErrFmt(const char *FmtStr, ...)
 {
     va_list valist; va_start(valist, FmtStr);
     NotifyFmt(ntErr, FmtStr, valist); va_end(valist);
@@ -76,14 +76,14 @@ void TLogger::NotifyErr(const char *Str, const PExcept& Except)
 }
 
 
-void TLogger::NotifyFmt(const TNotifyType& Type, const char *FmtStr, va_list argptr) 
+void TLogger::NotifyFmt(const TNotifyType& Type, const char *FmtStr, va_list argptr)
 {
     const int RetVal=vsnprintf(NotifyBuff, NOTIFY_BUFF_SIZE-2, FmtStr, argptr);
     if (RetVal < 0) return;
     Notify(Type, NotifyBuff);
 }
 
-void TLogger::Notify(const TNotifyType& Type, const char *Str) 
+void TLogger::Notify(const TNotifyType& Type, const char *Str)
 {
     try {
         TChA FullStr;
@@ -119,24 +119,30 @@ void TLogger::PrintError(const TStr& Str)
 
 void TLogger::PrintInfo(const char *FmtStr, ...)
 {
-    va_list valist; va_start(valist, FmtStr);
-    printf("*** Info: ");
-    printf(FmtStr, valist);
-    printf("\n");
+    va_list Argptr; va_start(Argptr, FmtStr);
+    Print("Info", FmtStr, Argptr);
 }
 
 void TLogger::PrintWarning(const char *FmtStr, ...)
 {
-    va_list valist; va_start(valist, FmtStr);
-    printf("*** Warning: ");
-    printf(FmtStr, valist);
-    printf("\n");
+    va_list Argptr; va_start(Argptr, FmtStr);
+    Print("Warning", FmtStr, Argptr);
 }
 
 void TLogger::PrintError(const char *FmtStr, ...)
 {
-    va_list valist; va_start(valist, FmtStr);
-    printf("*** Error: ");
-    printf(FmtStr, valist);
+    va_list Argptr; va_start(Argptr, FmtStr);
+    Print("Error", FmtStr, Argptr);
+}
+
+void TLogger::Print(const TStr& Type, const char *FmtStr, va_list Argptr)
+{
+    printf("*** %s: ", Type.CStr());
+    const int BUFF_SIZE = 10240;
+    char NotifyBuff[BUFF_SIZE];
+    const int RetVal = vsnprintf(NotifyBuff, BUFF_SIZE - 2, FmtStr, Argptr);
+    if (RetVal >= 0) {
+        printf(NotifyBuff);
+    }
     printf("\n");
 }

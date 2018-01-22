@@ -16,14 +16,14 @@
 
 ///////////////////////////////
 // NodeJs-Qminer-LinAlg
-void TNodeJsLinAlg::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsLinAlg::Init(v8::Local<v8::Object> exports) {
     NODE_SET_METHOD(exports, "svd", _svd);
     NODE_SET_METHOD(exports, "svdAsync", _svdAsync);
     NODE_SET_METHOD(exports, "qr", _qr);
 }
 
-TNodeJsLinAlg::TSVDTask::TSVDTask(const v8::FunctionCallbackInfo<v8::Value>& Args) :
-        TNodeTask(Args),
+TNodeJsLinAlg::TSVDTask::TSVDTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync) :
+        TNodeTask(Args, IsAsync),
         JsFltVV(nullptr),
         JsSpVV(nullptr),
         U(nullptr),
@@ -55,7 +55,7 @@ TNodeJsLinAlg::TSVDTask::TSVDTask(const v8::FunctionCallbackInfo<v8::Value>& Arg
     s = new TNodeJsFltV();
 }
 
-v8::Handle<v8::Function> TNodeJsLinAlg::TSVDTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+v8::Local<v8::Function> TNodeJsLinAlg::TSVDTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     if (TNodeJsUtil::IsArgFun(Args, 2)) {
         return TNodeJsUtil::GetArgFun(Args, 2);
     }
@@ -100,16 +100,16 @@ v8::Local<v8::Value> TNodeJsLinAlg::TSVDTask::WrapResult() {
     v8::EscapableHandleScope HandleScope(Isolate);
 
     v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result 
-    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "U")), TNodeJsUtil::NewInstance(U));
-    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "V")), TNodeJsUtil::NewInstance(V));
-    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "s")), TNodeJsUtil::NewInstance(s));
+    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "U")), TNodeJsUtil::NewInstance(U));
+    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "V")), TNodeJsUtil::NewInstance(V));
+    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "s")), TNodeJsUtil::NewInstance(s));
     return HandleScope.Escape(JsObj);
 }
 
 void TNodeJsLinAlg::qr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    v8::Handle<v8::Object> JsObj = v8::Object::New(Isolate); // Result 
+    v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result 
     TFltVV Q;
     TFltVV R;
     double Tol = TNodeJsUtil::GetArgFlt(Args, 1, 1e-6);
@@ -117,7 +117,7 @@ void TNodeJsLinAlg::qr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
         TLinAlg::QR(JsMat->Mat, Q, R, Tol);
     }
-    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "Q")), TNodeJsFltVV::New(Q));
-    JsObj->Set(v8::Handle<v8::String>(v8::String::NewFromUtf8(Isolate, "R")), TNodeJsFltVV::New(R));
+    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "Q")), TNodeJsFltVV::New(Q));
+    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "R")), TNodeJsFltVV::New(R));
     Args.GetReturnValue().Set(JsObj);
 }

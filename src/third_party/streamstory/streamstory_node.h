@@ -24,7 +24,7 @@
 class TNodeJsStreamStory : public node::ObjectWrap, public TMc::TStreamStoryCallback {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "_StreamStory"; }
 
 private:
@@ -72,9 +72,9 @@ private:
         TIntV DerivFtrIdV;
 
     public:
-        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
 
-        v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
     };
 

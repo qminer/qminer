@@ -1657,6 +1657,9 @@
  *
  * @example
  *
+ * var assert = require('assert');
+ * var qm = require('qminer');
+ *
  * // variables
  * var batchSize = 1000;
  * var nbatches = 10;
@@ -1822,7 +1825,7 @@ private:
     ~TNodeJsStreamAggr() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
     // Node framework
-    static void Init(v8::Handle<v8::Object> Exports);
+    static void Init(v8::Local<v8::Object> Exports);
     static const TStr GetClassId() { return "StreamAggr"; }
 
     // C++ wrapped object
@@ -2711,8 +2714,8 @@ private:
     v8::Persistent<v8::Function> LoadStateJsonFun;
 
 public:
-    TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal);
-    static TQm::PStreamAggr New(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) {
+    TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Local<v8::Object> TriggerVal);
+    static TQm::PStreamAggr New(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Local<v8::Object> TriggerVal) {
         return new TNodeJsFuncStreamAggr(_Base, _AggrNm, TriggerVal);
     }
 

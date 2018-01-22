@@ -1,9 +1,9 @@
 {
   "name": "qminer",
-  "version": "8.5.0",
+  "version": "9.1.2",
   "description": "A C++ based data analytics platform for processing large-scale real-time streams containing structured and unstructured data",
   "engines": {
-    "node": ">=0.12"
+    "node": ">=4"
   },
   "license": "BSD-2-Clause-FreeBSD",
   "author": "Blaz Fortuna <blaz@blazfortuna.com>",
@@ -91,7 +91,6 @@
   },
   "main": "./index.js",
   "dependencies": {
-    "sget": "~0.1.5",
     "node-pre-gyp": "0.6.x"
   },
   "bundledDependencies": [

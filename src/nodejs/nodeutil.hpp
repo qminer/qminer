@@ -13,7 +13,7 @@
  //// Node - Utilities
 
 template <class TClass>
-bool TNodeJsUtil::IsClass(const v8::Handle<v8::Object> Obj) {
+bool TNodeJsUtil::IsClass(const v8::Local<v8::Object> Obj) {
     return IsClass(Obj, TClass::GetClassId());
 }
 
@@ -45,9 +45,9 @@ bool TNodeJsUtil::IsFldClass(v8::Local<v8::Object> Obj, const TStr& FldNm) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     if (!IsObjFld(Obj, FldNm)) { return false; }
-    v8::Handle<v8::Value> ValFld = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+    v8::Local<v8::Value> ValFld = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
     if (!ValFld->IsObject()) { return false; }
-    v8::Handle<v8::Object> ObjFld = ValFld->ToObject();
+    v8::Local<v8::Object> ObjFld = ValFld->ToObject();
     return IsClass(ObjFld, TClass::GetClassId());
 }
 
@@ -57,10 +57,10 @@ TClass* TNodeJsUtil::GetUnwrapFld(v8::Local<v8::Object> Obj, const TStr& FldNm) 
     v8::HandleScope HandleScope(Isolate);
     // check we have the field
     EAssertR(IsObjFld(Obj, FldNm), "TNodeJsUtil::GetUnwrapFld: Key " + FldNm + " is missing!");
-    v8::Handle<v8::Value> ValFld = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+    v8::Local<v8::Value> ValFld = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
     // check field points to an object
     EAssertR(ValFld->IsObject(), "TNodeJsUtil::GetUnwrapFld: Key " + FldNm + " is not an object");
-    v8::Handle<v8::Object> ObjFld = ValFld->ToObject();
+    v8::Local<v8::Object> ObjFld = ValFld->ToObject();
 
     return Unwrap<TClass>(ObjFld);
 }
@@ -84,9 +84,9 @@ void TNodeJsUtil::_NewJs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     try {
         EAssertR(Args.IsConstructCall(), "Not a constructor call (you forgot to use the new operator)");
         v8::Local<v8::Object> Instance = Args.This();
-        v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+        v8::Local<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
         // static TStr TClass:ClassId must be defined
-        v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TClass::GetClassId().CStr());
+        v8::Local<v8::String> Value = v8::String::NewFromUtf8(Isolate, TClass::GetClassId().CStr());
         TNodeJsUtil::SetPrivate(Instance, Key, Value);
         // This is skipped in _NewCpp
         TClass* Obj = TClass::NewFromArgs(Args);
@@ -109,9 +109,9 @@ void TNodeJsUtil::_NewCpp(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     try {
         EAssertR(Args.IsConstructCall(), "Not a constructor call");
         v8::Local<v8::Object> Instance = Args.This();
-        v8::Handle<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
+        v8::Local<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
         // static TStr TClass:ClassId must be defined
-        v8::Handle<v8::String> Value = v8::String::NewFromUtf8(Isolate, TClass::GetClassId().CStr());
+        v8::Local<v8::String> Value = v8::String::NewFromUtf8(Isolate, TClass::GetClassId().CStr());
         TNodeJsUtil::SetPrivate(Instance, Key, Value);
         // wrap is done elsewhere in cpp
         Args.GetReturnValue().Set(Instance);
@@ -132,31 +132,33 @@ template <class TClass>
 v8::Local<v8::Object> TNodeJsUtil::NewInstance(TClass* Obj) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
-    EAssertR(!TClass::Constructor.IsEmpty(), "NewJsInstance<...>::New: constructor is empty. Did you call NewJsInstance<...>::Init(exports); in this module's init function?");
-    v8::Local<v8::Function> cons = v8::Local<v8::Function>::New(Isolate, TClass::Constructor);
-    v8::Local<v8::Object> Instance = cons->NewInstance();
+    EAssertR(!TClass::Constructor.IsEmpty(), "NewJsInstance<" + TClass::GetClassId() + ">::New: constructor is empty. Did you call NewJsInstance<...>::Init(exports); in this module's init function?");
+    v8::Local<v8::Function> Cons = v8::Local<v8::Function>::New(Isolate, TClass::Constructor);
+    v8::MaybeLocal<v8::Object> MaybeInstance = Cons->NewInstance(Isolate->GetCurrentContext());
+    v8::Local<v8::Object> Instance;
+    EAssertR(MaybeInstance.ToLocal(&Instance), "NewJsInstance<" + TClass::GetClassId() + ">::New: failed to create instance (empty handle)");
     Obj->Wrap(Instance);
     return HandleScope.Escape(Instance);
 }
 
 template <class TVal>
-void TNodeJsUtil::ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Local<TVal>& Arg) {
+void TNodeJsUtil::ExecuteVoid(const v8::Local<v8::Function>& Fun, const v8::Local<TVal>& Arg) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    v8::TryCatch TryCatch;
+    v8::TryCatch TryCatch(Isolate);
 
-    v8::Handle<v8::Value> Argv[1] = { Arg };
+    v8::Local<v8::Value> Argv[1] = { Arg };
     Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
     TNodeJsUtil::CheckJSExcept(TryCatch);
 }
 
 template <class TVal>
-bool TNodeJsUtil::ExecuteBool(const v8::Handle<v8::Function>& Fun, const v8::Local<TVal>& Arg) {
+bool TNodeJsUtil::ExecuteBool(const v8::Local<v8::Function>& Fun, const v8::Local<TVal>& Arg) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    v8::TryCatch TryCatch;
+    v8::TryCatch TryCatch(Isolate);
 
-    v8::Handle<v8::Value> Argv[1] = { Arg };
+    v8::Local<v8::Value> Argv[1] = { Arg };
     v8::Local<v8::Value> RetVal = Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
     TNodeJsUtil::CheckJSExcept(TryCatch);
 
@@ -165,7 +167,7 @@ bool TNodeJsUtil::ExecuteBool(const v8::Handle<v8::Function>& Fun, const v8::Loc
 }
 
 template <class TClass>
-TClass* TNodeJsUtil::UnwrapCheckWatcher(v8::Handle<v8::Object> Arg) {
+TClass* TNodeJsUtil::UnwrapCheckWatcher(v8::Local<v8::Object> Arg) {
     EAssertR(IsClass(Arg, TClass::GetClassId()), "Object is not a wrapped `" + TClass::GetClassId() + "` class");
     TClass* Obj = node::ObjectWrap::Unwrap<TClass>(Arg);
     Obj->Watcher->AssertOpen();

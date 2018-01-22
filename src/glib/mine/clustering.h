@@ -240,11 +240,11 @@ public:
     // APPLY METHODS
     template <class TDataType>
     void Apply(const TDataType& FtrVV, const bool& AllowEmptyP=true,
-            const int& MxIter=10000, const PNotify& Notify=TNotify::NullNotify);
+            const int& MxIter=10000, const TWPt<TNotify>& Notify=TNotify::NullNotify());
     template <class TDataType, class TInitCentroidType>
     void Apply(const TDataType& FtrVV, const TInitCentroidType& InitCentVV,
             const bool& AllowEmptyP=true, const int& MxIter=10000,
-            const PNotify& Notify=TNotify::NullNotify);
+            const TWPt<TNotify>& Notify=TNotify::NullNotify());
 
     /// assign methods
     template<class TDataType>
@@ -280,16 +280,16 @@ protected:
     // VIRTUAL APPLY FUNCTIONS, SUBCLASSES MUST OVERRIDE
     virtual void VirtApply(const TFltVV& FtrVV, const TFltVV& InitCentVV,
             const bool& AllowEmptyP=true, const int& MaxIter=10000,
-            const PNotify& Notify=TNotify::NullNotify) = 0;
+            const TWPt<TNotify>& Notify=TNotify::NullNotify()) = 0;
     virtual void VirtApply(const TFltVV& FtrVV, const TVec<TIntFltKdV>& InitCentVV,
             const bool& AllowEmptyP=true, const int& MaxIter=10000,
-            const PNotify& Notify=TNotify::NullNotify) = 0;
+            const TWPt<TNotify>& Notify=TNotify::NullNotify()) = 0;
     virtual void VirtApply(const TVec<TIntFltKdV>& FtrVV, const TFltVV& InitCentVV,
             const bool& AllowEmptyP=true, const int& MaxIter=10000,
-            const PNotify& Notify = TNotify::NullNotify) = 0;
+            const TWPt<TNotify>& Notify = TNotify::NullNotify()) = 0;
     virtual void VirtApply(const TVec<TIntFltKdV>& FtrVV, const TVec<TIntFltKdV>& InitCentVV,
             const bool& AllowEmptyP=true, const int& MaxIter=10000,
-            const PNotify& Notify = TNotify::NullNotify) = 0;
+            const TWPt<TNotify>& Notify = TNotify::NullNotify()) = 0;
 
     /// can still optimize
     template<class TDataType>
@@ -360,16 +360,16 @@ public:
 protected:
     void VirtApply(const TFltVV& FtrVV, const TFltVV& InitCentVV,
             const bool& AllowEmptyP=true, const int& MaxIter=10000,
-            const PNotify& Notify=TNotify::NullNotify);
+            const TWPt<TNotify>& Notify=TNotify::NullNotify());
     void VirtApply(const TFltVV& FtrVV, const TVec<TIntFltKdV>& InitCentVV,
             const bool& AllowEmptyP=true, const int& MaxIter=10000,
-            const PNotify& Notify=TNotify::NullNotify);
+            const TWPt<TNotify>& Notify=TNotify::NullNotify());
     void VirtApply(const TVec<TIntFltKdV>& FtrVV, const TFltVV& InitCentVV,
             const bool& AllowEmptyP=true, const int& MaxIter=10000,
-            const PNotify& Notify = TNotify::NullNotify);
+            const TWPt<TNotify>& Notify = TNotify::NullNotify());
     void VirtApply(const TVec<TIntFltKdV>& FtrVV, const TVec<TIntFltKdV>& InitCentVV,
             const bool& AllowEmptyP=true, const int& MaxIter=10000,
-            const PNotify& Notify = TNotify::NullNotify);
+            const TWPt<TNotify>& Notify = TNotify::NullNotify());
 
     const TStr GetType() const { return "kmeans"; }
 
@@ -377,7 +377,7 @@ private:
     template<class TDataType, class TInitCentroidType>
     void VirtApply(const TDataType& FtrVV, const TInitCentroidType& InitCentVV,
             const int& NInst, const int& Dim, const bool& AllowEmptyP, const int& MaxIter,
-            const PNotify& Notify);
+            const TWPt<TNotify>& Notify);
 
     const TInt K;
 };
@@ -403,16 +403,16 @@ public:
 protected:
     void VirtApply(const TFltVV& FtrVV, const TFltVV& InitCentVV,
             const bool& AllowEmptyP=true, const int& MaxIter=10000,
-            const PNotify& Notify=TNotify::NullNotify);
+            const TWPt<TNotify>& Notify=TNotify::NullNotify());
     void VirtApply(const TFltVV& FtrVV, const TVec<TIntFltKdV>& InitCentVV,
             const bool& AllowEmptyP=true, const int& MaxIter=10000,
-            const PNotify& Notify=TNotify::NullNotify);
+            const TWPt<TNotify>& Notify=TNotify::NullNotify());
     void VirtApply(const TVec<TIntFltKdV>& FtrVV, const TFltVV& InitCentVV,
             const bool& AllowEmptyP=true, const int& MaxIter=10000,
-            const PNotify& Notify = TNotify::NullNotify);
+            const TWPt<TNotify>& Notify = TNotify::NullNotify());
     void VirtApply(const TVec<TIntFltKdV>& FtrVV, const TVec<TIntFltKdV>& InitCentVV,
             const bool& AllowEmptyP=true, const int& MaxIter=10000,
-            const PNotify& Notify = TNotify::NullNotify);
+            const TWPt<TNotify>& Notify = TNotify::NullNotify());
 
     const TStr GetType() const { return "dpmeans"; }
 
@@ -422,7 +422,7 @@ private:
     template <class TDataType, class TInitCentVV>
     void VirtApply(const TDataType& FtrVV, const TInitCentVV& InitCentVV,
             const int& NInst, const int& Dim, const bool& AllowEmptyP, const int& MaxIter,
-            const PNotify& Notify);
+            const TWPt<TNotify>& Notify);
 
     template <class TDataType>
     inline void AddCentroid(const TDataType& FtrVV, TFltVV& ClustDistVV, TFltV& NormC2,
@@ -470,7 +470,7 @@ public:
 template <class TDist, class TLink>
 class TAggClust {
 public:
-    static void MakeDendro(const TFltVV& X, TIntIntFltTrV& MergeV, const PNotify& Notify) {
+    static void MakeDendro(const TFltVV& X, TIntIntFltTrV& MergeV, const TWPt<TNotify>& Notify) {
         const int NInst = X.GetCols();
 
         Notify->OnNotifyFmt(TNotifyType::ntInfo, "%s\n", TStrUtil::GetStr(X, ", ", "%.3f").CStr());

@@ -13,7 +13,7 @@
                 <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
         <div id="jsdoc-navbar-content">
-            <a href="index.html" class="jsdoc-navbar-package-name">Home</a>
+            <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.1.2</a>
         </div>
     </div>
 </nav>
@@ -1517,7 +1517,7 @@ var ftr = new qm.FeatureSpace(base, { type: &quot;categorical&quot;, source: &qu
 base.store(&quot;Class&quot;).push({ Name: &quot;Fred&quot;, StudyGroup: &quot;A&quot; });
 base.store(&quot;Class&quot;).push({ Name: &quot;Wilma&quot;, StudyGroup: &quot;B&quot; });
 base.store(&quot;Class&quot;).push({ Name: &quot;Barney&quot;, StudyGroup: &quot;C&quot; });
-// update the feature space to get the categories 
+// update the feature space to get the categories
 ftr.updateRecords(base.store(&quot;Class&quot;).allRecords);
 // get the feature vector for the first record
 var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]); // returns vector [1, 0, 0]
@@ -2450,7 +2450,7 @@ var ftr = new qm.FeatureSpace(base, { type: &quot;numeric&quot;, source: &quot;C
 // add a new record to the base
 base.store(&quot;Class&quot;).push({ Name: &quot;Peterson&quot;, Grade: 9 });
 base.store(&quot;Class&quot;).push({ Name: &quot;Ericsson&quot;, Grade: 8 });
-// update the feature space for scaling 
+// update the feature space for scaling
 ftr.updateRecords(base.store(&quot;Class&quot;).allRecords);
 // get the features of the first record
 var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]); // the vector with the random value
@@ -10656,7 +10656,10 @@ http://dl.acm.org/citation.cfm?id=2954329</p>
             Example
         </h4>
                 <div>
-    <pre class="prettyprint"><code>// variables
+    <pre class="prettyprint"><code>var assert = require(&#x27;assert&#x27;);
+var qm = require(&#x27;qminer&#x27;);
+
+// variables
 var batchSize = 1000;
 var nbatches = 10;
 

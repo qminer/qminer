@@ -9,7 +9,7 @@ QMiner
 [![Windows Build][appveyor-image]][appveyor-url]
 
 QMiner is an analytics platform for large-scale real-time streams containing structured and
-unstructured data. It is designed for scaling to millions of instances on high-end commodity 
+unstructured data. It is designed for scaling to millions of data points on high-end commodity 
 hardware, providing efficient storage, retrieval and analytics mechanisms with real-time response.
 
 **[Project homepage](http://qminer.ijs.si/)**
@@ -38,23 +38,15 @@ To test that your node.js version is correct, run ```node --version``` and ```np
 
 ---
 
-### Compile from source
-
-+ [Linux](https://github.com/qminer/qminer/wiki/Compiling-from-source-on-Linux)
-+ [Mac OS X](https://github.com/qminer/qminer/wiki/Compiling-from-source-on-Mac-OSX)
-+ [Windows](https://github.com/qminer/qminer/wiki/Compiling-from-source-on-Windows)
+### [Compile from source](https://qminer.github.io/setup/)
 
 ### Documentation
 
-+ [Examples](https://github.com/qminer/qminer/wiki/Example)
 + [JavaScript API](https://rawgit.com/qminer/qminer/master/nodedoc/index.html)
   + [`qm` module](https://rawgit.com/qminer/qminer/master/nodedoc/module-qm.html)
   + [`la` module](https://rawgit.com/qminer/qminer/master/nodedoc/module-la.html)
   + [`analytics` module](https://rawgit.com/qminer/qminer/master/nodedoc/module-analytics.html)
 + [C++ Documentation](http://agava.ijs.si/~blazf/qminer/)
-+ [Architecture](https://github.com/qminer/qminer/wiki/Architecture)
-+ [Roadmap](https://github.com/qminer/qminer/wiki/Roadmap)
-+ [Mailing list](https://groups.google.com/forum/#!forum/qminer)
 
 ## Acknowledgments
 

@@ -2700,21 +2700,27 @@ THistogramAD::THistogramAD(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : 
 }
 
 void THistogramAD::LoadState(TSIn& SIn) {
-    Severity.Load(SIn);
-    LastHistIdx.Load(SIn);
-    PMF.Load(SIn);
-    Severities.Load(SIn);
-    Explanation = TJsonVal::Load(SIn);
-    Count.Load(SIn);
+    TInt Version(SIn);
+    Severity.Load(SIn); // v0
+    LastHistIdx.Load(SIn); // v0
+    PMF.Load(SIn); // v0
+    Severities.Load(SIn); // v0
+    Explanation = TJsonVal::Load(SIn); // v0
+    Count.Load(SIn); // v0
+    if (Version >= 1) {
+        Model.Bandwidth = TFlt(SIn); // v1
+    }
 }
 
 void THistogramAD::SaveState(TSOut& SOut) const {
-    Severity.Save(SOut);
-    LastHistIdx.Save(SOut);
-    PMF.Save(SOut);
-    Severities.Save(SOut);
-    Explanation->Save(SOut);
-    Count.Save(SOut);
+    SOut.Save(1); // Version=1
+    Severity.Save(SOut); // v0
+    LastHistIdx.Save(SOut); // v0
+    PMF.Save(SOut); // v0
+    Severities.Save(SOut); // v0
+    Explanation->Save(SOut); // v0
+    Count.Save(SOut); // v0
+    Model.Bandwidth.Save(SOut); // v1
 }
 
 int THistogramAD::GetNmInt(const TStr& Nm) const {
@@ -2768,6 +2774,7 @@ PJsonVal THistogramAD::SaveJson(const int& Limit) const {
         Obj->AddToObj("pmf", TJsonVal::NewArr(PMFClip));
         Obj->AddToObj("severities", TJsonVal::NewArr(SevClip));
     }
+    Obj->AddToObj("bandwidth", Model.Bandwidth);
     Obj->AddToObj("explain", Explanation);
     Obj->AddToObj("thresholds", TJsonVal::NewArr(Model.Thresholds));
     Obj->AddToObj("tol", Model.Tol);

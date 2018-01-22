@@ -6673,7 +6673,6 @@ describe('Stream aggregate statistics', function () {
             assert.equal(stats.types[2].count, 3);
             assert.equal(stats.types[2].msecs, 0);
         });
-
         it('should be less then observed from javascript', function () {
             // create few stream aggregates
             var tick = store.addStreamAggr({
@@ -6699,10 +6698,9 @@ describe('Stream aggregate statistics', function () {
 
             // measure insert time
             var start = process.hrtime();
-            store.push({ Time: '2015-06-10T14:13:32.0', Value: 1 });
-            store.push({ Time: '2015-06-10T14:33:30.0', Value: 2 });
-            store.push({ Time: '2015-06-10T14:33:31.0', Value: 3 });
-            store.push({ Time: '2015-06-10T14:33:32.0', Value: 4 });
+            for (var i = 0; i < 10000; i++) {
+                store.push({ Time: i, Value: i });
+            }
             var diff = getMSecs(process.hrtime(start));
 
             // make sure we are below insert time
@@ -6797,7 +6795,7 @@ describe('HistogramAD Tests', function () {
         window = store.addStreamAggr({
             type: 'timeSeriesWinBufVector',
             inAggr: tick.name,
-            winsize: 1e+9 // no forgetting
+            winsize: 1e+4
         });
         hist = store.addStreamAggr({
             type: 'onlineHistogram',
@@ -6840,6 +6838,157 @@ describe('HistogramAD Tests', function () {
             assert.equal(histAD.getInteger('largestNormalIndex'), 6); // from now on, 6 is also normal
             assert.equal(histAD.getFloat('largestNormalValue'), 7); // from now on, 6 is also normal
         });
+    });
+    describe('Save/load tests', function () {
+        it('Should save and load an empty model', function () {
+            var histAD = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist.name,
+                bandwidth: 0.5,
+                thresholds: [0.9, 0.95, 0.99]
+            });
+            histAD.save(qm.fs.openWrite('histAD.bin')).close();
+            var histAD2 = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist.name,
+                thresholds: [0.9, 0.95, 0.99]
+            });
+            histAD2.load(qm.fs.openRead('histAD.bin'));
+            assert.equal(histAD2.saveJson().bandwidth, 0.5);
+        });
+        it('Should save and load an initialized model', function () {
+            var thresholds = [0.5, 0.75];
+            var sigs = [0.01, 0.1, 1, 10, 100, 1000, 10000];
+
+            var histAD = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist.name,
+                autoBandwidthsGrid: sigs,
+                autoThresholdsGrid: thresholds,
+                thresholds: [0.9, 0.95, 0.99]
+            });
+            var arr = [10, 50, 60, 80];
+            for (var i = 0; i < arr.length; i++) {
+                store.push({ Time: 0, Value: arr[i] });
+            }
+            histAD.save(qm.fs.openWrite('histAD.bin')).close();
+
+            var histAD2 = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist.name,
+                autoBandwidthsGrid: sigs,
+                autoThresholdsGrid: thresholds,
+                thresholds: [0.9, 0.95, 0.99]
+            });
+            histAD2.load(qm.fs.openRead('histAD.bin'));
+            assert.equal(histAD2.saveJson().bandwidth, histAD.saveJson().bandwidth);
+        });
+    });
+    describe('Smoothing tests', function () {
+        it('Should classify severities correctly', function () {
+            var histAD = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist.name,
+                bandwidth: 0.5,
+                thresholds: [0.8, 0.95, 0.99]
+            });
+
+            store.push({ Time: 0, Value: 0.5 });
+            store.push({ Time: 2, Value: 1.5 });
+            store.push({ Time: 3, Value: 1.5 });
+            store.push({ Time: 4, Value: 3.5 });
+            var expected_everities = [0, 0, 1, 0, 2, 3, 3, 3, 3, 3];
+            var hv = histAD.val;
+            for (var i = 0; i < expected_everities.length; i++) {
+                assert.equal(hv.severities[i], expected_everities[i]);
+            }
+            // [0.26, 0.43, 0.08, 0.2, 0.03, 0.0006, 0,...]
+        });
+        it('Should classify severities correctly', function () {
+            var histAD = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist.name,
+                bandwidth: 0.5,
+                thresholds: [0.9, 0.95, 0.99]
+            });
+
+            store.push({ Time: 0, Value: 0.5 });
+            store.push({ Time: 2, Value: 1.5 });
+            store.push({ Time: 3, Value: 1.5 });
+            store.push({ Time: 4, Value: 3.5 });
+            var expected_everities = [0, 0, 0, 0, 2, 3, 3, 3, 3, 3];
+            var hv = histAD.val;
+            for (var i = 0; i < expected_everities.length; i++) {
+                assert.equal(hv.severities[i], expected_everities[i]);
+            }
+            // [0.26, 0.43, 0.08, 0.2, 0.03, 0.0006, 0,...]
+        });
+        it('Should handle ties', function () {
+            var hist2 = store.addStreamAggr({
+                type: 'onlineHistogram',
+                inAggr: window.name,
+                lowerBound: 0,
+                upperBound: 2,
+                bins: 2,
+                addNegInf: false,
+                addPosInf: false
+            });
+            var histAD = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist2.name,
+                bandwidth: 0.5,
+                thresholds: [0.5]
+            });
+
+            store.push({ Time: 0, Value: 0.5 });
+            store.push({ Time: 1, Value: 1.5 });
+           
+            var expected_everities = [ 1, 0 ];
+            var hv = histAD.val;
+            console.log(hv.severities)
+            for (var i = 0; i < expected_everities.length; i++) {
+                assert.equal(hv.severities[i], expected_everities[i]);
+            }
+        });
+        it('Should autotune bandwidth', function () {
+            var hist2 = store.addStreamAggr({
+                type: 'onlineHistogram',
+                inAggr: window.name,
+                lowerBound: 0,
+                upperBound: 100,
+                bins: 100,
+                addNegInf: false,
+                addPosInf: false
+            });
+
+            var thresholds = [0.5, 0.75];
+            
+            var sigs = [0.01, 0.1, 1, 10, 100, 1000, 10000];
+            var histAD = store.addStreamAggr({
+                type: 'histogramAD',
+                inAggr: tick.name,
+                inHistogram: hist2.name,
+                thresholds: thresholds,
+                autoBandwidthsGrid: sigs,
+                autoThresholdsGrid: thresholds,
+                skip:1
+            });
+            var arr = [10, 50, 60, 80];
+            for (var i = 0; i < arr.length; i++) {
+                store.push({ Time: 0, Value: arr[i] });
+            }
+
+            var bandwidth = histAD.val.bandwidth;
+            assert(bandwidth == 100);
+        });
+
     });
 
 });

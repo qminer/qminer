@@ -12,7 +12,7 @@
 // Hierarchical Markov Chain model
 const double TNodeJsStreamStory::DEFAULT_DELTA_TM = 1e-6;
 
-void TNodeJsStreamStory::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsStreamStory::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -160,8 +160,8 @@ TNodeJsStreamStory* TNodeJsStreamStory::NewFromArgs(const v8::FunctionCallbackIn
     }
 }
 
-TNodeJsStreamStory::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args):
-        TNodeTask(Args),
+TNodeJsStreamStory::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync):
+        TNodeTask(Args, IsAsync),
         JsStreamStory(nullptr),
         JsObservFtrVV(nullptr),
         JsControlFtrVV(nullptr),
@@ -200,7 +200,7 @@ TNodeJsStreamStory::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>
     }
 }
 
-v8::Handle<v8::Function> TNodeJsStreamStory::TFitTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+v8::Local<v8::Function> TNodeJsStreamStory::TFitTask::GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     return TNodeJsUtil::GetArgFun(Args, 1);
 }
 
@@ -436,7 +436,7 @@ void TNodeJsStreamStory::getHistoricalStates(const v8::FunctionCallbackInfo<v8::
         const TVec<TTriple<TUInt64,TUInt64,TIntFltH>>& StateTmDurStateIdPrV = ScaleTmIdVPr.Val2;
 
         // create a new vector, giving control over it to node immediately (to avoid working with pointers)
-        v8::Handle<v8::Object> JsScaleJsonVec = TNodeJsUtil::NewInstance(new TNodeJsJsonV(StateTmDurStateIdPrV.Len()));
+        v8::Local<v8::Object> JsScaleJsonVec = TNodeJsUtil::NewInstance(new TNodeJsJsonV(StateTmDurStateIdPrV.Len()));
         TNodeJsJsonV* ScaleJsonVec = TNodeJsUtil::Unwrap<TNodeJsJsonV>(JsScaleJsonVec);
 
         for (int BlockN = 0; BlockN < StateTmDurStateIdPrV.Len(); BlockN++) {
@@ -833,7 +833,7 @@ void TNodeJsStreamStory::onStateChanged(const v8::FunctionCallbackInfo<v8::Value
         JsStreamStory->StateChangedCallback.Reset();
     } else {
         EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onStateChanged: First argument expected to be a function!");
-        v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
+        v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
         JsStreamStory->StateChangedCallback.Reset(Isolate, Callback);
     }
 
@@ -850,7 +850,7 @@ void TNodeJsStreamStory::onAnomaly(const v8::FunctionCallbackInfo<v8::Value>& Ar
         JsStreamStory->AnomalyCallback.Reset();
     } else {
         EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onAnomaly: First argument expected to be a function!");
-        v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
+        v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
         JsStreamStory->AnomalyCallback.Reset(Isolate, Callback);
     }
 
@@ -867,7 +867,7 @@ void TNodeJsStreamStory::onOutlier(const v8::FunctionCallbackInfo<v8::Value>& Ar
         JsStreamStory->OutlierCallback.Reset();
     } else {
         EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onOutlier: First argument expected to be a function!");
-        v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
+        v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
         JsStreamStory->OutlierCallback.Reset(Isolate, Callback);
     }
 
@@ -884,7 +884,7 @@ void TNodeJsStreamStory::onProgress(const v8::FunctionCallbackInfo<v8::Value>& A
         JsStreamStory->ProgressCallback.Reset();
     } else {
         EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onProgress: First argument expected to be a function!");
-        v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
+        v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
         JsStreamStory->ProgressCallback.Reset(Isolate, Callback);
     }
 
@@ -901,7 +901,7 @@ void TNodeJsStreamStory::onPrediction(const v8::FunctionCallbackInfo<v8::Value>&
         JsStreamStory->PredictionCallback.Reset();
     } else {
         EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onPrediction: First argument expected to be a function!");
-        v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
+        v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
         JsStreamStory->PredictionCallback.Reset(Isolate, Callback);
     }
 
@@ -918,7 +918,7 @@ void TNodeJsStreamStory::onActivity(const v8::FunctionCallbackInfo<v8::Value>& A
         JsStreamStory->ActivityCallback.Reset();
     } else {
         EAssertR(Args.Length() > 0 && Args[0]->IsFunction(), "hmc.onPrediction: First argument expected to be a function!");
-        v8::Handle<v8::Function> Callback = v8::Handle<v8::Function>::Cast(Args[0]);
+        v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
         JsStreamStory->ActivityCallback.Reset(Isolate, Callback);
     }
 
@@ -1367,7 +1367,7 @@ void TNodeJsStreamStory::OnPrediction(const uint64& RecTm, const int& CurrStateI
 
         const int ArgC = 6;
 
-        v8::Handle<v8::Value> ArgV[ArgC] = {
+        v8::Local<v8::Value> ArgV[ArgC] = {
             v8::Date::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(RecTm)),
             v8::Integer::New(Isolate, CurrStateId),
             v8::Integer::New(Isolate, TargetStateId),
@@ -1387,7 +1387,7 @@ void TNodeJsStreamStory::OnActivityDetected(const uint64& StartTm, const uint64&
         v8::HandleScope HandleScope(Isolate);
 
         const int ArgC = 3;
-        v8::Handle<v8::Value> ArgV[ArgC] = {
+        v8::Local<v8::Value> ArgV[ArgC] = {
             v8::Date::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(StartTm)),
             v8::Date::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(EndTm)),
             v8::String::NewFromUtf8(Isolate, ActNm.CStr())

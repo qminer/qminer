@@ -29,7 +29,7 @@
 class TNodeJsAnalytics : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
 
 private:
     class TNMFTask : public TNodeTask {
@@ -41,12 +41,12 @@ private:
         int k;
         int Iter;
         double Tol;
-        PNotify Notify;
+        TWPt<TNotify> Notify;
 
     public:
-        TNMFTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        TNMFTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
 
-        v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
         v8::Local<v8::Value> WrapResult();
     };
@@ -103,19 +103,10 @@ public:
     ~TNodeJsSvmModel() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 private:
     // parameters
-    TStr Algorithm;
-    double SvmCost;
-    double SvmUnbalance; // classification specific
-    double SvmEps; // regression specific
-    int SampleSize;
-    int MxIter;
-    int MxTime;
-    double MnDiff;
-    bool Verbose;
-    PNotify Notify;
-
+    TStr Algorithm; /// SGD, LIBSVM
+    
     // model
-    TSvm::TLinModel Model;
+    TSvm::TSvmModel* Model = NULL;
 
     TNodeJsSvmModel(const PJsonVal& ParamVal);
     TNodeJsSvmModel(TSIn& SIn);
@@ -129,6 +120,8 @@ public:
     JsDeclareFunction(setParams);
     //- `vec = svmModel.weights` -- weights of the SVM linear model as a full vector `vec`
     JsDeclareProperty(weights);
+    //- `vec = svmModel.bias` -- weights of the SVM linear model as a full vector `vec`
+    JsDeclareProperty(bias);
     //- `fout = svmModel.save(fout)` -- saves model to output stream `fout`. Returns `fout`.
     JsDeclareFunction(save);
     //- `num = svmModel.decisionFunction(vec)` -- sends vector `vec` through the model and returns the distance to the decision boundery as a real number `num`
@@ -151,14 +144,22 @@ private:
 /**
 * @typedef {Object} SVMParam
 * SVM constructor parameters. Used for the construction of {@link module:analytics.SVC} and {@link module:analytics.SVR}.
-* @property  {string} [algorithm='SGD'] - The algorithm procedure. Possible options are `'SGD'`, `'PR_LOQO'` and `'LIBSVM'`.
+* @property  {string} [algorithm='SGD'] - The algorithm procedure. Possible options are `'SGD'` and `'LIBSVM'`. `'PR_LOQO'`is not supported anymore.
 * @property  {number} [c=1.0] - Cost parameter. Increasing the parameter forces the model to fit the training data more accurately (setting it too large may lead to overfitting) .
-* @property  {number} [j=1.0] - Unbalance parameter. Increasing it gives more weight to the positive examples (getting a better fit on the positive training examples gets a higher priority). Setting c=n is like adding n-1 copies of the positive training examples to the data set.
-* @property  {number} [eps=1e-1] - Epsilon insensitive loss parameter. Larger values result in fewer support vectors (smaller model complexity)
+* @property  {number} [j=1.0] - Unbalance parameter. Increasing it gives more weight to the positive examples (getting a better fit on the positive training examples gets a higher priority). Setting j=n is like adding n-1 copies of the positive training examples to the data set.
+* @property  {number} [eps=1e-3] - Epsilon insensitive loss parameter. Larger values result in fewer support vectors (smaller model complexity)
 * @property  {number} [batchSize=1000] - Number of examples used in the subgradient estimation. Higher number of samples slows down the algorithm, but makes the local steps more accurate.
 * @property  {number} [maxIterations=10000] - Maximum number of iterations.
 * @property  {number} [maxTime=1] - Maximum runtime in seconds.
 * @property  {number} [minDiff=1e-6] - Stopping criterion tolerance.
+* @property  {string} [type='C_SVC'] - The subalgorithm procedure in LIBSVM. Possible options are `'C_SVC'`, `'NU_SVC'` and `'ONE_CLASS'` for classification and `'EPSILON_SVR'`, `'NU_SVR'` and `'ONE_CLASS'` for regression.
+* @property  {string} [kernel='LINEAR'] - Kernel type in LIBSVM. Possible options are `'LINEAR'`, `'POLY'`, 'RBF'`, 'SIGMOID'`  and `'PRECOMPUTED'`.
+* @property  {number} [gamma=1.0] - Gamma parameter in LIBSVM. Set gamma in kernel function.
+* @property  {number} [p=1e-1] - P parameter in LIBSVM. Set the epsilon in loss function of epsilon-SVR.
+* @property  {number} [degree=1] - Degree parameter in LIBSVM. Set degree in kernel function.
+* @property  {number} [nu=1e-2] - Nu parameter in LIBSVM. Set the parameter nu of nu-SVC, one-class SVM, and nu-SVR.
+* @property  {number} [coef0=1.0] - Coef0 parameter in LIBSVM. Set coef0 in kernel function.
+* @property  {number} [cacheSize=100] - Set cache memory size in MB (default 100) in LIBSVM.
 * @property  {boolean} [verbose=false] - Toggle verbose output in the console.
 */
 
@@ -193,7 +194,7 @@ private:
 
 class TNodeJsSVC : public TNodeJsSvmModel {
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
 
     /**
     * Gets the SVC parameters.
@@ -373,7 +374,7 @@ public:
 
 class TNodeJsSVR : public TNodeJsSvmModel {
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
 
     /**
     * Gets the SVR parameters.
@@ -558,7 +559,7 @@ public:
 class TNodeJsRidgeReg : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "RidgeReg"; }
     ~TNodeJsRidgeReg() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 
@@ -743,7 +744,7 @@ public:
 class TNodeJsSigmoid : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "Sigmoid"; }
     ~TNodeJsSigmoid() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 
@@ -937,7 +938,7 @@ public:
 class TNodeJsNNAnomalies : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "NearestNeighborAD"; }
     ~TNodeJsNNAnomalies() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 
@@ -1210,7 +1211,7 @@ private:
     TSignalProc::POnlineLinReg Model;
     TNodeJsRecLinReg(const TSignalProc::POnlineLinReg& Model);
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "RecLinReg"; }
     ~TNodeJsRecLinReg() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 private:
@@ -1409,7 +1410,7 @@ private:
 class TNodeJsLogReg : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "LogReg"; }
     ~TNodeJsLogReg() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 
@@ -1573,7 +1574,7 @@ public:
 class TNodeJsPropHaz : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "PropHazards"; }
     ~TNodeJsPropHaz() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 
@@ -1756,7 +1757,7 @@ private:
     static TNodeJsNNet* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "NNet"; }
     ~TNodeJsNNet() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 
@@ -1897,7 +1898,7 @@ private:
     TNodeJsTokenizer(const PTokenizer& _Tokenizer):
         Tokenizer(_Tokenizer) { }
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "Tokenizer"; }
     ~TNodeJsTokenizer() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
     static TNodeJsTokenizer* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
@@ -2003,7 +2004,7 @@ public:
 class TNodeJsMDS : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "MDS"; }
     ~TNodeJsMDS() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 
@@ -2024,12 +2025,12 @@ private:
         TNodeJsFltVV* JsFltVV;
         TNodeJsSpMat* JsSpVV;
         TNodeJsFltVV* JsResult;
-        PNotify Notify;
+        TWPt<TNotify> Notify;
 
     public:
-        TFitTransformTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        TFitTransformTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
 
-        v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
         v8::Local<v8::Value> WrapResult();
     };
@@ -2173,7 +2174,7 @@ private:
 class TNodeJsKMeans : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "KMeans"; }
 
 private:
@@ -2199,7 +2200,7 @@ private:
     void* Model;
 
     bool Verbose;
-    PNotify Notify;
+    TWPt<TNotify> Notify;
 
     TNodeJsKMeans(const PJsonVal& ParamVal);
     TNodeJsKMeans(const PJsonVal& ParamVal, const TFltVV& Mat);
@@ -2220,9 +2221,9 @@ private:
         TNodeJsIntV*   JsArr;
 
     public:
-        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
 
-        v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
     };
 
@@ -2392,10 +2393,12 @@ public:
      * var analytics = require('qminer').analytics;
      * // create a new KMeans object
      * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * KMeans.fit(X);
      * // get the centroids
      * var centroids = KMeans.centroids;
-     * // print the first centroid
-     * console.log(centroids.getCol(0));
      */
     //# exports.KMeans.prototype.centroids = Object.create(require('qminer').la.Matrix.prototype);
     JsDeclareProperty(centroids);
@@ -2407,6 +2410,10 @@ public:
     * var analytics = require('qminer').analytics;
     * // create a new KMeans object
     * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+    * // create a matrix to be fitted
+    * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+    * // create the model with the matrix X
+    * KMeans.fit(X);
     * // get the centroids
     * var medoids = KMeans.medoids;
     */
@@ -2420,6 +2427,10 @@ public:
     * var analytics = require('qminer').analytics;
     * // create a new KMeans object
     * var KMeans = new analytics.KMeans({ iter: 1000, k: 3 });
+    * // create a matrix to be fitted
+    * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+    * // create the model with the matrix X
+    * KMeans.fit(X);
     * // get the idxv
     * var idxv = KMeans.idxv;
     */
@@ -2491,7 +2502,7 @@ private:
 class TNodeJsDpMeans : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "DpMeans"; }
 
     using TDenseModel = TClustering::TDpMeans<TFltVV>;
@@ -2524,7 +2535,7 @@ private:
     void* DpMeansModel;
 
     bool Verbose;
-    PNotify Notify;
+    TWPt<TNotify> Notify;
 
     TNodeJsDpMeans(const PJsonVal& ParamVal);
     TNodeJsDpMeans(const PJsonVal& ParamVal, const TFltVV& Mat);
@@ -2545,9 +2556,9 @@ private:
         TNodeJsIntV*   JsArr {nullptr};
 
     public:
-        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
 
-        v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
     };
 
@@ -2665,7 +2676,7 @@ public:
     /**
      * Permutates the clusters, and with it {@link module:analytics.DpMeans#centroids}, {@link module:analytics.DpMeans#medoids} and {@link module:analytics.DpMeans#idxv}.
      * @param {module:la.IntVector} mapping - The mapping, where `mapping[4] = 2` means "map cluster 4 into cluster 2".
-     * @returns {module:analytics.DpMeans} Self. The clusters has been permutated.
+     * @returns {module:analytics.DpMeans} Self. The clusters have been permuted.
      * @example
      * // import the modules
      * var analytics = require('qminer').analytics;
@@ -2676,10 +2687,14 @@ public:
      * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
      * // create the model with the matrix X
      * DpMeans.fit(X);
-     * // create the mapping vector
-     * var Mapping = new la.IntVector([1, 0, 2]);
-     * // permutate the clusters.
-     * DpMeans.permuteCentroids(Mapping);
+     * if (DpMeans.centroids.cols > 1) {
+     *     // create the mapping vector: swap first two centroids
+     *     var Mapping = new la.IntVector([1, 0, 2, 3, 4, 5].splice(0,DpMeans.centroids.cols));
+     *     console.log(DpMeans.centroids.toString());
+     *     // permutate the clusters.
+     *     DpMeans.permuteCentroids(Mapping);
+     *     console.log(DpMeans.centroids.toString());
+     * }
      */
     //# exports.DpMeans.prototype.permuteCentroids = function (mapping) { return Object.create(require('qminer').analytics.DpMeans.prototype); }
     JsDeclareFunction(permuteCentroids);
@@ -2716,8 +2731,13 @@ public:
      * @example
      * // import the modules
      * var analytics = require('qminer').analytics;
+     * var la = require('qminer').la;
      * // create a new DpMeans object
      * var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+     * // create a matrix to be fitted
+     * var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+     * // create the model with the matrix X
+     * DpMeans.fit(X);
      * // get the centroids
      * var centroids = DpMeans.centroids;
      * // print the first centroid
@@ -2804,6 +2824,7 @@ namespace TNodeJsQuant {
 * @example
 * // import modules
 * var qm = require('qminer');
+* var fs = qm.fs;
 * var analytics = qm.analytics;
 * // create the default TDigest object
 * var tdigest = new analytics.TDigest();
@@ -2824,7 +2845,7 @@ namespace TNodeJsQuant {
 class TNodeJsTDigest : public node::ObjectWrap {
     friend class ::TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "TDigest"; }
 
 private:
@@ -2906,6 +2927,7 @@ public:
     * @example
     * // import modules
     * var qm = require('qminer');
+    * var fs = require('qminer').fs;
     * var analytics = qm.analytics;
     * var fs = qm.fs;
     * // create the default TDigest object
@@ -3188,10 +3210,11 @@ public:
  * @example
  * // import modules
  * var qm = require('qminer');
- * var analytics.quantiles = qm.analytics.quantiles;
+ * var fs = require('qminer').fs;
+ * var quants = qm.analytics.quants;
  *
- * // create the default TDigest object
- * var gk = new analytics.quantiles.Gk({
+ * // create the Gk object
+ * var gk = new quants.Gk({
  *     eps: 0.001,
  *     autoCompress: true
  * });
@@ -3199,7 +3222,7 @@ public:
  * // create the data used for calculating quantiles
  * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
  *
- * // fit the TDigest model
+ * // fit the model
  * for (var i = 0; i < inputs.length; i++) {
  *     gk.insert(inputs[i]);
  * }
@@ -3215,7 +3238,7 @@ public:
 class TNodeJsGk : public node::ObjectWrap {
     friend class ::TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "Gk"; }
 
 private:
@@ -3441,10 +3464,11 @@ public:
  * @example
  * // import modules
  * var qm = require('qminer');
- * var analytics.quantiles = qm.analytics.quantiles;
+ * var fs = require('qminer').fs;
+ * var quants = qm.analytics.quantiles;
  *
- * // create the default TDigest object
- * var gk = new analytics.quantiles.BiasedGk({
+ * // create the BiasedGk object
+ * var gk = new quants.BiasedGk({
  *     eps: 0.1,
  *     targetProb: 0.99,
  *     compression: 'periodic',
@@ -3454,7 +3478,7 @@ public:
  * // create the data used for calculating quantiles
  * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
  *
- * // fit the TDigest model
+ * // fit the model
  * for (var i = 0; i < inputs.length; i++) {
  *     gk.insert(inputs[i]);
  * }
@@ -3464,14 +3488,14 @@ public:
  * // save the model
  * gk.save(fs.openWrite('gk.bin')).close();
  * // open the gk model under a new variable
- * var gk2 = new analytics.quantiles.Gk(fs.openRead('gk.bin'));
+ * var gk2 = new analytics.quantiles.BiasedGk(fs.openRead('gk.bin'));
  *
  */
 //# exports.BiasedGk = function (arg) { return Object.create(require('qminer').analytics.quantiles.BiasedGk.prototype); }
 class TNodeJsBiasedGk : public node::ObjectWrap {
     friend class ::TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "BiasedGk"; }
 
 private:
@@ -3635,10 +3659,12 @@ private:
  * @example
  * // import modules
  * var qm = require('qminer');
- * var analytics.quantiles = qm.analytics.quantiles;
+ * var fs = qm.fs;
+ * var analytics = qm.analytics;
+ * var quants = qm.analytics.quantiles;
  *
  * // create the default TDigest object
- * var gk = new analytics.quantiles.CountWindowGk({
+ * var gk = new quants.CountWindowGk({
  *     windowSize: 5,
  *     quantileEps: 0.001,
  *     countEps: 0.0005
@@ -3664,7 +3690,7 @@ private:
 class TNodeJsCountWindowGk : public node::ObjectWrap {
     friend class ::TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "CountWindowGk"; }
 
 private:
@@ -3683,9 +3709,15 @@ public:
      *
      * @returns {module:analytics.quantiles~FixedWindowGkParam} The construction parameters.
      *
-     * var analytics.quantiles = qm.analytics.quantiles;
-     * var gk = new analytics.quantiles.CountWindowGk();
-     * var params = tdigest.getParams();
+     * var analytics = qm.analytics;
+     * var quants = qm.analytics.quantiles;
+     * var gk = new quants.CountWindowGk({ windowSize: 100 }); // window 100 elements long
+     * gk.partialFit(1.0);
+     * gk.partialFit(2.0);
+     * gk.partialFit(1.0);
+     * gk.partialFit(3.0);
+     * gk.partialFit(2.0);
+     * var params = gk.getParams();
      *
      * console.log(params.windowSize);
      * console.log(params.quantileEps);
@@ -3745,12 +3777,14 @@ public:
      * @returns {module:fs.FOut} the output stream `fout`
      *
      * @example
+     * var qm = require('qminer');
+     * var fs = qm.fs;
      * var gk = new qm.analytics.quantiles.CountWindowGk();
      *
      * // save the model
-     * gk.save(fs.openWrite('tdigest.bin')).close();
-     * // open the tdigest model under a new variable
-     * var gk = new analytics.quantiles.CountWindowGk(fs.openRead('tdigest.bin'));
+     * gk.save(fs.openWrite('gk.bin')).close();
+     * // open the model under a new variable
+     * var gk = new analytics.quantiles.CountWindowGk(fs.openRead('gk.bin'));
      */
     //# exports.CountWindowGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
@@ -3819,9 +3853,10 @@ public:
  * @example
  * // import modules
  * var qm = require('qminer');
- * var analytics.quantiles = qm.analytics.quantiles;
+ * var fs = qm.fs;
+ * var analytics = qm.analytics;
  *
- * // create the default TDigest object
+ * // create the default object
  * var gk = new analytics.quantiles.TimeWindowGk({
  *     window: 5,
  *     quantileEps: 0.001,
@@ -3832,7 +3867,7 @@ public:
  * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
  * var times = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
  *
- * // fit the TDigest model
+ * // fit the model
  * for (var i = 0; i < inputs.length; i++) {
  *     gk.insert(times[i], inputs[i]);
  * }
@@ -3848,7 +3883,7 @@ public:
 class TNodeJsTimeWindowGk : public node::ObjectWrap {
     friend class ::TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "TimeWindowGk"; }
 
 private:
@@ -3867,9 +3902,26 @@ public:
      *
      * @returns {module:analytics.quantiles~TimeWindowGkParam} The construction parameters.
      *
-     * var analytics.quantiles = qm.analytics.quantiles;
-     * var gk = new analytics.quantiles.TimeWindowGk();
-     * var params = tdigest.getParams();
+     * var qm = require('qminer');
+     * var fs = qm.fs;
+     * var quants = qm.analytics.quantiles;
+     *
+     * // create the default object
+     * var gk = new quants.TimeWindowGk({
+     *     window: 5,
+     *     quantileEps: 0.001,
+     *     countEps: 0.0005
+     * });
+     *
+     * // create the data used for calculating quantiles
+     * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+     * var times = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+     *
+     * // fit the model
+     * for (var i = 0; i < inputs.length; i++) {
+     *     gk.partialFit(times[i], inputs[i]);
+     * }
+     * var params = gk.getParams();
      *
      * console.log(params.window);
      * console.log(params.quantileEps);
@@ -3932,12 +3984,20 @@ public:
      * @returns {module:fs.FOut} the output stream `fout`
      *
      * @example
-     * var gk = new qm.analytics.quantiles.TimeWindowGk();
-     *
+     * var qm = require('qminer');
+     * var fs = qm.fs;
+     * var gk = new qm.analytics.quantiles.TimeWindowGk({
+     *     window: 100    // window is 2 days
+     * });
+     * gk.partialFit(0, 1.0);
+     * gk.partialFit(1, 1.0);
+     * gk.partialFit(2, 1.0);
+     * gk.partialFit(3, 1.0);
+     * gk.partialFit(4, 1.0);
      * // save the model
-     * gk.save(fs.openWrite('tdigest.bin')).close();
-     * // open the tdigest model under a new variable
-     * var gk = new analytics.quantiles.TimeWindowGk(fs.openRead('tdigest.bin'));
+     * gk.save(fs.openWrite('gk.bin')).close();
+     * // open the model under a new variable
+     * var gk = new analytics.TimeWindowGk(fs.openRead('gk.bin'));
      */
     //# exports.TimeWindowGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
@@ -3998,7 +4058,7 @@ public:
 class TNodeJsRecommenderSys : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "RecommenderSys"; }
     ~TNodeJsRecommenderSys() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 
@@ -4007,7 +4067,7 @@ private:
     int K;
     double Tol;
     bool Verbose;
-    PNotify Notify;
+    TWPt<TNotify> Notify;
 
     TFltVV U;
     TFltVV V;
@@ -4024,9 +4084,9 @@ private:
         TNodeJsSpMat*  JsSpVV;
 
     public:
-        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        TFitTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
 
-        v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
     };
 
@@ -4152,7 +4212,7 @@ private:
 class TNodeJsGraphCascade : public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "GraphCascade"; }
     ~TNodeJsGraphCascade() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 
