@@ -12,52 +12,6 @@ var quants = qm.analytics.quantiles;
 var fs = qm.fs;
 var assert = require("../../src/nodejs/scripts/assert.js");
 
-describe("ExactQuant test", function () {
-    describe("Accuracy test", function () {
-        it("should return correct results", function () {
-            var n = 100;
-            var model = new quants.ExactQuant();
-
-            for (var i = 0; i < 100; ++i) {
-                model.insert(i);
-            }
-
-            assert.equal(model.quantile(0), 0, "incorrect quantile for pval " + 0 + ': ' + model.quantile(0));
-            for (var i = 1; i <= 100; ++i) {
-                var pval = i / n;
-                var val = model.quantile(pval);
-                assert.equal(val, i < 100 ? i : i-1, 'incorrect quantile for pval ' + pval + ': ' + val);
-                if (i < n) {
-                    var prevPval = pval - 1e-7;
-                    var prevVal = model.quantile(prevPval);
-                    assert.equal(prevVal, i-1, 'incorrect quantile for pval ' + prevPval + ': ' + prevVal);
-                }
-            }
-        });
-
-        it('should return correct results between 0 and 1', function () {
-            var n = 100;
-            var model = new quants.ExactQuant();
-
-            for (var i = 0; i < 100; ++i) {
-                model.insert(i / 100);
-            }
-
-            assert.equal(model.quantile(0), 0, "incorrect quantile for pval " + 0 + ': ' + model.quantile(0));
-            for (var i = 1; i <= 100; ++i) {
-                var pval = i / n;
-                var val = model.quantile(pval);
-                assert.equal(val, (i < 100 ? i : i-1) / 100, 'incorrect quantile for pval ' + pval + ': ' + val);
-                if (i < n) {
-                    var prevPval = pval - 1e-7;
-                    var prevVal = model.quantile(prevPval);
-                    assert.equal(prevVal, (i-1) / 100, 'incorrect quantile for pval ' + prevPval + ': ' + prevVal);
-                }
-            }
-        })
-    });
-});
-
 describe("TDigest test", function () {
 
     describe("Constructor test", function () {

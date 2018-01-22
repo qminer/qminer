@@ -874,34 +874,6 @@ namespace TQuant {
         }
     }
 
-    ///////////////////////////////////////////
-    /// Exact quantile estimator
-    class TExact {
-        using TTree = __gnu_pbds::tree<
-            double,         /* key                */
-            __gnu_pbds::null_type,         /* mapped             */
-            std::less<double>,   /* compare function   */
-            __gnu_pbds::rb_tree_tag, /* red-black tree tag */
-            __gnu_pbds::tree_order_statistics_node_update>;
-    public:
-        TExact() {}
-
-        double Query(const double& PVal) const;
-        void Query(const TFltV& PValV, TFltV& QuantV) const;
-        void Insert(const double& Val);
-
-        uint64 GetSampleN() const;
-        uint64 GetSummarySize() const { return GetSampleN(); }
-        uint64 GetMemUsed() const {
-            return sizeof(TExact) +
-                sizeof(TTree) +
-                GetSampleN()*(sizeof(double) + sizeof(void*));
-        }
-
-    private:
-        TTree OrderTree;
-    };
-
     ///////////////////////////////////////////////
     /// The Greenwald-Khanna (GK) online quantile estimation algorithm
     /// The error produced by the algorithm is eps

@@ -995,30 +995,6 @@ namespace TQuant {
         }
     }
 
-    ////////////////////////////////////////////////////
-    /// Exact quantile estimator
-    double TExact::Query(const double& PVal) const {
-        if (GetSampleN() == 0) { return 0.0; }
-        const double TargetRankFlt = PVal*GetSampleN();
-        uint64 TargetRank = uint64(TargetRankFlt + 1e-10) > uint64(TargetRankFlt) ? uint64(TargetRankFlt + 1e-10) : uint64(TargetRankFlt);
-        if (TargetRank == GetSampleN()) { --TargetRank; }
-        return *OrderTree.find_by_order(TargetRank);
-    }
-
-    void TExact::Query(const TFltV& PValV, TFltV& QuantV) const {
-        for (int ValN = 0; ValN < PValV.Len(); ++ValN) {
-            QuantV.Add(Query(PValV[ValN]));
-        }
-    }
-
-    void TExact::Insert(const double& Val) {
-        OrderTree.insert(Val);
-    }
-
-    uint64 TExact::GetSampleN() const {
-        return OrderTree.size();
-    }
-
     ////////////////////////////////////
     /// GK - algorithm
     TGk::TGreenwaldKhanna(const double& _Eps):
