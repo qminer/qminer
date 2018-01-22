@@ -697,19 +697,6 @@ namespace TQuant {
             TExpHistogram RightUncertExpHist;   // D
         };
 
-        class TCondPrinter {
-        public:
-            TCondPrinter();
-            TCondPrinter(const std::function<bool(void)>&);
-
-            bool WillPrint() const { return ShouldPrint; }
-            void StartIter();
-            void Print(const TStr&) const;
-
-            std::function<bool(void)> CondFun;
-            TBool ShouldPrint {false};
-        };
-
         ///////////////////////////////////////////
         /// A summary structure for the SwGk-based
         /// algorithms which uses a linked list structure
@@ -771,9 +758,6 @@ namespace TQuant {
 
             TFlt EpsGk;                     // quantile estimation error
             TFlt EpsEh;                     // count estimation error
-
-            // TODO here for debugging
-            TCondPrinter Log;
         };
 
         // PRINT OPERATORS

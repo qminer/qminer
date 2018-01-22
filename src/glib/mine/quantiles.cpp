@@ -6,47 +6,6 @@ namespace TQuant {
     namespace TUtils {
 
 
-/*         ///////////////////////////////////////////////////////// */
-/*         /// GK Tuple which minimizes uncertainty */
-/*         /// values with equal value as this tuple are regarded */
-/*         /// to be on the right of it */
-/*         TUtils::TGkMnUncertEqRightTuple::TGkMnUncertEqRightTuple(const double& Val): */
-/*                 MxVal(Val) {} */
-
-/*         TUtils::TGkMnUncertEqRightTuple::TGkMnUncertEqRightTuple(const double& Val, const uint&, */
-/*                     const TGkMnUncertEqRightTuple& RightTuple): */
-/*                 MxVal(Val), */
-/*                 UncertRight(RightTuple.GetUncert() + RightTuple.GetTupleSize() - 1) { */
-/*             Assert(RightTuple.GetUncert() + RightTuple.GetTupleSize() >= 1); */
-/*         } */
-
-/*         TUtils::TGkMnUncertEqRightTuple::TGkMnUncertEqRightTuple(TSIn& SIn): */
-/*             MxVal(SIn), */
-/*             TupleSize(SIn), */
-/*             UncertRight(SIn) {} */
-
-/*         void TUtils::TGkMnUncertEqRightTuple::Save(TSOut& SOut) const { */
-/*             MxVal.Save(SOut); */
-/*             TupleSize.Save(SOut); */
-/*             UncertRight.Save(SOut); */
-/*         } */
-
-/*         void TUtils::TGkMnUncertEqRightTuple::Swallow(const TGkMnUncertEqRightTuple& LeftTuple) { */
-/*             TupleSize += LeftTuple.TupleSize; */
-/*         } */
-
-/*         void TUtils::TGkMnUncertEqRightTuple::SwallowOne() { */
-/*             ++TupleSize; */
-/*         } */
-
-/*         uint64 TUtils::TGkMnUncertEqRightTuple::GetMemUsed() const { */
-/*             return sizeof(TGkMnUncertEqRightTuple) + */
-/*                 TMemUtils::GetExtraMemberSize(MxVal) + */
-/*                 TMemUtils::GetExtraMemberSize(TupleSize) + */
-/*                 TMemUtils::GetExtraMemberSize(UncertRight); */
-/*         } */
-
-
         ////////////////////////////////////////////
         /// Interval
         TInterval::TInterval(): TInterval(0ul) {}
@@ -632,24 +591,6 @@ namespace TQuant {
                 TMemUtils::GetExtraMemberSize(RightUncertExpHist);
         }
 
-
-        /////////////////////////////////////////////
-        /// Conditional printer used for debugging
-        TCondPrinter::TCondPrinter():
-                CondFun([]() { return false; }) {}
-
-        TCondPrinter::TCondPrinter(const std::function<bool(void)>& _CondFun):
-                CondFun(_CondFun) {}
-
-        void TCondPrinter::StartIter() {
-            ShouldPrint = CondFun();
-        }
-
-        void TCondPrinter::Print(const TStr& Str) const {
-            if (!WillPrint()) { return; }
-            std::cout << Str.CStr() << std::endl;
-        }
-
         /////////////////////////////////////////////
         /// SW-GK linked list summary
         TSwGkLLSummary::TSwGkLLSummary(const double& _EpsGk, const double& _EpsEh):
@@ -657,7 +598,6 @@ namespace TQuant {
                 EpsEh(_EpsEh) {
             EAssert(EpsGk < .2);
             EAssert(EpsEh < .2);
-            Log = TCondPrinter([&]() { return GetTupleCount() >= 100000; });
         }
 
         TSwGkLLSummary::TSwGkLLSummary(TSIn& SIn):
@@ -670,7 +610,6 @@ namespace TQuant {
             for (uint TupleN = 0; TupleN < Len; TupleN++) {
                 Summary.push_back(TTuple(SIn));
             }
-            Log = TCondPrinter([&]() { return GetTupleCount() >= 1000000; });
         }
 
         void TSwGkLLSummary::Save(TSOut& SOut) const {
@@ -688,61 +627,28 @@ namespace TQuant {
         void TSwGkLLSummary::Insert(const uint64& ValTm, const double& Val) {
             TSummary::iterator TupleIt = Summary.begin();
 
-            //=====================================
-            Log.StartIter();
-            if (Log.WillPrint()) {
-                Log.Print("inserting, max tuple size: " + TUInt::GetStr(uint(2*EpsGk*double(ItemCount))));
-            }
-            int TupleN = 0;
-            //=====================================
-
             // iterate to the correct position
             while (TupleIt != Summary.end()) {
-                /* Log.Print("forgetting tuple number: " + TInt::GetStr(TupleN)); */
                 TupleIt->Forget(ForgetTm);
                 if (TupleIt->GetTupleSize() > 0 && TupleIt->GetVal() > Val) { break; }
                 ++TupleIt;
-                ++TupleN;
             }
 
             // insert the tuple
             if (TupleIt == Summary.end()) {
-                Log.Print("inserting at end");
                 Summary.insert(TupleIt, TTuple(EpsEh, ValTm, Val, *this));
             } else {
                 TTuple& RightTuple = *TupleIt;
 
-                if (Log.WillPrint()) {
-                    Log.Print("right tuple: " + RightTuple.GetStr());
-                }
-
                 if (1 + RightTuple.GetTotalUncert() < uint(2*EpsGk*double(ItemCount))) {
-                    if (Log.WillPrint()) {
-                        Log.Print("will not insert, but only swallow, before swallow: " + RightTuple.GetStr());
-                    }
                     RightTuple.SwallowOne(ValTm, Val);
-                    if (Log.WillPrint()) {
-                        Log.Print("after swallow: " + RightTuple.GetStr());
-                    }
                 } else {
-                    if (Log.WillPrint()) {
-                        Log.Print("inserting at position " + TInt::GetStr(TupleN));
-                    }
-                    const auto NewIt = Summary.insert(TupleIt, TTuple(EpsEh, ValTm, Val, RightTuple, *this));
-                    if (Log.WillPrint()) {
-                        Log.Print("Inserted tuple: " + NewIt->GetStr());
-                    }
+                    Summary.insert(TupleIt, TTuple(EpsEh, ValTm, Val, RightTuple, *this));
                 }
             }
 
             // update counters
             ++ItemCount;
-
-            if (Log.WillPrint()) {
-                Log.Print("item count: " + TUInt64::GetStr(ItemCount) + ", forget time: " + TInt64::GetStr(ForgetTm));
-                std::cout << *this << std::endl;
-                Log.Print("\n\n");
-            }
         }
 
         double TSwGkLLSummary::Query(const double& Quantile) {
@@ -837,9 +743,6 @@ namespace TQuant {
         }
 
         void TSwGkLLSummary::Compress() {
-            if (Log.WillPrint()) {
-                Log.Print("compressing");
-            }
             // first refresh the whole structure, so we don't have
             // to worry about empty tuples later on
             Refresh(ForgetTm);
@@ -935,9 +838,6 @@ namespace TQuant {
         void TSwGkLLSummary::OnItemsDeleted(const uint64& DelCount) {
             Assert(ItemCount >= DelCount);
             ItemCount -= DelCount;
-            if (Log.WillPrint()) {
-                std::cout << DelCount << " items deleted, item count: " << ItemCount.Val << std::endl;
-            }
         }
 
         void TSwGkLLSummary::Refresh(const uint64& ForgetTm) {
