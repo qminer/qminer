@@ -19,18 +19,18 @@ namespace TQm {
             }
         }
 
-        void TNodeJsFuncStore::SetCallback(const v8::Handle<v8::Value>& CallbacksObj, v8::Persistent<v8::Function>& Callback, const TStr& Name) {
+        void TNodeJsFuncStore::SetCallback(const v8::Local<v8::Value>& CallbacksObj, v8::Persistent<v8::Function>& Callback, const TStr& Name) {
             v8::Isolate* Isolate = v8::Isolate::GetCurrent();
             v8::HandleScope HandleScope(Isolate);
 
             if (CallbacksObj->ToObject()->Has(v8::String::NewFromUtf8(Isolate, Name.CStr()))) {
-                v8::Handle<v8::Value> Fun = CallbacksObj->ToObject()->Get(v8::String::NewFromUtf8(Isolate, Name.CStr()));
+                v8::Local<v8::Value> Fun = CallbacksObj->ToObject()->Get(v8::String::NewFromUtf8(Isolate, Name.CStr()));
                 QmAssert(Fun->IsFunction());
-                Callback.Reset(Isolate, v8::Handle<v8::Function>::Cast(Fun));
+                Callback.Reset(Isolate, v8::Local<v8::Function>::Cast(Fun));
             }
         }
 
-        void TNodeJsFuncStore::InitCallbacks(const v8::Handle<v8::Value>& CallbacksObj) {
+        void TNodeJsFuncStore::InitCallbacks(const v8::Local<v8::Value>& CallbacksObj) {
             SetCallback(CallbacksObj, GetRecsFun, "GetRecords");
             SetCallback(CallbacksObj, GetFieldFun, "GetField");
             SetCallback(CallbacksObj, GetRecNmFun, "GetRecNm");
@@ -48,7 +48,7 @@ namespace TQm {
             GetAllRecsFun.Reset();
         }
 
-        TNodeJsFuncStore::TNodeJsFuncStore(const TWPt<TBase>& _Base, uint _StoreId, const TStr& _StoreNm, const TStoreSchema& StoreSchema, const v8::Handle<v8::Value>& CallbacksObj) : TStoreNotImpl(_Base, _StoreId, _StoreNm) {
+        TNodeJsFuncStore::TNodeJsFuncStore(const TWPt<TBase>& _Base, uint _StoreId, const TStr& _StoreNm, const TStoreSchema& StoreSchema, const v8::Local<v8::Value>& CallbacksObj) : TStoreNotImpl(_Base, _StoreId, _StoreNm) {
             SetStoreType("TNodeJsFuncStore");
             InitFromSchema(StoreSchema);
             InitCallbacks(CallbacksObj);
@@ -69,7 +69,7 @@ namespace TQm {
             v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
 
             v8::TryCatch TryCatch(Isolate);
-            v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
+            v8::Local<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
             if (TryCatch.HasCaught()) {
                 v8::String::Utf8Value Msg(TryCatch.Message()->Get());
                 throw TQm::TQmExcept::New("Javascript exception triggered from TNodeJsFuncStore::GetRecs, " + TStr(*Msg));
@@ -87,7 +87,7 @@ namespace TQm {
             v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
 
             v8::TryCatch TryCatch(Isolate);
-            v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
+            v8::Local<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
             if (TryCatch.HasCaught()) {
                 v8::String::Utf8Value Msg(TryCatch.Message()->Get());
                 throw TQm::TQmExcept::New("Javascript exception triggered from TNodeJsFuncStore::GetAllRecs, " + TStr(*Msg));
@@ -107,7 +107,7 @@ namespace TQm {
             v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
 
             v8::TryCatch TryCatch(Isolate);
-            v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
+            v8::Local<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
             if (TryCatch.HasCaught()) {
                 v8::String::Utf8Value Msg(TryCatch.Message()->Get());
                 throw TQm::TQmExcept::New("Javascript exception triggered from TNodeJsFuncStore::GetFirstRecId, " + TStr(*Msg));
@@ -125,7 +125,7 @@ namespace TQm {
             v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
 
             v8::TryCatch TryCatch(Isolate);
-            v8::Handle<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
+            v8::Local<v8::Value> RetVal = Callback->Call(GlobalContext, 0, NULL);
             if (TryCatch.HasCaught()) {
                 v8::String::Utf8Value Msg(TryCatch.Message()->Get());
                 throw TQm::TQmExcept::New("Javascript exception triggered from TNodeJsFuncStore::GetLastRecId, " + TStr(*Msg));
@@ -134,7 +134,7 @@ namespace TQm {
             return (unsigned long long)(int64)RetVal->NumberValue();
         }
 
-        v8::Handle<v8::Value> TNodeJsFuncStore::GetField(const uint64& RecId, const int& FieldId) const {
+        v8::Local<v8::Value> TNodeJsFuncStore::GetField(const uint64& RecId, const int& FieldId) const {
             QmAssertR(!GetFieldFun.IsEmpty(), "TNodeJsFuncStore::GetFieldFun empty");
             v8::Isolate* Isolate = v8::Isolate::GetCurrent();
             v8::EscapableHandleScope HandleScope(Isolate);
@@ -146,7 +146,7 @@ namespace TQm {
             v8::Local<v8::Number> JsRecId = v8::Number::New(Isolate, (double)RecId);
             v8::Local<v8::Number> JsFieldId = v8::Number::New(Isolate, (double)FieldId);
             int Argc = 2;
-            v8::Handle<v8::Value> Argv[2] = { JsRecId, JsFieldId };
+            v8::Local<v8::Value> Argv[2] = { JsRecId, JsFieldId };
 
             v8::TryCatch TryCatch(Isolate);
             v8::Local<v8::Value> RetVal = Callback->Call(GlobalContext, Argc, Argv);
@@ -170,7 +170,7 @@ namespace TQm {
             v8::Local<v8::Value> RetVal = GetField(RecId, FieldId);
             if (RetVal->IsArray()) {
                 // check if we have JavaScript array
-                v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(RetVal);
+                v8::Local<v8::Array> Array = v8::Local<v8::Array>::Cast(RetVal);
                 TIntV Res;
                 for (uint32_t ElN = 0; ElN < Array->Length(); ElN++) {
                     v8::Local<v8::Value> ArrayVal = Array->Get(ElN);
@@ -205,7 +205,7 @@ namespace TQm {
             v8::Local<v8::Value> RetVal = GetField(RecId, FieldId);
             if (RetVal->IsArray()) {
                 // check if we have JavaScript array
-                v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(RetVal);
+                v8::Local<v8::Array> Array = v8::Local<v8::Array>::Cast(RetVal);
                 TStrV Res;
                 for (uint32_t ElN = 0; ElN < Array->Length(); ElN++) {
                     v8::Local<v8::Value> ArrayVal = Array->Get(ElN);
@@ -239,7 +239,7 @@ namespace TQm {
             v8::HandleScope HandleScope(Isolate);
             v8::Local<v8::Value> RetVal = GetField(RecId, FieldId);
             QmAssertR(RetVal->IsArray(), "Field " + GetFieldNm(FieldId) + " not array");
-            v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(RetVal);
+            v8::Local<v8::Array> Array = v8::Local<v8::Array>::Cast(RetVal);
             QmAssert(Array->Length() >= 2);
             QmAssert(Array->Get(0)->IsNumber());
             QmAssert(Array->Get(1)->IsNumber());
@@ -251,7 +251,7 @@ namespace TQm {
             v8::Local<v8::Value> RetVal = GetField(RecId, FieldId);
             if (RetVal->IsArray()) {
                 // check if we have JavaScript array
-                v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(RetVal);
+                v8::Local<v8::Array> Array = v8::Local<v8::Array>::Cast(RetVal);
                 TFltV Res;
                 for (uint32_t FltN = 0; FltN < Array->Length(); FltN++) {
                     v8::Local<v8::Value> ArrayVal = Array->Get(FltN);
@@ -290,7 +290,7 @@ namespace TQm {
             SpV = JsSpVec->Vec;
         }
 
-        TVec<TWPt<TStore> > CreateJsStoresFromSchema(const TWPt<TBase>& Base, const PJsonVal& SchemaVal, const v8::Handle<v8::Value>& CallbacksObj) {
+        TVec<TWPt<TStore> > CreateJsStoresFromSchema(const TWPt<TBase>& Base, const PJsonVal& SchemaVal, const v8::Local<v8::Value>& CallbacksObj) {
             // parse and validate the schema
             InfoLog("Parsing schema");
             TStoreSchemaV SchemaV; TStoreSchema::ParseSchema(Base, SchemaVal, SchemaV);
@@ -318,7 +318,7 @@ namespace TQm {
                 if (SchemaVal->IsArr()) {
                     int Len = SchemaVal->GetArrVals();
                     QmAssert(CallbacksObj->IsArray());
-                    v8::Handle<v8::Array> Array = v8::Handle<v8::Array>::Cast(CallbacksObj);
+                    v8::Local<v8::Array> Array = v8::Local<v8::Array>::Cast(CallbacksObj);
                     QmAssert(Len == (int)Array->Length());
                     for (int CallbN = 0; CallbN < Len; CallbN++) {
                         QmAssert(Array->Get(CallbN)->IsObject());
