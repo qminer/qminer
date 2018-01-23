@@ -3005,6 +3005,7 @@ private:
 * @example
 * // import modules
 * var qm = require('qminer');
+* var fs = qm.fs;
 * var analytics = qm.analytics;
 * // create the default BufferedTDigest object
 * var tdigest = new analytics.quantiles.BufferedTDigest();
