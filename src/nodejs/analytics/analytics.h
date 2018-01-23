@@ -2835,7 +2835,7 @@ namespace TNodeJsQuant {
 *     tdigest.insert(inputs[i]);
 * }
 * // make the prediction for the 0.1 quantile
-* var prediction = tdigest.predict(0.1);
+* var prediction = tdigest.quantile(0.1);
 * // save the model
 * tdigest.save(fs.openWrite('tdigest.bin')).close();
 * // open the tdigest model under a new variable
@@ -2914,8 +2914,8 @@ public:
     * for (var i = 0; i < inputs.length; i++) {
     *     tdigest.insert(inputs[i]);
     * }
-    * // make the prediction for the 0.1 quantile
-    * var prediction = tdigest.quantile(0.1);
+    * // make the estimation for the 0.1 quantile
+    * var quant = tdigest.quantile(0.1);
     */
     //# exports.TDigest.prototype.quantile = function (x) { return 0; }
     JsDeclareFunction(quantile);
@@ -3014,8 +3014,8 @@ private:
 * for (var i = 0; i < inputs.length; i++) {
 *     tdigest.insert(inputs[i]);
 * }
-* // make the prediction for the 0.1 quantile
-* var prediction = tdigest.quantile(0.1);
+* // make the estimation for the 0.1 quantile
+* var quant = tdigest.quantile(0.1);
 * // save the model
 * tdigest.save(fs.openWrite('tdigest.bin')).close();
 * // open the tdigest model under a new variable
@@ -3095,8 +3095,8 @@ public:
     * }
     *
     * tdigest.flush()
-    * // make the prediction for the 0.1 quantile
-    * var prediction = tdigest.quantile(0.1);
+    * // make the estimation for the 0.1 quantile
+    * var quant = tdigest.quantile(0.1);
     */
     //# exports.BufferedTDigest.prototype.quantile = function (x) { return 0; }
     JsDeclareFunction(quantile);
@@ -3118,8 +3118,8 @@ public:
     * }
     *
     * tdigest.flush()
-    * // make the prediction for the 0.1 quantile
-    * var prediction = tdigest.quantile(0.1);
+    * // make the estimation for the 0.1 quantile
+    * var quant = tdigest.quantile(0.1);
     */
     //# exports.BufferedTDigest.prototype.flush = function (X) { return Object.create(require('qminer').analytics.quantiles.BufferedTDigest.prototype); }
     JsDeclareFunction(flush);
@@ -3227,8 +3227,8 @@ public:
  *     gk.insert(inputs[i]);
  * }
  *
- * // make the prediction for the 0.1 quantile
- * var prediction = gk.quantile(0.1);
+ * // make the estimation for the 0.1 quantile
+ * var quant = gk.quantile(0.1);
  * // save the model
  * gk.save(fs.openWrite('gk.bin')).close();
  * // open the gk model under a new variable
@@ -3461,8 +3461,8 @@ public:
  *     gk.insert(inputs[i]);
  * }
  *
- * // make the prediction for the 0.1 quantile
- * var prediction = gk.quantile(0.1);
+ * // make the estimation for the 0.1 quantile
+ * var quant = gk.quantile(0.1);
  * // save the model
  * gk.save(fs.openWrite('gk.bin')).close();
  * // open the gk model under a new variable
@@ -3656,8 +3656,8 @@ private:
  *     gk.insert(inputs[i]);
  * }
  *
- * // make the prediction for the 0.1 quantile
- * var prediction = gk.quantile(0.1);
+ * // make the estimation for the 0.1 quantile
+ * var quant = gk.quantile(0.1);
  * // save the model
  * gk.save(fs.openWrite('gk.bin')).close();
  * // open the gk model under a new variable
@@ -3850,8 +3850,8 @@ public:
  *     gk.insert(times[i], inputs[i]);
  * }
  *
- * // make the prediction for the 0.1 quantile
- * var prediction = gk.quantile(0.1);
+ * // make the estimation for the 0.1 quantile
+ * var quant = gk.quantile(0.1);
  * // save the model
  * gk.save(fs.openWrite('gk.bin')).close();
  * // open the gk model under a new variable
