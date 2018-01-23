@@ -2813,7 +2813,7 @@ namespace TNodeJsQuant {
 * @classdesc TDigest is a methods that approximates the CDF function of streaming measurements.
 *   Data structure useful for percentile and quantile estimation for online data streams.
 *   It can be added to any anomaly detector to set the number of alarms triggered as a percentage of the total samples.
-*   Adding new samples to the distribution is achieved through `partialFit` and querying the model (computing quantiles)
+*   Adding new samples to the distribution is achieved through `insert` and querying the model (computing quantiles)
 *   is implemented by `predict` function.
 *   <br> This is based on the Data Lib Sketch Implementation: {@link https://github.com/vega/datalib-sketch/blob/master/src/t-digest.js t-digest.js}
 *   <br> Paper: Ted Dunning, Otmar Ertl - {@link https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf Computing Extremely Accurate Quantiles Using t-Digests}.
@@ -2832,7 +2832,7 @@ namespace TNodeJsQuant {
 * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
 * // fit the TDigest model
 * for (var i = 0; i < inputs.length; i++) {
-*     tdigest.partialFit(inputs[i]);
+*     tdigest.insert(inputs[i]);
 * }
 * // make the prediction for the 0.1 quantile
 * var prediction = tdigest.predict(0.1);
@@ -3690,11 +3690,11 @@ public:
      * var analytics = qm.analytics;
      * var quants = qm.analytics.quantiles;
      * var gk = new quants.CountWindowGk({ windowSize: 100 }); // window 100 elements long
-     * gk.partialFit(1.0);
-     * gk.partialFit(2.0);
-     * gk.partialFit(1.0);
-     * gk.partialFit(3.0);
-     * gk.partialFit(2.0);
+     * gk.insert(1.0);
+     * gk.insert(2.0);
+     * gk.insert(1.0);
+     * gk.insert(3.0);
+     * gk.insert(2.0);
      * var params = gk.getParams();
      *
      * console.log(params.windowSize);
@@ -3897,7 +3897,7 @@ public:
      *
      * // fit the model
      * for (var i = 0; i < inputs.length; i++) {
-     *     gk.partialFit(times[i], inputs[i]);
+     *     gk.insert(times[i], inputs[i]);
      * }
      * var params = gk.getParams();
      *
@@ -3967,11 +3967,11 @@ public:
      * var gk = new qm.analytics.quantiles.TimeWindowGk({
      *     window: 100    // window is 2 days
      * });
-     * gk.partialFit(0, 1.0);
-     * gk.partialFit(1, 1.0);
-     * gk.partialFit(2, 1.0);
-     * gk.partialFit(3, 1.0);
-     * gk.partialFit(4, 1.0);
+     * gk.insert(0, 1.0);
+     * gk.insert(1, 1.0);
+     * gk.insert(2, 1.0);
+     * gk.insert(3, 1.0);
+     * gk.insert(4, 1.0);
      * // save the model
      * gk.save(fs.openWrite('gk.bin')).close();
      * // open the model under a new variable
