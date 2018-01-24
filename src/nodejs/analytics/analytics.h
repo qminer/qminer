@@ -3049,7 +3049,7 @@ public:
     * @example
     * // import modules
     * var qm = require('qminer');
-    * var analytics = qm.analytics.quantiles;
+    * var analytics = qm.analytics;
     * // create the default BufferedTDigest object
     * var tdigest = new analytics.quantiles.BufferedTDigest();
     * // get the parameters of the object
@@ -3065,7 +3065,7 @@ public:
     * @example
     * // import modules
     * var qm = require('qminer');
-    * var analytics = qm.analytics.quantiles;
+    * var analytics = qm.analytics;
     * // create the default BufferedTDigest object
     * var tdigest = new analytics.quantiles.BufferedTDigest();
     * // create the data used for calculating quantiles
@@ -3085,7 +3085,7 @@ public:
     * @example
     * // import modules
     * var qm = require('qminer');
-    * var analytics = qm.analytics.quantiles;
+    * var analytics = qm.analytics;
     * // create the default BufferedTDigest object
     * var tdigest = new analytics.quantiles.BufferedTDigest();
     * // create the data used for calculating quantiles
@@ -3108,7 +3108,7 @@ public:
     * @example
     * // import modules
     * var qm = require('qminer');
-    * var analytics = qm.analytics.quantiles;
+    * var analytics = qm.analytics;
     * // create the default BufferedTDigest object
     * var tdigest = new analytics.quantiles.BufferedTDigest();
     * // create the data used for calculating quantiles
@@ -3132,7 +3132,7 @@ public:
     * @example
     * // import modules
     * var qm = require('qminer');
-    * var analytics = qm.analytics.quantiles;
+    * var analytics = qm.analytics;
     * var fs = qm.fs;
     * // create the default BufferedTDigest object
     * var tdigest = new analytics.quantiles.BufferedTDigest();
@@ -3155,7 +3155,7 @@ public:
     * @example
     * // import modules
     * var qm = require('qminer');
-    * var analytics = qm.analytics.quantiles;
+    * var analytics = qm.analytics;
     * var fs = qm.fs;
     * // create the default BufferedTDigest object
     * var tdigest = new analytics.quantiles.BufferedTDigest();
@@ -3258,7 +3258,7 @@ public:
      *
      * @returns {module:analytics.quantiles~GkParam} The construction parameters.
      *
-     * var analytics = qm.analytics.quantiles;
+     * var analytics = qm.analytics;
      * var gk = new analytics.quantiles.Gk();
      * var params = gk.getParams();
      *
@@ -3493,7 +3493,7 @@ public:
      *
      * @returns {module:analytics.quantiles~BiasedGkParam} The construction parameters.
      *
-     * var analytics = qm.analytics.quantiles;
+     * var analytics = qm.analytics;
      * var gk = new analytics.quantiles.BiasedGk();
      * var params = gk.getParams();
      *
@@ -3688,7 +3688,6 @@ public:
      *
      * @returns {module:analytics.quantiles~FixedWindowGkParam} The construction parameters.
      *
-     * var analytics = qm.analytics;
      * var quants = qm.analytics.quantiles;
      * var gk = new quants.CountWindowGk({ windowSize: 100 }); // window 100 elements long
      * gk.insert(1.0);
