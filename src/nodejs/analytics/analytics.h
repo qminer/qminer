@@ -2803,7 +2803,7 @@ namespace TNodeJsQuant {
 
 /**
 * @typedef {Object} TDigestParam
-* An object used for the construction of {@link module:analytics.TDigest}.
+* An object used for the construction of {@link module:analytics.quantiles.TDigest}.
 * @property {number} [minCount=0] - The minimal number of examples before the model is initialized.
 * @property {number} [clusters=100] - The number of 1-d clusters (large values lead to higher memory usage).
 */
@@ -2813,13 +2813,13 @@ namespace TNodeJsQuant {
 * @classdesc TDigest is a methods that approximates the CDF function of streaming measurements.
 *   Data structure useful for percentile and quantile estimation for online data streams.
 *   It can be added to any anomaly detector to set the number of alarms triggered as a percentage of the total samples.
-*   Adding new samples to the distribution is achieved through `partialFit` and querying the model (computing quantiles)
+*   Adding new samples to the distribution is achieved through `insert` and querying the model (computing quantiles)
 *   is implemented by `predict` function.
 *   <br> This is based on the Data Lib Sketch Implementation: {@link https://github.com/vega/datalib-sketch/blob/master/src/t-digest.js t-digest.js}
 *   <br> Paper: Ted Dunning, Otmar Ertl - {@link https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf Computing Extremely Accurate Quantiles Using t-Digests}.
 * @class
-* @param {module:analytics~TDigestParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
-* <br>1. Using the {@link module:analytics~TDigestParam} object,
+* @param {module:analytics.quantiles~TDigestParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
+* <br>1. Using the {@link module:analytics.quantiles~TDigestParam} object,
 * <br>2. using the file input stream {@link module:fs.FIn}.
 * @example
 * // import modules
@@ -2827,21 +2827,21 @@ namespace TNodeJsQuant {
 * var fs = qm.fs;
 * var analytics = qm.analytics;
 * // create the default TDigest object
-* var tdigest = new analytics.TDigest();
+* var tdigest = new analytics.quantiles.TDigest();
 * // create the data used for calculating quantiles
 * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
 * // fit the TDigest model
 * for (var i = 0; i < inputs.length; i++) {
-*     tdigest.partialFit(inputs[i]);
+*     tdigest.insert(inputs[i]);
 * }
 * // make the prediction for the 0.1 quantile
-* var prediction = tdigest.predict(0.1);
+* var prediction = tdigest.quantile(0.1);
 * // save the model
 * tdigest.save(fs.openWrite('tdigest.bin')).close();
 * // open the tdigest model under a new variable
-* var tdigest2 = new analytics.TDigest(fs.openRead('tdigest.bin'));
+* var tdigest2 = new analytics.quantiles.TDigest(fs.openRead('tdigest.bin'));
 */
-//# exports.TDigest = function (arg) { return Object.create(require('qminer').analytics.TDigest.prototype); }
+//# exports.TDigest = function (arg) { return Object.create(require('qminer').analytics.quantiles.TDigest.prototype); }
 class TNodeJsTDigest : public node::ObjectWrap {
     friend class ::TNodeJsUtil;
 public:
@@ -2865,13 +2865,13 @@ public:
 
     /**
     * Returns the parameters.
-    * @returns {module:analytics~TDigestParam} The construction parameters.
+    * @returns {module:analytics.quantiles~TDigestParam} The construction parameters.
     * @example
     * // import modules
     * var qm = require('qminer');
     * var analytics = qm.analytics;
     * // create the default TDigest object
-    * var tdigest = new analytics.TDigest();
+    * var tdigest = new analytics.quantiles.TDigest();
     * // get the parameters of the object
     * var params = tdigest.getParams();
     */
@@ -2881,13 +2881,13 @@ public:
     /**
     * Adds a new measurement to the model and updates the approximation of the data distribution.
     * @param {number} x - Input number.
-    * @returns {module:analytics.TDigest} Self. The model has been updated.
+    * @returns {module:analytics.quantiles.TDigest} Self. The model has been updated.
     * @example
     * // import modules
     * var qm = require('qminer');
     * var analytics = qm.analytics;
     * // create the default TDigest object
-    * var tdigest = new analytics.TDigest();
+    * var tdigest = new analytics.quantiles.TDigest();
     * // create the data used for calculating quantiles
     * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
     * // fit the TDigest model with all input values
@@ -2895,7 +2895,7 @@ public:
     *     tdigest.insert(inputs[i]);
     * }
     */
-    //# exports.TDigest.prototype.insert = function (X) { return Object.create(require('qminer').analytics.TDigest.prototype); }
+    //# exports.TDigest.prototype.insert = function (X) { return Object.create(require('qminer').analytics.quantiles.TDigest.prototype); }
     JsDeclareFunction(insert);
 
     /**
@@ -2907,15 +2907,15 @@ public:
     * var qm = require('qminer');
     * var analytics = qm.analytics;
     * // create the default TDigest object
-    * var tdigest = new analytics.TDigest();
+    * var tdigest = new analytics.quantiles.TDigest();
     * // create the data used for calculating quantiles
     * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
     * // fit the TDigest model
     * for (var i = 0; i < inputs.length; i++) {
     *     tdigest.insert(inputs[i]);
     * }
-    * // make the prediction for the 0.1 quantile
-    * var prediction = tdigest.quantile(0.1);
+    * // make the estimation for the 0.1 quantile
+    * var quant = tdigest.quantile(0.1);
     */
     //# exports.TDigest.prototype.quantile = function (x) { return 0; }
     JsDeclareFunction(quantile);
@@ -2931,7 +2931,7 @@ public:
     * var analytics = qm.analytics;
     * var fs = qm.fs;
     * // create the default TDigest object
-    * var tdigest = new analytics.TDigest();
+    * var tdigest = new analytics.quantiles.TDigest();
     * // create the data used for calculating quantiles
     * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
     * // fit the TDigest model
@@ -2941,7 +2941,7 @@ public:
     * // save the model
     * tdigest.save(fs.openWrite('tdigest.bin')).close();
     * // open the tdigest model under a new variable
-    * var tdigest2 = new analytics.TDigest(fs.openRead('tdigest.bin'));
+    * var tdigest2 = new analytics.quantiles.TDigest(fs.openRead('tdigest.bin'));
     */
     //# exports.TDigest.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
     JsDeclareFunction(save);
@@ -2954,7 +2954,7 @@ public:
     * var analytics = qm.analytics;
     * var fs = qm.fs;
     * // create the default TDigest object
-    * var tdigest = new analytics.TDigest();
+    * var tdigest = new analytics.quantiles.TDigest();
     * // check if the model has enough data to initialize
     * if (tdigest.init) { console.log("Ready to initialize"); }
     */
@@ -2983,7 +2983,7 @@ private:
 
 /**
 * @typedef {Object} BufferedDigestParam
-* An object used for the construction of {@link module:analytics.BufferedTDigest}.
+* An object used for the construction of {@link module:analytics.quantiles.BufferedTDigest}.
 * @property {number} [delta=100] - The number of clusters in the summary is bounded by floor(minClusters) <= clusters < 2*ceil(minClusters)
 * @property {number} [bufferLen=1000] - the size of the buffer is minClusters*bufferLenFactor, when the buffer fills it is merged with the summary. Also, the algorithm initializes after seeing minClusters*bufferLenFactor examples.
 * @property {number} [seed=0] - random seed (values above 1 are deterministic)
@@ -3005,6 +3005,7 @@ private:
 * @example
 * // import modules
 * var qm = require('qminer');
+* var fs = qm.fs;
 * var analytics = qm.analytics;
 * // create the default BufferedTDigest object
 * var tdigest = new analytics.quantiles.BufferedTDigest();
@@ -3014,8 +3015,8 @@ private:
 * for (var i = 0; i < inputs.length; i++) {
 *     tdigest.insert(inputs[i]);
 * }
-* // make the prediction for the 0.1 quantile
-* var prediction = tdigest.quantile(0.1);
+* // make the estimation for the 0.1 quantile
+* var quant = tdigest.quantile(0.1);
 * // save the model
 * tdigest.save(fs.openWrite('tdigest.bin')).close();
 * // open the tdigest model under a new variable
@@ -3048,7 +3049,7 @@ public:
     * @example
     * // import modules
     * var qm = require('qminer');
-    * var analytics = qm.analytics.quantiles;
+    * var analytics = qm.analytics;
     * // create the default BufferedTDigest object
     * var tdigest = new analytics.quantiles.BufferedTDigest();
     * // get the parameters of the object
@@ -3064,7 +3065,7 @@ public:
     * @example
     * // import modules
     * var qm = require('qminer');
-    * var analytics = qm.analytics.quantiles;
+    * var analytics = qm.analytics;
     * // create the default BufferedTDigest object
     * var tdigest = new analytics.quantiles.BufferedTDigest();
     * // create the data used for calculating quantiles
@@ -3084,7 +3085,7 @@ public:
     * @example
     * // import modules
     * var qm = require('qminer');
-    * var analytics = qm.analytics.quantiles;
+    * var analytics = qm.analytics;
     * // create the default BufferedTDigest object
     * var tdigest = new analytics.quantiles.BufferedTDigest();
     * // create the data used for calculating quantiles
@@ -3095,8 +3096,8 @@ public:
     * }
     *
     * tdigest.flush()
-    * // make the prediction for the 0.1 quantile
-    * var prediction = tdigest.quantile(0.1);
+    * // make the estimation for the 0.1 quantile
+    * var quant = tdigest.quantile(0.1);
     */
     //# exports.BufferedTDigest.prototype.quantile = function (x) { return 0; }
     JsDeclareFunction(quantile);
@@ -3107,7 +3108,7 @@ public:
     * @example
     * // import modules
     * var qm = require('qminer');
-    * var analytics = qm.analytics.quantiles;
+    * var analytics = qm.analytics;
     * // create the default BufferedTDigest object
     * var tdigest = new analytics.quantiles.BufferedTDigest();
     * // create the data used for calculating quantiles
@@ -3118,8 +3119,8 @@ public:
     * }
     *
     * tdigest.flush()
-    * // make the prediction for the 0.1 quantile
-    * var prediction = tdigest.quantile(0.1);
+    * // make the estimation for the 0.1 quantile
+    * var quant = tdigest.quantile(0.1);
     */
     //# exports.BufferedTDigest.prototype.flush = function (X) { return Object.create(require('qminer').analytics.quantiles.BufferedTDigest.prototype); }
     JsDeclareFunction(flush);
@@ -3131,7 +3132,7 @@ public:
     * @example
     * // import modules
     * var qm = require('qminer');
-    * var analytics = qm.analytics.quantiles;
+    * var analytics = qm.analytics;
     * var fs = qm.fs;
     * // create the default BufferedTDigest object
     * var tdigest = new analytics.quantiles.BufferedTDigest();
@@ -3154,7 +3155,7 @@ public:
     * @example
     * // import modules
     * var qm = require('qminer');
-    * var analytics = qm.analytics.quantiles;
+    * var analytics = qm.analytics;
     * var fs = qm.fs;
     * // create the default BufferedTDigest object
     * var tdigest = new analytics.quantiles.BufferedTDigest();
@@ -3211,7 +3212,7 @@ public:
  * // import modules
  * var qm = require('qminer');
  * var fs = require('qminer').fs;
- * var quants = qm.analytics.quants;
+ * var quants = qm.analytics.quantiles;
  *
  * // create the Gk object
  * var gk = new quants.Gk({
@@ -3227,12 +3228,12 @@ public:
  *     gk.insert(inputs[i]);
  * }
  *
- * // make the prediction for the 0.1 quantile
- * var prediction = gk.quantile(0.1);
+ * // make the estimation for the 0.1 quantile
+ * var quant = gk.quantile(0.1);
  * // save the model
  * gk.save(fs.openWrite('gk.bin')).close();
  * // open the gk model under a new variable
- * var gk2 = new analytics.quantiles.Gk(fs.openRead('gk.bin'));
+ * var gk2 = new quants.Gk(fs.openRead('gk.bin'));
  */
 //# exports.Gk = function (arg) { return Object.create(require('qminer').analytics.quantiles.Gk.prototype); }
 class TNodeJsGk : public node::ObjectWrap {
@@ -3257,7 +3258,7 @@ public:
      *
      * @returns {module:analytics.quantiles~GkParam} The construction parameters.
      *
-     * var analytics = qm.analytics.quantiles;
+     * var analytics = qm.analytics;
      * var gk = new analytics.quantiles.Gk();
      * var params = gk.getParams();
      *
@@ -3461,8 +3462,8 @@ public:
  *     gk.insert(inputs[i]);
  * }
  *
- * // make the prediction for the 0.1 quantile
- * var prediction = gk.quantile(0.1);
+ * // make the estimation for the 0.1 quantile
+ * var quant = gk.quantile(0.1);
  * // save the model
  * gk.save(fs.openWrite('gk.bin')).close();
  * // open the gk model under a new variable
@@ -3492,7 +3493,7 @@ public:
      *
      * @returns {module:analytics.quantiles~BiasedGkParam} The construction parameters.
      *
-     * var analytics = qm.analytics.quantiles;
+     * var analytics = qm.analytics;
      * var gk = new analytics.quantiles.BiasedGk();
      * var params = gk.getParams();
      *
