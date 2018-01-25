@@ -3212,7 +3212,7 @@ public:
  * // import modules
  * var qm = require('qminer');
  * var fs = require('qminer').fs;
- * var quants = qm.analytics.quants;
+ * var quants = qm.analytics.quantiles;
  *
  * // create the Gk object
  * var gk = new quants.Gk({
@@ -3233,7 +3233,7 @@ public:
  * // save the model
  * gk.save(fs.openWrite('gk.bin')).close();
  * // open the gk model under a new variable
- * var gk2 = new analytics.quantiles.Gk(fs.openRead('gk.bin'));
+ * var gk2 = new quants.Gk(fs.openRead('gk.bin'));
  */
 //# exports.Gk = function (arg) { return Object.create(require('qminer').analytics.quantiles.Gk.prototype); }
 class TNodeJsGk : public node::ObjectWrap {
