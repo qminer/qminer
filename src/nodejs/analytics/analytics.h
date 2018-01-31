@@ -3277,7 +3277,7 @@ public:
      * @example
      * var qm = require('qminer');
      *
-     * var gk = new qm.analytics.quantiles.CountWindowGk();
+     * var gk = new qm.analytics.quantiles.Gk();
      * gk.insert(1.0);
      * gk.insert(2.0);
      */
