@@ -59,6 +59,22 @@ void InitHt(Local<Object> Exports, const TStr& NsNm) {
     Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
 }
 
+void InitQuantiles(Handle<Object> Exports, const TStr& NsNm) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    Handle<Object> NsObj = Object::New(Isolate);
+
+    TNodeJsQuant::TNodeJsTDigest::Init(NsObj);
+    TNodeJsQuant::TNodeJsBuffTDigest::Init(NsObj);
+    TNodeJsQuant::TNodeJsGk::Init(NsObj);
+    TNodeJsQuant::TNodeJsBiasedGk::Init(NsObj);
+    TNodeJsQuant::TNodeJsCountWindowGk::Init(NsObj);
+    TNodeJsQuant::TNodeJsTimeWindowGk::Init(NsObj);
+
+    Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
+}
+
 void InitAnalytics(Local<Object> Exports, const TStr& NsNm) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
@@ -80,13 +96,10 @@ void InitAnalytics(Local<Object> Exports, const TStr& NsNm) {
     TNodeJsMDS::Init(NsObj);
     TNodeJsKMeans::Init(NsObj);
     TNodeJsDpMeans::Init(NsObj);
-    TNodeJsTDigest::Init(NsObj);
-    TNodeJsGk::Init(NsObj);
-    TNodeJsBiasedGk::Init(NsObj);
-    TNodeJsCountWindowGk::Init(NsObj);
-    TNodeJsTimeWindowGk::Init(NsObj);
     TNodeJsRecommenderSys::Init(NsObj);
     TNodeJsGraphCascade::Init(NsObj);
+
+    InitQuantiles(NsObj, "quantiles");
 
     Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
 }
