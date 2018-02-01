@@ -69,8 +69,6 @@ void InitQuantiles(Handle<Object> Exports, const TStr& NsNm) {
     TNodeJsQuant::TNodeJsBuffTDigest::Init(NsObj);
     TNodeJsQuant::TNodeJsGk::Init(NsObj);
     TNodeJsQuant::TNodeJsBiasedGk::Init(NsObj);
-    TNodeJsQuant::TNodeJsCountWindowGk::Init(NsObj);
-    TNodeJsQuant::TNodeJsTimeWindowGk::Init(NsObj);
 
     Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
 }
