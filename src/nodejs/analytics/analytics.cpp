@@ -3863,6 +3863,8 @@ int TNodeJsDpMeans::GetClusts() const {
     }
 }
 
+namespace TNodeJsQuant {
+
 /////////////////////////////////////////////
 // TDigest
 
@@ -3877,9 +3879,8 @@ void TNodeJsTDigest::Init(v8::Local<v8::Object> exports) {
 
     // Add all methods, getters and setters here.
     NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "setParams", _setParams);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "partialFit", _partialFit);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "insert", _insert);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "quantile", _quantile);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "init"), _init);
@@ -3890,9 +3891,16 @@ void TNodeJsTDigest::Init(v8::Local<v8::Object> exports) {
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
 }
 
-TNodeJsTDigest::TNodeJsTDigest(const PJsonVal& ParamVal): Model(ParamVal) { }
+TNodeJsTDigest::TNodeJsTDigest(const PJsonVal& ParamVal):
+    Model(
+            ParamVal->GetObjInt("clusters", 100),
+            ParamVal->GetObjNum("minEps", 1e-4),
+            ExtractCompressStrategy(ParamVal->GetObjStr("compression", "never")),
+            ParamVal->GetObjInt("seed", 0)
+    ),
+    RndSeed(ParamVal->GetObjInt("seed", 0)) {}
 
-TNodeJsTDigest::TNodeJsTDigest(TSIn& SIn) { Model.LoadState(SIn);  }
+TNodeJsTDigest::TNodeJsTDigest(TSIn& SIn): Model(SIn), RndSeed(SIn) {}
 
 TNodeJsTDigest* TNodeJsTDigest::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -3919,47 +3927,56 @@ void TNodeJsTDigest::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) 
     v8::HandleScope HandleScope(Isolate);
 
     TNodeJsTDigest* JsTDigest = ObjectWrap::Unwrap<TNodeJsTDigest>(Args.Holder());
-    PJsonVal ParamVal = JsTDigest->Model.GetParams();
+    const TQuant::TTDigest& Model = JsTDigest->Model;
+
+    PJsonVal ParamVal = TJsonVal::NewObj();
+    ParamVal->AddToObj("seed", JsTDigest->RndSeed);
+    ParamVal->AddToObj("clusters", Model.GetMnCentroids());
+    ParamVal->AddToObj("compression", ExtractStr(Model.GetCompressStrategy()));
+    ParamVal->AddToObj("minEps", Model.GetMnEps());
+
     v8::Local<v8::Value> JsParamVal = TNodeJsUtil::ParseJson(Isolate, ParamVal);
     Args.GetReturnValue().Set(JsParamVal);
 }
 
-void TNodeJsTDigest::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
-    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
-
-    EAssertR(Args.Length() == 1, "TDigest.setParams: Should have 1 argument!");
-
-    TNodeJsTDigest* JsTDigest = ObjectWrap::Unwrap<TNodeJsTDigest>(Args.Holder());
-    PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
-    JsTDigest->Model.SetParams(ParamVal);
-
-    Args.GetReturnValue().Set(Args.Holder());
-}
-
-void TNodeJsTDigest::partialFit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsTDigest::insert(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
     TNodeJsTDigest* JsTDigest = ObjectWrap::Unwrap<TNodeJsTDigest>(Args.Holder());
-    double Val = TNodeJsUtil::GetArgFlt(Args, 0);
+    TQuant::TTDigest& Model = JsTDigest->Model;
 
-    // save model
-    JsTDigest->Model.Update(Val);
+    const double Val = TNodeJsUtil::GetArgFlt(Args, 0);
+
+    // update model
+    Model.Insert(Val);
     //// return output stream for convenience
     Args.GetReturnValue().Set(Args.Holder());
 }
 
-void TNodeJsTDigest::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsTDigest::quantile(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
     TNodeJsTDigest* JsTDigest = ObjectWrap::Unwrap<TNodeJsTDigest>(Args.Holder());
+    const TQuant::TTDigest& TDigest = JsTDigest->Model;
 
-    double Val = TNodeJsUtil::GetArgFlt(Args, 0);
-    double Quantile = JsTDigest->Model.GetQuantile(Val);
+    if (TNodeJsUtil::IsArgFlt(Args, 0)) {
+        const double PVal = TNodeJsUtil::GetArgFlt(Args, 0);
+        const double Quant = TDigest.Query(PVal);
 
-    Args.GetReturnValue().Set(v8::Number::New(Isolate, Quantile));
+        Args.GetReturnValue().Set(v8::Number::New(Isolate, Quant));
+    } else {
+        TFltV PValV; TNodeJsUtil::GetArgFltV(Args, 0, PValV);
+        TFltV QuantV; TDigest.Query(PValV, QuantV);
+
+        v8::Handle<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
+        for (int QuantN = 0; QuantN < QuantV.Len(); ++QuantN) {
+            QuantArr->Set(QuantN, v8::Number::New(Isolate, QuantV[QuantN]));
+        }
+
+        Args.GetReturnValue().Set(QuantArr);
+    }
 }
 
 void TNodeJsTDigest::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -3973,7 +3990,8 @@ void TNodeJsTDigest::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
     EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     // save model
-    JsTDigest->Model.SaveState(*JsFOut->SOut);
+    JsTDigest->Model.Save(*JsFOut->SOut);
+    JsTDigest->RndSeed.Save(*JsFOut->SOut);
     // return output stream for convenience
     Args.GetReturnValue().Set(Args[0]);
 }
@@ -3984,7 +4002,7 @@ void TNodeJsTDigest::init(v8::Local<v8::Name> Name, const v8::PropertyCallbackIn
 
     // unwrap
     TNodeJsTDigest* JsModel = ObjectWrap::Unwrap<TNodeJsTDigest>(Info.Holder());
-    Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Model.IsInit()));
+    Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Model.GetSampleN() > 0));
 }
 
 void TNodeJsTDigest::size(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
@@ -4005,6 +4023,196 @@ void TNodeJsTDigest::memory(v8::Local<v8::Name> Name, const v8::PropertyCallback
     Info.GetReturnValue().Set(v8::Integer::New(Isolate, (int)JsModel->Model.GetMemUsed()));
 }
 
+typename TNodeJsTDigest::TCompressStrategy TNodeJsTDigest::ExtractCompressStrategy(const TStr& CsStr) {
+    if (CsStr == "never") {
+        return TCompressStrategy::csNever;
+    } else if (CsStr == "periodic") {
+        return TCompressStrategy::csPeriodic;
+    }  else {
+        throw TExcept::New("Invalid compress strategy: " + CsStr);
+    }
+}
+
+TStr TNodeJsTDigest::ExtractStr(const TCompressStrategy& Cs) {
+    switch (Cs) {
+    case TCompressStrategy::csNever:
+        return "never";
+    case TCompressStrategy::csPeriodic:
+        return "periodic";
+    default: {
+        typename std::underlying_type<TCompressStrategy>::type CsCast = static_cast<std::underlying_type<TCompressStrategy>::type>(Cs);
+        throw TExcept::New(TStr("Invalid compress strategy: ") + CsCast);
+    }
+    }
+}
+
+/////////////////////////////////////////////
+// BufferedTDigest
+
+void TNodeJsBuffTDigest::Init(v8::Handle<v8::Object> exports) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsBuffTDigest>);
+    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+    // ObjectWrap uses the first internal field to store the wrapped pointer.
+    tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+    // Add all methods, getters and setters here.
+    NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "insert", _insert);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "quantile", _quantile);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "flush", _flush);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
+
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "init"), _init);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "size"), _size);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "memory"), _memory);
+
+    // properties
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+}
+
+TNodeJsBuffTDigest::TNodeJsBuffTDigest(const PJsonVal& ParamVal):
+    Model(
+            ParamVal->GetObjInt("delta", 100),
+            ParamVal->GetObjNum("bufferLen", 1000),
+            ParamVal->GetObjInt("seed", 0)
+    ),
+    RndSeed(ParamVal->GetObjInt("seed", 0)) {}
+
+TNodeJsBuffTDigest::TNodeJsBuffTDigest(TSIn& SIn): Model(SIn), RndSeed(SIn) {}
+
+TNodeJsBuffTDigest* TNodeJsBuffTDigest::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    if (Args.Length() == 0) {
+        // create new model with default parameters
+        return new TNodeJsBuffTDigest(TJsonVal::NewObj());
+    } else if (Args.Length() == 1 && TNodeJsUtil::IsArgWrapObj<TNodeJsFIn>(Args, 0)) {
+        // load the model from the input stream
+        TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
+        return new TNodeJsBuffTDigest(*JsFIn->SIn);
+    } else if (Args.Length() == 1 && TNodeJsUtil::IsArgObj(Args, 0)) {
+        // create new model from given parameters
+        PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
+        return new TNodeJsBuffTDigest(ParamVal);
+    } else {
+        throw TExcept::New("new TDigest: wrong arguments in constructor!");
+    }
+}
+
+void TNodeJsBuffTDigest::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsBuffTDigest* JsTDigest = ObjectWrap::Unwrap<TNodeJsBuffTDigest>(Args.Holder());
+    const TTDigest& Model = JsTDigest->Model;
+
+    PJsonVal ParamVal = TJsonVal::NewObj();
+    ParamVal->AddToObj("seed", JsTDigest->RndSeed);
+    ParamVal->AddToObj("delta", Model.GetDelta());
+    ParamVal->AddToObj("bufferLen", Model.GetMxBuffLen());
+
+    v8::Local<v8::Value> JsParamVal = TNodeJsUtil::ParseJson(Isolate, ParamVal);
+    Args.GetReturnValue().Set(JsParamVal);
+}
+
+void TNodeJsBuffTDigest::insert(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsBuffTDigest* JsTDigest = ObjectWrap::Unwrap<TNodeJsBuffTDigest>(Args.Holder());
+    TTDigest& Model = JsTDigest->Model;
+
+    const double Val = TNodeJsUtil::GetArgFlt(Args, 0);
+
+    // update model
+    Model.Insert(Val);
+    //// return output stream for convenience
+    Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsBuffTDigest::quantile(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsBuffTDigest* JsTDigest = ObjectWrap::Unwrap<TNodeJsBuffTDigest>(Args.Holder());
+    const TTDigest& TDigest = JsTDigest->Model;
+
+    if (TNodeJsUtil::IsArgFlt(Args, 0)) {
+        const double PVal = TNodeJsUtil::GetArgFlt(Args, 0);
+        const double Quant = TDigest.Query(PVal);
+
+        Args.GetReturnValue().Set(v8::Number::New(Isolate, Quant));
+    } else {
+        TFltV PValV; TNodeJsUtil::GetArgFltV(Args, 0, PValV);
+        TFltV QuantV; TDigest.Query(PValV, QuantV);
+
+        v8::Handle<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
+        for (int QuantN = 0; QuantN < QuantV.Len(); ++QuantN) {
+            QuantArr->Set(QuantN, v8::Number::New(Isolate, QuantV[QuantN]));
+        }
+
+        Args.GetReturnValue().Set(QuantArr);
+    }
+}
+
+void TNodeJsBuffTDigest::flush(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsBuffTDigest* JsTDigest = ObjectWrap::Unwrap<TNodeJsBuffTDigest>(Args.Holder());
+    TTDigest& TDigest = JsTDigest->Model;
+    TDigest.Flush();
+
+    Args.GetReturnValue().Set(Args.Holder());
+}
+
+void TNodeJsBuffTDigest::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    EAssertR(Args.Length() == 1, "TDigest.save: Should have 1 argument!");
+
+    TNodeJsBuffTDigest* JsTDigest = ObjectWrap::Unwrap<TNodeJsBuffTDigest>(Args.Holder());
+    // get output stream from arguments
+    TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+    // save model
+    JsTDigest->Model.Save(*JsFOut->SOut);
+    JsTDigest->RndSeed.Save(*JsFOut->SOut);
+    // return output stream for convenience
+    Args.GetReturnValue().Set(Args[0]);
+}
+
+void TNodeJsBuffTDigest::init(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    // unwrap
+    TNodeJsBuffTDigest* JsModel = ObjectWrap::Unwrap<TNodeJsBuffTDigest>(Info.Holder());
+    Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Model.GetSampleN() > 0));
+}
+
+void TNodeJsBuffTDigest::size(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsBuffTDigest* JsModel = ObjectWrap::Unwrap<TNodeJsBuffTDigest>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Model.GetSummarySize()));
+}
+
+void TNodeJsBuffTDigest::memory(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsBuffTDigest* JsModel = ObjectWrap::Unwrap<TNodeJsBuffTDigest>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Model.GetMemUsed()));
+}
+
 ///////////////////////////////////////////////////////
 // Greenwald-Khanna quantile estimation algorithm
 void TNodeJsGk::Init(v8::Local<v8::Object> exports) {
@@ -4021,13 +4229,18 @@ void TNodeJsGk::Init(v8::Local<v8::Object> exports) {
 
     // Add all methods, getters and setters here.
     NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "partialFit", _partialFit);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "insert", _insert);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "quantile", _quantile);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "cdf", _cdf);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "kolmogorovStat", _kolmogorovStat);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "kolmogorovTest", _kolmogorovTest);
     NODE_SET_PROTOTYPE_METHOD(tpl, "compress", _compress);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // properties
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "init"), _init);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "size"), _size);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "samples"), _samples);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "memory"), _memory);
 
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
@@ -4038,7 +4251,8 @@ TNodeJsGk::TNodeJsGk(const PJsonVal& ParamVal):
             ParamVal->GetObjNum("eps", .01),
             ParamVal->GetObjBool("autoCompress", true) ?
                 TQuant::TGk::TCompressStrategy::csAuto :
-                TQuant::TGk::TCompressStrategy::csManual
+                TQuant::TGk::TCompressStrategy::csManual,
+            ParamVal->GetObjBool("useBands", true)
     ) {}
 
 TNodeJsGk::TNodeJsGk(TSIn& SIn): Gk(SIn) {}
@@ -4073,12 +4287,13 @@ void TNodeJsGk::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     PJsonVal ParamVal = TJsonVal::NewObj();
     ParamVal->AddToObj("eps", Gk.GetEps());
     ParamVal->AddToObj("autoCompress", Gk.GetCompressStrategy() == TQuant::TGk::TCompressStrategy::csAuto);
+    ParamVal->AddToObj("useBands", Gk.GetUseBandsP());
 
     v8::Local<v8::Value> JsParamVal = TNodeJsUtil::ParseJson(Isolate, ParamVal);
     Args.GetReturnValue().Set(JsParamVal);
 }
 
-void TNodeJsGk::partialFit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsGk::insert(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -4092,7 +4307,7 @@ void TNodeJsGk::partialFit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     Args.GetReturnValue().Set(Args.Holder());
 }
 
-void TNodeJsGk::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsGk::quantile(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -4100,13 +4315,13 @@ void TNodeJsGk::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     const TQuant::TGk& Gk = JsGk->Gk;
 
     if (TNodeJsUtil::IsArgFlt(Args, 0)) {
-        const double PVal = TNodeJsUtil::GetArgFlt(Args, 0);
-        const double Quant = Gk.Query(PVal);
+        const double CdfVal = TNodeJsUtil::GetArgFlt(Args, 0);
+        const double Quant = Gk.GetQuantile(CdfVal);
 
         Args.GetReturnValue().Set(v8::Number::New(Isolate, Quant));
     } else {
-        TFltV PValV; TNodeJsUtil::GetArgFltV(Args, 0, PValV);
-        TFltV QuantV; Gk.Query(PValV, QuantV);
+        TFltV CdfValV; TNodeJsUtil::GetArgFltV(Args, 0, CdfValV);
+        TFltV QuantV; Gk.GetQuantileV(CdfValV, QuantV);
 
         v8::Local<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
         for (int QuantN = 0; QuantN < QuantV.Len(); ++QuantN) {
@@ -4116,6 +4331,63 @@ void TNodeJsGk::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         Args.GetReturnValue().Set(QuantArr);
     }
 }
+
+void TNodeJsGk::cdf(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    TNodeJsGk* JsGk = ObjectWrap::Unwrap<TNodeJsGk>(Args.Holder());
+    const TQuant::TGk& Gk = JsGk->Gk;
+
+    if (TNodeJsUtil::IsArgFlt(Args, 0)) {
+        const double Val = TNodeJsUtil::GetArgFlt(Args, 0);
+        const double CdfVal = Gk.GetQuantile(Val);
+
+        Args.GetReturnValue().Set(v8::Number::New(Isolate, CdfVal));
+    } else {
+        TFltV ValV; TNodeJsUtil::GetArgFltV(Args, 0, ValV);
+        TFltV CdfValV; Gk.GetQuantileV(ValV, CdfValV);
+
+        v8::Handle<v8::Array> QuantArr = v8::Array::New(Isolate, CdfValV.Len());
+        for (int QuantN = 0; QuantN < CdfValV.Len(); ++QuantN) {
+            QuantArr->Set(QuantN, v8::Number::New(Isolate, CdfValV[QuantN]));
+        }
+
+        Args.GetReturnValue().Set(QuantArr);
+    }
+}
+
+void TNodeJsGk::kolmogorovStat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsGk* JsGk = ObjectWrap::Unwrap<TNodeJsGk>(Args.Holder());
+    const TNodeJsGk* OtherJsGk = TNodeJsUtil::GetArgUnwrapObj<TNodeJsGk>(Args, 0);
+
+    const TQuant::TGk& Gk1 = JsGk->Gk;
+    const TQuant::TGk& Gk2 = OtherJsGk->Gk;
+
+    const double Stat = TQuant::TStat::KolmogorovSmirnov(Gk1, Gk2);
+
+    Args.GetReturnValue().Set(v8::Number::New(Isolate, Stat));
+}
+
+void TNodeJsGk::kolmogorovTest(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsGk* JsGk = ObjectWrap::Unwrap<TNodeJsGk>(Args.Holder());
+    const TNodeJsGk* OtherJsGk = TNodeJsUtil::GetArgUnwrapObj<TNodeJsGk>(Args, 0);
+    const double Alpha = TNodeJsUtil::GetArgFlt(Args, 1);
+
+    const TQuant::TGk& Gk1 = JsGk->Gk;
+    const TQuant::TGk& Gk2 = OtherJsGk->Gk;
+
+    const bool Result = TQuant::TStat::KolmogorovSmirnovTest(Gk1, Gk2, Alpha);
+
+    Args.GetReturnValue().Set(v8::Boolean::New(Isolate, Result));
+}
+
 
 void TNodeJsGk::compress(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -4144,6 +4416,15 @@ void TNodeJsGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     Args.GetReturnValue().Set(Args[0]);
 }
 
+void TNodeJsGk::init(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsGk* JsModel = ObjectWrap::Unwrap<TNodeJsGk>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Gk.GetSampleN() > 0));
+}
+
 void TNodeJsGk::size(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
@@ -4153,14 +4434,24 @@ void TNodeJsGk::size(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8
     Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Gk.GetSummarySize()));
 }
 
+void TNodeJsGk::samples(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsGk* JsModel = ObjectWrap::Unwrap<TNodeJsGk>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Gk.GetSampleN()));
+}
+
 void TNodeJsGk::memory(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
     const TNodeJsGk* JsModel = ObjectWrap::Unwrap<TNodeJsGk>(Info.Holder());
 
-    Info.GetReturnValue().Set(v8::Integer::New(Isolate, (int)JsModel->Gk.GetMemUsed()));
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, (int) JsModel->Gk.GetMemUsed()));
 }
+
 
 ////////////////////////////////////////////
 // CKMS algorithm for biased quantiles
@@ -4178,13 +4469,15 @@ void TNodeJsBiasedGk::Init(v8::Local<v8::Object> exports) {
 
     // Add all methods, getters and setters here.
     NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "partialFit", _partialFit);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "insert", _insert);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "quantile", _quantile);
     NODE_SET_PROTOTYPE_METHOD(tpl, "compress", _compress);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // properties
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "init"), _init);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "size"), _size);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "samples"), _samples);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "memory"), _memory);
 
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
@@ -4254,7 +4547,7 @@ void TNodeJsBiasedGk::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args)
     Args.GetReturnValue().Set(JsParamVal);
 }
 
-void TNodeJsBiasedGk::partialFit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsBiasedGk::insert(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -4268,7 +4561,7 @@ void TNodeJsBiasedGk::partialFit(const v8::FunctionCallbackInfo<v8::Value>& Args
     Args.GetReturnValue().Set(Args.Holder());
 }
 
-void TNodeJsBiasedGk::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsBiasedGk::quantile(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -4277,12 +4570,12 @@ void TNodeJsBiasedGk::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     if (TNodeJsUtil::IsArgFlt(Args, 0)) {
         const double PVal = TNodeJsUtil::GetArgFlt(Args, 0);
-        const double Quant = Gk.Query(PVal);
+        const double Quant = Gk.GetQuantile(PVal);
 
         Args.GetReturnValue().Set(v8::Number::New(Isolate, Quant));
     } else {
         TFltV PValV; TNodeJsUtil::GetArgFltV(Args, 0, PValV);
-        TFltV QuantV; Gk.Query(PValV, QuantV);
+        TFltV QuantV; Gk.GetQuantileV(PValV, QuantV);
 
         v8::Local<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
         for (int QuantN = 0; QuantN < QuantV.Len(); ++QuantN) {
@@ -4320,6 +4613,15 @@ void TNodeJsBiasedGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     Args.GetReturnValue().Set(Args[0]);
 }
 
+void TNodeJsBiasedGk::init(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsBiasedGk* JsModel = ObjectWrap::Unwrap<TNodeJsBiasedGk>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Gk.GetSampleN() > 0));
+}
+
 void TNodeJsBiasedGk::size(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
@@ -4327,6 +4629,15 @@ void TNodeJsBiasedGk::size(v8::Local<v8::Name> Name, const v8::PropertyCallbackI
     const TNodeJsBiasedGk* JsModel = ObjectWrap::Unwrap<TNodeJsBiasedGk>(Info.Holder());
 
     Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Gk.GetSummarySize()));
+}
+
+void TNodeJsBiasedGk::samples(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsBiasedGk* JsModel = ObjectWrap::Unwrap<TNodeJsBiasedGk>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Gk.GetSampleN()));
 }
 
 void TNodeJsBiasedGk::memory(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
@@ -4364,11 +4675,15 @@ void TNodeJsCountWindowGk::Init(v8::Local<v8::Object> exports) {
 
     // Add all methods, getters and setters here.
     NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "partialFit", _partialFit);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "insert", _insert);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "quantile", _quantile);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // properties
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "init"), _init);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "size"), _size);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "memory"), _memory);
+
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
 }
 
@@ -4422,7 +4737,7 @@ void TNodeJsCountWindowGk::getParams(const v8::FunctionCallbackInfo<v8::Value>& 
     Args.GetReturnValue().Set(JsParamVal);
 }
 
-void TNodeJsCountWindowGk::partialFit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsCountWindowGk::insert(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -4436,17 +4751,29 @@ void TNodeJsCountWindowGk::partialFit(const v8::FunctionCallbackInfo<v8::Value>&
     Args.GetReturnValue().Set(Args.Holder());
 }
 
-void TNodeJsCountWindowGk::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsCountWindowGk::quantile(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
     TNodeJsCountWindowGk* JsGk = ObjectWrap::Unwrap<TNodeJsCountWindowGk>(Args.Holder());
     TQuant::TCountWindowGk& Gk = JsGk->Gk;
 
-    const double Quant = TNodeJsUtil::GetArgFlt(Args, 0);
-    const double Val = Gk.Query(Quant);
+    if (TNodeJsUtil::IsArgFlt(Args, 0)) {
+        const double PVal = TNodeJsUtil::GetArgFlt(Args, 0);
+        const double Quant = Gk.Query(PVal);
 
-    Args.GetReturnValue().Set(v8::Number::New(Isolate, Val));
+        Args.GetReturnValue().Set(v8::Number::New(Isolate, Quant));
+    } else {
+        TFltV PValV; TNodeJsUtil::GetArgFltV(Args, 0, PValV);
+        TFltV QuantV; Gk.Query(PValV, QuantV);
+
+        v8::Handle<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
+        for (int QuantN = 0; QuantN < QuantV.Len(); ++QuantN) {
+            QuantArr->Set(QuantN, v8::Number::New(Isolate, QuantV[QuantN]));
+        }
+
+        Args.GetReturnValue().Set(QuantArr);
+    }
 }
 
 void TNodeJsCountWindowGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -4464,6 +4791,32 @@ void TNodeJsCountWindowGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args)
     Args.GetReturnValue().Set(Args[0]);
 }
 
+void TNodeJsCountWindowGk::init(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsCountWindowGk* JsModel = ObjectWrap::Unwrap<TNodeJsCountWindowGk>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Gk.GetSampleN() > 0));
+}
+
+void TNodeJsCountWindowGk::size(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsCountWindowGk* JsModel = ObjectWrap::Unwrap<TNodeJsCountWindowGk>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Gk.GetSummarySize()));
+}
+
+void TNodeJsCountWindowGk::memory(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsCountWindowGk* JsModel = ObjectWrap::Unwrap<TNodeJsCountWindowGk>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Gk.GetMemUsed()));
+}
 
 ///////////////////////////////////////////////////////
 // Greenwald-Khanna quantile estimation for time window
@@ -4478,11 +4831,15 @@ void TNodeJsTimeWindowGk::Init(v8::Local<v8::Object> exports) {
 
     // Add all methods, getters and setters here.
     NODE_SET_PROTOTYPE_METHOD(tpl, "getParams", _getParams);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "partialFit", _partialFit);
-    NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "insert", _insert);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "quantile", _quantile);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // properties
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "init"), _init);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "size"), _size);
+    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "memory"), _memory);
+
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
 }
 
@@ -4536,7 +4893,7 @@ void TNodeJsTimeWindowGk::getParams(const v8::FunctionCallbackInfo<v8::Value>& A
     Args.GetReturnValue().Set(JsParamVal);
 }
 
-void TNodeJsTimeWindowGk::partialFit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsTimeWindowGk::insert(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -4557,18 +4914,29 @@ void TNodeJsTimeWindowGk::partialFit(const v8::FunctionCallbackInfo<v8::Value>& 
     Args.GetReturnValue().Set(Args.Holder());
 }
 
-void TNodeJsTimeWindowGk::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
+void TNodeJsTimeWindowGk::quantile(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
     TNodeJsTimeWindowGk* JsGk = ObjectWrap::Unwrap<TNodeJsTimeWindowGk>(Args.Holder());
     TQuant::TTimeWindowGk& Gk = JsGk->Gk;
 
-    const double Quant = TNodeJsUtil::GetArgFlt(Args, 0);
-    const double Val = Gk.Query(Quant);
+    if (TNodeJsUtil::IsArgFlt(Args, 0)) {
+        const double PVal = TNodeJsUtil::GetArgFlt(Args, 0);
+        const double Quant = Gk.Query(PVal);
 
-    // return self
-    Args.GetReturnValue().Set(v8::Number::New(Isolate, Val));
+        Args.GetReturnValue().Set(v8::Number::New(Isolate, Quant));
+    } else {
+        TFltV PValV; TNodeJsUtil::GetArgFltV(Args, 0, PValV);
+        TFltV QuantV; Gk.Query(PValV, QuantV);
+
+        v8::Handle<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
+        for (int QuantN = 0; QuantN < QuantV.Len(); ++QuantN) {
+            QuantArr->Set(QuantN, v8::Number::New(Isolate, QuantV[QuantN]));
+        }
+
+        Args.GetReturnValue().Set(QuantArr);
+    }
 }
 
 void TNodeJsTimeWindowGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -4584,6 +4952,35 @@ void TNodeJsTimeWindowGk::save(const v8::FunctionCallbackInfo<v8::Value>& Args) 
 
     // return the output stream
     Args.GetReturnValue().Set(Args[0]);
+}
+
+void TNodeJsTimeWindowGk::init(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsTimeWindowGk* JsModel = ObjectWrap::Unwrap<TNodeJsTimeWindowGk>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsModel->Gk.GetSampleN() > 0));
+}
+
+void TNodeJsTimeWindowGk::size(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsTimeWindowGk* JsModel = ObjectWrap::Unwrap<TNodeJsTimeWindowGk>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Gk.GetSummarySize()));
+}
+
+void TNodeJsTimeWindowGk::memory(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+
+    const TNodeJsTimeWindowGk* JsModel = ObjectWrap::Unwrap<TNodeJsTimeWindowGk>(Info.Holder());
+
+    Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsModel->Gk.GetMemUsed()));
+}
+
 }
 
 /////////////////////////////////////////////
