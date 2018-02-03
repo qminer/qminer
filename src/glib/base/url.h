@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -97,8 +97,10 @@ public:
   static PUrl GetUrlFromShortcut(const TStr& ShortcutUrlStr,
    const TStr& DfHostNmPrefix, const TStr& DfHostNmSufix);
   static TStr GetUrlSearchStr(const TStr& Str);
-  static TStr EncodeUrlStr(const TStr& Str){return GetUrlSearchStr(Str);}
+  static TStr EncodeUrlStr(const TStr& Str) { return GetUrlSearchStr(Str); }
   static TStr DecodeUrlStr(const TStr& UrlStr);
+  // replace %xx escape with their single-character equivalents
+  static TStr UnquoteUrlStr(const TStr& UrlStr);
   static TStr GetDocStrFromUrlStr(const TStr& UrlStr, const int& Copies=1);
   static TStr GetTopDownDocNm(
    const TStr& UrlStr, const int& MxLen=-1, const bool& HostOnlyP=false);

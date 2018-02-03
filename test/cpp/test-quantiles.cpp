@@ -39,13 +39,18 @@ double GetSwGkMxRelErr(const double& EpsGk, const double& EpsEh) {
 
 template <typename TGk, typename TLowerBoundFun, typename TUpperBoundFun>
 void AssertQuantileRange(TGk& Gk, const TLowerBoundFun& GetLowerBound,
-        const TUpperBoundFun& GetUpperBound, const double PValStep=1e-3) {
+        const TUpperBoundFun& GetUpperBound, const double PValStep=1e-3, const bool& PrintP=false) {
 
     for (double PVal = 0.0; PVal <= 1.0; PVal += PValStep) {
         const double QuantMn = GetLowerBound(PVal);
         const double QuantMx = GetUpperBound(PVal);
 
         const double EstQuant = Gk.Query(PVal);
+
+        if (PrintP) {
+            std::cout << "p-val: " << PVal << " (estimated) quantile: " << EstQuant << ", QuantMn: " << QuantMn << ", QuantMx: " << QuantMx << std::endl;
+            Gk.PrintSummary();
+        }
 
         ASSERT_GE(EstQuant, QuantMn);
         ASSERT_LE(EstQuant, QuantMx);
@@ -72,6 +77,7 @@ void AssertQuantileRangeV(TGk& Gk, const TLowerBoundFun& GetLowerBound,
 
         if (PrintP) {
             std::cout << "p-val: " << PVal << " (estimated) quantile: " << EstQuant << ", (vector est.) quantile: " << QuantV[PValN].Val << ", QuantMn: " << QuantMn << ", QuantMx: " << QuantMx << std::endl;
+            Gk.PrintSummary();
         }
 
         ASSERT_GE(EstQuant, QuantMn);
@@ -80,7 +86,66 @@ void AssertQuantileRangeV(TGk& Gk, const TLowerBoundFun& GetLowerBound,
     }
 }
 
-TEST(TGreenwaldKhanna, Query) {
+template <typename TGk, typename TLowerBoundFun, typename TUpperBoundFun>
+void AssertQuantileRangeVNew(TGk& Gk, const TLowerBoundFun& GetLowerBound,
+        const TUpperBoundFun& GetUpperBound, const double PValStep=1e-3, const bool& PrintP=false) {
+
+    TFltV PValV;
+    for (double PVal = 0.0; PVal <= 1.0; PVal += PValStep) {
+        PValV.Add(PVal);
+    }
+
+    TFltV QuantV;   Gk.GetQuantileV(PValV, QuantV);
+
+    for (int PValN = 0; PValN < PValV.Len(); ++PValN) {
+        const double PVal = PValV[PValN];
+        const double QuantMn = GetLowerBound(PVal);
+        const double QuantMx = GetUpperBound(PVal);
+
+        const double EstQuant = Gk.GetQuantile(PVal);
+
+        if (PrintP) {
+            std::cout << "p-val: " << PVal << " (estimated) quantile: " << EstQuant << ", (vector est.) quantile: " << QuantV[PValN].Val << ", QuantMn: " << QuantMn << ", QuantMx: " << QuantMx << std::endl;
+            Gk.PrintSummary();
+        }
+
+        ASSERT_GE(EstQuant, QuantMn);
+        ASSERT_LE(EstQuant, QuantMx);
+        ASSERT_EQ(EstQuant, QuantV[PValN]);
+    }
+}
+
+template <typename TGk, typename TLowerBoundFun, typename TUpperBoundFun>
+void AssertCdfRangeV(TGk& Gk, const double& MnVal, const double& MxVal,
+        const TLowerBoundFun& GetLowerBound, const TUpperBoundFun& GetUpperBound,
+        const double Step=1e-3, const bool& PrintP=false) {
+
+    TFltV ValV;
+    for (double Val = MnVal; Val <= MxVal; Val += Step) {
+        ValV.Add(Val);
+    }
+
+    TFltV CdfValV;   Gk.GetCdfV(ValV, CdfValV);
+
+    for (int ValN = 0; ValN < ValV.Len(); ++ValN) {
+        const double Val = ValV[ValN];
+        const double CdfMn = GetLowerBound(Val);
+        const double CdfMx = GetUpperBound(Val);
+
+        const double EstCdf = Gk.GetCdf(Val);
+
+        if (PrintP) {
+            std::cout << "value: " << Val << " (estimated) CDF: " << EstCdf << ", (vector est.) CDF: " << CdfValV[ValN].Val << ", CdfMn: " << CdfMn << ", CdfMx: " << CdfMx << std::endl;
+            Gk.PrintSummary();
+        }
+
+        ASSERT_GE(EstCdf, CdfMn);
+        ASSERT_LE(EstCdf, CdfMx);
+        ASSERT_EQ(EstCdf, CdfValV[ValN]);
+    }
+}
+
+TEST(TGreenwaldKhanna, GetQuantile) {
     const double Eps = .001;
     const int NSamples = 1000;
 
@@ -90,13 +155,65 @@ TEST(TGreenwaldKhanna, Query) {
         Gk.Insert(i);
     }
 
-    const double Tenth = Gk.Query(.1);
-    const double First = Gk.Query(1e-6);
-    const double Last = Gk.Query(1 - 1e-6);
+    const double Tenth = Gk.GetQuantile(.1);
+    const double First = Gk.GetQuantile(1e-6);
+    const double Last = Gk.GetQuantile(1 - 1e-6);
 
     ASSERT_NEAR(.1*NSamples, Tenth, Eps*NSamples);
     ASSERT_NEAR(1e-6*NSamples, First, Eps*NSamples);
     ASSERT_NEAR((1 - 1e-6)*NSamples, Last, Eps*NSamples);
+}
+
+TEST(TGreenwaldKhanna, GetQuantileExtensive) {
+    const int NTrials = 100;
+    const int NSamples = 1000;
+
+    const double Eps = 0.01;
+
+    TRnd Rnd(1);
+
+    TGk BandGk(Eps, Rnd, true);
+    TGk BandlessGk(Eps, Rnd, false);
+
+    const int MxError = Eps*NSamples;
+
+    const auto LowerBoundFun = [&](const double& PVal) { return std::floor(PVal*NSamples - MxError); };
+    const auto UpperBoundFun = [&](const double& PVal) { return std::ceil(PVal*NSamples + MxError); };
+
+    for (int TrialN = 0; TrialN < NTrials; TrialN++) {
+        TIntV SampleV;  GenSamplesUniform(NSamples, SampleV);
+        for (int SampleN = 0; SampleN < NSamples; SampleN++) {
+            BandGk.Insert(SampleV[SampleN]);
+            BandlessGk.Insert(SampleV[SampleN]);
+        }
+
+        AssertQuantileRangeVNew(BandGk, LowerBoundFun, UpperBoundFun, .0001, false);
+        AssertQuantileRangeVNew(BandlessGk, LowerBoundFun, UpperBoundFun, .0001, false);
+    }
+}
+
+TEST(TGk, GetCdf) {
+    const int NTrials = 100;
+    const int BatchSize = 1000;
+
+    const double Eps = 0.1;
+
+    TGk Gk(Eps, TRnd(1));
+
+    TIntV SampleV;
+    for (int TrialN = 0; TrialN < NTrials; ++TrialN) {
+        GenSamplesUniform(BatchSize, SampleV);
+        for (int SampleN = 0; SampleN < BatchSize; ++SampleN) {
+            Gk.Insert(SampleV[SampleN]);
+        }
+
+        SampleV.Sort();
+
+        const auto LowerBound = [&](const double& Val) { return Val/BatchSize - Eps; };
+        const auto UpperBound = [&](const double& Val) { return Val/BatchSize + Eps; };
+
+        AssertCdfRangeV(Gk, 0, 1000, LowerBound, UpperBound, 1, false);
+    }
 }
 
 TEST(TGreenwaldKhanna, Compress) {
@@ -125,7 +242,7 @@ TEST(TGreenwaldKhanna, Compress) {
         // test a grid
         const auto LowerBoundFun = [&](const double& PVal) { return std::floor(NSamples*(PVal - Eps)); };
         const auto UpperBoundFun = [&](const double& PVal) { return std::ceil(NSamples*(PVal + Eps)); };
-        AssertQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun);
+        AssertQuantileRangeVNew(Gk, LowerBoundFun, UpperBoundFun);
     }
 }
 
@@ -155,7 +272,7 @@ TEST(TGreenwaldKhanna, LateManualCompress) {
     // test a grid
     const auto LowerBoundFun = [&](const double& PVal) { return std::floor(NSamples*(PVal - Eps)); };
     const auto UpperBoundFun = [&](const double& PVal) { return std::ceil(NSamples*(PVal + Eps)); };
-    AssertQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun);
+    AssertQuantileRangeVNew(Gk, LowerBoundFun, UpperBoundFun);
 }
 
 TEST(TGreenwaldKhanna, AutoCompress) {
@@ -182,17 +299,133 @@ TEST(TGreenwaldKhanna, AutoCompress) {
         }
 
         // test the accuracy
-        AssertQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun);
+        AssertQuantileRangeVNew(Gk, LowerBoundFun, UpperBoundFun);
     }
 
     ASSERT_TRUE(Gk.GetSummarySize() < BatchSize);
 }
 
-TEST(TBiasedGk, Query) {
+TEST(TGreenwaldKhanna, KolmogorovSmirnovFar) {
+    const int Vals = 7;
+    const double Eps = 0.001;
+    const double Mean1 = 5;
+    const double Mean2 = 0;
+
+    const double Sigma = 1;
+
+    TRnd Rnd(1);
+
+    TGk GkLow(Eps, Rnd);
+    TGk GkHigh(Eps, Rnd);
+
+    for (int ValN = 0; ValN < Vals; ++ValN) {
+        const double Val1 = Rnd.GetNrmDev(Mean1, Sigma, TFlt::Mn, TFlt::Mx);
+        const double Val2 = Rnd.GetNrmDev(Mean2, Sigma, TFlt::Mn, TFlt::Mx);
+
+        /* std::cout << "inserting" << std::endl; */
+        GkLow.Insert(Val1);
+        GkHigh.Insert(Val2);
+
+        /* std::cout << "testing" << std::endl; */
+        const double Statistic = TStat::KolmogorovSmirnov(GkLow, GkHigh);
+        const bool AreDiffP = TStat::KolmogorovSmirnovTest(GkLow, GkHigh, 0.001);
+
+        ASSERT_FALSE(AreDiffP);
+        ASSERT_GE(Statistic, 0.9);
+        /* std::cout << "n: " << (ValN+1) << "K-S statistic: " << Statistic << ", are diff: " << AreDiffP << std::endl; */
+    }
+
+    const double Val1 = Rnd.GetNrmDev(Mean1, Sigma, TFlt::Mn, TFlt::Mx);
+    const double Val2 = Rnd.GetNrmDev(Mean2, Sigma, TFlt::Mn, TFlt::Mx);
+
+    GkLow.Insert(Val1);
+    GkHigh.Insert(Val2);
+
+    const bool AreDiffP = TStat::KolmogorovSmirnovTest(GkLow, GkHigh, 0.001);
+
+    ASSERT_TRUE(AreDiffP);
+}
+
+TEST(TGreenwaldKhanna, KolmogorovSmirnovNear) {
+    const int Vals = 41;
+    const double Eps = 0.001;
+    const double Mean1 = 1;
+    const double Mean2 = 0;
+
+    const double Sigma = 1;
+
+    TRnd Rnd(1);
+
+    TGk GkLow(Eps, Rnd);
+    TGk GkHigh(Eps, Rnd);
+
+    for (int ValN = 0; ValN < Vals; ++ValN) {
+        const double Val1 = Rnd.GetNrmDev(Mean1, Sigma, TFlt::Mn, TFlt::Mx);
+        const double Val2 = Rnd.GetNrmDev(Mean2, Sigma, TFlt::Mn, TFlt::Mx);
+
+        /* std::cout << "inserting" << std::endl; */
+        GkLow.Insert(Val1);
+        GkHigh.Insert(Val2);
+
+        /* std::cout << "testing" << std::endl; */
+        const double Statistic = TStat::KolmogorovSmirnov(GkLow, GkHigh);
+        const bool AreDiffP = TStat::KolmogorovSmirnovTest(GkLow, GkHigh, 0.001);
+
+        ASSERT_FALSE(AreDiffP);
+        ASSERT_GE(Statistic, 0.3);
+        /* std::cout << "n: " << (ValN+1) << "K-S statistic: " << Statistic << ", are diff: " << AreDiffP << std::endl; */
+    }
+
+    const double Val1 = Rnd.GetNrmDev(Mean1, Sigma, TFlt::Mn, TFlt::Mx);
+    const double Val2 = Rnd.GetNrmDev(Mean2, Sigma, TFlt::Mn, TFlt::Mx);
+
+    GkLow.Insert(Val1);
+    GkHigh.Insert(Val2);
+
+    const bool AreDiffP = TStat::KolmogorovSmirnovTest(GkLow, GkHigh, 0.001);
+
+    ASSERT_TRUE(AreDiffP);
+}
+
+TEST(TGreenwaldKhanna, KolmogorovSmirnovSame) {
+    const int Vals = 1000;
+    const double Eps = 0.001;
+    const double Mean1 = 0;
+    const double Mean2 = 0;
+
+    const double Sigma = 1;
+
+    TRnd Rnd(1);
+
+    TGk GkLow(Eps, Rnd);
+    TGk GkHigh(Eps, Rnd);
+
+    for (int ValN = 0; ValN < Vals; ++ValN) {
+        const double Val1 = Rnd.GetNrmDev(Mean1, Sigma, TFlt::Mn, TFlt::Mx);
+        const double Val2 = Rnd.GetNrmDev(Mean2, Sigma, TFlt::Mn, TFlt::Mx);
+
+        /* std::cout << "inserting" << std::endl; */
+        GkLow.Insert(Val1);
+        GkHigh.Insert(Val2);
+
+        /* std::cout << "testing" << std::endl; */
+        const double Statistic = TStat::KolmogorovSmirnov(GkLow, GkHigh);
+        const bool AreDiffP = TStat::KolmogorovSmirnovTest(GkLow, GkHigh, 0.001);
+
+        ASSERT_FALSE(AreDiffP);
+        if (ValN > 30) {
+            ASSERT_LE(Statistic, 0.3);
+        }
+        if (ValN > 40) {
+            ASSERT_LE(Statistic, 0.2);
+        }
+        /* std::cout << "n: " << (ValN+1) << "K-S statistic: " << Statistic << ", are diff: " << AreDiffP << std::endl; */
+    }
+}
+
+TEST(TBiasedGk, GetQuantile) {
     const int NTrials = 100;
     const int NSamples = 1000;
-    /* const int NTrials = 1; */
-    /* const int NSamples = 100; */
 
     const double Quant0 = .01;
     const double Eps0 = .1;
@@ -212,11 +445,9 @@ TEST(TBiasedGk, Query) {
         const auto UpperBoundFun = [&](const double& PVal) {
             return std::ceil(PVal <= Quant0 ? NSamples*(PVal + Eps0*Quant0) : NSamples*PVal*(1 + Eps0)); };
 
-        AssertQuantileRangeV(BandGk, LowerBoundFun, UpperBoundFun, .0001);
-        AssertQuantileRangeV(BandlessGk, LowerBoundFun, UpperBoundFun, .0001);
+        AssertQuantileRangeVNew(BandGk, LowerBoundFun, UpperBoundFun, .0001);
+        AssertQuantileRangeVNew(BandlessGk, LowerBoundFun, UpperBoundFun, .0001);
     }
-
-    ASSERT_TRUE(BandGk.GetSummarySize() <= BandlessGk.GetSummarySize());
 }
 
 TEST(TBiasedGk, HighQuantiles) {
@@ -238,7 +469,7 @@ TEST(TBiasedGk, HighQuantiles) {
         const auto UpperBoundFun = [&](const double& PVal) {
             return std::ceil(PVal >= TargetPVal ? NSamples*(PVal + Eps0*(1 - TargetPVal)) : NSamples*(PVal + Eps0*(1 - PVal))); };
 
-        AssertQuantileRangeV(Gk, LowerBoundFun, UpperBoundFun, .0001);
+        AssertQuantileRangeVNew(Gk, LowerBoundFun, UpperBoundFun, .0001);
     }
 }
 
@@ -264,8 +495,8 @@ TEST(TBiasedGk, OrderedInput) {
     const auto UpperBoundFun = [&](const double& PVal) {
         return std::floor(PVal >= TargetPVal ? NSamples*(PVal + Eps*(1 - TargetPVal)) : NSamples*(PVal + Eps*(1 - PVal))); };
 
-    AssertQuantileRangeV(IncGk, LowerBoundFun, UpperBoundFun, 0.0001);
-    AssertQuantileRangeV(DecGk, LowerBoundFun, UpperBoundFun, 0.0001);
+    AssertQuantileRangeVNew(IncGk, LowerBoundFun, UpperBoundFun, 0.0001);
+    AssertQuantileRangeVNew(DecGk, LowerBoundFun, UpperBoundFun, 0.0001);
 }
 
 TEST(TBiasedGk, ExtremeValues) {
@@ -280,8 +511,8 @@ TEST(TBiasedGk, ExtremeValues) {
         Gk.Insert(SampleV[SampleN]);
     }
 
-    ASSERT_EQ(Gk.Query(0), 1);
-    ASSERT_EQ(Gk.Query(1), NSamples);
+    ASSERT_EQ(Gk.GetQuantile(0), 1);
+    ASSERT_EQ(Gk.GetQuantile(1), NSamples);
 }
 
 TEST(TBiasedGk, ZeroQ0) {
@@ -302,7 +533,7 @@ TEST(TBiasedGk, ZeroQ0) {
         const double QuantStep = .001;
         double CurrQuant = QuantStep;
         while (CurrQuant < 1) {
-            const double Actual = Gk.Query(CurrQuant);
+            const double Actual = Gk.GetQuantile(CurrQuant);
 
             const double LowerBound = std::floor((1 - Eps)*CurrQuant*NSamples);
             const double UpperBound = std::ceil((1 + Eps)*CurrQuant*NSamples);
@@ -315,8 +546,256 @@ TEST(TBiasedGk, ZeroQ0) {
     }
 }
 
+TEST(TBiasedGk, GetCdf) {
+    const int NTrials = 100;
+    const int NSamples = 1000;
+
+    const double Cdf0 = 0.01;
+    const double Eps = 0.1;
+
+    TBiasedGk Gk(Cdf0, Eps, TRnd(1));
+
+    TIntV SampleV;
+    for (int TrialN = 0; TrialN < NTrials; ++TrialN) {
+        GenSamplesUniform(NSamples, SampleV);
+        for (int SampleN = 0; SampleN < NSamples; ++SampleN) {
+            Gk.Insert(SampleV[SampleN]);
+        }
+
+        SampleV.Sort();
+
+        for (int SampleN = 0; SampleN < NSamples; ++SampleN) {
+            const double Val = SampleV[SampleN];
+
+            const double Actual = Gk.GetCdf(Val);
+            const double ExpectedCdf = Val / NSamples;
+
+            const double LowerBound = std::floor(ExpectedCdf*NSamples*(1 - Eps)) / NSamples;
+            const double UpperBound = std::ceil(ExpectedCdf*NSamples*(1 + Eps)) / NSamples;
+
+            if (Actual < LowerBound || Actual > UpperBound) {
+                std::cout << std::endl;
+                Gk.PrintSummary();
+                std::cout << "value: " << Val << ", ";
+                std::cout << "n samples: " << Gk.GetSampleN() << std::endl;
+                std::cout << "expected: " << ExpectedCdf << ", bounds: [" << LowerBound << ", " << UpperBound << "], actual: " << Actual << std::endl;
+                std::cout << std::endl;
+            }
+
+            ASSERT_GE(Actual, LowerBound);
+            ASSERT_LE(Actual, UpperBound);
+        }
+    }
+}
+
+TEST(TBiasedGk, GetCdfNegDir) {
+    const int NTrials = 100;
+    const int NSamples = 1000;
+
+    const double Cdf0 = 0.99;
+    const double Eps = 0.1;
+
+    TBiasedGk Gk(Cdf0, Eps, TRnd(1));
+
+    TIntV SampleV;
+    for (int TrialN = 0; TrialN < NTrials; ++TrialN) {
+        GenSamplesUniform(NSamples, SampleV);
+        for (int SampleN = 0; SampleN < NSamples; ++SampleN) {
+            Gk.Insert(SampleV[SampleN]);
+        }
+
+        SampleV.Sort();
+
+        for (int SampleN = 0; SampleN < NSamples; ++SampleN) {
+            const double Val = SampleV[SampleN];
+
+            /* std::cout << std::endl << "value: " << Val << std::endl; */
+
+            const double Actual = Gk.GetCdf(Val);
+            const double ExpectedCdf = Val / NSamples;
+
+            const double MxErr = ExpectedCdf <= Cdf0 ? (1.0 - ExpectedCdf)*Eps : (1 - Cdf0)*Eps;
+            const double LowerBound = std::floor((ExpectedCdf - MxErr)*NSamples) / NSamples;
+            const double UpperBound = std::ceil((ExpectedCdf + MxErr)*NSamples) / NSamples;
+
+            /* std::cout << "expected: " << ExpectedCdf << ", [" << LowerBound << ", " << UpperBound << "], value: " << Actual << std::endl; */
+
+            if (Actual < LowerBound || Actual > UpperBound) {
+                Gk.PrintSummary();
+                std::cout << "total samples: " << Gk.GetSampleN().Val << std::endl;
+            }
+
+            ASSERT_GE(Actual, LowerBound);
+            ASSERT_LE(Actual, UpperBound);
+        }
+    }
+}
+
 // TODO test space limitation
 
+TEST(TTDigest, Query) {
+    const int BatchSize = 1000;
+    const int NTrials = 100;
+
+    const int MnCentroids = 100;
+
+    TRnd Rnd(1);
+    TTDigest TDigest(MnCentroids, Rnd);
+
+    TIntV SampleV;
+    for (int TrialN = 0; TrialN < NTrials; ++TrialN) {
+        GenSamplesUniform(BatchSize, SampleV);
+        for (int SampleN = 0; SampleN < BatchSize; SampleN++) {
+            const int Sample = SampleV[SampleN];
+            TDigest.Insert(Sample);
+        }
+
+        const auto GetWorstPVal = [&](const double& PVal) {
+            // in the worst case we just hit the centroid on the right
+            // in that case, the p-value we need to calculate the error
+            // is given by oequation:
+            // p + eps = p_t = p + 2*p_t*(1-p_t)/c = p + 2*p_t/c - 2*p_t*p_t/c
+            // 0 = p + p_t*(2/c-1) - 2/c*p_t^2
+            // solution: 1/4 (2 - c + sqrt(4 - 4c + c^2 + 8cp))
+            // analogous for the case were p > 0.5
+            if (PVal <= 0.5) {
+                const double WorstPVal = (2.0 - MnCentroids + TMath::Sqrt(4 - 4*MnCentroids + MnCentroids*MnCentroids + 8*MnCentroids*PVal)) / 4.0;
+                if (WorstPVal > 0.5) {
+                    return 0.5;
+                } else {
+                    return WorstPVal;
+                }
+            } else {
+                const double WorstPVal = (2.0 + MnCentroids - TMath::Sqrt(4 + 4*MnCentroids + MnCentroids*MnCentroids - 8*MnCentroids*PVal)) / 4.0;
+                if (WorstPVal < 0.5) {
+                    return 0.5;
+                } else {
+                    return WorstPVal;
+                }
+            }
+        };
+        const auto LowerBound = [&](const double& PVal) {
+            const double WorstPVal = GetWorstPVal(PVal);
+            const double Eps = 2*WorstPVal*(1 - WorstPVal) / MnCentroids;
+            /* printf("lower bound: pval: %.5f, worst pval: %.5f\n", PVal, WorstPVal); */
+            return std::floor(1 + (BatchSize - 1)*(PVal - Eps));
+        };
+        const auto UpperBound = [&](const double& PVal) {
+            const double WorstPVal = GetWorstPVal(PVal);
+            const double Eps = 2*WorstPVal*(1 - WorstPVal) / MnCentroids;
+            /* printf("pval: %.5f, worst pval: %.5f\n", PVal, WorstPVal); */
+            return std::ceil(1 + (BatchSize - 1)*(PVal + Eps));
+        };
+
+        AssertQuantileRangeV(TDigest, LowerBound, UpperBound, 1e-3, false);
+    }
+    /* PeriodicTDigest.PrintSummary(); */
+    /* TDigest.Insert(0, 100); */
+    /* TDigest.PrintSummary(); */
+}
+
+TEST(TTDigest, SummarySize) {
+    const int BatchSize = 1000;
+    const int NTrials = 100;
+
+    const int MnCentroids = 100;
+
+    TRnd Rnd(1);
+    TTDigest TDigest(MnCentroids, Rnd);
+
+    TIntV SampleV;
+    for (int TrialN = 0; TrialN < NTrials; ++TrialN) {
+        GenSamplesUniform(BatchSize, SampleV);
+        for (int SampleN = 0; SampleN < BatchSize; SampleN++) {
+            TDigest.Insert(SampleV[SampleN]);
+            /* if (SampleN == BatchSize-1) { */
+            /*     std::cout << "summary size: " << TDigest.GetSummarySize() << std::endl; */
+            /* } */
+            ASSERT_LE(TDigest.GetSummarySize(), 20*MnCentroids);
+        }
+    }
+}
+
+TEST(TTDigest, SampleN) {
+    const int BatchSize = 1000;
+    const int NTrials = 100;
+
+    const int MnCentroids = 100;
+
+    TRnd Rnd(1);
+    TTDigest TDigest(MnCentroids, Rnd);
+
+    TIntV SampleV;
+    for (int TrialN = 0; TrialN < NTrials; ++TrialN) {
+        GenSamplesUniform(BatchSize, SampleV);
+        for (int SampleN = 0; SampleN < BatchSize; SampleN++) {
+            TDigest.Insert(SampleV[SampleN]);
+            ASSERT_EQ(TrialN*BatchSize + SampleN + 1, TDigest.GetSampleN());
+        }
+    }
+}
+
+TEST(TMergingTDigest, Query) {
+    const int BatchSize = 1000;
+    const int NTrials = 1000;
+
+    const int Delta = 100;
+
+    TRnd Rnd(1);
+    TMergingTDigest TDigest(Delta, Rnd);
+
+    TIntV SampleV;
+    for (int TrialN = 0; TrialN < NTrials; ++TrialN) {
+        GenSamplesUniform(BatchSize, SampleV);
+        for (int SampleN = 0; SampleN < BatchSize; SampleN++) {
+            TDigest.Insert(SampleV[SampleN]);
+        }
+
+        TDigest.Flush();
+
+        const auto GetWorstPVal = [&](const double& PVal) {
+            // in the worst case we just hit the centroid on the right
+            // in that case, the p-value we need to calculate the error
+            // is given by oequation:
+            // p + eps = p_t = p + 2*p_t*(1-p_t)/c = p + 2*p_t/c - 2*p_t*p_t/c
+            // 0 = p + p_t*(2/c-1) - 2/c*p_t^2
+            // solution: 1/4 (2 - c + sqrt(4 - 4c + c^2 + 8cp))
+            // analogous for the case were p > 0.5
+            if (PVal <= 0.5) {
+                const double WorstPVal = (2.0 - Delta + TMath::Sqrt(4 - 4*Delta + Delta*Delta + 8*Delta*PVal)) / 4.0;
+                if (WorstPVal > 0.5) {
+                    return 0.5;
+                } else {
+                    return WorstPVal;
+                }
+            } else {
+                const double WorstPVal = (2.0 + Delta - TMath::Sqrt(4 + 4*Delta + Delta*Delta - 8*Delta*PVal)) / 4.0;
+                if (WorstPVal < 0.5) {
+                    return 0.5;
+                } else {
+                    return WorstPVal;
+                }
+            }
+        };
+        const auto LowerBound = [&](const double& PVal) {
+            const double WorstPVal = GetWorstPVal(PVal);
+            const double Eps = 2*WorstPVal*(1 - WorstPVal) / Delta;
+            /* printf("lower bound: pval: %.5f, worst pval: %.5f\n", PVal, WorstPVal); */
+            return std::floor(1 + (BatchSize - 1)*(PVal - Eps));
+        };
+        const auto UpperBound = [&](const double& PVal) {
+            const double WorstPVal = GetWorstPVal(PVal);
+            const double Eps = 2*WorstPVal*(1 - WorstPVal) / Delta;
+            /* printf("pval: %.5f, worst pval: %.5f\n", PVal, WorstPVal); */
+            return std::ceil(1 + (BatchSize - 1)*(PVal + Eps));
+        };
+
+        AssertQuantileRangeV(TDigest, LowerBound, UpperBound, 1e-3, false);
+        ASSERT_LE(TDigest.GetSummarySize(), 2*Delta);
+    }
+
+/*     TDigest.PrintSummary(); */
+}
 
 TEST(TExpHistogram, CountEquallySpaced) {
     const uint64 WindowMSec = 10000;

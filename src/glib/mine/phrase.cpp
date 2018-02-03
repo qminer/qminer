@@ -340,21 +340,23 @@ PNGramBs TNGramBs::GetNGramBsFromHtmlStrV(
  const int& MxNGramLen, const int& MnNGramFq,
  const PSwSet& SwSet, const PStemmer& Stemmer){
   // create n-gram-base
-  printf("Generating frequent n-grams (MaxLen:%d MinFq:%d) ...\n", MxNGramLen, MnNGramFq);
+  /* printf("Generating frequent n-grams (MaxLen:%d MinFq:%d) ...\n", MxNGramLen, MnNGramFq); */
   PNGramBs NGramBs=TNGramBs::New(MxNGramLen, MnNGramFq, SwSet, Stemmer);
   // interations over document-set
   while (!NGramBs->IsFinished()){
     for (int HtmlStrN=0; HtmlStrN<HtmlStrV.Len(); HtmlStrN++){
-      if ((HtmlStrN%10==0)||(HtmlStrN+1==HtmlStrV.Len())){
-        printf("  Pass %2d: %6d/%6d Docs\r", NGramBs->GetPassN(), HtmlStrN+1, HtmlStrV.Len());
-        if (HtmlStrN+1==HtmlStrV.Len()){printf("\n");}
-      }
+      /* if ((HtmlStrN%10==0)||(HtmlStrN+1==HtmlStrV.Len())){ */
+        /* printf("  Pass %2d: %6d/%6d Docs\r", NGramBs->GetPassN(), HtmlStrN+1, HtmlStrV.Len()); */
+        /* if (HtmlStrN+1==HtmlStrV.Len()){ */
+            /* printf("\n"); */
+        /* } */
+      /* } */
       // extract words & update ngram-base
       _UpdateNGramBsFromHtmlStr(NGramBs, HtmlStrV[HtmlStrN], SwSet, Stemmer);
     }
     NGramBs->ConcPass();
   }
-  printf("Done.\n");
+  /* printf("Done.\n"); */
   // return
   return NGramBs;
 }
@@ -364,7 +366,7 @@ PNGramBs TNGramBs::GetNGramBsFromHtmlFPathV(
  const int& MxNGramLen, const int& MnNGramFq,
  const PSwSet& SwSet, const PStemmer& Stemmer){
   // create n-gram-base
-  printf("Generating frequent n-grams (MaxLen:%d MinFq:%d) ...\n", MxNGramLen, MnNGramFq);
+  /* printf("Generating frequent n-grams (MaxLen:%d MinFq:%d) ...\n", MxNGramLen, MnNGramFq); */
   PNGramBs NGramBs=TNGramBs::New(MxNGramLen, MnNGramFq, SwSet, Stemmer);
   // interations over document-set
   while (!NGramBs->IsFinished()){
@@ -374,8 +376,8 @@ PNGramBs TNGramBs::GetNGramBsFromHtmlFPathV(
     TStr FNm; int Docs=0;
     while (FFile.Next(FNm)){
       Docs++; if ((MxDocs!=-1)&&(Docs>MxDocs)){break;}
-      if (Docs%100==0){
-        printf("  Pass %d: %6d\r", NGramBs->GetPassN(), Docs);}
+      /* if (Docs%100==0){ */
+        /* printf("  Pass %d: %6d\r", NGramBs->GetPassN(), Docs);} */
       if (TFile::Exists(FNm)) {
         // load html
         TStr HtmlStr=TStr::LoadTxt(FNm);
@@ -384,9 +386,9 @@ PNGramBs TNGramBs::GetNGramBsFromHtmlFPathV(
       }
     }
     NGramBs->ConcPass();
-    printf("  Pass %d: %6d\n", NGramBs->GetPassN()-1, Docs);
+    /* printf("  Pass %d: %6d\n", NGramBs->GetPassN()-1, Docs); */
   }
-  printf("Done.\n");
+  /* printf("Done.\n"); */
   // return
   return NGramBs;
 }
@@ -396,7 +398,7 @@ PNGramBs TNGramBs::GetNGramBsFromLnDoc(
  const int& MxNGramLen, const int& MnNGramFq,
  const PSwSet& SwSet, const PStemmer& Stemmer){
   // create n-gram-base
-  printf("Generating frequent n-grams (MaxLen:%d MinFq:%d) ...\n", MxNGramLen, MnNGramFq);
+  /* printf("Generating frequent n-grams (MaxLen:%d MinFq:%d) ...\n", MxNGramLen, MnNGramFq); */
   PNGramBs NGramBs=TNGramBs::New(MxNGramLen, MnNGramFq, SwSet, Stemmer);
   // interations over document-set
   while (!NGramBs->IsFinished()){
@@ -433,12 +435,12 @@ PNGramBs TNGramBs::GetNGramBsFromLnDoc(
       while ((!FIn.Eof())&&(Ch!='\r')&&(Ch!='\n')){
         DocChA+=Ch; Ch=FIn.GetCh();}
       // extract words & update ngram-base
-      printf("  Pass %2d: %6d Docs\r", NGramBs->GetPassN(), Docs);
+      /* printf("  Pass %2d: %6d Docs\r", NGramBs->GetPassN(), Docs); */
       _UpdateNGramBsFromHtmlStr(NGramBs, DocChA, SwSet, Stemmer);
     }
     NGramBs->ConcPass();
   }
-  printf("\nDone.\n");
+  /* printf("\nDone.\n"); */
   // return
   return NGramBs;
 }
@@ -448,16 +450,17 @@ PNGramBs TNGramBs::GetNGramBsFromReuters21578(
  const int& MxNGramLen, const int& MnNGramFq,
  const PSwSet& SwSet, const PStemmer& Stemmer){
   // create n-gram-base
-  printf("Generating frequent n-grams (MaxLen:%d MinFq:%d) ...\n", MxNGramLen, MnNGramFq);
+  /* printf("Generating frequent n-grams (MaxLen:%d MinFq:%d) ...\n", MxNGramLen, MnNGramFq); */
   PNGramBs NGramBs=TNGramBs::New(MxNGramLen, MnNGramFq, SwSet, Stemmer);
   // interations over document-set
   while (!NGramBs->IsFinished()){
     TFFile FFile(FPath, ".SGM", false); TStr FNm; int Docs=0;
     while (FFile.Next(FNm)){
-      printf("Processing file '%s'\n", FNm.CStr());
+      /* printf("Processing file '%s'\n", FNm.CStr()); */
       TXmlDocV LDocV; TXmlDoc::LoadTxt(FNm, LDocV);
       for (int LDocN=0; LDocN<LDocV.Len(); LDocN++){
-        Docs++; printf("  Pass %2d: %6d Docs\r", NGramBs->GetPassN(), Docs);
+        Docs++;
+        /* printf("  Pass %2d: %6d Docs\r", NGramBs->GetPassN(), Docs); */
         if ((MxDocs!=-1)&&(Docs>=MxDocs)){break;}
         PXmlDoc Doc=LDocV[LDocN];
         PXmlTok DocTok=Doc->GetTok();
@@ -470,9 +473,9 @@ PNGramBs TNGramBs::GetNGramBsFromReuters21578(
       if ((MxDocs!=-1)&&(Docs>=MxDocs)){break;}
     }
     NGramBs->ConcPass();
-    printf("  Pass %2d: %6d Docs\r", NGramBs->GetPassN(), Docs);
+    /* printf("  Pass %2d: %6d Docs\r", NGramBs->GetPassN(), Docs); */
   }
-  printf("\nDone.\n");
+  /* printf("\nDone.\n"); */
   // return
   return NGramBs;
 }

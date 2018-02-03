@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.6.1</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.1.2</a>
       </div>
     </div>
   </nav>
@@ -169,6 +169,9 @@ var analytics = qm.analytics;
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.html#~ActiveLearnerParam">ActiveLearnerParam</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.html#~BiasedGkParam">BiasedGkParam</a></dt>
                     <dd>
                     </dd>
@@ -190,13 +193,13 @@ var analytics = qm.analytics;
                     <dt><a href="module-analytics.html#~hazardModelParam">hazardModelParam</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.html#~KMeansExplain">KMeansExplain</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.html#~KMeansExplain">KMeansExplain</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.html#~KMeansParam">KMeansParam</a></dt>
                     <dd>
                     </dd>
@@ -218,13 +221,13 @@ var analytics = qm.analytics;
                     <dt><a href="module-analytics.html#~oneVsAllParam">oneVsAllParam</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.html#~PCAParam">PCAParam</a></dt>
-                    <dd>
-                    </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.html#~PCAParam">PCAParam</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.html#~recLinRegParam">recLinRegParam</a></dt>
                     <dd>
                     </dd>
@@ -444,6 +447,82 @@ var V = result.V;</code></pre>
             </section>
             <h2>Abstract types</h2>
             <section>
+              <h3 id="~ActiveLearnerParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">ActiveLearnerParam</span><small class="property-type">
+            &nbsp;Object</small></h3>
+              <p>An object used for the construction of module:analytics.ActiveLearner.</p>
+              <section>
+                <h4>Properties</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>learner</p>
+                      </td>
+                      <td>
+                        <p>Object</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Learner parameters</p>
+                        <p>Values in <code>learner</code> have the following properties:</p>
+                        <table class="jsdoc-details-table">
+                          <thead>
+                            <tr>
+                              <th>Name</th>
+                              <th>Type</th>
+                              <th>Optional</th>
+                              <th>Description</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <p>disableAsserts</p>
+                              </td>
+                              <td>
+                                <p>boolean</p>
+                              </td>
+                              <td>
+                                <p>Yes</p>
+                              </td>
+                              <td>
+                                <p>Disable input asserting</p>
+                                <p>Defaults to <code>false</code>.</p>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>SVC</p>
+                      </td>
+                      <td>
+                        <p><a href="module-analytics.html#~SVMParam">module:analytics~SVMParam</a></p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Support vector classifier parameters.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
               <h3 id="~BiasedGkParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">BiasedGkParam</span><small class="property-type">
             &nbsp;Object</small></h3>
               <p>An object used for the construction of <a href="module-analytics.BiasedGk.html">module:analytics.BiasedGk</a>.</p>
@@ -1961,7 +2040,7 @@ var V = result.V;</code></pre>
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>The algorithm procedure. Possible options are <code>'SGD'</code>, <code>'PR_LOQO'</code> and <code>'LIBSVM'</code>.</p>
+                        <p>The algorithm procedure. Possible options are <code>'SGD'</code> and <code>'LIBSVM'</code>. <code>'PR_LOQO'</code>is not supported anymore.</p>
                         <p>Defaults to <code>'SGD'</code>.</p>
                       </td>
                     </tr>
@@ -1991,7 +2070,7 @@ var V = result.V;</code></pre>
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>Unbalance parameter. Increasing it gives more weight to the positive examples (getting a better fit on the positive training examples gets a higher priority). Setting c=n is like adding n-1 copies of the positive training examples
+                        <p>Unbalance parameter. Increasing it gives more weight to the positive examples (getting a better fit on the positive training examples gets a higher priority). Setting j=n is like adding n-1 copies of the positive training examples
                           to the data set.</p>
                         <p>Defaults to <code>1.0</code>.</p>
                       </td>
@@ -2008,7 +2087,7 @@ var V = result.V;</code></pre>
                       </td>
                       <td>
                         <p>Epsilon insensitive loss parameter. Larger values result in fewer support vectors (smaller model complexity)</p>
-                        <p>Defaults to <code>1e-1</code>.</p>
+                        <p>Defaults to <code>1e-3</code>.</p>
                       </td>
                     </tr>
                     <tr>
@@ -2069,6 +2148,126 @@ var V = result.V;</code></pre>
                       <td>
                         <p>Stopping criterion tolerance.</p>
                         <p>Defaults to <code>1e-6</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>type</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>The subalgorithm procedure in LIBSVM. Possible options are <code>'C_SVC'</code>, <code>'NU_SVC'</code> and <code>'ONE_CLASS'</code> for classification and <code>'EPSILON_SVR'</code>, <code>'NU_SVR'</code> and <code>'ONE_CLASS'</code>                          for regression.</p>
+                        <p>Defaults to <code>'C_SVC'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>kernel</p>
+                      </td>
+                      <td>
+                        <p>string</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Kernel type in LIBSVM. Possible options are <code>'LINEAR'</code>, <code>'POLY'</code>, 'RBF'<code>, 'SIGMOID'</code> and <code>'PRECOMPUTED'</code>.</p>
+                        <p>Defaults to <code>'LINEAR'</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>gamma</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Gamma parameter in LIBSVM. Set gamma in kernel function.</p>
+                        <p>Defaults to <code>1.0</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>p</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>P parameter in LIBSVM. Set the epsilon in loss function of epsilon-SVR.</p>
+                        <p>Defaults to <code>1e-1</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>degree</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Degree parameter in LIBSVM. Set degree in kernel function.</p>
+                        <p>Defaults to <code>1</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>nu</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Nu parameter in LIBSVM. Set the parameter nu of nu-SVC, one-class SVM, and nu-SVR.</p>
+                        <p>Defaults to <code>1e-2</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>coef0</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Coef0 parameter in LIBSVM. Set coef0 in kernel function.</p>
+                        <p>Defaults to <code>1.0</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>cacheSize</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Set cache memory size in MB (default 100) in LIBSVM.</p>
+                        <p>Defaults to <code>100</code>.</p>
                       </td>
                     </tr>
                     <tr>

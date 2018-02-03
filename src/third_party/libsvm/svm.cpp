@@ -2517,7 +2517,6 @@ double svm_predict_values(const svm_model *model, const svm_node *x, double* dec
 	{
 		int nr_class = model->nr_class;
 		int l = model->l;
-		
 		double *kvalue = Malloc(double,l);
 		for(i=0;i<l;i++)
 			kvalue[i] = Kernel::k_function(x,model->SV[i],model->param);

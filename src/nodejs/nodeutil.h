@@ -20,8 +20,8 @@
 #include "thread.h"
 
 #define JsDeclareProperty(Function) \
-    static void Function(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
-    static void _ ## Function(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
+    static void Function(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
+    static void _ ## Function(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
         v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
         v8::HandleScope HandleScope(Isolate); \
         try { \
@@ -70,8 +70,8 @@
     }
 
 #define JsDeclareSetProperty(GetFunction, SetFunction) \
-    static void GetFunction(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
-    static void _ ## GetFunction(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
+    static void GetFunction(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
+    static void _ ## GetFunction(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
         v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
         v8::HandleScope HandleScope(Isolate); \
         try { \
@@ -81,8 +81,8 @@
             v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
       } \
     } \
-    static void SetFunction(v8::Local<v8::String> Name, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info); \
-    static void _ ## SetFunction(v8::Local<v8::String> Name, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info) { \
+    static void SetFunction(v8::Local<v8::Name> Name, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info); \
+    static void _ ## SetFunction(v8::Local<v8::Name> Name, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info) { \
         v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
         v8::HandleScope HandleScope(Isolate); \
         try { \
@@ -126,7 +126,7 @@
     static void Function(const v8::FunctionCallbackInfo<v8::Value>& Args) { \
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();   \
         v8::HandleScope HandleScope(Isolate);   \
-        TTask* Task = new TTask(Args);  \
+        TTask* Task = new TTask(Args, true);  \
         Task->ExtractCallback(Args);    \
         TNodeJsAsyncUtil::ExecuteOnWorker(Task);    \
         Args.GetReturnValue().Set(v8::Undefined(Isolate));  \
@@ -137,7 +137,7 @@
     static void Function(const v8::FunctionCallbackInfo<v8::Value>& Args) { \
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();   \
         v8::HandleScope HandleScope(Isolate);   \
-        TTask Task(Args);   \
+        TTask Task(Args, false);   \
         Task.Run(); \
         Task.AfterRunSync(Args);    \
     };  \
@@ -177,7 +177,6 @@ public:
     static PJsonVal GetObjJson(const v8::Local<v8::Value>& Val, const bool& IgnoreFunc=false, const bool& IgnoreWrappedObj=false);
     static PJsonVal GetObjProps(const v8::Local<v8::Object>& Obj) { return GetObjJson(Obj, true); }
     static PJsonVal GetObjToNmJson(const v8::Local<v8::Value>& Val);
-
     /// Convert GLib Json (PJsonVal) to v8 Json
     static v8::Local<v8::Value> ParseJson(v8::Isolate* Isolate, const PJsonVal& JsonVal);
     /// Transform V8 string to TStr
@@ -185,16 +184,16 @@ public:
 
     /// Gets the class name of the underlying glib object. the name is stored
     /// in an hidden variable "class"
-    static TStr GetClass(const v8::Handle<v8::Object> Obj);
+    static TStr GetClass(const v8::Local<v8::Object> Obj);
 
     /// Check if argument ArgN exists
     static bool IsArg(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) { return (Args.Length() > ArgN); }
     /// Checks if the class name of the underlying glib object matches the
     /// given string. the name is stored in an hidden variable "class"
-    static bool IsClass(const v8::Handle<v8::Object> Obj, const TStr& ClassNm);
+    static bool IsClass(const v8::Local<v8::Object> Obj, const TStr& ClassNm);
     /// Checks if the class name of the underlying glib object matches the
     /// given string. the name is stored in an hidden variable "class"
-    template <class TClass> static bool IsClass(const v8::Handle<v8::Object> Obj);
+    template <class TClass> static bool IsClass(const v8::Local<v8::Object> Obj);
     /// Check if argument ArgN belongs to a given class
     static bool IsArgWrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& ClassNm);
     /// Check if argument ArgN belongs to a given class
@@ -226,7 +225,7 @@ public:
     static bool IsBuffer(const v8::Local<v8::Object>& Object);
 
     /// Extracts argument ArgN as a function
-    static v8::Handle<v8::Function> GetArgFun(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+    static v8::Local<v8::Function> GetArgFun(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Extract argument ArgN property as bool
     static bool GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     /// Extract argument ArgN property as bool, and use DefVal in case when not present
@@ -299,27 +298,27 @@ public:
     static double GetFldFlt(v8::Local<v8::Object> Obj, const TStr& FldNm);
 
     /// Executes the function with the specified argument and returns a double result.
-    static double ExecuteFlt(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Object>& Arg);
+    static double ExecuteFlt(const v8::Local<v8::Function>& Fun, const v8::Local<v8::Object>& Arg);
     /// Executes the function with the specified argument and returns an object as a JSON object.
-    static PJsonVal ExecuteJson(const v8::Handle<v8::Function>& Fun,
+    static PJsonVal ExecuteJson(const v8::Local<v8::Function>& Fun,
             const v8::Local<v8::Object>& Arg1, const v8::Local<v8::Object>& Arg2);
     /// Executes the function with the specified argument
     template <class TVal>
-    static void ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Local<TVal>& Arg);
+    static void ExecuteVoid(const v8::Local<v8::Function>& Fun, const v8::Local<TVal>& Arg);
 
-    static void ExecuteVoid(const v8::Handle<v8::Function>& Fun, const int& ArgC,
-            v8::Handle<v8::Value> ArgV[]);
-    static void ExecuteVoid(const v8::Handle<v8::Function>& Fun, const v8::Local<v8::Value>& Arg1,
+    static void ExecuteVoid(const v8::Local<v8::Function>& Fun, const int& ArgC,
+            v8::Local<v8::Value> ArgV[]);
+    static void ExecuteVoid(const v8::Local<v8::Function>& Fun, const v8::Local<v8::Value>& Arg1,
             const v8::Local<v8::Value>& Arg2);
 
-    static void ExecuteVoid(const v8::Handle<v8::Function>& Fun);
-    static void ExecuteErr(const v8::Handle<v8::Function>& Fun, const PExcept& Except);
+    static void ExecuteVoid(const v8::Local<v8::Function>& Fun);
+    static void ExecuteErr(const v8::Local<v8::Function>& Fun, const PExcept& Except);
 
     template <class TVal>
-    static bool ExecuteBool(const v8::Handle<v8::Function>& Fun, const v8::Local<TVal>& Arg);
+    static bool ExecuteBool(const v8::Local<v8::Function>& Fun, const v8::Local<TVal>& Arg);
 
     /// converts a v8 value to a Win timestamp
-    static uint64 GetTmMSecs(v8::Handle<v8::Value>& Value);
+    static uint64 GetTmMSecs(v8::Local<v8::Value>& Value);
     static uint64 GetArgTmMSecs(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
     static int64 GetJsTimestamp(const uint64& MSecs) { return TTm::GetUnixMSecsFromWinMSecs(MSecs); }
     static uint64 GetCppTimestamp(const int64& MSecs) { return TTm::GetWinMSecsFromUnixMSecs(MSecs); }
@@ -349,8 +348,8 @@ public:
     template <class TClass>
     static v8::Local<v8::Object> NewInstance(TClass* Obj);
     
-    static v8::Local<v8::Value> V8JsonToV8Str(const v8::Handle<v8::Value>& Json);
-    static TStr JSONStringify(const v8::Handle<v8::Value>& Json) { return GetStr(V8JsonToV8Str(Json)->ToString()); }
+    static v8::Local<v8::Value> V8JsonToV8Str(const v8::Local<v8::Value>& Json);
+    static TStr JSONStringify(const v8::Local<v8::Value>& Json) { return GetStr(V8JsonToV8Str(Json)->ToString()); }
 
     /// TStrV -> v8 string array
     static v8::Local<v8::Value> GetStrArr(const TStrV& StrV);   
@@ -362,10 +361,10 @@ public:
 
     /// Used for unwrapping objects that depend on TBase being valid
     template <class TClass>
-    static TClass* UnwrapCheckWatcher(v8::Handle<v8::Object> Arg);
+    static TClass* UnwrapCheckWatcher(v8::Local<v8::Object> Arg);
 
     template <class TClass>
-    static TClass* Unwrap(v8::Handle<v8::Object> Arg) {
+    static TClass* Unwrap(v8::Local<v8::Object> Arg) {
         EAssert(IsClass<TClass>(Arg));
         return node::ObjectWrap::Unwrap<TClass>(Arg);
     }
@@ -379,7 +378,7 @@ private:
     /// returns the internal C++ windows timestamp from a double representation of a UNIX timestamp
     static uint64 GetTmMSecs(const double& UnixMSecs);
     /// returns the internal C++ windows timestamp from a v8 date
-    static uint64 GetTmMSecs(v8::Handle<v8::Date>& Date);
+    static uint64 GetTmMSecs(v8::Local<v8::Date>& Date);
 };
 
 //////////////////////////////////////////////////////
@@ -404,12 +403,15 @@ private:
     v8::Persistent<v8::Function> Callback;
     v8::Persistent<v8::Array> ArgPersist;
     PExcept Except;
+    bool AsyncP;
 
 public:
-    TNodeTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+    TNodeTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
     virtual ~TNodeTask();
-
-    virtual v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) = 0;
+    /// extracts the callback argument from `Args`
+    virtual v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args) = 0;
+    /// wraps the result as a v8 object so it can be passed either to the
+    /// callback or returned
     virtual v8::Local<v8::Value> WrapResult();
 
     void AfterRun();
@@ -417,9 +419,12 @@ public:
 
     void ExtractCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
 
-    void SetExcept(const PExcept& _Except) { Except = _Except; }
+    /// sets an exception which happened during task execution
+    /// the exception is either passed to the callback or thrown
+    virtual void SetExcept(const PExcept& _Except) { Except = _Except; }
 
 protected:
+    bool IsAsync() const { return AsyncP; }
     bool HasExcept() const { return !Except.Empty(); }
 };
 
@@ -502,8 +507,9 @@ public:
     /// method will yield an execution. For example, when ExecuteOnMain is
     /// called 5 times before a task is executed, the task will be executed only once
     /// all the other tasks will be deleted (freed)
-    static void ExecuteOnMain(TMainThreadTask* Task, TMainThreadHandle* UvAsync,
-            const bool& DelData);
+    static void ExecuteOnMain(TMainThreadTask* Task,
+            TMainThreadHandle* MainThreadHandle,
+            const bool& DelTask);
     /// executes the task on a worker thread
     static void ExecuteOnWorker(TAsyncTask* Task);
 };
@@ -512,7 +518,7 @@ public:
 #include "nodeutil.hpp"
 
 // This class is needed for compiling external qminer nodejs extensions
-typedef void(*TExportsVoidF)(v8::Handle<v8::Object>);
+typedef void(*TExportsVoidF)(v8::Local<v8::Object>);
 struct TExternalQmAddon {
     static TFunRouter<TExportsVoidF>& CreateOnce() {
         static TFunRouter<TExportsVoidF> * NewRouter = new TFunRouter<TExportsVoidF>;

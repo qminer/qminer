@@ -63,7 +63,7 @@ private:
     ~TNodeJsFs() {}
 
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
 
 private:
     class TReadLinesCallback: public TMainThreadTask {
@@ -92,10 +92,10 @@ private:
         TMainThreadHandle* LinesHandle;
 
     public:
-        TReadCsvTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        TReadCsvTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
         ~TReadCsvTask();
 
-        v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
 
     private:
@@ -368,7 +368,7 @@ private:
     static v8::Persistent<v8::Function> Constructor;
     ~TNodeJsFIn() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
-    static void Init(v8::Handle<v8::Object> Exports);
+    static void Init(v8::Local<v8::Object> Exports);
     static const TStr GetClassId() { return "FIn"; }
 
     // wrapped C++ object
@@ -568,7 +568,7 @@ private:
     static v8::Persistent<v8::Function> Constructor;
     ~TNodeJsFOut() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "FOut"; }
 
     // wrapped C++ object

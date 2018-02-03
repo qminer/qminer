@@ -325,7 +325,8 @@ void TGixItemSet<TKey, TItem>::AddItem(const TItem& NewItem, const bool& NotifyC
         if (IsFull()) {
             PushWorkBufferToChildren();
         }
-        // TODO: why is next RecalcTotalCnt needed? Def() already calls it if anything is changed. It might be needed only if IsFull() was true.
+        // TODO: why is next RecalcTotalCnt needed? Def() already calls it if anything is changed.
+        // It might be needed only if IsFull() was true.
         RecalcTotalCnt(); // work buffer might have been merged
         Gix->AddToNewCacheSizeInc(OldSize, GetMemUsed());
     }
@@ -382,6 +383,9 @@ const TItem& TGixItemSet<TKey, TItem>::GetItem(const int& ItemN) const {
 
 template <class TKey, class TItem>
 void TGixItemSet<TKey, TItem>::GetItemV(TVec<TItem>& _ItemV) {
+    // reserve place for all the elements
+    _ItemV.Gen(TotalCnt, 0);
+    // load items
     if (ChildInfoV.Len() > 0) {
         // collect data from child itemsets
         LoadChildVectors();
@@ -389,8 +393,20 @@ void TGixItemSet<TKey, TItem>::GetItemV(TVec<TItem>& _ItemV) {
             _ItemV.AddV(ChildV[i]);
         }
     }
-    //_ItemV.AddVMemCpy(ItemV);
     _ItemV.AddV(ItemV);
+}
+
+template <class TKey, class TItem>
+template <typename THandler>
+void TGixItemSet<TKey, TItem>::GetItemV(THandler& Handler) {
+    if (ChildInfoV.Len() > 0) {
+        // collect data from child itemsets
+        LoadChildVectors();
+        for (int i = 0; i < ChildInfoV.Len(); i++) {
+            Handler(ChildV[i]);
+        }
+    }
+    Handler(ItemV);
 }
 
 template <class TKey, class TItem>
@@ -690,6 +706,16 @@ void TGix<TKey, TItem>::GetItemV(const TKey& Key, TVec<TItem>& ItemV) const {
     ItemSet->Def();
     // get the items for the key
     return ItemSet->GetItemV(ItemV);
+}
+
+template <class TKey, class TItem>
+template <typename THandler>
+void TGix<TKey, TItem>::GetItemV(const TKey& Key, THandler& Handler) const {
+    PGixItemSet ItemSet = GetItemSet(Key);
+    // first call Def() so that we can process some pending actions (like deletes) first
+    ItemSet->Def();
+    // get the items for the key
+    return ItemSet->GetItemV(Handler);
 }
 
 template <class TKey, class TItem>

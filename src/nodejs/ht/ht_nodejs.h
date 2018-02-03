@@ -24,7 +24,7 @@ public:
         // TJsBase is arbitrary here
         return TNodeJsUtil::GetArgStr(Args, ArgN);
     }
-    static v8::Handle<v8::Value> WrapKey(const TStr& Val) {
+    static v8::Local<v8::Value> WrapKey(const TStr& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope EscapableHandleScope(Isolate);
         return EscapableHandleScope.Escape(v8::String::NewFromUtf8(Isolate, Val.CStr()));
@@ -33,7 +33,7 @@ public:
         // TJsBase is arbitrary here
         return TNodeJsUtil::GetArgInt32(Args, ArgN);
     }
-    static v8::Handle<v8::Value> WrapDat(const int& Val) {
+    static v8::Local<v8::Value> WrapDat(const int& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope EscapableHandleScope(Isolate);
         return EscapableHandleScope.Escape(v8::Int32::New(Isolate, Val));
@@ -47,7 +47,7 @@ public:
         // TJsBase is arbitrary here
         return TNodeJsUtil::GetArgStr(Args, ArgN);
     }
-    static v8::Handle<v8::Value> WrapKey(const TStr& Val) {
+    static v8::Local<v8::Value> WrapKey(const TStr& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope EscapableHandleScope(Isolate);
         return EscapableHandleScope.Escape(v8::String::NewFromUtf8(Isolate, Val.CStr()));
@@ -56,7 +56,7 @@ public:
         // TJsBase is arbitrary here
         return TNodeJsUtil::GetArgFlt(Args, ArgN);
     }
-    static v8::Handle<v8::Value> WrapDat(const double& Val) {
+    static v8::Local<v8::Value> WrapDat(const double& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope EscapableHandleScope(Isolate);
         return EscapableHandleScope.Escape(v8::Number::New(Isolate, Val));
@@ -70,7 +70,7 @@ public:
         // TJsBase is arbitrary here
         return TNodeJsUtil::GetArgStr(Args, ArgN);
     }
-    static v8::Handle<v8::Value> WrapKey(const TStr& Val) {
+    static v8::Local<v8::Value> WrapKey(const TStr& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope EscapableHandleScope(Isolate);
         return EscapableHandleScope.Escape(v8::String::NewFromUtf8(Isolate, Val.CStr()));
@@ -79,7 +79,7 @@ public:
         // TJsBase is arbitrary here
         return TNodeJsUtil::GetArgStr(Args, ArgN);
     }
-    static v8::Handle<v8::Value> WrapDat(const TStr& Val) {
+    static v8::Local<v8::Value> WrapDat(const TStr& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope EscapableHandleScope(Isolate);
         return EscapableHandleScope.Escape(v8::String::NewFromUtf8(Isolate, Val.CStr()));
@@ -93,7 +93,7 @@ public:
         // TJsBase is arbitrary here
         return TNodeJsUtil::GetArgInt32(Args, ArgN);
     }
-    static v8::Handle<v8::Value> WrapKey(const TInt& Val) {
+    static v8::Local<v8::Value> WrapKey(const TInt& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope EscapableHandleScope(Isolate);
         return EscapableHandleScope.Escape(v8::Int32::New(Isolate, Val));
@@ -102,7 +102,7 @@ public:
         // TJsBase is arbitrary here
         return TNodeJsUtil::GetArgInt32(Args, ArgN);
     }
-    static v8::Handle<v8::Value> WrapDat(const int& Val) {
+    static v8::Local<v8::Value> WrapDat(const int& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope EscapableHandleScope(Isolate);
         return EscapableHandleScope.Escape(v8::Int32::New(Isolate, Val));
@@ -116,7 +116,7 @@ public:
         // TJsBase is arbitrary here
         return TNodeJsUtil::GetArgInt32(Args, ArgN);
     }
-    static v8::Handle<v8::Value> WrapKey(const TInt& Val) {
+    static v8::Local<v8::Value> WrapKey(const TInt& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope EscapableHandleScope(Isolate);
         return EscapableHandleScope.Escape(v8::Int32::New(Isolate, Val));
@@ -125,7 +125,7 @@ public:
         // TJsBase is arbitrary here
         return TNodeJsUtil::GetArgFlt(Args, ArgN);
     }
-    static v8::Handle<v8::Value> WrapDat(const double& Val) {
+    static v8::Local<v8::Value> WrapDat(const double& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope EscapableHandleScope(Isolate);
         return EscapableHandleScope.Escape(v8::Number::New(Isolate, Val));
@@ -139,7 +139,7 @@ public:
         // TJsBase is arbitrary here
         return TNodeJsUtil::GetArgInt32(Args, ArgN);
     }
-    static v8::Handle<v8::Value> WrapKey(const TInt& Val) {
+    static v8::Local<v8::Value> WrapKey(const TInt& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope EscapableHandleScope(Isolate);
         return EscapableHandleScope.Escape(v8::Int32::New(Isolate, Val));
@@ -148,7 +148,7 @@ public:
         // TJsBase is arbitrary here
         return TNodeJsUtil::GetArgStr(Args, ArgN);
     }
-    static v8::Handle<v8::Value> WrapDat(const TStr& Val) {
+    static v8::Local<v8::Value> WrapDat(const TStr& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope EscapableHandleScope(Isolate);
         return EscapableHandleScope.Escape(v8::String::NewFromUtf8(Isolate, Val.CStr()));
@@ -170,13 +170,13 @@ public:
 	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj);
 	static v8::Local<v8::Object> WrapInst(v8::Local<v8::Object> Obj, TSIn& SIn);
 
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
 
-    static TKeyDatH& GetMap(const v8::Handle<v8::Object> Obj) {
+    static TKeyDatH& GetMap(const v8::Local<v8::Object> Obj) {
         TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Obj);
         return JsMap->Map;
     }
-    static void SetMap(const v8::Handle<v8::Object> Obj, const TKeyDatH& _Map) {
+    static void SetMap(const v8::Local<v8::Object> Obj, const TKeyDatH& _Map) {
         TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Obj);
         JsMap->Map = _Map;
     }
@@ -436,7 +436,7 @@ v8::Local<v8::Object> TNodeJsHash<TKey, TDat, TAux>::WrapInst(v8::Local<v8::Obje
 
 
 template<class TKey, class TDat, class TAux>
-void TNodeJsHash<TKey, TDat, TAux>::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsHash<TKey, TDat, TAux>::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
     TStr Name;
@@ -601,6 +601,7 @@ void TNodeJsHash<TKey, TDat, TAux>::save(const v8::FunctionCallbackInfo<v8::Valu
         "Expected a TFOut object as the argument.");
     TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Args.Holder());
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     PSOut SOut = JsFOut->SOut;
     JsMap->Map.Save(*SOut);
     Args.GetReturnValue().Set(Args[0]);
@@ -627,7 +628,7 @@ void TNodeJsHash<TKey, TDat, TAux>::sortDat(const v8::FunctionCallbackInfo<v8::V
 }
 
 template<class TKey, class TDat, class TAux>
-void TNodeJsHash<TKey, TDat, TAux>::length(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsHash<TKey, TDat, TAux>::length(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Info.Holder());
