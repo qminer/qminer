@@ -112,6 +112,24 @@
     },
     'targets': [
         {
+            # unit tests module
+            'target_name': 'qminer-test',
+			'type': 'executable',
+            'sources': [
+                'test/cpp/catch2/catch_v2.1.1.hpp',
+                'test/cpp/catch2/test.cpp'				
+            ],
+            'include_dirs': [
+                'src/glib/base',
+                'src/glib/mine',
+                '<(LIN_ALG_INCLUDE)',
+                '<(LIN_EIGEN_INCLUDE)'
+            ],
+            'dependencies': [
+				'glib'
+			],
+        },
+        {
             # node qminer module
             'target_name': 'qm',
             'sources': [
