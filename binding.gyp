@@ -116,18 +116,14 @@
             'target_name': 'qminer-test',
 			'type': 'executable',
             'sources': [
+				'test/cpp/catch2/test_slotted_histogram.cpp',
                 'test/cpp/catch2/test_main.cpp',
 				'test/cpp/catch2/test_tqqueue.cpp',
 				'test/cpp/catch2/test_traits.cpp',
 				'test/cpp/catch2/test_tsumspvec.cpp',
 				'test/cpp/catch2/test_tuples.cpp',
 				'test/cpp/catch2/test_tvec.cpp',
-				'test/cpp/catch2/test_zipfl.cpp',
-                'src/glib/base/base.cpp',
-                'src/glib/mine/mine.cpp',
-                'src/glib/concurrent/thread.cpp',
-                'src/third_party/sole/sole.cpp',
-                'src/third_party/libsvm/svm.cpp'
+				'test/cpp/catch2/test_zipfl.cpp'
             ],
             'include_dirs': [
                 'src/glib/base',
@@ -136,10 +132,23 @@
                 'src/glib/concurrent/',
                 'src/third_party/sole/',
                 'src/third_party/libsvm/',
+                'src/third_party/streamstory/',
+                'src/third_party/geospatial/',
+                'src/qminer/',
+                'src/third_party/Snap/snap-core',
+                'src/third_party/Snap/snap-adv',
+                'src/third_party/Snap/snap-exp',
+                'src/third_party/Snap/qlib-core',
+                'src/snap_ext',
                 '<(LIN_ALG_INCLUDE)',
                 '<(LIN_EIGEN_INCLUDE)'
             ],
-            'dependencies': []
+            'dependencies': [
+                'glib',
+                'snap_lib',
+                'snap_ext',
+                'qminer'
+			]
         },
         {
             # node qminer module

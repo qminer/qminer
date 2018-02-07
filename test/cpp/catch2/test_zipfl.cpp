@@ -1,5 +1,8 @@
 #include <base.h>
 #include <mine.h>
+
+#include <qminer.h>
+
 #include "microtest.h"
 
 //// Test an empty archive
