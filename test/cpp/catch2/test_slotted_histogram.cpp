@@ -31,7 +31,7 @@ TEST(TSlottedHistogramTestSimple1) {
         ASSERT_EQ(Stats[2], 0.0);
 
     } catch (PExcept& Except) {
-        printf("Error: %s", Except->GetStr());
+        printf("Error: %s", Except->GetStr().CStr());
         throw Except;
     }
 }
@@ -63,7 +63,7 @@ TEST(TSlottedHistogramTestSimple2) {
         ASSERT_EQ(Stats[2], 0.0);
 
     } catch (PExcept& Except) {
-        printf("Error: %s", Except->GetStr());
+        printf("Error: %s", Except->GetStr().CStr());
         throw Except;
     }
 }
