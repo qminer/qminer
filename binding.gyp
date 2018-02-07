@@ -116,18 +116,30 @@
             'target_name': 'qminer-test',
 			'type': 'executable',
             'sources': [
-                'test/cpp/catch2/catch_v2.1.1.hpp',
-                'test/cpp/catch2/test.cpp'				
+                'test/cpp/catch2/test_main.cpp',
+				'test/cpp/catch2/test_tqqueue.cpp',
+				'test/cpp/catch2/test_traits.cpp',
+				'test/cpp/catch2/test_tsumspvec.cpp',
+				'test/cpp/catch2/test_tuples.cpp',
+				'test/cpp/catch2/test_tvec.cpp',
+				'test/cpp/catch2/test_zipfl.cpp',
+                'src/glib/base/base.cpp',
+                'src/glib/mine/mine.cpp',
+                'src/glib/concurrent/thread.cpp',
+                'src/third_party/sole/sole.cpp',
+                'src/third_party/libsvm/svm.cpp'
             ],
             'include_dirs': [
                 'src/glib/base',
                 'src/glib/mine',
+                'src/glib/misc/',
+                'src/glib/concurrent/',
+                'src/third_party/sole/',
+                'src/third_party/libsvm/',
                 '<(LIN_ALG_INCLUDE)',
                 '<(LIN_EIGEN_INCLUDE)'
             ],
-            'dependencies': [
-				'glib'
-			],
+            'dependencies': []
         },
         {
             # node qminer module
