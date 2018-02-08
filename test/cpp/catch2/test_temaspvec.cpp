@@ -78,7 +78,7 @@ TEST(TEmaSpVecSimple1) {
         printf("ema6: %f\n", ema6.GetValue());
 
     } catch (PExcept& Except) {
-        printf("Error: %s", Except->GetStr());
+        printf("Error: %s", Except->GetStr().CStr());
         throw Except;
     }
 }
@@ -134,7 +134,7 @@ TEST(TEmaSimpleTest1) {
         ASSERT_EQ(2.496785, ema.GetValue());
 
     } catch (PExcept& Except) {
-        printf("Error: %s", Except->GetStr());
+        printf("Error: %s", Except->GetStr().CStr());
         throw Except;
     }
 }
