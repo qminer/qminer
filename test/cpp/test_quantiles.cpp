@@ -860,11 +860,11 @@ TEST(TExpHistogramCountNonEqual) {
         const uint ActualMx = ExpHistMx.GetCount();
         const uint Actual = ExpHist.GetCount();
 
-        ASSERT_GE(ActualMx, Low);
-        ASSERT_LE(ActualMx, High);
+        ASSERT_GE((int)ActualMx, Low);
+        ASSERT_LE((int)ActualMx, High);
 
-        ASSERT_GE(Actual, Low);
-        ASSERT_LE(Actual, High);
+        ASSERT_GE((int)Actual, Low);
+        ASSERT_LE((int)Actual, High);
 
         CurrTm += Rnd.GetUniDevInt(10, 100);
     }
@@ -891,8 +891,8 @@ TEST(TExpHistogramCompression) {
     ExpHistMx.Forget(ForgetTm);
     ExpHist.Forget(ForgetTm);
 
-    ASSERT_LE(ExpHistMx.GetSummarySize(), 36);
-    ASSERT_LE(ExpHist.GetSummarySize(), 36);
+    ASSERT_LE(ExpHistMx.GetSummarySize(), (uint)36);
+    ASSERT_LE(ExpHist.GetSummarySize(), (uint)36);
 }
 
 TEST(TExpHistogramMxVal) {
@@ -1030,7 +1030,7 @@ TEST(TExpHistogramDelNewest) {
 
     TExpHistogram Eh(Eps);
 
-    const int MxBlocksPerSize = std::ceil(1 / (2 * Eps)) + 1;
+    const int MxBlocksPerSize = (int)std::ceil(1 / (2 * Eps)) + 1;
 
     for (int SampleN = 0; SampleN < MxBlocksPerSize + 1; SampleN++) {
         Eh.Add(SampleN);
@@ -1354,8 +1354,8 @@ TEST(TCountWindowGkQueryAccNoWindow) {
             const uint64 ItemCount = Gk.GetValCount();
             const uint64 ItemRecount = Gk.GetValRecount();
 
-            const uint64 LowerBound = std::floor(TotalSamples*(1 - EpsEh));
-            const uint64 UpperBound = std::ceil(TotalSamples*(1 + EpsEh));
+            const uint64 LowerBound = (uint64)std::floor(TotalSamples*(1 - EpsEh));
+            const uint64 UpperBound = (uint64)std::ceil(TotalSamples*(1 + EpsEh));
 
             ASSERT_GE(ItemCount, LowerBound);
             ASSERT_LE(ItemCount, UpperBound);
