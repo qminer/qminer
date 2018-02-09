@@ -4,12 +4,14 @@
 
 #include "microtest.h"
 
+
+
 TEST(TStrGetUc) {
     TStr Mixedcase = "AbCd";
     TStr Uppercase = "ABCD";
     TStr Empty = "";
-    ASSERT_EQ(Uppercase.CStr(), Mixedcase.GetUc().CStr());
-    ASSERT_EQ(Empty.CStr(), Empty.GetUc().CStr());
+    ASSERT_STREQ(Uppercase.CStr(), Mixedcase.GetUc().CStr());
+    ASSERT_STREQ(Empty.CStr(), Empty.GetUc().CStr());
 }
 
 TEST(TStrToUc) {
@@ -19,8 +21,8 @@ TEST(TStrToUc) {
     TStr Empty2;
     Mixedcase.ToUc();
     Empty.ToUc();
-    ASSERT_EQ(Mixedcase.CStr(), Uppercase.CStr());
-    ASSERT_EQ(Empty.CStr(), Empty2.CStr());
+    ASSERT_STREQ(Mixedcase.CStr(), Uppercase.CStr());
+    ASSERT_STREQ(Empty.CStr(), Empty2.CStr());
 }
 
 TEST(TStrToLc) {
@@ -30,16 +32,16 @@ TEST(TStrToLc) {
     TStr Empty2;
     Empty.ToLc();
     Mixedcase.ToLc();
-    ASSERT_EQ(Mixedcase.CStr(), Lowercase.CStr());
-    ASSERT_EQ(Empty.CStr(), Empty2.CStr());
+    ASSERT_STREQ(Mixedcase.CStr(), Lowercase.CStr());
+    ASSERT_STREQ(Empty.CStr(), Empty2.CStr());
 }
 
 TEST(TStrGetLc) {
     TStr Mixedcase = "AbCd";
     TStr Lowercase = "abcd";
     TStr Empty = "";
-    ASSERT_EQ(Lowercase.CStr(), Mixedcase.GetLc().CStr());
-    ASSERT_EQ(Empty.CStr(), Empty.GetLc().CStr());
+    ASSERT_STREQ(Lowercase.CStr(), Mixedcase.GetLc().CStr());
+    ASSERT_STREQ(Empty.CStr(), Empty.GetLc().CStr());
 }
 
 TEST(TStrCmpI) {
@@ -64,8 +66,8 @@ TEST(TStrGetCap) {
     TStr Lowercase = "abcd";
     TStr Capitalized = "Abcd";
     TStr Empty = "";
-    ASSERT_EQ(Capitalized.CStr(), Lowercase.GetCap().CStr());
-    ASSERT_EQ(Empty.CStr(), Empty.GetCap().CStr());
+    ASSERT_STREQ(Capitalized.CStr(), Lowercase.GetCap().CStr());
+    ASSERT_STREQ(Empty.CStr(), Empty.GetCap().CStr());
 }
 
 TEST(TStrToCap) {
@@ -74,27 +76,27 @@ TEST(TStrToCap) {
     TStr Empty = "";
     TStr Empty2;
     Lowercase.ToCap();
-    ASSERT_EQ(Capitalized.CStr(), Lowercase.CStr());
+    ASSERT_STREQ(Capitalized.CStr(), Lowercase.CStr());
     Empty.ToCap();
-    ASSERT_EQ(Empty2.CStr(), Empty.CStr());
+    ASSERT_STREQ(Empty2.CStr(), Empty.CStr());
 }
 
 TEST(TStrLeftRight) {
     const TStr As = "aaabbbaaa";
 
     // basic tests
-    ASSERT_EQ(As.Left(3).CStr(), "aaa");
-    ASSERT_EQ(As.Right(6).CStr(), "aaa");
+    ASSERT_STREQ(As.Left(3).CStr(), "aaa");
+    ASSERT_STREQ(As.Right(6).CStr(), "aaa");
 
     // negative indexes
-    ASSERT_EQ(As.Left(-6).CStr(), "aaa");
-    ASSERT_EQ(As.Right(-3).CStr(), "aaa");
+    ASSERT_STREQ(As.Left(-6).CStr(), "aaa");
+    ASSERT_STREQ(As.Right(-3).CStr(), "aaa");
 
     // edge cases
     ASSERT_ANY_THROW(As.Left(1000));
     ASSERT_ANY_THROW(As.Right(1000));
-    ASSERT_EQ(As.Right(0).CStr(), "aaabbbaaa");
-    ASSERT_EQ(As.Left(0).CStr(), "");
+    ASSERT_STREQ(As.Right(0).CStr(), "aaabbbaaa");
+    ASSERT_STREQ(As.Left(0).CStr(), "");
 }
 
 TEST(TStrSplitLeftOfRightOf) {
@@ -104,14 +106,14 @@ TEST(TStrSplitLeftOfRightOf) {
     Str.SplitLeftOfRightOf(LStr, 2, 2, RStr);
 
     // basic
-    ASSERT_EQ(LStr.CStr(), "ab");
-    ASSERT_EQ(RStr.CStr(), "de");
+    ASSERT_STREQ(LStr.CStr(), "ab");
+    ASSERT_STREQ(RStr.CStr(), "de");
 
     // edge cases
     Str.SplitLeftOfRightOf(LStr, 0, Str.Len() - 1, RStr);
 
-    ASSERT_EQ(LStr.CStr(), "");
-    ASSERT_EQ(RStr.CStr(), "");
+    ASSERT_STREQ(LStr.CStr(), "");
+    ASSERT_STREQ(RStr.CStr(), "");
 
     // exceptions
     ASSERT_ANY_THROW(Str.SplitLeftOfRightOf(LStr, 4, 3, RStr));
@@ -127,19 +129,19 @@ TEST(TStrSplitOnChN) {
     Str.SplitOnChN(LStr, 2, RStr);
 
     // basic
-    ASSERT_EQ(LStr.CStr(), "ab");
-    ASSERT_EQ(RStr.CStr(), "de");
+    ASSERT_STREQ(LStr.CStr(), "ab");
+    ASSERT_STREQ(RStr.CStr(), "de");
 
     // edge cases
     Str.SplitOnChN(LStr, 0, RStr);
 
-    ASSERT_EQ(LStr.CStr(), "");
-    ASSERT_EQ(RStr.CStr(), "bcde");
+    ASSERT_STREQ(LStr.CStr(), "");
+    ASSERT_STREQ(RStr.CStr(), "bcde");
 
     Str.SplitOnChN(LStr, Str.Len() - 1, RStr);
 
-    ASSERT_EQ(LStr.CStr(), "abcd");
-    ASSERT_EQ(RStr.CStr(), "");
+    ASSERT_STREQ(LStr.CStr(), "abcd");
+    ASSERT_STREQ(RStr.CStr(), "");
 
     // exceptions
     ASSERT_ANY_THROW(Str.SplitOnChN(LStr, -1, RStr));
@@ -155,32 +157,32 @@ TEST(TStrSplitOnCh) {
     // middle
     Str.SplitOnCh(LStr, 'c', RStr);
 
-    ASSERT_EQ(LStr.CStr(), "ab");
-    ASSERT_EQ(RStr.CStr(), "de");
+    ASSERT_STREQ(LStr.CStr(), "ab");
+    ASSERT_STREQ(RStr.CStr(), "de");
 
     // non-existent
     Str.SplitOnCh(LStr, 'g', RStr);
 
-    ASSERT_EQ(LStr.CStr(), "abcde");
-    ASSERT_EQ(RStr.CStr(), "");
+    ASSERT_STREQ(LStr.CStr(), "abcde");
+    ASSERT_STREQ(RStr.CStr(), "");
 
     // first
     Str.SplitOnCh(LStr, 'a', RStr);
 
-    ASSERT_EQ(LStr.CStr(), "");
-    ASSERT_EQ(RStr.CStr(), "bcde");
+    ASSERT_STREQ(LStr.CStr(), "");
+    ASSERT_STREQ(RStr.CStr(), "bcde");
 
     // last
     Str.SplitOnCh(LStr, 'e', RStr);
 
-    ASSERT_EQ(LStr.CStr(), "abcd");
-    ASSERT_EQ(RStr.CStr(), "");
+    ASSERT_STREQ(LStr.CStr(), "abcd");
+    ASSERT_STREQ(RStr.CStr(), "");
 
     // empty
     EmptyStr.SplitOnCh(LStr, 'a', RStr);
 
-    ASSERT_EQ(LStr.CStr(), "");
-    ASSERT_EQ(RStr.CStr(), "");
+    ASSERT_STREQ(LStr.CStr(), "");
+    ASSERT_STREQ(RStr.CStr(), "");
 }
 
 TEST(TStrIsUInt) {
@@ -279,13 +281,13 @@ TEST(TStrSaveLoadTxt) {
     const TStr Alphabet = "abcdefghijklmnoprstuvz";
 
     Empty.SaveTxt(FNm);
-    ASSERT_EQ(Empty.CStr(), TStr::LoadTxt(FNm).CStr());
+    ASSERT_STREQ(Empty.CStr(), TStr::LoadTxt(FNm).CStr());
 
     Alphabet.SaveTxt(FNm);
-    ASSERT_EQ(Alphabet.CStr(), TStr::LoadTxt(FNm).CStr());
+    ASSERT_STREQ(Alphabet.CStr(), TStr::LoadTxt(FNm).CStr());
 
     Empty.SaveTxt(FNm);
-    ASSERT_EQ(Empty.CStr(), TStr::LoadTxt(FNm).CStr());
+    ASSERT_STREQ(Empty.CStr(), TStr::LoadTxt(FNm).CStr());
 }
 
 TEST(TStrSaveLoad) {
@@ -299,55 +301,55 @@ TEST(TStrSaveLoad) {
     Empty.Save(*TFOut::New(FNm, false)(), false);
     Empty1 = Alphabet;
     Empty1.Load(*TFIn::New(FNm)(), false);
-    ASSERT_EQ(Empty.CStr(), Empty1.CStr());
-    ASSERT_EQ(Empty.CStr(), TStr(*TFIn::New(FNm)(), false).CStr());
+    ASSERT_STREQ(Empty.CStr(), Empty1.CStr());
+    ASSERT_STREQ(Empty.CStr(), TStr(*TFIn::New(FNm)(), false).CStr());
     ASSERT_EQ(0, Empty1.Len());
 
     Empty.Save(*TFOut::New(FNm, false)(), false);
     Empty1 = Empty;
     Empty1.Load(*TFIn::New(FNm)(), false);
-    ASSERT_EQ(Empty.CStr(), Empty1.CStr());
-    ASSERT_EQ(Empty.CStr(), TStr(*TFIn::New(FNm)(), false).CStr());
+    ASSERT_STREQ(Empty.CStr(), Empty1.CStr());
+    ASSERT_STREQ(Empty.CStr(), TStr(*TFIn::New(FNm)(), false).CStr());
     ASSERT_EQ(0, Empty1.Len());
 
     Alphabet.Save(*TFOut::New(FNm, false)(), false);
     Alphabet1 = Alphabet;
     Alphabet1.Load(*TFIn::New(FNm)(), false);
-    ASSERT_EQ(Alphabet.CStr(), Alphabet1.CStr());
-    ASSERT_EQ(Alphabet.CStr(), TStr(*TFIn::New(FNm)(), false).CStr());
+    ASSERT_STREQ(Alphabet.CStr(), Alphabet1.CStr());
+    ASSERT_STREQ(Alphabet.CStr(), TStr(*TFIn::New(FNm)(), false).CStr());
 
     Alphabet.Save(*TFOut::New(FNm, false)(), false);
     Alphabet1 = Empty;
     Alphabet1.Load(*TFIn::New(FNm)(), false);
-    ASSERT_EQ(Alphabet.CStr(), Alphabet1.CStr());
-    ASSERT_EQ(Alphabet.CStr(), TStr(*TFIn::New(FNm)(), false).CStr());
+    ASSERT_STREQ(Alphabet.CStr(), Alphabet1.CStr());
+    ASSERT_STREQ(Alphabet.CStr(), TStr(*TFIn::New(FNm)(), false).CStr());
 
     // is small
     Empty.Save(*TFOut::New(FNm, false)(), true);
     Empty1 = Alphabet;
     Empty1.Load(*TFIn::New(FNm)(), true);
-    ASSERT_EQ(Empty.CStr(), Empty1.CStr());
-    ASSERT_EQ(Empty.CStr(), TStr(*TFIn::New(FNm)(), true).CStr());
+    ASSERT_STREQ(Empty.CStr(), Empty1.CStr());
+    ASSERT_STREQ(Empty.CStr(), TStr(*TFIn::New(FNm)(), true).CStr());
     ASSERT_EQ(0, Empty1.Len());
 
     Empty.Save(*TFOut::New(FNm, false)(), true);
     Empty1 = Empty;
     Empty1.Load(*TFIn::New(FNm)(), true);
-    ASSERT_EQ(Empty.CStr(), Empty1.CStr());
-    ASSERT_EQ(Empty.CStr(), TStr(*TFIn::New(FNm)(), true).CStr());
+    ASSERT_STREQ(Empty.CStr(), Empty1.CStr());
+    ASSERT_STREQ(Empty.CStr(), TStr(*TFIn::New(FNm)(), true).CStr());
     ASSERT_EQ(0, Empty1.Len());
 
     Alphabet.Save(*TFOut::New(FNm, false)(), true);
     Alphabet1 = Alphabet;
     Alphabet1.Load(*TFIn::New(FNm)(), true);
-    ASSERT_EQ(Alphabet.CStr(), Alphabet1.CStr());
-    ASSERT_EQ(Alphabet.CStr(), TStr(*TFIn::New(FNm)(), true).CStr());
+    ASSERT_STREQ(Alphabet.CStr(), Alphabet1.CStr());
+    ASSERT_STREQ(Alphabet.CStr(), TStr(*TFIn::New(FNm)(), true).CStr());
 
     Alphabet.Save(*TFOut::New(FNm, false)(), true);
     Alphabet1 = Empty;
     Alphabet1.Load(*TFIn::New(FNm)(), true);
-    ASSERT_EQ(Alphabet.CStr(), Alphabet1.CStr());
-    ASSERT_EQ(Alphabet.CStr(), TStr(*TFIn::New(FNm)(), true).CStr());
+    ASSERT_STREQ(Alphabet.CStr(), Alphabet1.CStr());
+    ASSERT_STREQ(Alphabet.CStr(), TStr(*TFIn::New(FNm)(), true).CStr());
 
     // normal constructor
     {
@@ -355,7 +357,7 @@ TEST(TStrSaveLoad) {
         FOut.PutStr(Empty);
     }
 
-    ASSERT_EQ(Empty.CStr(), TStr(TFIn::New(FNm)).CStr());
+    ASSERT_STREQ(Empty.CStr(), TStr(TFIn::New(FNm)).CStr());
     ASSERT_EQ(0, TStr(TFIn::New(FNm)).Len());
 
     {
@@ -363,7 +365,7 @@ TEST(TStrSaveLoad) {
         FOut.PutStr(Alphabet);
     }
 
-    ASSERT_EQ(Alphabet.CStr(), TStr(TFIn::New(FNm)).CStr());
+    ASSERT_STREQ(Alphabet.CStr(), TStr(TFIn::New(FNm)).CStr());
 }
 
 TEST(TStrConstructors) {
@@ -375,15 +377,15 @@ TEST(TStrConstructors) {
     TStr ChA(TChA("abc"));
     TStr SStr(TSStr("abc"));
 
-    ASSERT_EQ(Default.CStr(), "");
-    ASSERT_EQ(CStr.CStr(), "abc");
-    ASSERT_EQ(OneChar.CStr(), "a");
-    ASSERT_EQ(CopyCStr.CStr(), "abc");
-    ASSERT_EQ(Move.CStr(), "abc");
-    ASSERT_EQ(ChA.CStr(), "abc");
-    ASSERT_EQ(SStr.CStr(), "abc");
+    ASSERT_STREQ(Default.CStr(), "");
+    ASSERT_STREQ(CStr.CStr(), "abc");
+    ASSERT_STREQ(OneChar.CStr(), "a");
+    ASSERT_STREQ(CopyCStr.CStr(), "abc");
+    ASSERT_STREQ(Move.CStr(), "abc");
+    ASSERT_STREQ(ChA.CStr(), "abc");
+    ASSERT_STREQ(SStr.CStr(), "abc");
 
-    ASSERT_EQ(TStr(nullptr).CStr(), "");
+    ASSERT_STREQ(TStr(nullptr).CStr(), "");
 }
 
 TEST(TStrOperatorPlusEquals) {
@@ -391,25 +393,25 @@ TEST(TStrOperatorPlusEquals) {
     TStr Empty;
     // empyt+= full    
     Empty += Str;
-    ASSERT_EQ(Empty.CStr(), "abc");
+    ASSERT_STREQ(Empty.CStr(), "abc");
     // self+= self
     Str += Str;
-    ASSERT_EQ(Str.CStr(), "abcabc");
+    ASSERT_STREQ(Str.CStr(), "abcabc");
     Str += TStr();
-    ASSERT_EQ(Str.CStr(), "abcabc");
+    ASSERT_STREQ(Str.CStr(), "abcabc");
 
     // empyt+= full
     Empty = TStr();
     Empty += "abc";
-    ASSERT_EQ(Empty.CStr(), "abc");
+    ASSERT_STREQ(Empty.CStr(), "abc");
     // full+= empty
     Str = "abc";
     Str += "";
-    ASSERT_EQ(Str.CStr(), "abc");
+    ASSERT_STREQ(Str.CStr(), "abc");
 
     Str = "abc";
     Str += nullptr;
-    ASSERT_EQ(Str.CStr(), "abc");
+    ASSERT_STREQ(Str.CStr(), "abc");
 }
 
 TEST(TStrOperatorComparison) {
@@ -483,8 +485,8 @@ TEST(TStrCloneCStr) {
     const TStr Empty = "";
     char* StrClone = Str.CloneCStr();
     char* EmptyClone = Empty.CloneCStr();
-    ASSERT_EQ(Str.CStr(), StrClone);
-    ASSERT_EQ(Empty.CStr(), EmptyClone);
+    ASSERT_STREQ(Str.CStr(), StrClone);
+    ASSERT_STREQ(Empty.CStr(), EmptyClone);
 }
 
 TEST(TStrPutCh) {
@@ -542,9 +544,9 @@ TEST(TStrClr) {
     TStr Empty = "";
     Str.Clr();
     Empty.Clr();
-    ASSERT_EQ(Str.CStr(), "");
+    ASSERT_STREQ(Str.CStr(), "");
     ASSERT_EQ(Str.Len(), 0);
-    ASSERT_EQ(Empty.CStr(), "");
+    ASSERT_STREQ(Empty.CStr(), "");
     ASSERT_EQ(Empty.Len(), 0);
 }
 
@@ -556,7 +558,7 @@ TEST(TStrGetStr) {
     ASSERT_EQ(Ref[0], 'x');
     ASSERT_EQ(Ref[1], 'b');
     const TStr& RefEmpty = Empty.GetStr();
-    ASSERT_EQ(RefEmpty.CStr(), "");
+    ASSERT_STREQ(RefEmpty.CStr(), "");
 }
 
 TEST(TStrGetMemUsed) {
@@ -571,30 +573,30 @@ TEST(TStrTrunc) {
     TStr Str2 = "    ";
     TStr Str3 = "abcdef    ";
     TStr Str4 = "    abcdef";
-    ASSERT_EQ(Str.GetTrunc().CStr(), "abcdef");
-    ASSERT_EQ(Str2.GetTrunc().CStr(), TStr().CStr());
-    ASSERT_EQ(Str.ToTrunc().CStr(), "abcdef");
-    ASSERT_EQ(Str2.ToTrunc().CStr(), TStr().CStr());
-    ASSERT_EQ(Str3.ToTrunc().CStr(), "abcdef");
-    ASSERT_EQ(Str4.ToTrunc().CStr(), "abcdef");
+    ASSERT_STREQ(Str.GetTrunc().CStr(), "abcdef");
+    ASSERT_STREQ(Str2.GetTrunc().CStr(), TStr().CStr());
+    ASSERT_STREQ(Str.ToTrunc().CStr(), "abcdef");
+    ASSERT_STREQ(Str2.ToTrunc().CStr(), TStr().CStr());
+    ASSERT_STREQ(Str3.ToTrunc().CStr(), "abcdef");
+    ASSERT_STREQ(Str4.ToTrunc().CStr(), "abcdef");
 }
 
 TEST(TStrHex) {
     TStr Str = ".a";
-    ASSERT_EQ(Str.GetHex().CStr(), "2E61");
-    ASSERT_EQ(Str.GetHex().GetFromHex().CStr(), Str.CStr());
-    ASSERT_EQ(Str.ToHex().CStr(), "2E61");
-    ASSERT_EQ(Str.FromHex().CStr(), ".a");
-    ASSERT_EQ(TStr().GetHex().CStr(), "");
-    ASSERT_EQ(TStr().GetFromHex().CStr(), "");
+    ASSERT_STREQ(Str.GetHex().CStr(), "2E61");
+    ASSERT_STREQ(Str.GetHex().GetFromHex().CStr(), Str.CStr());
+    ASSERT_STREQ(Str.ToHex().CStr(), "2E61");
+    ASSERT_STREQ(Str.FromHex().CStr(), ".a");
+    ASSERT_STREQ(TStr().GetHex().CStr(), "");
+    ASSERT_STREQ(TStr().GetFromHex().CStr(), "");
 }
 
 TEST(TStrGetSubStr) {
     TStr Str = "abcda";
     TStr Empty = "";
 
-    ASSERT_EQ(Str.GetSubStr(3).CStr(), "da");
-    ASSERT_EQ(Str.GetSubStr(3, 3).CStr(), "d");
+    ASSERT_STREQ(Str.GetSubStr(3).CStr(), "da");
+    ASSERT_STREQ(Str.GetSubStr(3, 3).CStr(), "d");
 
     ASSERT_ANY_THROW(Str.GetSubStr(-1, -1));
     ASSERT_ANY_THROW(Str.GetSubStr(2, 1));
@@ -605,13 +607,13 @@ TEST(TStrInsStr) {
     TStr Empty = "";
 
     Str.InsStr(2, "xk");
-    ASSERT_EQ(Str.CStr(), "abxkcda");
+    ASSERT_STREQ(Str.CStr(), "abxkcda");
     Str.InsStr(2, "");
-    ASSERT_EQ(Str.CStr(), "abxkcda");
+    ASSERT_STREQ(Str.CStr(), "abxkcda");
     Str.InsStr(0, "f");
-    ASSERT_EQ(Str.CStr(), "fabxkcda");
+    ASSERT_STREQ(Str.CStr(), "fabxkcda");
     Str.InsStr(8, "f");
-    ASSERT_EQ(Str.CStr(), "fabxkcdaf");
+    ASSERT_STREQ(Str.CStr(), "fabxkcdaf");
     //dup2(2, 1); // redirect stdout to stderr (Assert emits a printf to stdout)
     ASSERT_ANY_THROW(Str.InsStr(100, "kek"));
     ASSERT_ANY_THROW(Str.InsStr(-100, "kek"));
@@ -623,59 +625,59 @@ TEST(TStrDel) {
 
     TStr Test = Str;
     Test.DelChAll('a');
-    ASSERT_EQ(Test.CStr(), "bbbb");
+    ASSERT_STREQ(Test.CStr(), "bbbb");
     Test.DelChAll('c');
-    ASSERT_EQ(Test.CStr(), "bbbb");
+    ASSERT_STREQ(Test.CStr(), "bbbb");
 
     Test = Str;
     Test.DelSubStr(2, 3);
-    ASSERT_EQ(Test.CStr(), "aaaabb");
+    ASSERT_STREQ(Test.CStr(), "aaaabb");
 
     Test.DelSubStr(0, 1);
-    ASSERT_EQ(Test.CStr(), "aabb");
+    ASSERT_STREQ(Test.CStr(), "aabb");
     Test.DelSubStr(2, 3);
-    ASSERT_EQ(Test.CStr(), "aa");
+    ASSERT_STREQ(Test.CStr(), "aa");
 
     ASSERT_ANY_THROW(Test.DelSubStr(-1, 5));
 
     Test.DelSubStr(0, 1);
-    ASSERT_EQ(Test.CStr(), "");
+    ASSERT_STREQ(Test.CStr(), "");
     Test = Str;
     Test.DelSubStr(0, 0);
-    ASSERT_EQ(Test.CStr(), "abbaabb");
+    ASSERT_STREQ(Test.CStr(), "abbaabb");
 
 
     Test = Str;
     ASSERT_TRUE(Test.DelStr("ab"));
-    ASSERT_EQ(Test.CStr(), "abaabb");
+    ASSERT_STREQ(Test.CStr(), "abaabb");
     ASSERT_FALSE(Test.DelStr("fs"));
-    ASSERT_EQ(Test.CStr(), "abaabb");
+    ASSERT_STREQ(Test.CStr(), "abaabb");
 
     Test = Str;
     ASSERT_EQ(2, Test.DelStrAll("ab"));
-    ASSERT_EQ(Test.CStr(), "abab");
+    ASSERT_STREQ(Test.CStr(), "abab");
 }
 
 TEST(TStrLeftOfRightOf) {
     TStr Str = "abcdef";
     TStr Empty = "";
-    ASSERT_EQ(Str.LeftOf('d').CStr(), "abc");
-    ASSERT_EQ(Str.RightOf('c').CStr(), "def");
-    ASSERT_EQ(Str.LeftOf('a').CStr(), "");
-    ASSERT_EQ(Empty.RightOf('c').CStr(), "");
+    ASSERT_STREQ(Str.LeftOf('d').CStr(), "abc");
+    ASSERT_STREQ(Str.RightOf('c').CStr(), "def");
+    ASSERT_STREQ(Str.LeftOf('a').CStr(), "");
+    ASSERT_STREQ(Empty.RightOf('c').CStr(), "");
     // edge cases
-    ASSERT_EQ(Str.RightOf('f').CStr(), "");
-    ASSERT_EQ(Empty.LeftOf('d').CStr(), "");
+    ASSERT_STREQ(Str.RightOf('f').CStr(), "");
+    ASSERT_STREQ(Empty.LeftOf('d').CStr(), "");
 
     TStr Str2 = "abcdefabcdef";
-    ASSERT_EQ(Str2.LeftOfLast('d').CStr(), "abcdefabc");
-    ASSERT_EQ(Str2.RightOfLast('c').CStr(), "def");
-    ASSERT_EQ(Empty.LeftOfLast('d').CStr(), "");
-    ASSERT_EQ(Empty.RightOfLast('c').CStr(), "");
+    ASSERT_STREQ(Str2.LeftOfLast('d').CStr(), "abcdefabc");
+    ASSERT_STREQ(Str2.RightOfLast('c').CStr(), "def");
+    ASSERT_STREQ(Empty.LeftOfLast('d').CStr(), "");
+    ASSERT_STREQ(Empty.RightOfLast('c').CStr(), "");
     // edge cases
     Str2 = "xabcdefabcdef";
-    ASSERT_EQ(Str2.LeftOfLast('x').CStr(), "");
-    ASSERT_EQ(Str2.RightOfLast('f').CStr(), "");
+    ASSERT_STREQ(Str2.LeftOfLast('x').CStr(), "");
+    ASSERT_STREQ(Str2.RightOfLast('f').CStr(), "");
 }
 
 
@@ -689,42 +691,42 @@ TEST(TStrSplitOnStr) {
 
     // left empty
     Str.SplitOnStr(LStr, "ab", RStr);
-    ASSERT_EQ(LStr.CStr(), "");
-    ASSERT_EQ(RStr.CStr(), "cd");
+    ASSERT_STREQ(LStr.CStr(), "");
+    ASSERT_STREQ(RStr.CStr(), "cd");
 
     // both nonempty
     Str.SplitOnStr(LStr, "bc", RStr);
-    ASSERT_EQ(LStr.CStr(), "a");
-    ASSERT_EQ(RStr.CStr(), "d");
+    ASSERT_STREQ(LStr.CStr(), "a");
+    ASSERT_STREQ(RStr.CStr(), "d");
 
     // right empty
     Str.SplitOnStr(LStr, "cd", RStr);
-    ASSERT_EQ(LStr.CStr(), "ab");
-    ASSERT_EQ(RStr.CStr(), "");
+    ASSERT_STREQ(LStr.CStr(), "ab");
+    ASSERT_STREQ(RStr.CStr(), "");
 
     // both empty
     Str.SplitOnStr(LStr, "abcd", RStr);
-    ASSERT_EQ(LStr.CStr(), "");
-    ASSERT_EQ(RStr.CStr(), "");
+    ASSERT_STREQ(LStr.CStr(), "");
+    ASSERT_STREQ(RStr.CStr(), "");
 
     // no-match
     Str.SplitOnStr(LStr, "fg", RStr);
-    ASSERT_EQ(LStr.CStr(), Str.CStr());
-    ASSERT_EQ(RStr.CStr(), "");
+    ASSERT_STREQ(LStr.CStr(), Str.CStr());
+    ASSERT_STREQ(RStr.CStr(), "");
     Str.SplitOnStr(LStr, "abcde", RStr);
-    ASSERT_EQ(LStr.CStr(), Str.CStr());
-    ASSERT_EQ(RStr.CStr(), "");
+    ASSERT_STREQ(LStr.CStr(), Str.CStr());
+    ASSERT_STREQ(RStr.CStr(), "");
     Str.SplitOnStr(LStr, "", RStr);
-    ASSERT_EQ(LStr.CStr(), Str.CStr());
-    ASSERT_EQ(RStr.CStr(), "");
+    ASSERT_STREQ(LStr.CStr(), Str.CStr());
+    ASSERT_STREQ(RStr.CStr(), "");
 
     // empty
     EmptyStr.SplitOnStr(LStr, "aa", RStr);
-    ASSERT_EQ(LStr.CStr(), "");
-    ASSERT_EQ(RStr.CStr(), "");
+    ASSERT_STREQ(LStr.CStr(), "");
+    ASSERT_STREQ(RStr.CStr(), "");
     EmptyStr.SplitOnStr(LStr, "", RStr);
-    ASSERT_EQ(LStr.CStr(), "");
-    ASSERT_EQ(RStr.CStr(), "");
+    ASSERT_STREQ(LStr.CStr(), "");
+    ASSERT_STREQ(RStr.CStr(), "");
 }
 
 ///// Split on last occurrence of SplitCh, return Pair of Left/Right strings
@@ -738,33 +740,33 @@ TEST(TStrSplitOnLastCh) {
 
     // left empty
     Str.SplitOnLastCh(LStr, 'a', RStr);
-    ASSERT_EQ(LStr.CStr(), "");
-    ASSERT_EQ(RStr.CStr(), "bcd");
+    ASSERT_STREQ(LStr.CStr(), "");
+    ASSERT_STREQ(RStr.CStr(), "bcd");
 
     // right empty
     Str.SplitOnLastCh(LStr, 'd', RStr);
-    ASSERT_EQ(LStr.CStr(), "abc");
-    ASSERT_EQ(RStr.CStr(), "");
+    ASSERT_STREQ(LStr.CStr(), "abc");
+    ASSERT_STREQ(RStr.CStr(), "");
 
     // both
     Str2.SplitOnLastCh(LStr, 'a', RStr);
-    ASSERT_EQ(LStr.CStr(), "");
-    ASSERT_EQ(RStr.CStr(), "");
+    ASSERT_STREQ(LStr.CStr(), "");
+    ASSERT_STREQ(RStr.CStr(), "");
 
     // both nonempty
     Str.SplitOnLastCh(LStr, 'b', RStr);
-    ASSERT_EQ(LStr.CStr(), "a");
-    ASSERT_EQ(RStr.CStr(), "cd");
+    ASSERT_STREQ(LStr.CStr(), "a");
+    ASSERT_STREQ(RStr.CStr(), "cd");
 
     // no-match
     Str.SplitOnLastCh(LStr, 'x', RStr);
-    ASSERT_EQ(LStr.CStr(), "");
-    ASSERT_EQ(RStr.CStr(), Str.CStr());
+    ASSERT_STREQ(LStr.CStr(), "");
+    ASSERT_STREQ(RStr.CStr(), Str.CStr());
 
     // empty
     EmptyStr.SplitOnLastCh(LStr, 'a', RStr);
-    ASSERT_EQ(LStr.CStr(), "");
-    ASSERT_EQ(RStr.CStr(), "");
+    ASSERT_STREQ(LStr.CStr(), "");
+    ASSERT_STREQ(RStr.CStr(), "");
 }
 
 ///// Split on all occurrences of SplitCh, write to StrV, optionally don't create empy strings (default true)
@@ -774,14 +776,14 @@ TEST(TStrSplitOnAllCh) {
     TStrV StrV;
     Str.SplitOnAllCh('a', StrV, true);
     ASSERT_EQ(2, StrV.Len());
-    ASSERT_EQ(TStr("bc").CStr(), StrV[0].CStr());
-    ASSERT_EQ(TStr("bc").CStr(), StrV[1].CStr());
+    ASSERT_STREQ(TStr("bc").CStr(), StrV[0].CStr());
+    ASSERT_STREQ(TStr("bc").CStr(), StrV[1].CStr());
     Str.SplitOnAllCh('a', StrV, false);
     ASSERT_EQ(4, StrV.Len());
-    ASSERT_EQ(TStr().CStr(), StrV[0].CStr());
-    ASSERT_EQ(TStr("bc").CStr(), StrV[1].CStr());
-    ASSERT_EQ(TStr("bc").CStr(), StrV[2].CStr());
-    ASSERT_EQ(TStr().CStr(), StrV[3].CStr());
+    ASSERT_STREQ(TStr().CStr(), StrV[0].CStr());
+    ASSERT_STREQ(TStr("bc").CStr(), StrV[1].CStr());
+    ASSERT_STREQ(TStr("bc").CStr(), StrV[2].CStr());
+    ASSERT_STREQ(TStr().CStr(), StrV[3].CStr());
     // edge cases
     Str = "a";
     Str.SplitOnAllCh('a', StrV, true);
@@ -948,13 +950,13 @@ TEST(TStrChangeCh) {
     TStr Empty;
     int ChN = 0;
     ChN = Empty.ChangeCh('a', 'c');
-    ASSERT_EQ(Empty.CStr(), "");
+    ASSERT_STREQ(Empty.CStr(), "");
     ASSERT_EQ(ChN, -1);
     ChN = Str.ChangeCh('a', 'c');
-    ASSERT_EQ(Str.CStr(), "caabbaaac");
+    ASSERT_STREQ(Str.CStr(), "caabbaaac");
     ASSERT_EQ(ChN, 0);
     ChN = Str.ChangeCh('a', 'c', 3);
-    ASSERT_EQ(Str.CStr(), "caabbcaac");
+    ASSERT_STREQ(Str.CStr(), "caabbcaac");
     ASSERT_EQ(ChN, 5);
 
     ASSERT_ANY_THROW(ChN = Str.ChangeCh('a', 'c', 10));
@@ -970,10 +972,10 @@ TEST(TStrChangeChAll) {
     TStr Empty;
     int Changes = 0;
     Changes = Empty.ChangeChAll('a', 'c');
-    ASSERT_EQ(Empty.CStr(), "");
+    ASSERT_STREQ(Empty.CStr(), "");
     ASSERT_EQ(Changes, 0);
     Changes = Str.ChangeChAll('a', 'c');
-    ASSERT_EQ(Str.CStr(), "cbcc");
+    ASSERT_STREQ(Str.CStr(), "cbcc");
     ASSERT_EQ(Changes, 2);
 }
 
@@ -982,10 +984,10 @@ TEST(TStrChangeStr) {
     TStr Empty;
     int ChangeN = 0;
     ChangeN = Empty.ChangeStr("ab", "ac");
-    ASSERT_EQ(Empty.CStr(), "");
+    ASSERT_STREQ(Empty.CStr(), "");
     ASSERT_EQ(ChangeN, -1);
     ChangeN = Str.ChangeStr("ab", "abab");
-    ASSERT_EQ(Str.CStr(), "ababac");
+    ASSERT_STREQ(Str.CStr(), "ababac");
     ASSERT_EQ(ChangeN, 0);
 }
 
@@ -994,31 +996,31 @@ TEST(TStrChangeStrAll) {
     TStr Empty;
     int Changes = 0;
     Changes = Empty.ChangeStrAll("ab", "ac");
-    ASSERT_EQ(Empty.CStr(), "");
+    ASSERT_STREQ(Empty.CStr(), "");
     ASSERT_EQ(Changes, 0);
     Changes = Str.ChangeStrAll("", "a"); // replacing and empty string should do nothing
-    ASSERT_EQ(Str.CStr(), "abac");
+    ASSERT_STREQ(Str.CStr(), "abac");
     ASSERT_EQ(Changes, 0);
     Changes = Str.ChangeStrAll("ab", "abab");
-    ASSERT_EQ(Str.CStr(), "ababac");
+    ASSERT_STREQ(Str.CStr(), "ababac");
     ASSERT_EQ(Changes, 1);
     Changes = Str.ChangeStrAll("ab", "abab");
-    ASSERT_EQ(Str.CStr(), "ababababac");
+    ASSERT_STREQ(Str.CStr(), "ababababac");
     ASSERT_EQ(Changes, 2);
     Changes = Str.ChangeStrAll("ababababac", "");
-    ASSERT_EQ(Str.CStr(), "");
+    ASSERT_STREQ(Str.CStr(), "");
     ASSERT_EQ(Changes, 1);
     Changes = Str.ChangeStrAll("", "a"); // replacing and empty string should do nothing
-    ASSERT_EQ(Str.CStr(), "");
+    ASSERT_STREQ(Str.CStr(), "");
     ASSERT_EQ(Changes, 0);
 }
 
 TEST(TStrReverse) {
     TStr Str = "abac";
     TStr Empty;
-    ASSERT_EQ(Empty.Reverse().CStr(), "");
-    ASSERT_EQ(Str.Reverse().CStr(), "caba");
-    ASSERT_EQ(Str.Reverse().Reverse().CStr(), Str.CStr());
+    ASSERT_STREQ(Empty.Reverse().CStr(), "");
+    ASSERT_STREQ(Str.Reverse().CStr(), "caba");
+    ASSERT_STREQ(Str.Reverse().Reverse().CStr(), Str.CStr());
 }
 
 TEST(TStrParseBool) {
@@ -1074,11 +1076,11 @@ TEST(TStrOperatorPlus) {
     TStr Str = "abc";
     TStr Empty;
 
-    ASSERT_EQ((Empty + Str).CStr(), "abc");
-    ASSERT_EQ((Str + Empty).CStr(), "abc");
-    ASSERT_EQ((Empty + "abc").CStr(), "abc");
-    ASSERT_EQ((Str + "").CStr(), "abc");
-    ASSERT_EQ((Str + nullptr).CStr(), "abc");
+    ASSERT_STREQ((Empty + Str).CStr(), "abc");
+    ASSERT_STREQ((Str + Empty).CStr(), "abc");
+    ASSERT_STREQ((Empty + "abc").CStr(), "abc");
+    ASSERT_STREQ((Str + "").CStr(), "abc");
+    ASSERT_STREQ((Str + nullptr).CStr(), "abc");
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -1088,14 +1090,14 @@ TEST(TStrBase64Encode1) {
     uchar src[] = { 'a', 'b', 'c', 'd' };
     TMem Mem(src, sizeof(src));
     TStr Str = TStr::Base64Encode(Mem);
-    ASSERT_EQ(Str.CStr(), "YWJjZA==");
+    ASSERT_STREQ(Str.CStr(), "YWJjZA==");
 }
 
 TEST(TStrBase64Encode2) {
     uchar src[] = { 'a', 'b', 'c', 'd', 'd', 'd', 'd', 'd', 'd' };
     TMem Mem(src, sizeof(src));
     TStr Str = TStr::Base64Encode(Mem);
-    ASSERT_EQ(Str.CStr(), "YWJjZGRkZGRk");
+    ASSERT_STREQ(Str.CStr(), "YWJjZGRkZGRk");
 }
 
 TEST(TStrBase64Decode1) {
