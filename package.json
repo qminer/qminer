@@ -106,7 +106,7 @@
   },
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build",
-    "test": "cd test & cd nodejs & mocha *.js --timeout 30000 & cd .. & cd .. & cd build & cd Debug & qminer-test.exe"
+    "test": "cd test & cd nodejs & mocha *.js --timeout 30000 & cd .. & cd .. & cd build & cd Release & qminer-test.exe"
   },
   "binary": {
     "module_name": "qm",

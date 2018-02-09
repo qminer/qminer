@@ -114,30 +114,26 @@
         {
             # unit tests module
             'target_name': 'qminer-test',
-			'type': 'executable',
+            'type': 'executable',
             'sources': [
-				'test/cpp/catch2/test_main.cpp',
-				'test/cpp/catch2/test_linalg.cpp',
-				'test/cpp/catch2/test_misc.cpp',
-				'test/cpp/catch2/test_quantiles.cpp',
-				'test/cpp/catch2/test_slotted_histogram.cpp',
-
-				'test/cpp/catch2/test_sizeof.cpp',
-				'test/cpp/catch2/test_temaspvec.cpp',
-				'test/cpp/catch2/test_tgix.cpp',
-				'test/cpp/catch2/test_thash.cpp',
-				'test/cpp/catch2/test_tjsonval.cpp',
-				'test/cpp/catch2/test_tpt.cpp',
-
-                'test/cpp/catch2/test_tqqueue.cpp',
-				'test/cpp/catch2/test_traits.cpp',
-				
-				'test/cpp/catch2/test_tstr.cpp',
-				
-				'test/cpp/catch2/test_tsumspvec.cpp',
-				'test/cpp/catch2/test_tuples.cpp',
-				'test/cpp/catch2/test_tvec.cpp',
-				'test/cpp/catch2/test_zipfl.cpp'
+                'test/cpp/test_main.cpp',
+                'test/cpp/test_linalg.cpp',
+                'test/cpp/test_misc.cpp',
+                'test/cpp/test_quantiles.cpp',
+                'test/cpp/test_slotted_histogram.cpp',
+                'test/cpp/test_sizeof.cpp',
+                'test/cpp/test_temaspvec.cpp',
+                'test/cpp/test_tgix.cpp',
+                'test/cpp/test_thash.cpp',
+                'test/cpp/test_tjsonval.cpp',
+                'test/cpp/test_tpt.cpp',
+                'test/cpp/test_tqqueue.cpp',
+                'test/cpp/test_traits.cpp',
+                'test/cpp/test_tstr.cpp',
+                'test/cpp/test_tsumspvec.cpp',
+                'test/cpp/test_tuples.cpp',
+                'test/cpp/test_tvec.cpp',
+                'test/cpp/test_zipfl.cpp'
             ],
             'include_dirs': [
                 'src/glib/base',
@@ -162,7 +158,7 @@
                 'snap_lib',
                 'snap_ext',
                 'qminer'
-			]
+            ]
         },
         {
             # node qminer module
