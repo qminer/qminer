@@ -43,7 +43,7 @@ public:
     TFlt Speed;//given speed by GPS
     TFlt Distance;//distance to previous
     TInt64 TimeDiff;//time difference with previous
-	TStr Accelerometer;//accelerometer data
+    PJsonVal Accelerometer;//accelerometer data
     PJsonVal ToJson() const;
     //Temporal hack untile we create a new aggregate caluclating the 
     //type and avg activity (walking, running) inside a geoActivity (path).
@@ -124,11 +124,11 @@ private:
     TInt AccuracyFieldId;
     /// time field id for fast access
     TInt TimeFieldId;
-	/// speed field id for fast access
-	TInt SpeedFieldId;
+    /// speed field id for fast access
+    TInt SpeedFieldId;
     /// distance field id for fast access
     TInt DistanceFieldId;
-	/// distance field id for fast access
+    /// distance field id for fast access
     TInt AccelerometerFieldId;
 
     /// algorithm parameters
