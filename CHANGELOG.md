@@ -1,5 +1,19 @@
 # QMiner Change Log
 
+## 23 February 2018
+
+**Verstion 9.2.0**
+
+**Non-breaking with bug fixes**
+
+Feature:
+- JavaScript APIs cleaned for quantile estimators, moved to `analytics.quantiles`.
+
+Bugfix:
+- Typo bug in Json UTF-16 handling
+- Added implementation for JSON parsing in `newRecord`
+
+
 ## 5 January 2018
 
 **Version 9.1.2**
