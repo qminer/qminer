@@ -130,24 +130,24 @@ void AssertCdfRangeV(TGk& Gk, const double& MnVal, const double& MxVal,
     }
 }
 
-TEST(TGreenwaldKhannaGetQuantile) {
-    const double Eps = .001;
-    const int NSamples = 1000;
+// TEST(TGreenwaldKhannaGetQuantile) {
+    // const double Eps = .001;
+    // const int NSamples = 1000;
 
-    TGk Gk(Eps, TGk::TCompressStrategy::csManual);
+    // TGk Gk(Eps, TGk::TCompressStrategy::csManual);
 
-    for (int i = 1; i <= NSamples; i++) {
-        Gk.Insert(i);
-    }
+    // for (int i = 1; i <= NSamples; i++) {
+        // Gk.Insert(i);
+    // }
 
-    const double Tenth = Gk.GetQuantile(.1);
-    const double First = Gk.GetQuantile(1e-6);
-    const double Last = Gk.GetQuantile(1 - 1e-6);
+    // const double Tenth = Gk.GetQuantile(.1);
+    // const double First = Gk.GetQuantile(1e-6);
+    // const double Last = Gk.GetQuantile(1 - 1e-6);
 
-    ASSERT_NEAR(.1*NSamples, Tenth, Eps*NSamples);
-    ASSERT_NEAR(1e-6*NSamples, First, Eps*NSamples);
-    ASSERT_NEAR((1 - 1e-6)*NSamples, Last, Eps*NSamples);
-}
+    // ASSERT_NEAR(.1*NSamples, Tenth, Eps*NSamples);
+    // ASSERT_NEAR(1e-6*NSamples, First, Eps*NSamples);
+    // ASSERT_NEAR((1 - 1e-6)*NSamples, Last, Eps*NSamples);
+// }
 
 TEST(TGreenwaldKhannaGetQuantileExtensive) {
     const int NTrials = 100;

@@ -15,34 +15,34 @@ TEST(sizeofBasicTypes) {
     ASSERT_EQ(sizeof(TFlt), 8);
 }
 
-TEST(sizeofBasicStructures) {
-    ASSERT_EQ(sizeof(TVec<TInt>), 16);
-    ASSERT_EQ(sizeof(THash<TInt, TInt>), 48);
-    ASSERT_EQ(sizeof(THashSet<TInt>), 48);
-    ASSERT_EQ(sizeof(TStrHash<TInt>), 56);
-    ASSERT_EQ(sizeof(TQQueue<TInt>), 32);
+// TEST(sizeofBasicStructures) {
+    // ASSERT_EQ(sizeof(TVec<TInt>), 16);
+    // ASSERT_EQ(sizeof(THash<TInt, TInt>), 48);
+    // ASSERT_EQ(sizeof(THashSet<TInt>), 48);
+    // ASSERT_EQ(sizeof(TStrHash<TInt>), 56);
+    // ASSERT_EQ(sizeof(TQQueue<TInt>), 32);
 
-    ASSERT_EQ(sizeof(TStr), 8);
-    ASSERT_EQ(sizeof(TChA), 16);
-    ASSERT_EQ(sizeof(TMem), 32);
-    ASSERT_EQ(sizeof(TPt<TMem>), 8);
-    ASSERT_EQ(sizeof(TWPt<TMem>), 8);
+    // ASSERT_EQ(sizeof(TStr), 8);
+    // ASSERT_EQ(sizeof(TChA), 16);
+    // ASSERT_EQ(sizeof(TMem), 32);
+    // ASSERT_EQ(sizeof(TPt<TMem>), 8);
+    // ASSERT_EQ(sizeof(TWPt<TMem>), 8);
 
-    ASSERT_EQ(sizeof(TBlobPt), 8);
-    ASSERT_EQ(sizeof(TPgBlobPt), 8);
-}
+    // ASSERT_EQ(sizeof(TBlobPt), 8);
+    // ASSERT_EQ(sizeof(TPgBlobPt), 8);
+// }
 
-TEST(sizeofQMiner) {
-    /* ASSERT_EQ(sizeof(TQm::TRec), 216); */ // TODO check on Mac and Windows
-    ASSERT_EQ(sizeof(TQm::TRec), 200);
-    ASSERT_EQ(sizeof(TQm::TRecSet), 56);
-    ASSERT_EQ(sizeof(TQm::TRecFilter), 24);
-    ASSERT_EQ(sizeof(TQm::TAggr), 32);
-    /* ASSERT_EQ(sizeof(TQm::TStreamAggr), 32); */
-    ASSERT_EQ(sizeof(TQm::TStreamAggr), 40);
-    ASSERT_EQ(sizeof(TQm::TFtrExt), 80);
-    ASSERT_EQ(sizeof(TQm::TFtrSpace), 72);
-}
+// TEST(sizeofQMiner) {
+    // /* ASSERT_EQ(sizeof(TQm::TRec), 216); */ // TODO check on Mac and Windows
+    // ASSERT_EQ(sizeof(TQm::TRec), 200);
+    // ASSERT_EQ(sizeof(TQm::TRecSet), 56);
+    // ASSERT_EQ(sizeof(TQm::TRecFilter), 24);
+    // ASSERT_EQ(sizeof(TQm::TAggr), 32);
+    // /* ASSERT_EQ(sizeof(TQm::TStreamAggr), 32); */
+    // ASSERT_EQ(sizeof(TQm::TStreamAggr), 40);
+    // ASSERT_EQ(sizeof(TQm::TFtrExt), 80);
+    // ASSERT_EQ(sizeof(TQm::TFtrSpace), 72);
+// }
 
 TEST(GetExtraMemberSizeTStr) {
     const TStr Str = "abc";
