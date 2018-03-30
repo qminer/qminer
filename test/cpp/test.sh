@@ -2,7 +2,5 @@
 # a single fail results in global fail
 set -e
 
-cd build/Release
-pwd
-ls -l
-qminer-test
+ls -l build/Release
+build/Release/qminer-test
