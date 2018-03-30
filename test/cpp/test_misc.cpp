@@ -4,6 +4,7 @@
 
 #include "microtest.h"
 
+/*
 TEST(TDirExists) {
     ASSERT_TRUE(TDir::Exists("../../test/cpp/files"));
     ASSERT_FALSE(TDir::Exists("./xyz"));
@@ -40,3 +41,4 @@ TEST(TMathFloorLog2_uint64) {
     ASSERT_EQ(TMath::FloorLog2((uint64)TMath::Pow2<uint64>(63)), 63);
     ASSERT_EQ(TMath::FloorLog2((uint64)TMath::Pow2<uint64>(64) - 1), 63);
 }
+*/
