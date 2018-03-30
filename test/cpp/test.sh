@@ -1,1 +1,1 @@
- qminer-test.exe
+bash ../../build/Release/qminer-test.exe
