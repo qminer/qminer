@@ -3,6 +3,6 @@
 set -e
 
 cd build/Release
-#pwd
-#ls -l
+pwd
+ls -l
 qminer-test
