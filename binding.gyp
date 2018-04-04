@@ -112,6 +112,55 @@
     },
     'targets': [
         {
+            # unit tests module
+            'target_name': 'qminer-test',
+            'type': 'executable',
+            'sources': [
+                'test/cpp/test_main.cpp',
+                'test/cpp/test_linalg.cpp',
+                'test/cpp/test_misc.cpp',
+                'test/cpp/test_quantiles.cpp',
+                'test/cpp/test_slotted_histogram.cpp',
+                'test/cpp/test_sizeof.cpp',
+                'test/cpp/test_temaspvec.cpp',
+                'test/cpp/test_tgix.cpp',
+                'test/cpp/test_thash.cpp',
+                'test/cpp/test_tjsonval.cpp',
+                'test/cpp/test_tpt.cpp',
+                'test/cpp/test_tqqueue.cpp',
+                'test/cpp/test_traits.cpp',
+                'test/cpp/test_tstr.cpp',
+                'test/cpp/test_tsumspvec.cpp',
+                'test/cpp/test_tuples.cpp',
+                'test/cpp/test_tvec.cpp',
+                'test/cpp/test_zipfl.cpp'
+            ],
+            'include_dirs': [
+                'src/glib/base',
+                'src/glib/mine',
+                'src/glib/misc/',
+                'src/glib/concurrent/',
+                'src/third_party/sole/',
+                'src/third_party/libsvm/',
+                'src/third_party/streamstory/',
+                'src/third_party/geospatial/',
+                'src/qminer/',
+                'src/third_party/Snap/snap-core',
+                'src/third_party/Snap/snap-adv',
+                'src/third_party/Snap/snap-exp',
+                'src/third_party/Snap/qlib-core',
+                'src/snap_ext',
+                '<(LIN_ALG_INCLUDE)',
+                '<(LIN_EIGEN_INCLUDE)'
+            ],
+            'dependencies': [
+                'glib',
+                'snap_lib',
+                'snap_ext',
+                'qminer'
+            ]
+        },
+        {
             # node qminer module
             'target_name': 'qm',
             'sources': [

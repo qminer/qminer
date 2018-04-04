@@ -1,6 +1,9 @@
-#include <gtest/gtest.h>
-
 #include <base.h>
+#include <mine.h>
+#include <qminer.h>
+
+#include "microtest.h"
+
 
 // Test parent class
 
@@ -14,7 +17,7 @@ public:
     static PTestParent New() { return new TTestParent(); }
 };
 
-TEST(TPt, Parent) {
+TEST(TPtParent) {
     PTestParent Parent = TTestParent::New();
 }
 
@@ -29,12 +32,12 @@ public:
     static PTestParent NewAsParent() { return new TTestChild(); }
 };
 
-TEST(TPt, Child) {
+TEST(TPtChild) {
     PTestChild Child = TTestChild::New();
     PTestParent ChildAsParent = TTestChild::NewAsParent();
 }
 
-TEST(TPt, ParentFromChild) {
+TEST(TPtParentFromChild) {
     PTestChild Child = TTestChild::New();
     PTestParent ParentFromChild = Child();
 }
@@ -59,12 +62,12 @@ public:
     static PTestParent NewAsParent() { return new TTestChildMulti(); }
 };
 
-TEST(TPt, ChildMulti) {
+TEST(TPtChildMulti) {
     PTestChildMulti Child = TTestChildMulti::New();
     PTestParent ChildAsParent = TTestChildMulti::NewAsParent();
 }
 
-TEST(TPt, ParentFromChildMulti) {
+TEST(TPtParentFromChildMulti) {
     PTestChildMulti Child = TTestChildMulti::New();
     PTestParent ParentFromChild = Child();
 }
