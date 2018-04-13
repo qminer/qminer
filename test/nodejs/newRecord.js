@@ -41,4 +41,20 @@ describe("newRecord test", function () {
 
         assert.equal(newMovie.director.name, "Peter Jackson");
     });
+    it("should create a record when store has a field of type 'json'", function () {       
+        var basePlanets = new qm.Base({
+            mode: "createClean",
+            schema: [{
+                name: "Planets",
+                fields: [
+                    { name: "Name", type: "string" },
+                    { name: "Diameter", type: "int" },
+                    { name: "NearestStars", type: "string_v" },
+                    { name: "Json", type: "json" }
+                ]
+            }]
+          });
+        planet = basePlanets.store("Planets").newRecord({ Name: "Tatooine", Diameter: 10465, NearestStars: ["Tatoo 1", "Tatoo 2"], Json: {fruit: "banana"} });
+        assert.deepEqual(planet.Json, {fruit: "banana"});
+    });
 });
