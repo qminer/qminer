@@ -1717,7 +1717,7 @@ describe('Gix Join Test', function () {
         base.store('Movies').push({ Title: 'Broken Flowers', director: { Name: 'Jim Jarmusch' } });
         base.store('Movies').push({ Title: 'Dogville', director: { Name: 'Lars von Trier' } });
         base.store('Movies').push({ Title: 'Coffee and Cigarettes', director: { Name: 'Jim Jarmusch' } });
-        let res = base.search({
+        var res = base.search({
             $join: {
                 $name: "directed",
                 $query: {
