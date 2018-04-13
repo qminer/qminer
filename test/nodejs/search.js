@@ -1688,3 +1688,44 @@ describe('Gix Position Tests', function () {
 
     });
 });
+
+
+describe('Gix Join Test', function () {
+    var base = undefined;
+
+    beforeEach(function () {
+        qm.delLock();
+        base = new qm.Base({
+            mode: 'createClean',
+            schema: [
+                { name: 'People',
+                  fields: [{ name: 'Name', type: 'string', primary: true, shortstring: true}],
+                  joins: [{ name: 'directed', 'type': 'index', 'store': 'Movies', 'inverse': 'director' }],
+                  keys: [{ field: 'Name', type: 'value'}] },
+                { name: 'Movies',
+                  fields: [{ name: 'Title', type: 'string', primary: true }],
+                  joins: [{ name: 'director', 'type': 'field', 'store': 'People', 'inverse': 'directed' }],
+                  keys: [{ field: 'Title', type: 'value'}] }
+              ]
+        });
+    });
+    afterEach(function () {
+        base.close();
+    });
+
+    it('create store with position index', function () {
+        base.store('Movies').push({ Title: 'Broken Flowers', director: { Name: 'Jim Jarmusch' } });
+        base.store('Movies').push({ Title: 'Dogville', director: { Name: 'Lars von Trier' } });
+        base.store('Movies').push({ Title: 'Coffee and Cigarettes', director: { Name: 'Jim Jarmusch' } });
+        let res = base.search({
+            $join: {
+                $name: "directed",
+                $query: {
+                    $from: "People",
+                    Name: {$or: ["Jim Jarmusch", "Lars von Trier"]}
+                }
+            }
+        });
+        assert.equal(res.length, 3);
+    });
+});

@@ -5640,6 +5640,7 @@ void TIndex::DoJoinQueryFull(const int& KeyId, const TUInt64V& RecIdV, TUInt64In
     }
     // convert to vector
     RecIdFqH.GetKeyDatKdV(RecIdFqV);
+    RecIdFqV.Sort();
 }
 
 void TIndex::DoJoinQuerySmall(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& RecIdFqV) const {
@@ -5657,6 +5658,7 @@ void TIndex::DoJoinQuerySmall(const int& KeyId, const TUInt64V& RecIdV, TUInt64I
     }
     // convert to vector
     RecIdFqH.GetKeyDatKdV(RecIdFqV);
+    RecIdFqV.Sort();
 }
 
 void TIndex::DoJoinQueryTiny(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& RecIdFqV) const {
@@ -5674,6 +5676,7 @@ void TIndex::DoJoinQueryTiny(const int& KeyId, const TUInt64V& RecIdV, TUInt64In
     }
     // convert to vector
     RecIdFqH.GetKeyDatKdV(RecIdFqV);
+    RecIdFqV.Sort();
 }
 
 void TIndex::DoQueryPos(const int& KeyId, const TUInt64V& WordIdV,
