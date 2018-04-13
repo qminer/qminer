@@ -4,367 +4,367 @@
 
 #include "microtest.h"
 
-// TEST(TStrGetUc) {
-    // TStr Mixedcase = "AbCd";
-    // TStr Uppercase = "ABCD";
-    // TStr Empty = "";
-    // ASSERT_EQ(Uppercase.CStr(), Mixedcase.GetUc().CStr());
-    // ASSERT_EQ(Empty.CStr(), Empty.GetUc().CStr());
-// }
-
-// TEST(TStrToUc) {
-    // TStr Mixedcase = "AbCd";
-    // TStr Uppercase = "ABCD";
-    // TStr Empty = "";
-    // TStr Empty2;
-    // Mixedcase.ToUc();
-    // Empty.ToUc();
-    // ASSERT_EQ(Mixedcase.CStr(), Uppercase.CStr());
-    // ASSERT_EQ(Empty.CStr(), Empty2.CStr());
-// }
-
-// TEST(TStrToLc) {
-    // TStr Mixedcase = "AbCd";
-    // TStr Lowercase = "abcd";
-    // TStr Empty = "";
-    // TStr Empty2;
-    // Empty.ToLc();
-    // Mixedcase.ToLc();
-    // ASSERT_EQ(Mixedcase.CStr(), Lowercase.CStr());
-    // ASSERT_EQ(Empty.CStr(), Empty2.CStr());
-// }
-
-// TEST(TStrGetLc) {
-    // TStr Mixedcase = "AbCd";
-    // TStr Lowercase = "abcd";
-    // TStr Empty = "";
-    // ASSERT_EQ(Lowercase.CStr(), Mixedcase.GetLc().CStr());
-    // ASSERT_EQ(Empty.CStr(), Empty.GetLc().CStr());
-// }
-
-// TEST(TStrCmpI) {
-    // TStr Empty = "";
-    // TStr Input = "bbbb";
-    // TStr Big = "ZZZZZZZZZZZZZZZZZZ";
-    // TStr Small = "aaaa";
-    // ASSERT_TRUE(Input.CmpI(Input) == 0);
-    // ASSERT_TRUE(Input.CmpI(Big) < 0);
-    // ASSERT_TRUE(Input.CmpI(Small) > 0);
-    // ASSERT_TRUE(Empty.CmpI(Empty) == 0);
-// }
-
-// TEST(TStrEqI) {
-    // TStr Mixedcase = "AbCd";
-    // TStr Empty = "";
-    // ASSERT_TRUE(Mixedcase.EqI(Mixedcase.GetUc()));
-    // ASSERT_TRUE(Empty.EqI(Empty));
-// }
-
-// TEST(TStrGetCap) {
-    // TStr Lowercase = "abcd";
-    // TStr Capitalized = "Abcd";
-    // TStr Empty = "";
-    // ASSERT_EQ(Capitalized.CStr(), Lowercase.GetCap().CStr());
-    // ASSERT_EQ(Empty.CStr(), Empty.GetCap().CStr());
-// }
-
-// TEST(TStrToCap) {
-    // TStr Lowercase = "abcd";
-    // TStr Capitalized = "Abcd";
-    // TStr Empty = "";
-    // TStr Empty2;
-    // Lowercase.ToCap();
-    // ASSERT_EQ(Capitalized.CStr(), Lowercase.CStr());
-    // Empty.ToCap();
-    // ASSERT_EQ(Empty2.CStr(), Empty.CStr());
-// }
-
-// TEST(TStrLeftRight) {
-    // const TStr As = "aaabbbaaa";
-
-    // // basic tests
-    // ASSERT_EQ(As.Left(3).CStr(), "aaa");
-    // ASSERT_EQ(As.Right(6).CStr(), "aaa");
-
-    // // negative indexes
-    // ASSERT_EQ(As.Left(-6).CStr(), "aaa");
-    // ASSERT_EQ(As.Right(-3).CStr(), "aaa");
-
-    // // edge cases
-    // ASSERT_ANY_THROW(As.Left(1000));
-    // ASSERT_ANY_THROW(As.Right(1000));
-    // ASSERT_EQ(As.Right(0).CStr(), "aaabbbaaa");
-    // ASSERT_EQ(As.Left(0).CStr(), "");
-// }
-
-// TEST(TStrSplitLeftOfRightOf) {
-    // const TStr Str = "abcde";
-
-    // TStr LStr, RStr;
-    // Str.SplitLeftOfRightOf(LStr, 2, 2, RStr);
-
-    // // basic
-    // ASSERT_EQ(LStr.CStr(), "ab");
-    // ASSERT_EQ(RStr.CStr(), "de");
+ TEST(TStrGetUc) {
+     TStr Mixedcase = "AbCd";
+     TStr Uppercase = "ABCD";
+     TStr Empty = "";
+     ASSERT_EQ(Uppercase.CStr(), Mixedcase.GetUc().CStr());
+     ASSERT_EQ(Empty.CStr(), Empty.GetUc().CStr());
+ }
+
+ TEST(TStrToUc) {
+     TStr Mixedcase = "AbCd";
+     TStr Uppercase = "ABCD";
+     TStr Empty = "";
+     TStr Empty2;
+     Mixedcase.ToUc();
+     Empty.ToUc();
+     ASSERT_EQ(Mixedcase.CStr(), Uppercase.CStr());
+     ASSERT_EQ(Empty.CStr(), Empty2.CStr());
+ }
+
+ TEST(TStrToLc) {
+     TStr Mixedcase = "AbCd";
+     TStr Lowercase = "abcd";
+     TStr Empty = "";
+     TStr Empty2;
+     Empty.ToLc();
+     Mixedcase.ToLc();
+     ASSERT_EQ(Mixedcase.CStr(), Lowercase.CStr());
+     ASSERT_EQ(Empty.CStr(), Empty2.CStr());
+ }
+
+ TEST(TStrGetLc) {
+     TStr Mixedcase = "AbCd";
+     TStr Lowercase = "abcd";
+     TStr Empty = "";
+     ASSERT_EQ(Lowercase.CStr(), Mixedcase.GetLc().CStr());
+     ASSERT_EQ(Empty.CStr(), Empty.GetLc().CStr());
+ }
+
+ TEST(TStrCmpI) {
+     TStr Empty = "";
+     TStr Input = "bbbb";
+     TStr Big = "ZZZZZZZZZZZZZZZZZZ";
+     TStr Small = "aaaa";
+     ASSERT_TRUE(Input.CmpI(Input) == 0);
+     ASSERT_TRUE(Input.CmpI(Big) < 0);
+     ASSERT_TRUE(Input.CmpI(Small) > 0);
+     ASSERT_TRUE(Empty.CmpI(Empty) == 0);
+ }
+
+ TEST(TStrEqI) {
+     TStr Mixedcase = "AbCd";
+     TStr Empty = "";
+     ASSERT_TRUE(Mixedcase.EqI(Mixedcase.GetUc()));
+     ASSERT_TRUE(Empty.EqI(Empty));
+ }
+
+ TEST(TStrGetCap) {
+     TStr Lowercase = "abcd";
+     TStr Capitalized = "Abcd";
+     TStr Empty = "";
+     ASSERT_EQ(Capitalized.CStr(), Lowercase.GetCap().CStr());
+     ASSERT_EQ(Empty.CStr(), Empty.GetCap().CStr());
+ }
+
+ TEST(TStrToCap) {
+     TStr Lowercase = "abcd";
+     TStr Capitalized = "Abcd";
+     TStr Empty = "";
+     TStr Empty2;
+     Lowercase.ToCap();
+     ASSERT_EQ(Capitalized.CStr(), Lowercase.CStr());
+     Empty.ToCap();
+     ASSERT_EQ(Empty2.CStr(), Empty.CStr());
+ }
+
+ TEST(TStrLeftRight) {
+     const TStr As = "aaabbbaaa";
+
+     // basic tests
+     ASSERT_EQ(As.Left(3).CStr(), "aaa");
+     ASSERT_EQ(As.Right(6).CStr(), "aaa");
+
+     // negative indexes
+     ASSERT_EQ(As.Left(-6).CStr(), "aaa");
+     ASSERT_EQ(As.Right(-3).CStr(), "aaa");
+
+     // edge cases
+     ASSERT_ANY_THROW(As.Left(1000));
+     ASSERT_ANY_THROW(As.Right(1000));
+     ASSERT_EQ(As.Right(0).CStr(), "aaabbbaaa");
+     ASSERT_EQ(As.Left(0).CStr(), "");
+ }
+
+ TEST(TStrSplitLeftOfRightOf) {
+     const TStr Str = "abcde";
+
+     TStr LStr, RStr;
+     Str.SplitLeftOfRightOf(LStr, 2, 2, RStr);
+
+     // basic
+     ASSERT_EQ(LStr.CStr(), "ab");
+     ASSERT_EQ(RStr.CStr(), "de");
 
-    // // edge cases
-    // Str.SplitLeftOfRightOf(LStr, 0, Str.Len() - 1, RStr);
+     // edge cases
+     Str.SplitLeftOfRightOf(LStr, 0, Str.Len() - 1, RStr);
 
-    // ASSERT_EQ(LStr.CStr(), "");
-    // ASSERT_EQ(RStr.CStr(), "");
+     ASSERT_EQ(LStr.CStr(), "");
+     ASSERT_EQ(RStr.CStr(), "");
 
-    // // exceptions
-    // ASSERT_ANY_THROW(Str.SplitLeftOfRightOf(LStr, 4, 3, RStr));
-    // ASSERT_ANY_THROW(Str.SplitLeftOfRightOf(LStr, -1, 3, RStr));
-    // ASSERT_ANY_THROW(Str.SplitLeftOfRightOf(LStr, 0, Str.Len(), RStr));
-// }
+     // exceptions
+     ASSERT_ANY_THROW(Str.SplitLeftOfRightOf(LStr, 4, 3, RStr));
+     ASSERT_ANY_THROW(Str.SplitLeftOfRightOf(LStr, -1, 3, RStr));
+     ASSERT_ANY_THROW(Str.SplitLeftOfRightOf(LStr, 0, Str.Len(), RStr));
+ }
 
-// TEST(TStrSplitOnChN) {
-    // const TStr Str = "abcde";
-    // const TStr EmptyStr = "";
+ TEST(TStrSplitOnChN) {
+     const TStr Str = "abcde";
+     const TStr EmptyStr = "";
 
-    // TStr LStr, RStr;
-    // Str.SplitOnChN(LStr, 2, RStr);
+     TStr LStr, RStr;
+     Str.SplitOnChN(LStr, 2, RStr);
 
-    // // basic
-    // ASSERT_EQ(LStr.CStr(), "ab");
-    // ASSERT_EQ(RStr.CStr(), "de");
+     // basic
+     ASSERT_EQ(LStr.CStr(), "ab");
+     ASSERT_EQ(RStr.CStr(), "de");
 
-    // // edge cases
-    // Str.SplitOnChN(LStr, 0, RStr);
+     // edge cases
+     Str.SplitOnChN(LStr, 0, RStr);
 
-    // ASSERT_EQ(LStr.CStr(), "");
-    // ASSERT_EQ(RStr.CStr(), "bcde");
+     ASSERT_EQ(LStr.CStr(), "");
+     ASSERT_EQ(RStr.CStr(), "bcde");
 
-    // Str.SplitOnChN(LStr, Str.Len() - 1, RStr);
+     Str.SplitOnChN(LStr, Str.Len() - 1, RStr);
 
-    // ASSERT_EQ(LStr.CStr(), "abcd");
-    // ASSERT_EQ(RStr.CStr(), "");
+     ASSERT_EQ(LStr.CStr(), "abcd");
+     ASSERT_EQ(RStr.CStr(), "");
 
-    // // exceptions
-    // ASSERT_ANY_THROW(Str.SplitOnChN(LStr, -1, RStr));
-    // ASSERT_ANY_THROW(Str.SplitOnChN(LStr, Str.Len(), RStr));
-    // ASSERT_ANY_THROW(EmptyStr.SplitOnChN(LStr, 0, RStr));
-// }
+     // exceptions
+     ASSERT_ANY_THROW(Str.SplitOnChN(LStr, -1, RStr));
+     ASSERT_ANY_THROW(Str.SplitOnChN(LStr, Str.Len(), RStr));
+     ASSERT_ANY_THROW(EmptyStr.SplitOnChN(LStr, 0, RStr));
+ }
 
-// TEST(TStrSplitOnCh) {
-    // const TStr Str = "abcde";
-    // const TStr EmptyStr = "";
+ TEST(TStrSplitOnCh) {
+     const TStr Str = "abcde";
+     const TStr EmptyStr = "";
 
-    // TStr LStr, RStr;
-    // // middle
-    // Str.SplitOnCh(LStr, 'c', RStr);
+     TStr LStr, RStr;
+     // middle
+     Str.SplitOnCh(LStr, 'c', RStr);
 
-    // ASSERT_EQ(LStr.CStr(), "ab");
-    // ASSERT_EQ(RStr.CStr(), "de");
+     ASSERT_EQ(LStr.CStr(), "ab");
+     ASSERT_EQ(RStr.CStr(), "de");
 
-    // // non-existent
-    // Str.SplitOnCh(LStr, 'g', RStr);
+     // non-existent
+     Str.SplitOnCh(LStr, 'g', RStr);
 
-    // ASSERT_EQ(LStr.CStr(), "abcde");
-    // ASSERT_EQ(RStr.CStr(), "");
+     ASSERT_EQ(LStr.CStr(), "abcde");
+     ASSERT_EQ(RStr.CStr(), "");
 
-    // // first
-    // Str.SplitOnCh(LStr, 'a', RStr);
+     // first
+     Str.SplitOnCh(LStr, 'a', RStr);
 
-    // ASSERT_EQ(LStr.CStr(), "");
-    // ASSERT_EQ(RStr.CStr(), "bcde");
+     ASSERT_EQ(LStr.CStr(), "");
+     ASSERT_EQ(RStr.CStr(), "bcde");
 
-    // // last
-    // Str.SplitOnCh(LStr, 'e', RStr);
+     // last
+     Str.SplitOnCh(LStr, 'e', RStr);
 
-    // ASSERT_EQ(LStr.CStr(), "abcd");
-    // ASSERT_EQ(RStr.CStr(), "");
+     ASSERT_EQ(LStr.CStr(), "abcd");
+     ASSERT_EQ(RStr.CStr(), "");
 
-    // // empty
-    // EmptyStr.SplitOnCh(LStr, 'a', RStr);
+     // empty
+     EmptyStr.SplitOnCh(LStr, 'a', RStr);
 
-    // ASSERT_EQ(LStr.CStr(), "");
-    // ASSERT_EQ(RStr.CStr(), "");
-// }
+     ASSERT_EQ(LStr.CStr(), "");
+     ASSERT_EQ(RStr.CStr(), "");
+ }
 
-// TEST(TStrIsUInt) {
-    // const TStr NormalCase = "22";
-    // const TStr NegativeCase = "-22";
-    // const TStr Zero = "0";
-    // const TStr MxVal = "4294967295";
-    // const TStr Overflow = "4294967296";
+ TEST(TStrIsUInt) {
+     const TStr NormalCase = "22";
+     const TStr NegativeCase = "-22";
+     const TStr Zero = "0";
+     const TStr MxVal = "4294967295";
+     const TStr Overflow = "4294967296";
 
-    // uint Val;
+     uint Val;
 
-    // // normal
-    // ASSERT_TRUE(NormalCase.IsUInt(Val));
-    // ASSERT_EQ(Val, 22);
+     // normal
+     ASSERT_TRUE(NormalCase.IsUInt(Val));
+     ASSERT_EQ(Val, 22);
 
-    // ASSERT_FALSE(NegativeCase.IsUInt(Val));
+     ASSERT_FALSE(NegativeCase.IsUInt(Val));
 
-    // ASSERT_TRUE(Zero.IsUInt(Val));
-    // ASSERT_EQ(Val, 0);
+     ASSERT_TRUE(Zero.IsUInt(Val));
+     ASSERT_EQ(Val, 0);
 
-    // ASSERT_TRUE(MxVal.IsUInt(Val));
-    // ASSERT_EQ(Val, 4294967295);
+     ASSERT_TRUE(MxVal.IsUInt(Val));
+     ASSERT_EQ(Val, 4294967295);
 
-    // ASSERT_FALSE(Overflow.IsUInt(Val));
+     ASSERT_FALSE(Overflow.IsUInt(Val));
 
-    // // bounds
-    // ASSERT_TRUE(NormalCase.IsUInt(true, 22, 22, Val));
-    // ASSERT_EQ(Val, 22);
+     // bounds
+     ASSERT_TRUE(NormalCase.IsUInt(true, 22, 22, Val));
+     ASSERT_EQ(Val, 22);
 
-    // ASSERT_FALSE(NormalCase.IsUInt(true, 20, 21, Val));
-    // ASSERT_ANY_THROW(NormalCase.IsUInt(true, 22, 21, Val));
-// }
+     ASSERT_FALSE(NormalCase.IsUInt(true, 20, 21, Val));
+     ASSERT_ANY_THROW(NormalCase.IsUInt(true, 22, 21, Val));
+ }
 
-// TEST(TStrIsUInt64) {
-    // const TStr NormalCase = "22";
-    // const TStr NegativeCase = "-22";
-    // const TStr Zero = "0";
-    // const TStr MxVal = "18446744073709551615";
-    // const TStr Overflow = "18446744073709551616";
+ TEST(TStrIsUInt64) {
+     const TStr NormalCase = "22";
+     const TStr NegativeCase = "-22";
+     const TStr Zero = "0";
+     const TStr MxVal = "18446744073709551615";
+     const TStr Overflow = "18446744073709551616";
 
-    // uint64 Val;
+     uint64 Val;
 
-    // // normal
-    // ASSERT_TRUE(NormalCase.IsUInt64(Val));
-    // ASSERT_EQ(Val, 22);
+     // normal
+     ASSERT_TRUE(NormalCase.IsUInt64(Val));
+     ASSERT_EQ(Val, 22);
 
-    // ASSERT_FALSE(NegativeCase.IsUInt64(Val));
+     ASSERT_FALSE(NegativeCase.IsUInt64(Val));
 
-    // ASSERT_TRUE(Zero.IsUInt64(Val));
-    // ASSERT_EQ(Val, 0);
+     ASSERT_TRUE(Zero.IsUInt64(Val));
+     ASSERT_EQ(Val, 0);
 
-    // ASSERT_TRUE(MxVal.IsUInt64(Val));
-    // ASSERT_EQ(Val, 18446744073709551615ul);
+     ASSERT_TRUE(MxVal.IsUInt64(Val));
+     ASSERT_EQ(Val, 18446744073709551615ul);
 
-    // ASSERT_FALSE(Overflow.IsUInt64(Val));
+     ASSERT_FALSE(Overflow.IsUInt64(Val));
 
-    // // bounds
-    // ASSERT_TRUE(NormalCase.IsUInt64(true, 22, 22, Val));
-    // ASSERT_EQ(Val, 22);
+     // bounds
+     ASSERT_TRUE(NormalCase.IsUInt64(true, 22, 22, Val));
+     ASSERT_EQ(Val, 22);
 
-    // ASSERT_FALSE(NormalCase.IsUInt64(true, 20, 21, Val));
-    // ASSERT_ANY_THROW(NormalCase.IsUInt64(true, 22, 21, Val));
-// }
+     ASSERT_FALSE(NormalCase.IsUInt64(true, 20, 21, Val));
+     ASSERT_ANY_THROW(NormalCase.IsUInt64(true, 22, 21, Val));
+ }
 
-// TEST(TStrIsInt64) {
-    // int64 Num = 0;
-    // // normal
-    // ASSERT_TRUE(TStr("1234").IsInt64());
-    // ASSERT_TRUE(TStr("9223372036854775807").IsInt64());
-    // ASSERT_TRUE(TStr("-9223372036854775808").IsInt64());
+ TEST(TStrIsInt64) {
+     int64 Num = 0;
+     // normal
+     ASSERT_TRUE(TStr("1234").IsInt64());
+     ASSERT_TRUE(TStr("9223372036854775807").IsInt64());
+     ASSERT_TRUE(TStr("-9223372036854775808").IsInt64());
 
-    // ASSERT_TRUE(TStr("1234").IsInt64(Num));
-    // ASSERT_EQ(1234, Num);
+     ASSERT_TRUE(TStr("1234").IsInt64(Num));
+     ASSERT_EQ(1234, Num);
 
-    // ASSERT_TRUE(TStr("9223372036854775807").IsInt64(Num));
-    // ASSERT_EQ(9223372036854775807l, Num);
+     ASSERT_TRUE(TStr("9223372036854775807").IsInt64(Num));
+     ASSERT_EQ(9223372036854775807l, Num);
 
-    // ASSERT_TRUE(TStr("-9223372036854775808").IsInt64(Num));
-    // ASSERT_EQ(-1l * 9223372036854775807l - 1l, Num);
+     ASSERT_TRUE(TStr("-9223372036854775808").IsInt64(Num));
+     ASSERT_EQ(-1l * 9223372036854775807l - 1l, Num);
 
-    // //printf("%ld\n", Num);
+     //printf("%ld\n", Num);
 
-    // // overflow
-    // ASSERT_FALSE(TStr("9223372036854775808").IsInt64());
-    // ASSERT_FALSE(TStr("-9223372036854775809").IsInt64());
+     // overflow
+     ASSERT_FALSE(TStr("9223372036854775808").IsInt64());
+     ASSERT_FALSE(TStr("-9223372036854775809").IsInt64());
 
-    // // characters
-    // ASSERT_FALSE(TStr("salad2147483649").IsInt64());
-    // ASSERT_FALSE(TStr("2147483649fingers").IsInt64());
-// }
+     // characters
+     ASSERT_FALSE(TStr("salad2147483649").IsInt64());
+     ASSERT_FALSE(TStr("2147483649fingers").IsInt64());
+ }
 
-// TEST(TStrSaveLoadTxt) {
-    // const TStr FNm = "test.txt";
+ TEST(TStrSaveLoadTxt) {
+     const TStr FNm = "test.txt";
 
-    // const TStr Empty;
-    // const TStr Alphabet = "abcdefghijklmnoprstuvz";
+     const TStr Empty;
+     const TStr Alphabet = "abcdefghijklmnoprstuvz";
 
-    // Empty.SaveTxt(FNm);
-    // ASSERT_EQ(Empty.CStr(), TStr::LoadTxt(FNm).CStr());
+     Empty.SaveTxt(FNm);
+     ASSERT_EQ(Empty.CStr(), TStr::LoadTxt(FNm).CStr());
 
-    // Alphabet.SaveTxt(FNm);
-    // ASSERT_EQ(Alphabet.CStr(), TStr::LoadTxt(FNm).CStr());
+     Alphabet.SaveTxt(FNm);
+     ASSERT_EQ(Alphabet.CStr(), TStr::LoadTxt(FNm).CStr());
 
-    // Empty.SaveTxt(FNm);
-    // ASSERT_EQ(Empty.CStr(), TStr::LoadTxt(FNm).CStr());
-// }
+     Empty.SaveTxt(FNm);
+     ASSERT_EQ(Empty.CStr(), TStr::LoadTxt(FNm).CStr());
+ }
 
-// TEST(TStrSaveLoad) {
-    // const TStr FNm = "test1.txt";
+ TEST(TStrSaveLoad) {
+     const TStr FNm = "test1.txt";
 
-    // const TStr Empty;
-    // const TStr Alphabet = "abcdefghijklmnoprstuvz";
-    // TStr Empty1, Alphabet1;
+     const TStr Empty;
+     const TStr Alphabet = "abcdefghijklmnoprstuvz";
+     TStr Empty1, Alphabet1;
 
-    // // is big
-    // Empty.Save(*TFOut::New(FNm, false)(), false);
-    // Empty1 = Alphabet;
-    // Empty1.Load(*TFIn::New(FNm)(), false);
-    // ASSERT_EQ(Empty.CStr(), Empty1.CStr());
-    // ASSERT_EQ(Empty.CStr(), TStr(*TFIn::New(FNm)(), false).CStr());
-    // ASSERT_EQ(0, Empty1.Len());
+     // is big
+     Empty.Save(*TFOut::New(FNm, false)(), false);
+     Empty1 = Alphabet;
+     Empty1.Load(*TFIn::New(FNm)(), false);
+     ASSERT_EQ(Empty.CStr(), Empty1.CStr());
+     ASSERT_EQ(Empty.CStr(), TStr(*TFIn::New(FNm)(), false).CStr());
+     ASSERT_EQ(0, Empty1.Len());
 
-    // Empty.Save(*TFOut::New(FNm, false)(), false);
-    // Empty1 = Empty;
-    // Empty1.Load(*TFIn::New(FNm)(), false);
-    // ASSERT_EQ(Empty.CStr(), Empty1.CStr());
-    // ASSERT_EQ(Empty.CStr(), TStr(*TFIn::New(FNm)(), false).CStr());
-    // ASSERT_EQ(0, Empty1.Len());
+     Empty.Save(*TFOut::New(FNm, false)(), false);
+     Empty1 = Empty;
+     Empty1.Load(*TFIn::New(FNm)(), false);
+     ASSERT_EQ(Empty.CStr(), Empty1.CStr());
+     ASSERT_EQ(Empty.CStr(), TStr(*TFIn::New(FNm)(), false).CStr());
+     ASSERT_EQ(0, Empty1.Len());
 
-    // Alphabet.Save(*TFOut::New(FNm, false)(), false);
-    // Alphabet1 = Alphabet;
-    // Alphabet1.Load(*TFIn::New(FNm)(), false);
-    // ASSERT_EQ(Alphabet.CStr(), Alphabet1.CStr());
-    // ASSERT_EQ(Alphabet.CStr(), TStr(*TFIn::New(FNm)(), false).CStr());
+     Alphabet.Save(*TFOut::New(FNm, false)(), false);
+     Alphabet1 = Alphabet;
+     Alphabet1.Load(*TFIn::New(FNm)(), false);
+     ASSERT_EQ(Alphabet.CStr(), Alphabet1.CStr());
+     ASSERT_EQ(Alphabet.CStr(), TStr(*TFIn::New(FNm)(), false).CStr());
 
-    // Alphabet.Save(*TFOut::New(FNm, false)(), false);
-    // Alphabet1 = Empty;
-    // Alphabet1.Load(*TFIn::New(FNm)(), false);
-    // ASSERT_EQ(Alphabet.CStr(), Alphabet1.CStr());
-    // ASSERT_EQ(Alphabet.CStr(), TStr(*TFIn::New(FNm)(), false).CStr());
+     Alphabet.Save(*TFOut::New(FNm, false)(), false);
+     Alphabet1 = Empty;
+     Alphabet1.Load(*TFIn::New(FNm)(), false);
+     ASSERT_EQ(Alphabet.CStr(), Alphabet1.CStr());
+     ASSERT_EQ(Alphabet.CStr(), TStr(*TFIn::New(FNm)(), false).CStr());
 
-    // // is small
-    // Empty.Save(*TFOut::New(FNm, false)(), true);
-    // Empty1 = Alphabet;
-    // Empty1.Load(*TFIn::New(FNm)(), true);
-    // ASSERT_EQ(Empty.CStr(), Empty1.CStr());
-    // ASSERT_EQ(Empty.CStr(), TStr(*TFIn::New(FNm)(), true).CStr());
-    // ASSERT_EQ(0, Empty1.Len());
+     // is small
+     Empty.Save(*TFOut::New(FNm, false)(), true);
+     Empty1 = Alphabet;
+     Empty1.Load(*TFIn::New(FNm)(), true);
+     ASSERT_EQ(Empty.CStr(), Empty1.CStr());
+     ASSERT_EQ(Empty.CStr(), TStr(*TFIn::New(FNm)(), true).CStr());
+     ASSERT_EQ(0, Empty1.Len());
 
-    // Empty.Save(*TFOut::New(FNm, false)(), true);
-    // Empty1 = Empty;
-    // Empty1.Load(*TFIn::New(FNm)(), true);
-    // ASSERT_EQ(Empty.CStr(), Empty1.CStr());
-    // ASSERT_EQ(Empty.CStr(), TStr(*TFIn::New(FNm)(), true).CStr());
-    // ASSERT_EQ(0, Empty1.Len());
+     Empty.Save(*TFOut::New(FNm, false)(), true);
+     Empty1 = Empty;
+     Empty1.Load(*TFIn::New(FNm)(), true);
+     ASSERT_EQ(Empty.CStr(), Empty1.CStr());
+     ASSERT_EQ(Empty.CStr(), TStr(*TFIn::New(FNm)(), true).CStr());
+     ASSERT_EQ(0, Empty1.Len());
 
-    // Alphabet.Save(*TFOut::New(FNm, false)(), true);
-    // Alphabet1 = Alphabet;
-    // Alphabet1.Load(*TFIn::New(FNm)(), true);
-    // ASSERT_EQ(Alphabet.CStr(), Alphabet1.CStr());
-    // ASSERT_EQ(Alphabet.CStr(), TStr(*TFIn::New(FNm)(), true).CStr());
+     Alphabet.Save(*TFOut::New(FNm, false)(), true);
+     Alphabet1 = Alphabet;
+     Alphabet1.Load(*TFIn::New(FNm)(), true);
+     ASSERT_EQ(Alphabet.CStr(), Alphabet1.CStr());
+     ASSERT_EQ(Alphabet.CStr(), TStr(*TFIn::New(FNm)(), true).CStr());
 
-    // Alphabet.Save(*TFOut::New(FNm, false)(), true);
-    // Alphabet1 = Empty;
-    // Alphabet1.Load(*TFIn::New(FNm)(), true);
-    // ASSERT_EQ(Alphabet.CStr(), Alphabet1.CStr());
-    // ASSERT_EQ(Alphabet.CStr(), TStr(*TFIn::New(FNm)(), true).CStr());
+     Alphabet.Save(*TFOut::New(FNm, false)(), true);
+     Alphabet1 = Empty;
+     Alphabet1.Load(*TFIn::New(FNm)(), true);
+     ASSERT_EQ(Alphabet.CStr(), Alphabet1.CStr());
+     ASSERT_EQ(Alphabet.CStr(), TStr(*TFIn::New(FNm)(), true).CStr());
 
-    // // normal constructor
-    // {
-        // TFOut FOut(FNm, false);
-        // FOut.PutStr(Empty);
-    // }
+     // normal constructor
+     {
+         TFOut FOut(FNm, false);
+         FOut.PutStr(Empty);
+     }
 
-    // ASSERT_EQ(Empty.CStr(), TStr(TFIn::New(FNm)).CStr());
-    // ASSERT_EQ(0, TStr(TFIn::New(FNm)).Len());
+     ASSERT_EQ(Empty.CStr(), TStr(TFIn::New(FNm)).CStr());
+     ASSERT_EQ(0, TStr(TFIn::New(FNm)).Len());
 
-    // {
-        // TFOut FOut(FNm, false);
-        // FOut.PutStr(Alphabet);
-    // }
+     {
+         TFOut FOut(FNm, false);
+         FOut.PutStr(Alphabet);
+     }
 
-    // ASSERT_EQ(Alphabet.CStr(), TStr(TFIn::New(FNm)).CStr());
-// }
+     ASSERT_EQ(Alphabet.CStr(), TStr(TFIn::New(FNm)).CStr());
+ }
 
 // TEST(TStrConstructors) {
     // TStr Default;
