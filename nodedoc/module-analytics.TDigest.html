@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.1.2</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.2.0</a>
       </div>
     </div>
   </nav>
@@ -28,7 +28,7 @@
             <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2179">analyticsdoc.<wbr>js:2179</a></p>
             <div class="symbol-classdesc">
               <p>TDigest is a methods that approximates the CDF function of streaming measurements. Data structure useful for percentile and quantile estimation for online data streams. It can be added to any anomaly detector to set the number of alarms
-                triggered as a percentage of the total samples. Adding new samples to the distribution is achieved through <code>partialFit</code> and querying the model (computing quantiles) is implemented by <code>predict</code> function.
+                triggered as a percentage of the total samples. Adding new samples to the distribution is achieved through <code>insert</code> and querying the model (computing quantiles) is implemented by <code>predict</code> function.
                 <br> This is based on the Data Lib Sketch Implementation: <a href="https://github.com/vega/datalib-sketch/blob/master/src/t-digest.js">t-digest.js</a>
                 <br> Paper: Ted Dunning, Otmar Ertl - <a href="https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf">Computing Extremely Accurate Quantiles Using t-Digests</a>.</p>
             </div>
@@ -70,14 +70,14 @@
                     <dt><a href="module-analytics.TDigest.html#getParams">getParams()</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.TDigest.html#partialFit">partialFit(x)</a></dt>
+                    <dt><a href="module-analytics.TDigest.html#insert">insert(x)</a></dt>
                     <dd>
                     </dd>
                   </dl>
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.TDigest.html#predict">predict(x)</a></dt>
+                    <dt><a href="module-analytics.TDigest.html#quantile">quantile(x)</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.TDigest.html#save">save(fout)</a></dt>
@@ -86,11 +86,6 @@
                   </dl>
                 </div>
                 <div class="summary-column">
-                  <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.TDigest.html#setParams">setParams(params)</a></dt>
-                    <dd>
-                    </dd>
-                  </dl>
                 </div>
               </div>
             </div>
@@ -108,19 +103,19 @@ var qm = require(&#x27;qminer&#x27;);
 var fs = qm.fs;
 var analytics = qm.analytics;
 // create the default TDigest object
-var tdigest = new analytics.TDigest();
+var tdigest = new analytics.quantiles.TDigest();
 // create the data used for calculating quantiles
 var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
 // fit the TDigest model
 for (var i = 0; i &lt; inputs.length; i++) {
-    tdigest.partialFit(inputs[i]);
+    tdigest.insert(inputs[i]);
 }
 // make the prediction for the 0.1 quantile
-var prediction = tdigest.predict(0.1);
+var prediction = tdigest.quantile(0.1);
 // save the model
 tdigest.save(fs.openWrite(&#x27;tdigest.bin&#x27;)).close();
 // open the tdigest model under a new variable
-var tdigest2 = new analytics.TDigest(fs.openRead(&#x27;tdigest.bin&#x27;));</code></pre>
+var tdigest2 = new analytics.quantiles.TDigest(fs.openRead(&#x27;tdigest.bin&#x27;));</code></pre>
               </div>
             </section>
             <section>
@@ -140,14 +135,14 @@ var tdigest2 = new analytics.TDigest(fs.openRead(&#x27;tdigest.bin&#x27;));</cod
                       <p>arg</p>
                     </td>
                     <td>
-                      <p>(<a href="module-analytics.html#~TDigestParam">module:analytics~TDigestParam</a> or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
+                      <p>(module:analytics.quantiles~TDigestParam or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
                     </td>
                     <td>
                       <p>Yes</p>
                     </td>
                     <td>
                       <p>Construction arguments. There are two ways of constructing:
-                        <br>1. Using the <a href="module-analytics.html#~TDigestParam">module:analytics~TDigestParam</a> object,
+                        <br>1. Using the module:analytics.quantiles~TDigestParam object,
                         <br>2. using the file input stream <a href="module-fs.FIn.html">module:fs.FIn</a>.</p>
                     </td>
                   </tr>
@@ -180,7 +175,7 @@ var qm = require(&#x27;qminer&#x27;);
 var analytics = qm.analytics;
 var fs = qm.fs;
 // create the default TDigest object
-var tdigest = new analytics.TDigest();
+var tdigest = new analytics.quantiles.TDigest();
 // check if the model has enough data to initialize
 if (tdigest.init) { console.log(&quot;Ready to initialize&quot;); }</code></pre>
                 </div>
@@ -190,7 +185,7 @@ if (tdigest.init) { console.log(&quot;Ready to initialize&quot;); }</code></pre>
             </section>
             <h2>Methods</h2>
             <section>
-              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~TDigestParam">module:analytics~TDigestParam</a></span></span></h3>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> module:analytics.quantiles~TDigestParam</span></span></h3>
               <p>Returns the parameters.</p>
               <section>
                 <h4>
@@ -201,7 +196,7 @@ if (tdigest.init) { console.log(&quot;Ready to initialize&quot;); }</code></pre>
 var qm = require(&#x27;qminer&#x27;);
 var analytics = qm.analytics;
 // create the default TDigest object
-var tdigest = new analytics.TDigest();
+var tdigest = new analytics.quantiles.TDigest();
 // get the parameters of the object
 var params = tdigest.getParams();</code></pre>
                 </div>
@@ -209,10 +204,10 @@ var params = tdigest.getParams();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.html#~TDigestParam">module:analytics~TDigestParam</a></code>&nbsp;The construction parameters.</p>
+                  <p><code>module:analytics.quantiles~TDigestParam</code>&nbsp;The construction parameters.</p>
                 </dd>
               </dl>
-              <h3 id="partialFit"><span class="symbol-name">partialFit</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.TDigest.html">module:analytics.TDigest</a></span></span></h3>
+              <h3 id="insert"><span class="symbol-name">insert</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> module:analytics.quantiles.TDigest</span></span></h3>
               <p>Adds a new measurement to the model and updates the approximation of the data distribution.</p>
               <section>
                 <h4>
@@ -223,12 +218,12 @@ var params = tdigest.getParams();</code></pre>
 var qm = require(&#x27;qminer&#x27;);
 var analytics = qm.analytics;
 // create the default TDigest object
-var tdigest = new analytics.TDigest();
+var tdigest = new analytics.quantiles.TDigest();
 // create the data used for calculating quantiles
 var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
 // fit the TDigest model with all input values
 for (var i = 0; i &lt; inputs.length; i++) {
-    tdigest.partialFit(inputs[i]);
+    tdigest.insert(inputs[i]);
 }</code></pre>
                 </div>
               </section>
@@ -264,10 +259,10 @@ for (var i = 0; i &lt; inputs.length; i++) {
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.TDigest.html">module:analytics.TDigest</a></code>&nbsp;Self. The model has been updated.</p>
+                  <p><code>module:analytics.quantiles.TDigest</code>&nbsp;Self. The model has been updated.</p>
                 </dd>
               </dl>
-              <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <h3 id="quantile"><span class="symbol-name">quantile</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Returns a quantile given input number, that is the approximate fraction of samples smaller than the input (0.05 means that 5% of data is smaller than the input value).</p>
               <section>
                 <h4>
@@ -278,15 +273,15 @@ for (var i = 0; i &lt; inputs.length; i++) {
 var qm = require(&#x27;qminer&#x27;);
 var analytics = qm.analytics;
 // create the default TDigest object
-var tdigest = new analytics.TDigest();
+var tdigest = new analytics.quantiles.TDigest();
 // create the data used for calculating quantiles
 var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
 // fit the TDigest model
 for (var i = 0; i &lt; inputs.length; i++) {
-    tdigest.partialFit(inputs[i]);
+    tdigest.insert(inputs[i]);
 }
-// make the prediction for the 0.1 quantile
-var prediction = tdigest.predict(0.1);</code></pre>
+// make the estimation for the 0.1 quantile
+var quant = tdigest.quantile(0.1);</code></pre>
                 </div>
               </section>
               <section>
@@ -337,17 +332,17 @@ var fs = require(&#x27;qminer&#x27;).fs;
 var analytics = qm.analytics;
 var fs = qm.fs;
 // create the default TDigest object
-var tdigest = new analytics.TDigest();
+var tdigest = new analytics.quantiles.TDigest();
 // create the data used for calculating quantiles
 var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
 // fit the TDigest model
 for (var i = 0; i &lt; inputs.length; i++) {
-    tdigest.partialFit(inputs[i]);
+    tdigest.insert(inputs[i]);
 }
 // save the model
 tdigest.save(fs.openWrite(&#x27;tdigest.bin&#x27;)).close();
 // open the tdigest model under a new variable
-var tdigest2 = new analytics.TDigest(fs.openRead(&#x27;tdigest.bin&#x27;));</code></pre>
+var tdigest2 = new analytics.quantiles.TDigest(fs.openRead(&#x27;tdigest.bin&#x27;));</code></pre>
                 </div>
               </section>
               <section>
@@ -383,57 +378,6 @@ var tdigest2 = new analytics.TDigest(fs.openRead(&#x27;tdigest.bin&#x27;));</cod
                 <dt>Returns</dt>
                 <dd>
                   <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream <code>fout</code>.</p>
-                </dd>
-              </dl>
-              <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(params)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.TDigest.html">module:analytics.TDigest</a></span></span></h3>
-              <p>Sets the parameters.</p>
-              <section>
-                <h4>
-            Example
-        </h4>
-                <div>
-                  <pre class="prettyprint"><code>// import modules
-var qm = require(&#x27;qminer&#x27;);
-var analytics = qm.analytics;
-// create the default TDigest object
-var tdigest = new analytics.TDigest();
-// set the parameters of the object
-var params = tdigest.setParams({ minCount: 10, clusters: 50 });</code></pre>
-                </div>
-              </section>
-              <section>
-                <h4>Parameter</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>params</p>
-                      </td>
-                      <td>
-                        <p><a href="module-analytics.html#~TDigestParam">module:analytics~TDigestParam</a></p>
-                      </td>
-                      <td>
-                        <p>&nbsp;</p>
-                      </td>
-                      <td>
-                        <p>The construction parameters.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p><code><a href="module-analytics.TDigest.html">module:analytics.TDigest</a></code>&nbsp;Self. The model parameters have been updated.</p>
                 </dd>
               </dl>
             </section>
