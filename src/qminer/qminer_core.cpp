@@ -1924,6 +1924,10 @@ void TRec::GetFieldTMem(const int& FieldId, TMem& Mem) const {
 PJsonVal TRec::GetFieldJsonVal(const int& FieldId) const {
     if (IsByRef()) {
         return Store->GetFieldJsonVal(RecId, FieldId);
+    } else if (FieldIdPosH.IsKey(FieldId)){
+        const int Pos = FieldIdPosH.GetDat(FieldId);
+        TMIn MIn(RecVal.GetBf() + Pos, RecVal.Len() - Pos, false);
+        return TJsonVal::GetValFromStr(TStr(MIn));
     } else {
         throw FieldError(FieldId, "JsonVal");
     }

@@ -49,7 +49,7 @@ private:
     static v8::Persistent<v8::Function> Constructor;
 public:
     ~TNodeJsFltVV() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     const static TStr GetClassId() { return "Matrix"; }
 
     static TNodeJsFltVV* NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args);
@@ -554,7 +554,7 @@ private:
     static v8::Persistent<v8::Function> Constructor;
     ~TNodeJsSpVec() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "SparseVector"; }
 
 public:
@@ -797,7 +797,7 @@ private:
     static v8::Persistent<v8::Function> Constructor;
     ~TNodeJsSpMat() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "SparseMatrix"; }
 
     // wrapped C++ object

@@ -1,0 +1,622 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="generator" content="JSDoc 3">
+  <meta charset="utf-8">
+  <title>Class: ActiveLearner</title>
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Karla:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Noto+Serif:400,400i,700,700i" type="text/css">
+  <link rel="stylesheet" href="https://brick.a.ssl.fastly.net/Inconsolata:500" type="text/css">
+  <link href="css/baseline.css" rel="stylesheet">
+</head>
+
+<body onload="prettyPrint()">
+  <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
+    <div id="jsdoc-navbar-container">
+      <div id="jsdoc-navbar-content">
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.2.0</a>
+      </div>
+    </div>
+  </nav>
+  <div id="jsdoc-body-container">
+    <div id="jsdoc-content">
+      <div id="jsdoc-content-container">
+        <div id="jsdoc-main" role="main">
+          <header class="page-header">
+            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-inner">inner</span></div><small><a href="module-analytics.html">analytics</a>~<wbr></small><span class="symbol-name">ActiveLearner</span></h1>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-4855">analyticsdoc.<wbr>js:4855</a></p>
+            <div class="symbol-classdesc">
+              <p>Active learner. Uses a SVM model and implements an uncertainty measure (distance to the margin) to select which unlabelled example should be labelled next.</p>
+            </div>
+            <dl class="dl-compact">
+            </dl>
+          </header>
+          <section id="summary">
+            <div class="summary-callout">
+              <h2 class="summary-callout-heading">Methods</h2>
+              <div class="summary-content">
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics-ActiveLearner.html#_assertLabel">_assertLabel()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics-ActiveLearner.html#_assertLabelSet">_assertLabelSet()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics-ActiveLearner.html#_assertMatrix">_assertMatrix()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics-ActiveLearner.html#_getDefaultSettings">_getDefaultSettings()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics-ActiveLearner.html#_getLabArr">_getLabArr()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics-ActiveLearner.html#_getLabelMapFromArr">_getLabelMapFromArr()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics-ActiveLearner.html#_getLabIdxArr">_getLabIdxArr()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics-ActiveLearner.html#_getQueryIdx">_getQueryIdx(X, y, SVC[, num])</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics-ActiveLearner.html#_getUnlabIdxArr">_getUnlabIdxArr()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics-ActiveLearner.html#_retrain">_retrain(X, y, SVC)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics-ActiveLearner.html#getQueryIdx">getQueryIdx([num])</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics-ActiveLearner.html#getSVC">getSVC()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics-ActiveLearner.html#getX">getX()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics-ActiveLearner.html#gety">gety()</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+                <div class="summary-column">
+                  <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics-ActiveLearner.html#load">load(input)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics-ActiveLearner.html#retrain">retrain()</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics-ActiveLearner.html#save">save(output)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics-ActiveLearner.html#setLabel">setLabel(idx, label)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics-ActiveLearner.html#setX">setX(X)</a></dt>
+                    <dd>
+                    </dd>
+                    <dt><a href="module-analytics-ActiveLearner.html#sety">sety(_y)</a></dt>
+                    <dd>
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section>
+            <h2 id="ActiveLearner">new&nbsp;<span class="symbol-name">ActiveLearner</span><span class="signature"><span class="signature-params">([arg])</span></span></h2>
+            <section>
+              <h3>
+            Example
+        </h3>
+              <div>
+                <pre class="prettyprint"><code>// load libs
+var qm = require(&#x27;qminer&#x27;);
+var la = qm.la;
+// create model
+var al = new qm.analytics.ActiveLearner();
+
+// set data (4 labelled and 2 unlabelled examples)
+var X = new la.Matrix([
+    [-2, 1],
+    [-2, 0],
+    [-2, -1],
+    [0, 1],
+    [-0.9, 0],
+    [0, -1]
+]).transpose(); // column examples
+al.setX(X);
+
+var y = [-1, 0, -1, 1, 0, 1];
+al.sety(y);
+// get the array containing 1 index of the unlabelled example
+// that is the closest to the hyperplane
+var qidx = al.getQueryIdx(1);
+console.log(qidx); // 4</code></pre>
+              </div>
+            </section>
+            <section>
+              <h3>Parameter</h3>
+              <table class="jsdoc-details-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th>Optional</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <p>arg</p>
+                    </td>
+                    <td>
+                      <p>(<a href="module-analytics.html#~ActiveLearnerParam">module:analytics~ActiveLearnerParam</a>, module:fs~FIn, or string)</p>
+                    </td>
+                    <td>
+                      <p>Yes</p>
+                    </td>
+                    <td>
+                      <p>Construction arguments (JSON) or when loading: an input stream (fs.FIn) or a file name (string).</p>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+            <dl class="dl-compact">
+            </dl>
+          </section>
+          <section>
+            <h2>Methods</h2>
+            <section>
+              <h3 id="_assertLabel"><span class="symbol-name">_assertLabel</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Asserts if a label and the index are valid, given number of examples <code>cols</code></p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="_assertLabelSet"><span class="symbol-name">_assertLabelSet</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Asserts if a Map with labels is valid</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="_assertMatrix"><span class="symbol-name">_assertMatrix</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Asserts if the object is a la matrix</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="_getDefaultSettings"><span class="symbol-name">_getDefaultSettings</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Returns default settings</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="_getLabArr"><span class="symbol-name">_getLabArr</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Returns an array of label values corresponding to the labelled examples</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="_getLabelMapFromArr"><span class="symbol-name">_getLabelMapFromArr</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Transforms an Array of labels to a Map from indices to labels</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="_getLabIdxArr"><span class="symbol-name">_getLabIdxArr</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Returns an array of indices of labelled examples</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="_getQueryIdx"><span class="symbol-name">_getQueryIdx</span><span class="signature"><span class="signature-params">(X, y, SVC[, num])</span>&nbsp;&rarr; <span class="signature-returns"> Array of number</span></span></h3>
+              <p>Return an array of indices where the model has the highest uncertainty (1 element by default)</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>X</p>
+                      </td>
+                      <td>
+                        <p>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>data matrix (column examples)</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>y</p>
+                      </td>
+                      <td>
+                        <p>Map</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>a Map from indices to 1 or -1</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>SVC</p>
+                      </td>
+                      <td>
+                        <p><a href="module-analytics.SVC.html">module:analytics.SVC</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>a SVC model</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>num</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>the length of the array that is returned (top <code>num</code> indices where uncertainty is maximal)</p>
+                        <p>Defaults to <code>1</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Array of number</code>&nbsp;- array of indices of unlabelled examples</p>
+                </dd>
+              </dl>
+              <h3 id="_getUnlabIdxArr"><span class="symbol-name">_getUnlabIdxArr</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Returns an array of indices of unlabelled examples</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="_retrain"><span class="symbol-name">_retrain</span><span class="signature"><span class="signature-params">(X, y, SVC)</span></span></h3>
+              <p>Retrains the SVC model</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>X</p>
+                      </td>
+                      <td>
+                        <p>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>data matrix (column examples)</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>y</p>
+                      </td>
+                      <td>
+                        <p>Map</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>a Map from indices to 1 or -1</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>SVC</p>
+                      </td>
+                      <td>
+                        <p><a href="module-analytics.SVC.html">module:analytics.SVC</a></p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>a SVC model</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="getQueryIdx"><span class="symbol-name">getQueryIdx</span><span class="signature"><span class="signature-params">([num])</span>&nbsp;&rarr; <span class="signature-returns"> Array of number</span></span></h3>
+              <p>Returns an array of 0 or more example indices sorted by uncertainty (first element is the closest to the hyperplane)</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>num</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>maximal length of the array</p>
+                        <p>Defaults to <code>1</code>.</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Array of number</code>&nbsp;array of unlabelled example indices</p>
+                </dd>
+              </dl>
+              <h3 id="getSVC"><span class="symbol-name">getSVC</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.SVC.html">module:analytics.SVC</a></span></span></h3>
+              <p>Returns the SVC model</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code><a href="module-analytics.SVC.html">module:analytics.SVC</a></code>&nbsp;SVC model</p>
+                </dd>
+              </dl>
+              <h3 id="getX"><span class="symbol-name">getX</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</span></span></h3>
+              <p>Returns the data matrix (column examples)</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</code>&nbsp;data matrix (column examples)</p>
+                </dd>
+              </dl>
+              <h3 id="gety"><span class="symbol-name">gety</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Map</span></span></h3>
+              <p>Returns the Map from example indices to labels (-1 or 1)</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p><code>Map</code>&nbsp;label map</p>
+                </dd>
+              </dl>
+              <h3 id="load"><span class="symbol-name">load</span><span class="signature"><span class="signature-params">(input)</span></span></h3>
+              <p>Loads instance matrix, labels and the model from the input stream</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>input</p>
+                      </td>
+                      <td>
+                        <p>(string or <a href="module-fs.FIn.html">module:fs.FIn</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>a file name or an input stream</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="retrain"><span class="symbol-name">retrain</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Retrains the SVC model</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(output)</span></span></h3>
+              <p>Saves the instance matrix, labels and the model to the input stream</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>output</p>
+                      </td>
+                      <td>
+                        <p>(string or <a href="module-fs.FOut.html">module:fs.FOut</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>a file name or an output stream</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="setLabel"><span class="symbol-name">setLabel</span><span class="signature"><span class="signature-params">(idx, label)</span></span></h3>
+              <p>Sets the label</p>
+              <section>
+                <h4>Parameters</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>idx</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>instance index</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>label</p>
+                      </td>
+                      <td>
+                        <p>number</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>should be either 1 or -1</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="setX"><span class="symbol-name">setX</span><span class="signature"><span class="signature-params">(X)</span></span></h3>
+              <p>Sets the data matrix (column examples)</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>X</p>
+                      </td>
+                      <td>
+                        <p>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>data matrix (column examples)</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id="sety"><span class="symbol-name">sety</span><span class="signature"><span class="signature-params">(_y)</span></span></h3>
+              <p>Sets the labels</p>
+              <section>
+                <h4>Parameter</h4>
+                <table class="jsdoc-details-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Type</th>
+                      <th>Optional</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <p>_y</p>
+                      </td>
+                      <td>
+                        <p>(Array of number, module.la.Vector, module.la.IntVector, or Map)</p>
+                      </td>
+                      <td>
+                        <p>&nbsp;</p>
+                      </td>
+                      <td>
+                        <p>array (like) object that encodes labels (-1, 0 or 1) or a Map from indices to 1 or -1</p>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </section>
+              <dl class="dl-compact">
+              </dl>
+            </section>
+          </section>
+        </div>
+      </div>
+      <nav id="jsdoc-toc-nav" role="navigation"></nav>
+    </div>
+  </div>
+  <footer id="jsdoc-footer" class="jsdoc-footer">
+    <div id="jsdoc-footer-container">
+      <p>
+        
+      </p>
+    </div>
+  </footer>
+  <script src="scripts/jquery.min.js"></script>
+  <script src="scripts/jquery.cookie.js"></script>
+  <script src="scripts/tree.jquery.js"></script>
+  <script src="scripts/prettify.js"></script>
+  <script src="scripts/jsdoc-toc.js"></script>
+  <script src="scripts/linenumber.js"></script>
+  <script src="scripts/scrollanchor.js"></script>
+</body>
+
+</html>

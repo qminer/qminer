@@ -63,7 +63,7 @@ private:
     ~TNodeJsFs() {}
 
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
 
 public:
 
@@ -329,7 +329,7 @@ private:
     static v8::Persistent<v8::Function> Constructor;
     ~TNodeJsFIn() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
-    static void Init(v8::Handle<v8::Object> Exports);
+    static void Init(v8::Local<v8::Object> Exports);
     static const TStr GetClassId() { return "FIn"; }
 
     // wrapped C++ object
@@ -529,7 +529,7 @@ private:
     static v8::Persistent<v8::Function> Constructor;
     ~TNodeJsFOut() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "FOut"; }
 
     // wrapped C++ object

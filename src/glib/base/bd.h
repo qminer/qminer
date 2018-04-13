@@ -755,6 +755,7 @@ namespace gtraits {
   template <> struct is_shallow<TCh> : true_type{};
   template <> struct is_shallow<TUCh> : true_type{};
   template <> struct is_shallow<TUSInt> : true_type{};
+
   // TNum
   template <class Base> struct is_shallow<TNum<Base>> : true_type{};
   // TPair

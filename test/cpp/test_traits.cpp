@@ -1,40 +1,23 @@
-/**
-* Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
-* All rights reserved.
-*
-* This source code is licensed under the FreeBSD license found in the
-* LICENSE file in the root directory of this source tree.
-*/
-
 #include <base.h>
-
-///////////////////////////////////////////////////////////////////////////////
-// Google Test
-#include "gtest/gtest.h"
-
-#ifdef WIN32
-#ifdef _DEBUG
-#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
-#define new DEBUG_NEW
-#endif
-#endif
+#include <mine.h>
+#include "microtest.h"
 
 #ifdef GLib_CPP11
 
-TEST(is_container, TVec) {
+TEST(is_containerTVec) {
     ASSERT_TRUE(gtraits::is_container<TIntV>::value);
     ASSERT_TRUE(gtraits::is_container<TStrV>::value);
     ASSERT_TRUE(gtraits::is_container<TStrPrV>::value);
 }
 
-TEST(is_container, THash) {
+TEST(is_containerTHash) {
     ASSERT_TRUE(gtraits::is_container<TIntH>::value);
     ASSERT_TRUE(gtraits::is_container<TIntStrH>::value);
     ASSERT_TRUE(gtraits::is_container<TIntFltH>::value);
 }
 
 // test that glib numeric types have standard layouts
-TEST(type_traits, TNum) {
+TEST(type_traitsTNum) {
     ASSERT_TRUE(gtraits::is_shallow<TInt>::value);
     ASSERT_TRUE(gtraits::is_shallow<TUInt>::value);
     ASSERT_TRUE(gtraits::is_shallow<TFlt>::value);
@@ -43,21 +26,21 @@ TEST(type_traits, TNum) {
 }
 
 // characters
-TEST(type_traits, TCh) {
+TEST(type_traitsTCh) {
     ASSERT_TRUE(gtraits::is_shallow<TCh>::value);
     ASSERT_TRUE(gtraits::is_shallow<TUCh>::value);
 }
 
 // boolean
-TEST(type_traits, TBool) {
+TEST(type_traitsTBool) {
     ASSERT_TRUE(gtraits::is_shallow<TBool>::value);
 }
 
-TEST(type_traits, TStr) {
+TEST(type_traitsTStr) {
     ASSERT_FALSE(gtraits::is_shallow<TStr>::value);
 }
 
-TEST(type_traits, TPair) {
+TEST(type_traitsTPair) {
     ASSERT_TRUE(gtraits::is_shallow<TIntPr>::value);
     ASSERT_FALSE(gtraits::is_shallow<TIntStrPr>::value);
 }

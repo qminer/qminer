@@ -57,6 +57,7 @@ script:
   - npm install -g mustache
   - ./tools/genExampleTests.sh
   - ./test/nodejs/test.sh
+  - ./test/cpp/test.sh
 
 os: linux
 notifications:

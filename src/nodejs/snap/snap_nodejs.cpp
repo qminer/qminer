@@ -11,7 +11,7 @@
 // NodeJs-Qminer-Snap 
 //
 
-void TNodeJsSnap::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsSnap::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     // Add all methods, getters and setters here.
@@ -23,7 +23,7 @@ void TNodeJsSnap::Init(v8::Handle<v8::Object> exports) {
 
 
 template <>
-void TNodeJsGraph<TUNGraph>::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsGraph<TUNGraph>::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
@@ -64,7 +64,7 @@ void TNodeJsGraph<TUNGraph>::Init(v8::Handle<v8::Object> exports) {
 }
 
 template <>
-void TNodeJsGraph<TNGraph>::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsGraph<TNGraph>::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
@@ -105,7 +105,7 @@ void TNodeJsGraph<TNGraph>::Init(v8::Handle<v8::Object> exports) {
 }
 
 template <>
-void TNodeJsGraph<TNEGraph>::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsGraph<TNEGraph>::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
