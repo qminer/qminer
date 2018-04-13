@@ -1,34 +1,14 @@
-/**
-* Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
-* All rights reserved.
-*
-* This source code is licensed under the FreeBSD license found in the
-* LICENSE file in the root directory of this source tree.
-*/
-
 #include <base.h>
+#include <mine.h>
+#include "microtest.h"
 
-
-///////////////////////////////////////////////////////////////////////////////
-// Google Test
-#include "gtest/gtest.h"
-
-#ifdef WIN32
-#ifdef _DEBUG
-#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
-#define new DEBUG_NEW
-#endif
-#endif
-
-///////////////////////////////////////////////////////////////////////////////
-
-TEST(TQQueueTest, Unlimited) {
+TEST(TQQueueTestUnlimited) {
     try {
-        TQQueue<TInt> Q(64,-1);
+        TQQueue<TInt> Q(64, -1);
         ASSERT_TRUE(Q.Empty());
         for (int i = 0; i < 100; i++) {
             Q.Push(i);
-            ASSERT_EQ(Q.Len(), i+1);
+            ASSERT_EQ(Q.Len(), i + 1);
             ASSERT_FALSE(Q.Empty());
         }
         for (int i = 0; i < 100; i++) {
@@ -64,7 +44,7 @@ TEST(TQQueueTest, Unlimited) {
     }
 }
 
-TEST(TQQueueTest, Unlimited2) {
+TEST(TQQueueTestUnlimited2) {
     try {
         TQQueue<TInt> Q(64, -1);
         ASSERT_TRUE(Q.Empty());
@@ -90,7 +70,7 @@ TEST(TQQueueTest, Unlimited2) {
     }
 }
 
-TEST(TQQueueTest, Unlimited3) {
+TEST(TQQueueTestUnlimited3) {
     try {
         TQQueue<TInt> Q(64, -1);
         ASSERT_TRUE(Q.Empty());
@@ -104,8 +84,8 @@ TEST(TQQueueTest, Unlimited3) {
         TIntV Vec2; Q.GetSubValVec(10, 20, Vec2);
         ASSERT_EQ(Vec2.Len(), 11);
         for (int i = 0; i < Vec2.Len(); i++) {
-            ASSERT_EQ(Vec[i+10], Vec2[i]);
-            ASSERT_EQ(Q[i+10], Vec2[i]);
+            ASSERT_EQ(Vec[i + 10], Vec2[i]);
+            ASSERT_EQ(Q[i + 10], Vec2[i]);
         }
 
     } catch (PExcept& Except) {
@@ -116,10 +96,10 @@ TEST(TQQueueTest, Unlimited3) {
 
 
 
-TEST(TQQueueTest, Limited1) {
+TEST(TQQueueTestLimited1) {
     try {
         TQQueue<TInt> Q(64, 1);
-        ASSERT_EQ(Q.Len(), 0); 
+        ASSERT_EQ(Q.Len(), 0);
         ASSERT_TRUE(Q.Empty());
 
         Q.Push(1);
@@ -144,7 +124,7 @@ TEST(TQQueueTest, Limited1) {
     }
 }
 
-TEST(TQQueueTest, Limited2) {
+TEST(TQQueueTestLimited2) {
     try {
         TQQueue<TInt> Q(64, 2);
         ASSERT_EQ(Q.Len(), 0);
@@ -168,7 +148,7 @@ TEST(TQQueueTest, Limited2) {
         ASSERT_EQ(Q.Top(), 4);
         ASSERT_FALSE(Q.Empty());
         Q.Pop();
-        ASSERT_EQ(Q.Len(), 0);        
+        ASSERT_EQ(Q.Len(), 0);
         ASSERT_TRUE(Q.Empty());
     } catch (PExcept& Except) {
         printf("Error: %s", Except->GetStr().CStr());
@@ -176,7 +156,7 @@ TEST(TQQueueTest, Limited2) {
     }
 }
 
-TEST(TQQueueTest, Limited3) {
+TEST(TQQueueTestLimited3) {
     try {
         TQQueue<TInt> Q(64, 3);
         ASSERT_EQ(Q.Len(), 0);
@@ -214,14 +194,14 @@ TEST(TQQueueTest, Limited3) {
 }
 
 
-TEST(TQQueueTest, Shuffle) {
+TEST(TQQueueTestShuffle) {
     try {
         TQQueue<TInt> Q(64, -1);
         ASSERT_TRUE(Q.Empty());
 
         for (int i = 0; i < 200; i++) {
             Q.Push(i);
-            ASSERT_EQ(Q.Len(), i+1);
+            ASSERT_EQ(Q.Len(), i + 1);
             ASSERT_EQ(Q.Front(), 0);
             ASSERT_EQ(Q.Back(), i);
             ASSERT_EQ(Q[i], i);

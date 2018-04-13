@@ -1924,6 +1924,10 @@ void TRec::GetFieldTMem(const int& FieldId, TMem& Mem) const {
 PJsonVal TRec::GetFieldJsonVal(const int& FieldId) const {
     if (IsByRef()) {
         return Store->GetFieldJsonVal(RecId, FieldId);
+    } else if (FieldIdPosH.IsKey(FieldId)){
+        const int Pos = FieldIdPosH.GetDat(FieldId);
+        TMIn MIn(RecVal.GetBf() + Pos, RecVal.Len() - Pos, false);
+        return TJsonVal::GetValFromStr(TStr(MIn));
     } else {
         throw FieldError(FieldId, "JsonVal");
     }
@@ -5640,6 +5644,7 @@ void TIndex::DoJoinQueryFull(const int& KeyId, const TUInt64V& RecIdV, TUInt64In
     }
     // convert to vector
     RecIdFqH.GetKeyDatKdV(RecIdFqV);
+    RecIdFqV.Sort();
 }
 
 void TIndex::DoJoinQuerySmall(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& RecIdFqV) const {
@@ -5657,6 +5662,7 @@ void TIndex::DoJoinQuerySmall(const int& KeyId, const TUInt64V& RecIdV, TUInt64I
     }
     // convert to vector
     RecIdFqH.GetKeyDatKdV(RecIdFqV);
+    RecIdFqV.Sort();
 }
 
 void TIndex::DoJoinQueryTiny(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& RecIdFqV) const {
@@ -5674,6 +5680,7 @@ void TIndex::DoJoinQueryTiny(const int& KeyId, const TUInt64V& RecIdV, TUInt64In
     }
     // convert to vector
     RecIdFqH.GetKeyDatKdV(RecIdFqV);
+    RecIdFqV.Sort();
 }
 
 void TIndex::DoQueryPos(const int& KeyId, const TUInt64V& WordIdV,

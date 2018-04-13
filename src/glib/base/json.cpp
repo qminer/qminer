@@ -433,7 +433,7 @@ void TJsonVal::AddEscapeChAFromStr(const TStr& Str, TChA& ChA){
         } else {
           // U+10000 .. U+10FFFF
           int UChH = 0xD800 + ((UCh - 0x010000) >> 10);
-          int UChL = 0xDC00 + ((UCh - 0x010000) && 0x3FF);
+          int UChL = 0xDC00 + ((UCh - 0x010000) & 0x3FF);
           ChA += "\\u";
           ChA += TStr::Fmt("%04x", UChH);
           ChA += "\\u";

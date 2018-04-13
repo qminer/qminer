@@ -38,6 +38,7 @@ public:
 
   double GetUniDev(){return GetNextSeed()/double(m);}
   int GetUniDevInt(const int& Range=0);
+  /// returns a random integer in range [MnVal, MxVal] (both inclusive)
   int GetUniDevInt(const int& MnVal, const int& MxVal){
     IAssert(MnVal<=MxVal); return MnVal+GetUniDevInt(MxVal-MnVal+1);}
   uint GetUniDevUInt(const uint& Range=0);
@@ -79,6 +80,8 @@ public:
 
   static TRnd LoadTxt(TILx& Lx);
   void SaveTxt(TOLx& Lx) const;
+
+  uint64 GetMemUsed() const;
 };
 
 /////////////////////////////////////////////////
