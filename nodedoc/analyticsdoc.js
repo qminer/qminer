@@ -2139,7 +2139,7 @@
  exports.DpMeans.prototype.relMeanCentroidDist = 0;
 /**
 * @typedef {Object} TDigestParam
-* An object used for the construction of {@link module:analytics.TDigest}.
+* An object used for the construction of {@link module:analytics.quantiles.TDigest}.
 * @property {number} [minCount=0] - The minimal number of examples before the model is initialized.
 * @property {number} [clusters=100] - The number of 1-d clusters (large values lead to higher memory usage).
 */
@@ -2148,13 +2148,13 @@
 * @classdesc TDigest is a methods that approximates the CDF function of streaming measurements.
 *   Data structure useful for percentile and quantile estimation for online data streams.
 *   It can be added to any anomaly detector to set the number of alarms triggered as a percentage of the total samples.
-*   Adding new samples to the distribution is achieved through `partialFit` and querying the model (computing quantiles)
+*   Adding new samples to the distribution is achieved through `insert` and querying the model (computing quantiles)
 *   is implemented by `predict` function.
 *   <br> This is based on the Data Lib Sketch Implementation: {@link https://github.com/vega/datalib-sketch/blob/master/src/t-digest.js t-digest.js}
 *   <br> Paper: Ted Dunning, Otmar Ertl - {@link https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf Computing Extremely Accurate Quantiles Using t-Digests}.
 * @class
-* @param {module:analytics~TDigestParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
-* <br>1. Using the {@link module:analytics~TDigestParam} object,
+* @param {module:analytics.quantiles~TDigestParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
+* <br>1. Using the {@link module:analytics.quantiles~TDigestParam} object,
 * <br>2. using the file input stream {@link module:fs.FIn}.
 * @example
 * // import modules
@@ -2162,66 +2162,52 @@
 * var fs = qm.fs;
 * var analytics = qm.analytics;
 * // create the default TDigest object
-* var tdigest = new analytics.TDigest();
+* var tdigest = new analytics.quantiles.TDigest();
 * // create the data used for calculating quantiles
 * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
 * // fit the TDigest model
 * for (var i = 0; i < inputs.length; i++) {
-*     tdigest.partialFit(inputs[i]);
+*     tdigest.insert(inputs[i]);
 * }
 * // make the prediction for the 0.1 quantile
-* var prediction = tdigest.predict(0.1);
+* var prediction = tdigest.quantile(0.1);
 * // save the model
 * tdigest.save(fs.openWrite('tdigest.bin')).close();
 * // open the tdigest model under a new variable
-* var tdigest2 = new analytics.TDigest(fs.openRead('tdigest.bin'));
+* var tdigest2 = new analytics.quantiles.TDigest(fs.openRead('tdigest.bin'));
 */
- exports.TDigest = function (arg) { return Object.create(require('qminer').analytics.TDigest.prototype); }
+ exports.TDigest = function (arg) { return Object.create(require('qminer').analytics.quantiles.TDigest.prototype); }
 /**
     * Returns the parameters.
-    * @returns {module:analytics~TDigestParam} The construction parameters.
+    * @returns {module:analytics.quantiles~TDigestParam} The construction parameters.
     * @example
     * // import modules
     * var qm = require('qminer');
     * var analytics = qm.analytics;
     * // create the default TDigest object
-    * var tdigest = new analytics.TDigest();
+    * var tdigest = new analytics.quantiles.TDigest();
     * // get the parameters of the object
     * var params = tdigest.getParams();
     */
  exports.TDigest.prototype.getParams = function () { return { }; }
 /**
-    * Sets the parameters.
-    * @param {module:analytics~TDigestParam} params - The construction parameters.
-    * @returns {module:analytics.TDigest} Self. The model parameters have been updated.
-    * @example
-    * // import modules
-    * var qm = require('qminer');
-    * var analytics = qm.analytics;
-    * // create the default TDigest object
-    * var tdigest = new analytics.TDigest();
-    * // set the parameters of the object
-    * var params = tdigest.setParams({ minCount: 10, clusters: 50 });
-    */
- exports.TDigest.prototype.setParams = function (params) { return Object.create(require('qminer').analytics.TDigest.prototype); }
-/**
     * Adds a new measurement to the model and updates the approximation of the data distribution.
     * @param {number} x - Input number.
-    * @returns {module:analytics.TDigest} Self. The model has been updated.
+    * @returns {module:analytics.quantiles.TDigest} Self. The model has been updated.
     * @example
     * // import modules
     * var qm = require('qminer');
     * var analytics = qm.analytics;
     * // create the default TDigest object
-    * var tdigest = new analytics.TDigest();
+    * var tdigest = new analytics.quantiles.TDigest();
     * // create the data used for calculating quantiles
     * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
     * // fit the TDigest model with all input values
     * for (var i = 0; i < inputs.length; i++) {
-    *     tdigest.partialFit(inputs[i]);
+    *     tdigest.insert(inputs[i]);
     * }
     */
- exports.TDigest.prototype.partialFit = function (X) { return Object.create(require('qminer').analytics.TDigest.prototype); }
+ exports.TDigest.prototype.insert = function (X) { return Object.create(require('qminer').analytics.quantiles.TDigest.prototype); }
 /**
     * Returns a quantile given input number, that is the approximate fraction of samples smaller than the input (0.05 means that 5% of data is smaller than the input value).
     * @param {number} x - Input number.
@@ -2231,17 +2217,17 @@
     * var qm = require('qminer');
     * var analytics = qm.analytics;
     * // create the default TDigest object
-    * var tdigest = new analytics.TDigest();
+    * var tdigest = new analytics.quantiles.TDigest();
     * // create the data used for calculating quantiles
     * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
     * // fit the TDigest model
     * for (var i = 0; i < inputs.length; i++) {
-    *     tdigest.partialFit(inputs[i]);
+    *     tdigest.insert(inputs[i]);
     * }
-    * // make the prediction for the 0.1 quantile
-    * var prediction = tdigest.predict(0.1);
+    * // make the estimation for the 0.1 quantile
+    * var quant = tdigest.quantile(0.1);
     */
- exports.TDigest.prototype.predict = function (x) { return 0; }
+ exports.TDigest.prototype.quantile = function (x) { return 0; }
 /**
     * Saves TDigest internal state into (binary) file.
     * @param {module:fs.FOut} fout - The output stream.
@@ -2253,17 +2239,17 @@
     * var analytics = qm.analytics;
     * var fs = qm.fs;
     * // create the default TDigest object
-    * var tdigest = new analytics.TDigest();
+    * var tdigest = new analytics.quantiles.TDigest();
     * // create the data used for calculating quantiles
     * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
     * // fit the TDigest model
     * for (var i = 0; i < inputs.length; i++) {
-    *     tdigest.partialFit(inputs[i]);
+    *     tdigest.insert(inputs[i]);
     * }
     * // save the model
     * tdigest.save(fs.openWrite('tdigest.bin')).close();
     * // open the tdigest model under a new variable
-    * var tdigest2 = new analytics.TDigest(fs.openRead('tdigest.bin'));
+    * var tdigest2 = new analytics.quantiles.TDigest(fs.openRead('tdigest.bin'));
     */
  exports.TDigest.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
@@ -2274,7 +2260,7 @@
     * var analytics = qm.analytics;
     * var fs = qm.fs;
     * // create the default TDigest object
-    * var tdigest = new analytics.TDigest();
+    * var tdigest = new analytics.quantiles.TDigest();
     * // check if the model has enough data to initialize
     * if (tdigest.init) { console.log("Ready to initialize"); }
     */
@@ -2288,10 +2274,170 @@
      */
  exports.TDigest.memory = 0;
 /**
+* @typedef {Object} BufferedDigestParam
+* An object used for the construction of {@link module:analytics.quantiles.BufferedTDigest}.
+* @property {number} [delta=100] - The number of clusters in the summary is bounded by floor(minClusters) <= clusters < 2*ceil(minClusters)
+* @property {number} [bufferLen=1000] - the size of the buffer is minClusters*bufferLenFactor, when the buffer fills it is merged with the summary. Also, the algorithm initializes after seeing minClusters*bufferLenFactor examples.
+* @property {number} [seed=0] - random seed (values above 1 are deterministic)
+*/
+/**
+* TDigest quantile estimation on streams
+* @classdesc TDigest is a methods that approximates the CDF function of streaming measurements.
+*   Data structure useful for percentile and quantile estimation for online data streams.
+*   It can be added to any anomaly detector to set the number of alarms triggered as a percentage of the total samples.
+*   Adding new samples to the distribution is achieved through `insert` and querying the model (computing quantiles)
+*   is implemented by `quantile` function.
+*   <br> This is based on the Data Lib Sketch Implementation: {@link https://github.com/vega/datalib-sketch/blob/master/src/t-digest.js t-digest.js}
+*   <br> Paper: Ted Dunning, Otmar Ertl - {@link https://github.com/tdunning/t-digest/blob/master/docs/t-digest-paper/histo.pdf Computing Extremely Accurate Quantiles Using t-Digests}.
+* @class
+* @param {module:analytics.quantiles~BufferedTDigestParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
+* <br>1. Using the {@link module:analytics.quantiles~BufferedTDigestParam} object,
+* <br>2. using the file input stream {@link module:fs.FIn}.
+* @example
+* // import modules
+* var qm = require('qminer');
+* var fs = qm.fs;
+* var analytics = qm.analytics;
+* // create the default BufferedTDigest object
+* var tdigest = new analytics.quantiles.BufferedTDigest();
+* // create the data used for calculating quantiles
+* var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+* // fit the BufferedTDigest model
+* for (var i = 0; i < inputs.length; i++) {
+*     tdigest.insert(inputs[i]);
+* }
+* // make the estimation for the 0.1 quantile
+* var quant = tdigest.quantile(0.1);
+* // save the model
+* tdigest.save(fs.openWrite('tdigest.bin')).close();
+* // open the tdigest model under a new variable
+* var tdigest2 = new analytics.quantiles.BufferedTDigest(fs.openRead('tdigest.bin'));
+*/
+ exports.BufferedTDigest = function (arg) { return Object.create(require('qminer').analytics.quantiles.BufferedTDigest.prototype); }
+/**
+    * Returns the parameters.
+    * @returns {module:analytics.quantiles~BufferedTDigestParam} The construction parameters.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var analytics = qm.analytics;
+    * // create the default BufferedTDigest object
+    * var tdigest = new analytics.quantiles.BufferedTDigest();
+    * // get the parameters of the object
+    * var params = tdigest.getParams();
+    */
+ exports.BufferedTDigest.prototype.getParams = function () { return { }; }
+/**
+    * Adds a new measurement to the model and updates the approximation of the data distribution.
+    * @param {number} x - Input number.
+    * @returns {module:analytics.quantiles.BufferedTDigest} Self. The model has been updated.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var analytics = qm.analytics;
+    * // create the default BufferedTDigest object
+    * var tdigest = new analytics.quantiles.BufferedTDigest();
+    * // create the data used for calculating quantiles
+    * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+    * // fit the BufferedTDigest model with all input values
+    * for (var i = 0; i < inputs.length; i++) {
+    *     tdigest.insert(inputs[i]);
+    * }
+    */
+ exports.BufferedTDigest.prototype.insert = function (X) { return Object.create(require('qminer').analytics.quantiles.BufferedTDigest.prototype); }
+/**
+    * Returns a quantile given input number, that is the approximate fraction of samples smaller than the input (0.05 means that 5% of data is smaller than the input value).
+    * @param {number} x - Input number.
+    * @returns {number} Quantile (between 0 and 1).
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var analytics = qm.analytics;
+    * // create the default BufferedTDigest object
+    * var tdigest = new analytics.quantiles.BufferedTDigest();
+    * // create the data used for calculating quantiles
+    * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+    * // fit the BufferedTDigest model
+    * for (var i = 0; i < inputs.length; i++) {
+    *     tdigest.insert(inputs[i]);
+    * }
+    *
+    * tdigest.flush()
+    * // make the estimation for the 0.1 quantile
+    * var quant = tdigest.quantile(0.1);
+    */
+ exports.BufferedTDigest.prototype.quantile = function (x) { return 0; }
+/**
+    * Flushed the input buffer.
+    * @returns {module:analytics.quantiles.BufferedTDigest} Self. The model has been updated.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var analytics = qm.analytics;
+    * // create the default BufferedTDigest object
+    * var tdigest = new analytics.quantiles.BufferedTDigest();
+    * // create the data used for calculating quantiles
+    * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+    * // fit the BufferedTDigest model
+    * for (var i = 0; i < inputs.length; i++) {
+    *     tdigest.insert(inputs[i]);
+    * }
+    *
+    * tdigest.flush()
+    * // make the estimation for the 0.1 quantile
+    * var quant = tdigest.quantile(0.1);
+    */
+ exports.BufferedTDigest.prototype.flush = function (X) { return Object.create(require('qminer').analytics.quantiles.BufferedTDigest.prototype); }
+/**
+    * Saves BufferedTDigest internal state into (binary) file.
+    * @param {module:fs.FOut} fout - The output stream.
+    * @returns {module:fs.FOut} The output stream `fout`.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var analytics = qm.analytics;
+    * var fs = qm.fs;
+    * // create the default BufferedTDigest object
+    * var tdigest = new analytics.quantiles.BufferedTDigest();
+    * // create the data used for calculating quantiles
+    * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+    * // fit the BufferedTDigest model
+    * for (var i = 0; i < inputs.length; i++) {
+    *     tdigest.insert(inputs[i]);
+    * }
+    * // save the model
+    * tdigest.save(fs.openWrite('tdigest.bin')).close();
+    * // open the tdigest model under a new variable
+    * var tdigest2 = new analytics.quantiles.BufferedTDigest(fs.openRead('tdigest.bin'));
+    */
+ exports.BufferedTDigest.prototype.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
+/**
+    * Returns true when the model has enough data to initialize. Type `boolean`.
+    * @example
+    * // import modules
+    * var qm = require('qminer');
+    * var analytics = qm.analytics;
+    * var fs = qm.fs;
+    * // create the default BufferedTDigest object
+    * var tdigest = new analytics.quantiles.BufferedTDigest();
+    * // check if the model has enough data to initialize
+    * if (tdigest.init) { console.log("Ready to initialize"); }
+    */
+ exports.BufferedTDigest.prototype.init = false;
+/**
+     * Returns the current size of the algorithms summary in number of tuples.
+     */
+ exports.BufferedTDigest.size = 0;
+/**
+     * Returns the models current memory consumption.
+     */
+ exports.BufferedTDigest.memory = 0;
+/**
 * @typedef {Object} GkParam
-* An object used for the construction of {@link module:analytics.Gk}.
+* An object used for the construction of {@link module:analytics.quantiles.Gk}.
 * @property {number} [eps=0.01] - Determines the relative error of the algorithm.
 * @property {boolean} [autoCompress=true] - Whether the summary should be compresses automatically or manually.
+* @property {boolean} [useBands=true] - Whether the algorithm should use the 'band' subprocedure. Using this subprocedure should result in a smaller summary.
 */
 /**
  * @classdesc Greenwald - Khanna algorithm for online quantile estimation. Given
@@ -2311,18 +2457,18 @@
  *   number of elements in the summary.
  *
  * @class
- * @param {module:analytics~GkParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
- * <br>1. Using the {@link module:analytics~GkParam} object,
+ * @param {module:analytics.quantiles~GkParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
+ * <br>1. Using the {@link module:analytics.quantiles~GkParam} object,
  * <br>2. using the file input stream {@link module:fs.FIn}.
  *
  * @example
  * // import modules
  * var qm = require('qminer');
  * var fs = require('qminer').fs;
- * var analytics = qm.analytics;
+ * var quants = qm.analytics.quantiles;
  *
  * // create the Gk object
- * var gk = new analytics.Gk({
+ * var gk = new quants.Gk({
  *     eps: 0.001,
  *     autoCompress: true
  * });
@@ -2332,25 +2478,25 @@
  *
  * // fit the model
  * for (var i = 0; i < inputs.length; i++) {
- *     gk.partialFit(inputs[i]);
+ *     gk.insert(inputs[i]);
  * }
  *
- * // make the prediction for the 0.1 quantile
- * var prediction = gk.predict(0.1);
+ * // make the estimation for the 0.1 quantile
+ * var quant = gk.quantile(0.1);
  * // save the model
  * gk.save(fs.openWrite('gk.bin')).close();
  * // open the gk model under a new variable
- * var gk2 = new analytics.Gk(fs.openRead('gk.bin'));
+ * var gk2 = new quants.Gk(fs.openRead('gk.bin'));
  */
- exports.Gk = function (arg) { return Object.create(require('qminer').analytics.Gk.prototype); }
+ exports.Gk = function (arg) { return Object.create(require('qminer').analytics.quantiles.Gk.prototype); }
 /**
      * Returns the models' parameters as a JavaScript object (JSON). These parameters
      * are the same as are set through the constructor.
      *
-     * @returns {module:analytics~GkParam} The construction parameters.
+     * @returns {module:analytics.quantiles~GkParam} The construction parameters.
      *
      * var analytics = qm.analytics;
-     * var gk = new analytics.Gk();
+     * var gk = new analytics.quantiles.Gk();
      * var params = gk.getParams();
      *
      * console.log(params.eps);
@@ -2361,16 +2507,16 @@
      * Adds a new value to the summary.
      *
      * @param {number} val - the value
-     * @returns {module:analytics.Gk} reference to self
+     * @returns {module:analytics.quantiles.Gk} reference to self
      *
      * @example
      * var qm = require('qminer');
      *
-     * var gk = new qm.analytics.CountWindowGk();
-     * gk.partialFit(1.0);
-     * gk.partialFit(2.0);
+     * var gk = new qm.analytics.quantiles.Gk();
+     * gk.insert(1.0);
+     * gk.insert(2.0);
      */
- exports.Gk.compress = function (fout) { return Object.create(require('qminer').analytics.Gk.prototype); }
+ exports.Gk.compress = function (fout) { return Object.create(require('qminer').analytics.quantiles.Gk.prototype); }
 /**
      * Given an input cumulative probability, returns a quantile associated with that
      * probability (e.g. for input 0.5 it will return the median).
@@ -2381,26 +2527,72 @@
      * @example
      * var qm = require('qminer');
      *
-     * var gk = new qm.analytics.Gk({
+     * var gk = new qm.analytics.quantiles.Gk({
      *     eps: 0.1
      * });
-     * gk.partialFit(1.0);
-     * gk.partialFit(2.0);
-     * gk.partialFit(1.0);
-     * gk.partialFit(3.0);
-     * gk.partialFit(2.0);
+     * gk.insert(1.0);
+     * gk.insert(2.0);
+     * gk.insert(1.0);
+     * gk.insert(3.0);
+     * gk.insert(2.0);
      *
-     * console.log(gk.predict(0.01));   // prints the first percentile
-     * console.log(gk.predict(0.25));   // prints the first quartile
-     * console.log(gk.predict(0.5));    // prints the median
+     * console.log(gk.quantile(0.01));   // prints the first percentile
+     * console.log(gk.quantile(0.25));   // prints the first quartile
+     * console.log(gk.quantile(0.5));    // prints the median
      */
- exports.Gk.prototype.predict = function (x) { return 0; }
+ exports.Gk.prototype.quantile = function (x) { return 0; }
+/**
+     * Provided a given value or array of values it returns the corresponding
+     * values of the cumulative distribution function.
+     *
+     * @param {number|Array} pVals - the p-values which we a querying
+     * @returns {number|Array} quantiles - depending whether the input was a single value or array the method returns a quantile or array of quantiles
+     *
+     * @example
+     * var qm = require('qminer');
+     *
+     * var gk = new qm.analytics.quantiles.Gk({
+     *     eps: 0.1
+     * });
+     * gk.insert(1.0);
+     * gk.insert(2.0);
+     * gk.insert(1.0);
+     * gk.insert(3.0);
+     * gk.insert(2.0);
+     *
+     * console.log(gk.cdf(0.01));   // prints the CDF for x = 0.01
+     * console.log(gk.cdf(10));   // prints the CDF for x = 10
+     * console.log(gk.cdf(100));    // prints the CDF for x = 100
+     */
+ exports.Gk.prototype.cdf = function (x) { return 0; }
+/**
+     * Compares this distribution to `dist` and returns the Kolmogorov-Smirnov
+     * statistic:
+     *
+     *  D_n,m = sup_x|f1(x) - f2(x)|
+     *
+     * where f1 and f2 are cumulative distribution function of this distribution and
+     * `dist` respectively.
+     *
+     * @param {module:analytics.quantiles.quantiles.Gk} distribution - the distribution to compare against
+     * @returns {number} - the K-S statistic
+     */
+ exports.Gk.kolmogorovStat = function (dist) { return 0; }
+/**
+     * Compares this distribution to `dist` using the Kolmogorov-Smirnov test with
+     * significance `alpha`.
+     *
+     * @param {module:analytics.quantiles.quantiles.Gk} distribution - the distribution to compare against
+     * @param {number} alpha - the statistical significance
+     * @returns {boolean} - true if the distributions differ
+     */
+ exports.Gk.kolmogorovTest = function (dist, alpha) { return false; }
 /**
      * Manually runs the compression procedure.
      *
      * @returns reference to self
      */
- exports.Gk.compress = function (fout) { return Object.create(require('qminer').analytics.Gk.prototype); }
+ exports.Gk.compress = function (fout) { return Object.create(require('qminer').analytics.quantiles.Gk.prototype); }
 /**
      * Saves the objects state into the output stream.
      *
@@ -2411,14 +2603,22 @@
 /**
      * Returns the current size of the algorithms summary in number of tuples.
      */
+ exports.Gk.init = false;
+/**
+     * Returns the current size of the algorithms summary in number of tuples.
+     */
  exports.Gk.size = 0;
+/**
+     * Returns the number of samples seen by the model.
+     */
+ exports.Gk.samples = 0;
 /**
      * Returns the models current memory consumption.
      */
  exports.Gk.memory = 0;
 /**
 * @typedef {Object} BiasedGkParam
-* An object used for the construction of {@link module:analytics.BiasedGk}.
+* An object used for the construction of {@link module:analytics.quantiles.BiasedGk}.
 * @property {number} [targetProb=0.01] - The probability where the algorithm is most accurate. Its accuracy is determined as eps*max(p, targetProb) when targetProb < 0.5 and eps*max(1-p, 1-targetProb) when targetProb >= 0.5. Higher values of `targetProb` allow for a smaller memory footprint.
 * @property {number} [eps=0.1] - Parameter which determines the accuracy.
 * @property {string} [compression="periodic"] - Determines when the algorithm compresses its summary. Options are: "periodic", "aggressive" and "manual".
@@ -2443,21 +2643,21 @@
  *   The error is bounded by the rank of the element (not the absolute value).
  *   Specifically, the worst case relative error is bounded by max(eps*p, eps*p0)
  *   where eps is an accuracy paramter, p0 is the `targetProb` and p is the
- *   p-value set as the parameter of function `predict`.
+ *   p-value set as the parameter of function `quantile`.
  *
  * @class
- * @param {module:analytics~BiasedGkParam | module:fs:FIn} [arg] - Constructor arguments. There are 2 ways of constructing:
- * <br>1. Using the {@link module:analytics~BiasedGkParam} object,
+ * @param {module:analytics.quantiles~BiasedGkParam | module:fs:FIn} [arg] - Constructor arguments. There are 2 ways of constructing:
+ * <br>1. Using the {@link module:analytics.quantiles~BiasedGkParam} object,
  * <br>2. using the file input stream {@link module:fs.FIn}.
  *
  * @example
  * // import modules
  * var qm = require('qminer');
  * var fs = require('qminer').fs;
- * var analytics = qm.analytics;
+ * var quants = qm.analytics.quantiles;
  *
  * // create the BiasedGk object
- * var gk = new analytics.BiasedGk({
+ * var gk = new quants.BiasedGk({
  *     eps: 0.1,
  *     targetProb: 0.99,
  *     compression: 'periodic',
@@ -2469,26 +2669,26 @@
  *
  * // fit the model
  * for (var i = 0; i < inputs.length; i++) {
- *     gk.partialFit(inputs[i]);
+ *     gk.insert(inputs[i]);
  * }
  *
- * // make the prediction for the 0.1 quantile
- * var prediction = gk.predict(0.1);
+ * // make the estimation for the 0.1 quantile
+ * var quant = gk.quantile(0.1);
  * // save the model
  * gk.save(fs.openWrite('gk.bin')).close();
  * // open the gk model under a new variable
- * var gk2 = new analytics.BiasedGk(fs.openRead('gk.bin'));
+ * var gk2 = new analytics.quantiles.BiasedGk(fs.openRead('gk.bin'));
  *
  */
- exports.BiasedGk = function (arg) { return Object.create(require('qminer').analytics.BiasedGk.prototype); }
+ exports.BiasedGk = function (arg) { return Object.create(require('qminer').analytics.quantiles.BiasedGk.prototype); }
 /**
      * Returns the models' parameters as a JavaScript object (JSON). These parameters
      * are the same as are set through the constructor.
      *
-     * @returns {module:analytics~BiasedGkParam} The construction parameters.
+     * @returns {module:analytics.quantiles~BiasedGkParam} The construction parameters.
      *
      * var analytics = qm.analytics;
-     * var gk = new analytics.BiasedGk();
+     * var gk = new analytics.quantiles.BiasedGk();
      * var params = gk.getParams();
      *
      * console.log(params.targetProb);
@@ -2501,16 +2701,16 @@
      * Adds a new value to the summary.
      *
      * @param {number} val - the value
-     * @returns {module:analytics.Gk} reference to self
+     * @returns {module:analytics.quantiles.Gk} reference to self
      *
      * @example
      * var qm = require('qminer');
      *
-     * var gk = new qm.analytics.BiasedGk();
-     * gk.partialFit(1.0);
-     * gk.partialFit(2.0);
+     * var gk = new qm.analytics.quantiles.BiasedGk();
+     * gk.insert(1.0);
+     * gk.insert(2.0);
      */
- exports.BiasedGk.compress = function (fout) { return Object.create(require('qminer').analytics.BiasedGk.prototype); }
+ exports.BiasedGk.compress = function (fout) { return Object.create(require('qminer').analytics.quantiles.BiasedGk.prototype); }
 /**
      * Given an input cumulative probability, returns a quantile associated with that
      * probability (e.g. for input 0.5 it will return the median).
@@ -2521,27 +2721,27 @@
      * @example
      * var qm = require('qminer');
      *
-     * var gk = new qm.analytics.BiasedGk({
+     * var gk = new qm.analytics.quantiles.BiasedGk({
      *     eps: 0.1,
      *     targetProb: 0.01
      * });
-     * gk.partialFit(1.0);
-     * gk.partialFit(2.0);
-     * gk.partialFit(1.0);
-     * gk.partialFit(3.0);
-     * gk.partialFit(2.0);
+     * gk.insert(1.0);
+     * gk.insert(2.0);
+     * gk.insert(1.0);
+     * gk.insert(3.0);
+     * gk.insert(2.0);
      *
-     * console.log(gk.predict(0.01));   // prints the first percentile
-     * console.log(gk.predict(0.25));   // prints the first quartile
-     * console.log(gk.predict(0.5));    // prints the median
+     * console.log(gk.quantile(0.01));   // prints the first percentile
+     * console.log(gk.quantile(0.25));   // prints the first quartile
+     * console.log(gk.quantile(0.5));    // prints the median
      */
- exports.BiasedGk.prototype.predict = function (x) { return 0; }
+ exports.BiasedGk.prototype.quantile = function (x) { return 0; }
 /**
      * Manually runs the compression procedure.
      *
      * @returns reference to self
      */
- exports.BiasedGk.compress = function (fout) { return Object.create(require('qminer').analytics.BiasedGk.prototype); }
+ exports.BiasedGk.compress = function (fout) { return Object.create(require('qminer').analytics.quantiles.BiasedGk.prototype); }
 /**
      * Saves the objects state into the output stream.
      *
@@ -2550,330 +2750,21 @@
      */
  exports.BiasedGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
+     * Indicates whether the model is initialized (has seen at least one value).
+     */
+ exports.BiasedGk.init = true;
+/**
      * Returns the current size of the algorithms summary in number of tuples.
      */
  exports.BiasedGk.size = 0;
 /**
+     * Returns the number of samples seen by the model.
+     */
+ exports.BiasedGk.samples = 0;
+/**
      * Returns the models current memory consumption.
      */
  exports.BiasedGk.memory = 0;
-/**
-* @typedef {Object} CountWindowGkParam
-* An object used for the construction of {@link module:analytics.CountWindowGk}.
-* @property {number} [windowSize=10000] - Number of values to store in the window.
-* @property {number} [quantileEps=0.01] - Worst-case error of the quantile estimation procedure.
-* @property {number} [countEps=0.005] - Worst-case error of the sliding window (exponential histogram) procedure.
-*/
-/**
- * @classdesc Greenwald - Khanna algorithm for quantile estimation on sliding windows. Given
- *   a cumulative probability p, the algorithm returns the approximate value of the
- *   p-th quantile of all the values in a sliding window.
- *
- *   The algorithm works by keeping a summary of buckets. Each bucket summarizes a
- *   range of values. Through the run of the algorithm, new buckets are created and
- *   old ones merged. To allow for the computation on a sliding window, each bucket
- *   uses an Exponential Histogram structure to remember how many values it summarizes.
- *
- *   It is summarized in:
- *   "Online Algorithm for Approximate Quantile Queries on Sliding Windows"
- *   http://dl.acm.org/citation.cfm?id=2954329
- *
- *   The error is not bounded by the absolute value of the output, but by the error
- *   in rank of the output element. For instance, if we have 100 elements and query
- *   the median, we could get the 48-th (p=0.48), 50-th (p=0.5), 51-th (p=0.51),
- *   etc. element.
- *
- *   The algorithms error is bounded by two factors. The first is the quantile
- *   estimation factor `quantileEps` occurs because of the summary structure and
- *   defines the maximum size of the buckets. The second type of error `countEps`
- *   occurs because of the Exponential Histograms inside the buckets.
- *
- *   The worst-case error is bounded by (quantileEps + 2*countEps + O(countEps^2)),
- *   although in practice the error is lower.
- *
- *   This version of the algorithm uses a count-based fixed size sliding window.
- *
- * @class
- * @param {module:analytics~FixedWindowGkParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
- * <br>1. Using the {@link module:analytics~FixedWindowGkParam} object,
- * <br>2. using the file input stream {@link module:fs.FIn}.
- *
- * @example
- * // import modules
- * var qm = require('qminer');
- * var fs = qm.fs;
- * var analytics = qm.analytics;
- *
- * // create the default TDigest object
- * var gk = new analytics.CountWindowGk({
- *     windowSize: 5,
- *     quantileEps: 0.001,
- *     countEps: 0.0005
- * });
- *
- * // create the data used for calculating quantiles
- * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
- *
- * // fit the TDigest model
- * for (var i = 0; i < inputs.length; i++) {
- *     gk.partialFit(inputs[i]);
- * }
- *
- * // make the prediction for the 0.1 quantile
- * var prediction = gk.predict(0.1);
- * // save the model
- * gk.save(fs.openWrite('gk.bin')).close();
- * // open the gk model under a new variable
- * var gk2 = new analytics.CountWindowGk(fs.openRead('gk.bin'));
- *
- */
- exports.CountWindowGk = function (arg) { return Object.create(require('qminer').analytics.CountWindowGk.prototype); }
-/**
-     * Returns the models' parameters as a JavaScript object (JSON). These parameters
-     * are the same as are set through the constructor.
-     *
-     * @returns {module:analytics~FixedWindowGkParam} The construction parameters.
-     *
-     * var analytics = qm.analytics;
-     * var gk = new qm.analytics.CountWindowGk({ windowSize: 100 }); // window 100 elements long
-     * gk.partialFit(1.0);
-     * gk.partialFit(2.0);
-     * gk.partialFit(1.0);
-     * gk.partialFit(3.0);
-     * gk.partialFit(2.0);
-     * var params = gk.getParams();
-     *
-     * console.log(params.windowSize);
-     * console.log(params.quantileEps);
-     * console.log(params.countEps);
-     */
- exports.CountWindowGk.prototype.getParams = function () { return { }; }
-/**
-     * Appends a new value to the sliding window. If an old value
-     * falls outside the sliding window, it is forgotten.
-     *
-     * @param {number} val - the value
-     * @returns {module:analytics.CountWindowGk} reference to self
-     *
-     * @example
-     * var qm = require('qminer');
-     *
-     * var gk = new qm.analytics.CountWindowGk();
-     * gk.partialFit(1.0);
-     * gk.partialFit(2.0);
-     *
-     */
- exports.CountWindowGk.partialFit = function (fout) { return Object.create(require('qminer').analytics.CountWindowGk.prototype); }
-/**
-     * Given an input cumulative probability, returns a quantile associated with that
-     * probability (e.g. for input 0.5 it will return the median).
-     *
-     * @param {number} p - cumulative probability between 0 and 1 (both inclusive)
-     * @returns {number} quantile associated with p
-     *
-     * @example
-     * var qm = require('qminer');
-     *
-     * var gk = new qm.analytics.CountWindowGk({
-     *     windowSize: 100    // window 100 elements long
-     * });
-     * gk.partialFit(1.0);
-     * gk.partialFit(2.0);
-     * gk.partialFit(1.0);
-     * gk.partialFit(3.0);
-     * gk.partialFit(2.0);
-     *
-     * console.log(gk.predict(0.01));   // prints the first percentile
-     * console.log(gk.predict(0.25));   // prints the first quartile
-     * console.log(gk.predict(0.5));    // prints the median
-     */
- exports.CountWindowGk.prototype.predict = function (x) { return 0; }
-/**
-     * Saves the objects state into a binary file.
-     *
-     * @param {module:fs.FOut} fout - the output stream
-     * @returns {module:fs.FOut} the output stream `fout`
-     *
-     * @example
-     * var qm = require('qminer');
-     * var fs = qm.fs;
-     * var gk = new qm.analytics.CountWindowGk();
-     *
-     * // save the model
-     * gk.save(fs.openWrite('gk.bin')).close();
-     * // open the model under a new variable
-     * var gk = new analytics.CountWindowGk(fs.openRead('gk.bin'));
-     */
- exports.CountWindowGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
-/**
-* @typedef {Object} TimeWindowGkParam
-* An object used for the construction of {@link module:analytics.TimeWindowGk}.
-* @property {number} [window=1000*60*60] - Duration of the time window.
-* @property {number} [quantileEps=0.01] - Worst-case error of the quantile estimation procedure.
-* @property {number} [countEps=0.005] - Worst-case error of the sliding window (exponential histogram) procedure.
-*/
-/**
- * @classdesc Greenwald - Khanna algorithm for quantile estimation on sliding windows. Given
- *   a cumulative probability p, the algorithm returns the approximate value of the
- *   p-th quantile of all the values in a sliding window.
- *
- *   The algorithm works by keeping a summary of buckets. Each bucket summarizes a
- *   range of values. Through the run of the algorithm, new buckets are created and
- *   old ones merged. To allow for the computation on a sliding window, each bucket
- *   uses an Exponential Histogram structure to remember how many values it summarizes.
- *
- *   It is summarized in:
- *   "Online Algorithm for Approximate Quantile Queries on Sliding Windows"
- *   http://dl.acm.org/citation.cfm?id=2954329
- *
- *   The error is not bounded by the absolute value of the output, but by the error
- *   in rank of the output element. For instance, if we have 100 elements and query
- *   the median, we could get the 48-th (p=0.48), 50-th (p=0.5), 51-th (p=0.51),
- *   etc. element.
- *
- *   The algorithms error is bounded by two factors. The first is the quantile
- *   estimation factor `quantileEps` occurs because of the summary structure and
- *   defines the maximum size of the buckets. The second type of error `countEps`
- *   occurs because of the Exponential Histograms inside the buckets.
- *
- *   The worst-case error is bounded by (quantileEps + 2*countEps + O(countEps^2)),
- *   although in practice the error is lower.
- *
- *   This version of the algorithm uses a time-based fixed duration sliding window.
- *
- * @class
- * @param {module:analytics~TimeWindowGkParam | module:fs.FIn} [arg] - Construction arguments. There are two ways of constructing:
- * <br>1. Using the {@link module:analytics~TimeWindowGkParam} object,
- * <br>2. using the file input stream {@link module:fs.FIn}.
- *
- * @example
- * // import modules
- * var qm = require('qminer');
- * var fs = qm.fs;
- * var analytics = qm.analytics;
- *
- * // create the default object
- * var gk = new analytics.TimeWindowGk({
- *     window: 5,
- *     quantileEps: 0.001,
- *     countEps: 0.0005
- * });
- *
- * // create the data used for calculating quantiles
- * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
- * var times = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
- *
- * // fit the model
- * for (var i = 0; i < inputs.length; i++) {
- *     gk.partialFit(times[i], inputs[i]);
- * }
- *
- * // make the prediction for the 0.1 quantile
- * var prediction = gk.predict(0.1);
- * // save the model
- * gk.save(fs.openWrite('gk.bin')).close();
- * // open the gk model under a new variable
- * var gk2 = new analytics.TimeWindowGk(fs.openRead('gk.bin'));
- */
- exports.TimeWindowGk = function (arg) { return Object.create(require('qminer').analytics.TimeWindowGk.prototype); }
-/**
-     * Returns the models' parameters as a JavaScript object (JSON). These parameters
-     * are the same as are set through the constructor.
-     *
-     * @returns {module:analytics~TimeWindowGkParam} The construction parameters.
-     *
-     * var qm = require('qminer');
-     * var fs = qm.fs;
-     * var analytics = qm.analytics;
-     *
-     * // create the default object
-     * var gk = new analytics.TimeWindowGk({
-     *     window: 5,
-     *     quantileEps: 0.001,
-     *     countEps: 0.0005
-     * });
-     *
-     * // create the data used for calculating quantiles
-     * var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
-     * var times = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-     *
-     * // fit the model
-     * for (var i = 0; i < inputs.length; i++) {
-     *     gk.partialFit(times[i], inputs[i]);
-     * }
-     * var params = gk.getParams();
-     *
-     * console.log(params.window);
-     * console.log(params.quantileEps);
-     * console.log(params.countEps);
-     */
- exports.TimeWindowGk.prototype.getParams = function () { return { }; }
-/**
-     * Adds a new observation to the window. The window is updated with the provided timestamp,
-     * all records which fall outside the new window are forgotten.
-     *
-     * @param {number|Date} timestamp - time of the observation
-     * @param {number} [value] - the observation
-     * @returns {module:analytics.TimeWindowGk} reference to self
-     *
-     * @example
-     * var qm = require('qminer');
-     *
-     * var gk = new qm.analytics.TimeWindowGk({
-     *     window: 1000*60*60*24*2    // window is 2 days
-     * });
-     * gk.partialFit(new Date('2017-06-06'), 1.0);
-     * gk.partialFit(new Date('2017-06-07').getTime(), 1.0);
-     * gk.partialFit(new Date('2017-06-08'));  // only move the time window, the first value is forgotten
-     */
- exports.TimeWindowGk.partialFit = function (fout) { return Object.create(require('qminer').analytics.TimeWindowGk.prototype); }
-/**
-     * Given an input cumulative probability, returns a quantile associated with that
-     * probability (e.g. for input 0.5 it will return the median).
-     *
-     * @param {number} p - cumulative probability between 0 and 1 (both inclusive)
-     * @returns {number} quantile associated with p
-     *
-     * @example
-     * var qm = require('qminer');
-     *
-     * var gk = new qm.analytics.TimeWindowGk({
-     *     window: 100    // window is 2 days
-     * });
-     * gk.partialFit(0, 1.0);
-     * gk.partialFit(1, 1.0);
-     * gk.partialFit(2, 1.0);
-     * gk.partialFit(3, 1.0);
-     * gk.partialFit(4, 1.0);
-     *
-     * console.log(gk.predict(0.01));   // prints the first percentile
-     * console.log(gk.predict(0.25));   // prints the first quartile
-     * console.log(gk.predict(0.5));    // prints the median
-     */
- exports.TimeWindowGk.prototype.predict = function (x) { return 0; }
-/**
-     * Saves the objects state into a binary file.
-     *
-     * @param {module:fs.FOut} fout - the output stream
-     * @returns {module:fs.FOut} the output stream `fout`
-     *
-     * @example
-     * var qm = require('qminer');
-     * var fs = qm.fs;
-     * var gk = new qm.analytics.TimeWindowGk({
-     *     window: 100    // window is 2 days
-     * });
-     * gk.partialFit(0, 1.0);
-     * gk.partialFit(1, 1.0);
-     * gk.partialFit(2, 1.0);
-     * gk.partialFit(3, 1.0);
-     * gk.partialFit(4, 1.0);
-     * // save the model
-     * gk.save(fs.openWrite('gk.bin')).close();
-     * // open the model under a new variable
-     * var gk = new analytics.TimeWindowGk(fs.openRead('gk.bin'));
-     */
- exports.TimeWindowGk.save = function (fout) { return Object.create(require('qminer').fs.FOut.prototype); }
 /**
 * @typedef {Object} RecSysParam
 * An object used for the construction of {@link module:analytics.RecommenderSys}.
