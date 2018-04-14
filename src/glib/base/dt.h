@@ -136,8 +136,77 @@ public:
   TMemBase& operator=(const TMemBase& Mem) {
     Copy(Mem); return *this;
   }
+  friend class TMemBase2;
 };
 
+/////////////////////////////////////////////////
+// Memory chunk - simple buffer, non-resizable
+class TMemBase2 {
+protected:
+	int MxBfL, BfL;
+	char* Bf;
+	bool Owner;
+public:
+	TMemBase2() : MxBfL(0), BfL(0), Bf(NULL), Owner(false) {}
+	TMemBase2(const int& _BfL) : MxBfL(_BfL), BfL(_BfL), Bf(NULL), Owner(true) {
+		IAssert(BfL >= 0);
+		Bf = new char[BfL];
+	}
+	TMemBase2(const void* _Bf, const int& _BfL, const bool& _Owner = true) :
+		MxBfL(_BfL), BfL(_BfL), Bf(NULL), Owner(_Owner) {
+		IAssert(BfL >= 0);
+		if (BfL > 0) {
+			if (Owner) {
+				Bf = new char[BfL]; IAssert(Bf != NULL); memcpy(Bf, _Bf, BfL);
+			}
+			else {
+				Bf = (char*)_Bf;
+			}
+		}
+	}
+	TMemBase2(TMemBase2&& Src) {
+		MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf; Owner = Src.Owner;
+		Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;  Src.Owner = false;
+	}
+	virtual ~TMemBase2() {
+		if (Owner && Bf != NULL) {
+			delete[] Bf;
+		}
+	}
+	int Len() const { return BfL; }
+	bool Empty() const { return BfL == 0; }
+	char* GetBf() const { return Bf; }
+	void Copy(const TMemBase2& Mem) {
+		if (this != &Mem) {
+			if (Owner && Bf != NULL) { delete[] Bf; }
+			MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL; Owner = (MxBfL > 0);
+			if (MxBfL>0) { Bf = new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL); }
+		}
+	}
+	void Copy(const TMemBase& Mem) {		
+		if (Owner && Bf != NULL) { delete[] Bf; }
+		MxBfL = Mem.Len(); BfL = Mem.Len(); Bf = NULL; Owner = (MxBfL > 0);
+		if (MxBfL>0) { Bf = new char[MxBfL]; memcpy(Bf, Mem.GetBf(), BfL); }
+	}
+	TMemBase2& operator=(TMemBase2&& Src) {
+		if (this != &Src) {
+			if (Owner && Bf != NULL) { delete[] Bf; }
+			MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf; Owner = Src.Owner;
+			Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;  Src.Owner = false;
+		}
+		return *this;
+	}
+	TMemBase2& operator=(TMemBase&& Src) {
+		if (Owner && Bf != NULL) { delete[] Bf; }
+		MxBfL = Src.Len(); BfL = Src.Len(); Bf = Src.GetBf(); Owner = true;
+		Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;  Src.Owner = false;
+		return *this;
+	}
+	TMemBase2& operator=(const TMemBase2& Mem) {
+		Copy(Mem); return *this;
+	}
+	operator TMemBase() const { return TMemBase(Bf, BfL, false); }
+};
 /////////////////////////////////////////////////
 /// Thin Input-Memory. Used to present existing TMem as TSIn.
 /// It doesn't allocate or release any memory.
@@ -175,7 +244,7 @@ class TMem;
 typedef TPt<TMem> PMem;
 
 /// Memory chunk - advanced memory buffer
-class TMem : public TMemBase {
+class TMem : public TMemBase2 {
 private:
   TCRef CRef;
 public:
@@ -184,21 +253,21 @@ protected:
   void Resize(const int& _MxBfL);
   bool DoFitLen(const int& LBfL) const {return BfL+LBfL<=MxBfL;}
 public:
-  TMem(const int& _MxBfL=0) : TMemBase() {
+  TMem(const int& _MxBfL=0) : TMemBase2() {
     IAssert(BfL >= 0); MxBfL = _MxBfL; BfL = 0; Bf = NULL; Owner = true;
     if (MxBfL>0){Bf=new char[MxBfL]; IAssert(Bf!=NULL);}}
   static PMem New(const int& MxBfL=0){return new TMem(MxBfL);}
-  TMem(const void* _Bf, const int& _BfL) : TMemBase() {
+  TMem(const void* _Bf, const int& _BfL) : TMemBase2() {
     IAssert(BfL >= 0); MxBfL = _BfL; BfL = _BfL; Bf = NULL; Owner = true;
     if (BfL > 0) { Bf = new char[BfL]; IAssert(Bf != NULL); memcpy(Bf, _Bf, BfL); } }
   static PMem New(const void* Bf, const int& BfL){return new TMem(Bf, BfL);}
-  TMem(const TMem& Mem) : TMemBase() {
+  TMem(const TMem& Mem) : TMemBase2() {
     MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL; Owner = true;
     if (MxBfL>0){Bf=new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL);}}
   static PMem New(const TMem& Mem){return new TMem(Mem);}
   static PMem New(const PMem& Mem){return new TMem(*Mem);}
   TMem(const TStr& Str);
-  TMem(TMem&& Src) : TMemBase() {
+  TMem(TMem&& Src) : TMemBase2() {
     MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf; Owner = Src.Owner;
     Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;  Src.Owner = false;
   }
@@ -899,6 +968,8 @@ public:
   static TStr Base64Encode(const void* Bf, const int BfL);
   /// Base64-encode given buffer and return resulting string
   static TStr Base64Encode(const TMemBase& Mem) { return Base64Encode(Mem.GetBf(), Mem.Len()); }
+  /// Base64-encode given buffer and return resulting string
+  static TStr Base64Encode(const TMem& Mem) { return Base64Encode(Mem.GetBf(), Mem.Len()); }
   /// Base64-decode given string and fill this TMem object
   static void Base64Decode(const TStr& In, TMem& Mem);
 

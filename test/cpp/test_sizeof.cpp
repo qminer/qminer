@@ -24,7 +24,7 @@ TEST(sizeofBasicTypes) {
 
      ASSERT_EQ(sizeof(TStr), 8);
      ASSERT_EQ(sizeof(TChA), 16);
-     //ASSERT_EQ(sizeof(TMem), 32);
+     ASSERT_EQ(sizeof(TMem), 32);
      ASSERT_EQ(sizeof(TPt<TMem>), 8);
      ASSERT_EQ(sizeof(TWPt<TMem>), 8);
 
