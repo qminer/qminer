@@ -431,6 +431,38 @@ private:
         const TFieldDesc& FieldDesc, const PJsonVal& JsonVal);
 
     /// Fixed-length field setter
+    void SetFieldByte(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uchar& Byte);
+    /// Fixed-length field setter
+    void SetFieldInt(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int& Int);
+    /// Fixed-length field setter
+    void SetFieldInt16(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int16& Int16);
+    /// Fixed-length field setter
+    void SetFieldInt64(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int64& Int64);
+    /// Fixed-length field setter
+    void SetFieldUInt(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint& UInt);
+    /// Fixed-length field setter
+    void SetFieldUInt16(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint16& UInt16);
+    /// Fixed-length field setter
+    void SetFieldUInt64(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& UInt64);
+    /// Fixed-length field setter
+    void SetFieldStr(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TStr& Str);
+    /// Fixed-length field setter
+    void SetFieldBool(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const bool& Bool);
+    /// Fixed-length field setter
+    void SetFieldFlt(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const double& Flt);
+    /// Fixed-length field setter
+    void SetFieldSFlt(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const float& Flt);
+    /// Fixed-length field setter
+    void SetFieldFltPr(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TFltPr& FltPr);
+    /// Fixed-length field setter
+    void SetFieldTm(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TTm& Tm);
+    /// Fixed-length field setter
+    void SetFieldTmMSecs(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& TmMSecs);
+    /// Parse fixed-length type field JSon value and serialize it accordingly to it's type
+    void SetFixedJsonVal(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc,
+        const TFieldDesc& FieldDesc, const PJsonVal& JsonVal);
+
+    /// Fixed-length field setter
     void SetFieldByte(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const uchar& Byte);
     /// Fixed-length field setter
     void SetFieldInt(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const int& Int);
@@ -1265,7 +1297,7 @@ private:
     TThinMIn GetEditableField(const uint64& RecId, const int& FieldId);
 
     // given the recid and the fieldid get the memory that contains it, get blob that contains it and the page blob pointer
-    void GetRecData(const uint64& RecId, const int& FieldId, TMemBase& Mem, THash<TUInt64, TPgBlobPt>* &RecIdBlobPtr, PPgBlob& Blob, TPgBlobPt* &PgPt);
+    void GetRecData(const uint64& RecId, const int& FieldId, TMem& Mem, THash<TUInt64, TPgBlobPt>* &RecIdBlobPtr, PPgBlob& Blob, TPgBlobPt* &PgPt);
 
 public:
     TStorePbBlob(const TWPt<TBase>& _Base, const uint& StoreId,
