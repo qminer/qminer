@@ -25,7 +25,6 @@ config.log
 npm-debug.log
 /node_modules/*
 !/node_modules/qminer.js
-/package-lock.json
 
 
 # project files from Eclipse
