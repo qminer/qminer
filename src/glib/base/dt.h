@@ -136,77 +136,9 @@ public:
   TMemBase& operator=(const TMemBase& Mem) {
     Copy(Mem); return *this;
   }
-  friend class TMemBase2;
+  friend class TMem;
 };
 
-/////////////////////////////////////////////////
-// Memory chunk - simple buffer, non-resizable
-class TMemBase2 {
-protected:
-	int MxBfL, BfL;
-	char* Bf;
-	bool Owner;
-public:
-	TMemBase2() : MxBfL(0), BfL(0), Bf(NULL), Owner(false) {}
-	TMemBase2(const int& _BfL) : MxBfL(_BfL), BfL(_BfL), Bf(NULL), Owner(true) {
-		IAssert(BfL >= 0);
-		Bf = new char[BfL];
-	}
-	TMemBase2(const void* _Bf, const int& _BfL, const bool& _Owner = true) :
-		MxBfL(_BfL), BfL(_BfL), Bf(NULL), Owner(_Owner) {
-		IAssert(BfL >= 0);
-		if (BfL > 0) {
-			if (Owner) {
-				Bf = new char[BfL]; IAssert(Bf != NULL); memcpy(Bf, _Bf, BfL);
-			}
-			else {
-				Bf = (char*)_Bf;
-			}
-		}
-	}
-	TMemBase2(TMemBase2&& Src) {
-		MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf; Owner = Src.Owner;
-		Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;  Src.Owner = false;
-	}
-	virtual ~TMemBase2() {
-		if (Owner && Bf != NULL) {
-			delete[] Bf;
-		}
-	}
-	int Len() const { return BfL; }
-	bool Empty() const { return BfL == 0; }
-	char* GetBf() const { return Bf; }
-	void Copy(const TMemBase2& Mem) {
-		if (this != &Mem) {
-			if (Owner && Bf != NULL) { delete[] Bf; }
-			MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL; Owner = (MxBfL > 0);
-			if (MxBfL>0) { Bf = new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL); }
-		}
-	}
-	void Copy(const TMemBase& Mem) {		
-		if (Owner && Bf != NULL) { delete[] Bf; }
-		MxBfL = Mem.Len(); BfL = Mem.Len(); Bf = NULL; Owner = (MxBfL > 0);
-		if (MxBfL>0) { Bf = new char[MxBfL]; memcpy(Bf, Mem.GetBf(), BfL); }
-	}
-	TMemBase2& operator=(TMemBase2&& Src) {
-		if (this != &Src) {
-			if (Owner && Bf != NULL) { delete[] Bf; }
-			MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf; Owner = Src.Owner;
-			Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;  Src.Owner = false;
-		}
-		return *this;
-	}
-	TMemBase2& operator=(TMemBase&& Src) {
-		if (Owner && Bf != NULL) { delete[] Bf; }
-		MxBfL = Src.Len(); BfL = Src.Len(); Bf = Src.GetBf(); Owner = true;
-		Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;  Src.Owner = false;
-		return *this;
-	}
-	TMemBase2& operator=(const TMemBase2& Mem) {
-		Copy(Mem); return *this;
-	}
-	operator TMemBase() const { return TMemBase(Bf, BfL, false); }
-};
 /////////////////////////////////////////////////
 /// Thin Input-Memory. Used to present existing TMem as TSIn.
 /// It doesn't allocate or release any memory.
@@ -244,44 +176,63 @@ class TMem;
 typedef TPt<TMem> PMem;
 
 /// Memory chunk - advanced memory buffer
-class TMem : public TMemBase2 {
+class TMem {
 private:
   TCRef CRef;
 public:
   friend class TPt<TMem>;
 protected:
+  int MxBfL, BfL;
+  char* Bf;
   void Resize(const int& _MxBfL);
   bool DoFitLen(const int& LBfL) const {return BfL+LBfL<=MxBfL;}
 public:
-  TMem(const int& _MxBfL=0) : TMemBase2() {
-    IAssert(BfL >= 0); MxBfL = _MxBfL; BfL = 0; Bf = NULL; Owner = true;
+  TMem(const int& _MxBfL=0) : MxBfL(_MxBfL), BfL(0), Bf(NULL) {
+    IAssert(BfL >= 0); BfL = 0; Bf = NULL;
     if (MxBfL>0){Bf=new char[MxBfL]; IAssert(Bf!=NULL);}}
   static PMem New(const int& MxBfL=0){return new TMem(MxBfL);}
-  TMem(const void* _Bf, const int& _BfL) : TMemBase2() {
-    IAssert(BfL >= 0); MxBfL = _BfL; BfL = _BfL; Bf = NULL; Owner = true;
+  TMem(const void* _Bf, const int& _BfL) : MxBfL(_BfL), BfL(_BfL), Bf(NULL) {
+    IAssert(BfL >= 0); MxBfL = _BfL; BfL = _BfL; Bf = NULL;
     if (BfL > 0) { Bf = new char[BfL]; IAssert(Bf != NULL); memcpy(Bf, _Bf, BfL); } }
   static PMem New(const void* Bf, const int& BfL){return new TMem(Bf, BfL);}
-  TMem(const TMem& Mem) : TMemBase2() {
-    MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL; Owner = true;
+  TMem(const TMem& Mem) : MxBfL(0), BfL(0), Bf(NULL) {
+    MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL;
     if (MxBfL>0){Bf=new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL);}}
   static PMem New(const TMem& Mem){return new TMem(Mem);}
   static PMem New(const PMem& Mem){return new TMem(*Mem);}
   TMem(const TStr& Str);
-  TMem(TMem&& Src) : TMemBase2() {
-    MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf; Owner = Src.Owner;
-    Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;  Src.Owner = false;
+  TMem(TMem&& Src) : MxBfL(0), BfL(0), Bf(NULL) {
+    MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf;
+    Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;
   }
   static PMem New(const TStr& Str){return new TMem(Str);}
-  ~TMem() { if (Owner && Bf != NULL) { delete[] Bf; }; Owner = false; Bf = NULL; }
+  ~TMem() { if (Bf != NULL) { delete[] Bf; }; Bf = NULL; }
   explicit TMem(TSIn& SIn) {
     SIn.Load(MxBfL); SIn.Load(BfL);
-    Bf = new char[MxBfL = BfL]; SIn.LoadBf(Bf, BfL); Owner = true; }
+    Bf = new char[MxBfL = BfL]; SIn.LoadBf(Bf, BfL); }
+
+  int Len() const { return BfL; }
+  bool Empty() const { return BfL == 0; }
+  char* GetBf() const { return Bf; }
+  void Copy(const TMem& Mem) {
+    if (this != &Mem) {
+        if (Bf != NULL) { delete[] Bf; }
+        MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL;
+        if (MxBfL>0) { Bf = new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL); }
+    }
+  }
+  void Copy(const TMemBase& Mem) {
+    if (Bf != NULL) { delete[] Bf; }
+    MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL;
+    if (MxBfL>0) { Bf = new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL); }
+  }
+  operator TMemBase() const { return TMemBase(Bf, BfL, false); }
   void Load(PSIn& SIn) {
     Clr(); SIn->Load(MxBfL); SIn->Load(BfL);
-    Bf = new char[MxBfL = BfL]; SIn->LoadBf(Bf, BfL); Owner = true; }
+    Bf = new char[MxBfL = BfL]; SIn->LoadBf(Bf, BfL); }
   void Load(TSIn& SIn) {
     Clr(); SIn.Load(MxBfL); SIn.Load(BfL);
-    Bf = new char[MxBfL = BfL]; SIn.LoadBf(Bf, BfL); Owner = true; }
+    Bf = new char[MxBfL = BfL]; SIn.LoadBf(Bf, BfL); }
 
   void Save(TSOut& SOut) const {
     SOut.Save(MxBfL); SOut.Save(BfL); SOut.SaveBf(Bf, BfL);}
@@ -290,16 +241,28 @@ public:
 
   TMem& operator=(const TMem& Mem){
     if (this!=&Mem){
-    if (Owner && Bf != NULL) { delete[] Bf; }
-    MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL; Owner = true;
+      if (Bf != NULL) { delete[] Bf; }
+      MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL;
       if (MxBfL>0){Bf=new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL);}}
     return *this;}
   TMem& operator=(TMem&& Src) {
     if (this != &Src) {
-      if (Owner && Bf != NULL) { delete[] Bf; }
-      MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf; Owner = Src.Owner;
-      Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;  Src.Owner = false;
+      if (Bf != NULL) { delete[] Bf; }
+      MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf;
+      Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;
     }
+    return *this;
+  }
+  TMem& operator=(const TMemBase& Mem) {
+    if (Bf != NULL) { delete[] Bf; }
+    MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL;
+    if (MxBfL>0) { Bf = new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL); }
+    return *this;
+  }
+  TMem& operator=(TMemBase&& Src) {
+    if (Bf != NULL) { delete[] Bf; }
+    MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf;
+    Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;
     return *this;
   }
   char* operator()() const {return Bf;}
@@ -320,7 +283,7 @@ public:
     if (DoClr){ Clr(); } Resize(_MxBfL);}
   void Del(const int& BChN, const int& EChN);
   void Clr(const bool& DoDel=true){
-    if (DoDel){if (Bf!=NULL && Owner){delete[] Bf;} MxBfL=0; BfL=0; Bf=NULL;}
+    if (DoDel){if (Bf!=NULL){delete[] Bf;} MxBfL=0; BfL=0; Bf=NULL;}
     else {BfL=0;}}
   void Trunc(const int& _BfL){
     if ((0<=_BfL)&&(_BfL<=BfL)){BfL=_BfL;}}
