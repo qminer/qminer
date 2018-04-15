@@ -5,7 +5,7 @@
 #include "microtest.h"
 
 TEST(TDirExists) {
-    ASSERT_TRUE(TDir::Exists("../../test/cpp"));
+    ASSERT_TRUE(TDir::Exists("./test/cpp")); // here we assume that tests are always ran from root dir
     ASSERT_FALSE(TDir::Exists("./xyz"));
 }
 
