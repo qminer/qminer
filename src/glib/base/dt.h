@@ -261,8 +261,13 @@ public:
   }
   TMem& operator=(TMemBase&& Src) {
     if (Bf != NULL) { delete[] Bf; }
-    MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf;
-    Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;
+    if (Src.Owner) { // take over the buffer
+      MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf;
+      Src.MxBfL = Src.BfL = 0; Src.Bf = NULL; Src.Owner = false;
+    } else { // copy the contents
+      MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = NULL;
+      if (MxBfL>0) { Bf = new char[MxBfL]; memcpy(Bf, Src.Bf, BfL); }
+    }
     return *this;
   }
   char* operator()() const {return Bf;}

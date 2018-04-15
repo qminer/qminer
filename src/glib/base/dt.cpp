@@ -296,13 +296,12 @@ void TMem::Resize(const int& _MxBfL){
   else {if (MxBfL*2<_MxBfL){MxBfL=_MxBfL;} else {MxBfL*=2;}}
   char* NewBf=new char[MxBfL]; IAssert(NewBf!=NULL);
   if (BfL>0){memcpy(NewBf, Bf, BfL);}
-  if (Bf!=NULL && Owner){delete[] Bf;}
-  Owner = true;
+  if (Bf!=NULL){delete[] Bf;}
   Bf=NewBf;
 }
 
-TMem::TMem(const TStr& Str) : TMemBase2() {
-	MxBfL = Str.Len(); BfL = MxBfL; Bf = NULL; Owner = true;
+TMem::TMem(const TStr& Str) {
+	MxBfL = Str.Len(); BfL = MxBfL; Bf = NULL;
   if (MxBfL>0){
     Bf=new char[MxBfL];
     if (BfL>0){memcpy(Bf, Str.CStr(), BfL);}
