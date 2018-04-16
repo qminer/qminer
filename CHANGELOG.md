@@ -1,6 +1,6 @@
 # QMiner Change Log
 
-## 23 February 2018
+## 13 April 2018
 
 **Verstion 9.2.0**
 
@@ -12,6 +12,7 @@ Feature:
 Bugfix:
 - Typo bug in Json UTF-16 handling
 - Added implementation for JSON parsing in `newRecord`
+- Fixed issue 606 on sorted joins
 
 
 ## 5 January 2018
