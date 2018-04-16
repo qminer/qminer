@@ -256,4 +256,15 @@ public:
     }\
   }
 
+///////////////////////////////////////////
+// glib custom extensions
+
+#define ASSERT_EQ_TSTR(a, b)\
+  if (a != b) {\
+    printf("%s{    info} %s", mt::yellow(), mt::def());\
+    std::cout << "Actual values: " << a.CStr() << " != " << b.CStr() << std::endl;\
+  }\
+  ASSERT(a == b);
+
+///////////////////////////////////////////
 #endif // __MICROTEST_H__
