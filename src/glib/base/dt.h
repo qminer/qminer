@@ -277,7 +277,7 @@ public:
   TMem& operator+=(const PSIn& SIn);
   char& operator[](const int& ChN) const {
     Assert((0<=ChN)&&(ChN<BfL)); return Bf[ChN];}
-  int GetMemUsed() const {return int(2*sizeof(int)+sizeof(char*)+MxBfL);}
+  int GetMemUsed() const {return int(sizeof(TMem) + MxBfL);}
 
   void Gen(const int& _BfL){
     Clr(); Resize(_BfL); BfL=_BfL;}
