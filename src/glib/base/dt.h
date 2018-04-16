@@ -214,18 +214,8 @@ public:
   int Len() const { return BfL; }
   bool Empty() const { return BfL == 0; }
   char* GetBf() const { return Bf; }
-  void Copy(const TMem& Mem) {
-    if (this != &Mem) {
-        if (Bf != NULL) { delete[] Bf; }
-        MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL;
-        if (MxBfL>0) { Bf = new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL); }
-    }
-  }
-  void Copy(const TMemBase& Mem) {
-    if (Bf != NULL) { delete[] Bf; }
-    MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL;
-    if (MxBfL>0) { Bf = new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL); }
-  }
+  void Copy(const TMem& Mem);
+  void Copy(const TMemBase& Mem);
   operator TMemBase() const { return TMemBase(Bf, BfL, false); }
   void Load(PSIn& SIn) {
     Clr(); SIn->Load(MxBfL); SIn->Load(BfL);
@@ -239,37 +229,10 @@ public:
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
   void SaveXml(TSOut& SOut, const TStr& Nm) const;
 
-  TMem& operator=(const TMem& Mem){
-    if (this!=&Mem){
-      if (Bf != NULL) { delete[] Bf; }
-      MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL;
-      if (MxBfL>0){Bf=new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL);}}
-    return *this;}
-  TMem& operator=(TMem&& Src) {
-    if (this != &Src) {
-      if (Bf != NULL) { delete[] Bf; }
-      MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf;
-      Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;
-    }
-    return *this;
-  }
-  TMem& operator=(const TMemBase& Mem) {
-    if (Bf != NULL) { delete[] Bf; }
-    MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL;
-    if (MxBfL>0) { Bf = new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL); }
-    return *this;
-  }
-  TMem& operator=(TMemBase&& Src) {
-    if (Bf != NULL) { delete[] Bf; }
-    if (Src.Owner) { // take over the buffer
-      MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf;
-      Src.MxBfL = Src.BfL = 0; Src.Bf = NULL; Src.Owner = false;
-    } else { // copy the contents
-      MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = NULL;
-      if (MxBfL>0) { Bf = new char[MxBfL]; memcpy(Bf, Src.Bf, BfL); }
-    }
-    return *this;
-  }
+  TMem& operator=(const TMem& Mem);
+  TMem& operator=(TMem&& Src);
+  TMem& operator=(const TMemBase& Mem);
+  TMem& operator=(TMemBase&& Src);
   char* operator()() const {return Bf;}
   TMem& operator+=(const char& Ch);
   TMem& operator+=(const TMem& Mem);
