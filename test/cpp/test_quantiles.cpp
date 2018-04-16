@@ -807,11 +807,11 @@ TEST(TExpHistogramCountEquallySpaced) {
             const int AllowedErr = std::ceil(Eps*ExpectedCount);
             const int Low = ExpectedCount - AllowedErr;
             const int High = ExpectedCount + AllowedErr;
-            ASSERT_GE(ExpHistMx.GetCount(), Low);
-            ASSERT_LE(ExpHistMx.GetCount(), High);
+            ASSERT_GE(ExpHistMx.GetCount(), (uint)Low);
+            ASSERT_LE(ExpHistMx.GetCount(), (uint)High);
 
-            ASSERT_GE(ExpHist.GetCount(), Low);
-            ASSERT_LE(ExpHist.GetCount(), High);
+            ASSERT_GE(ExpHist.GetCount(), (uint)Low);
+            ASSERT_LE(ExpHist.GetCount(), (uint)High);
         }
 
         CurrTm += SampleInterval;
@@ -853,7 +853,7 @@ TEST(TExpHistogramCountNonEqual) {
 
         const int Expected = SampleTmV.Len();
 
-        const int AllowedErr = std::ceil(Eps*Expected);
+        const int AllowedErr = (int)std::ceil(Eps*Expected);
         const int Low = Expected - AllowedErr;
         const int High = Expected + AllowedErr;
 

@@ -46,7 +46,7 @@ TEST(sizeofBasicTypes) {
 
 TEST(GetExtraMemberSizeTStr) {
     const TStr Str = "abc";
-    ASSERT_EQ(TMemUtils::GetExtraMemberSize(Str), Str.Len() + 1);
+    ASSERT_EQ((int)TMemUtils::GetExtraMemberSize(Str), Str.Len() + 1);
 }
 
 TEST(GetMemUsedTVec) {
