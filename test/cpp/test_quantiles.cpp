@@ -715,7 +715,7 @@ TEST(TTDigestSampleN) {
         GenSamplesUniform(BatchSize, SampleV);
         for (int SampleN = 0; SampleN < BatchSize; SampleN++) {
             TDigest.Insert(SampleV[SampleN]);
-            ASSERT_EQ(TrialN*BatchSize + SampleN + 1, TDigest.GetSampleN());
+            ASSERT_EQ(TrialN*BatchSize + SampleN + 1, (int64)TDigest.GetSampleN());
         }
     }
 }
@@ -1612,8 +1612,8 @@ TEST(TTimeWindowGkItemCountExact) {
             const uint64 ValCount = Gk.GetValCount();
             const uint64 ValRecount = Gk.GetValRecount();
 
-            ASSERT_EQ(SampleTmV.Len(), ValCount);
-            ASSERT_EQ(SampleTmV.Len(), ValRecount);
+            ASSERT_EQ(SampleTmV.Len(), (int)ValCount);
+            ASSERT_EQ(SampleTmV.Len(), (int)ValRecount);
         }
     }
 
@@ -1622,8 +1622,8 @@ TEST(TTimeWindowGkItemCountExact) {
     const uint64 ValCount = Gk.GetValCount();
     const uint64 ValRecount = Gk.GetValRecount();
 
-    ASSERT_EQ(SampleTmV.Len(), ValCount);
-    ASSERT_EQ(SampleTmV.Len(), ValRecount);
+    ASSERT_EQ(SampleTmV.Len(), (int)ValCount);
+    ASSERT_EQ(SampleTmV.Len(), (int)ValRecount);
 }
 
 TEST(TTimeWindowGkItemCountApprox) {

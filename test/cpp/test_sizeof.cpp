@@ -5,43 +5,43 @@
 #include "microtest.h"
 
 TEST(sizeofBasicTypes) {
-    ASSERT_EQ(sizeof(TUCh), 1);
-    ASSERT_EQ(sizeof(TCh), 1);
-    ASSERT_EQ(sizeof(TSInt), 2);
-    ASSERT_EQ(sizeof(TInt), 4);
-    ASSERT_EQ(sizeof(TUInt64), 8);
+    ASSERT_EQ(sizeof(TUCh), (uint)1);
+    ASSERT_EQ(sizeof(TCh), (uint)1);
+    ASSERT_EQ(sizeof(TSInt), (uint)2);
+    ASSERT_EQ(sizeof(TInt), (uint)4);
+    ASSERT_EQ(sizeof(TUInt64), (uint)8);
 
-    ASSERT_EQ(sizeof(TSFlt), 4);
-    ASSERT_EQ(sizeof(TFlt), 8);
+    ASSERT_EQ(sizeof(TSFlt), (uint)4);
+    ASSERT_EQ(sizeof(TFlt), (uint)8);
 }
 
  TEST(sizeofBasicStructures) {
-     ASSERT_EQ(sizeof(TVec<TInt>), 16);
-     ASSERT_EQ(sizeof(THash<TInt, TInt>), 48);
-     ASSERT_EQ(sizeof(THashSet<TInt>), 48);
-     ASSERT_EQ(sizeof(TStrHash<TInt>), 56);
-     ASSERT_EQ(sizeof(TQQueue<TInt>), 32);
+     ASSERT_EQ(sizeof(TVec<TInt>), (uint)16);
+     ASSERT_EQ(sizeof(THash<TInt, TInt>), (uint)48);
+     ASSERT_EQ(sizeof(THashSet<TInt>), (uint)48);
+     ASSERT_EQ(sizeof(TStrHash<TInt>), (uint)56);
+     ASSERT_EQ(sizeof(TQQueue<TInt>), (uint)32);
 
-     ASSERT_EQ(sizeof(TStr), 8);
-     ASSERT_EQ(sizeof(TChA), 16);
-     ASSERT_EQ(sizeof(TMem), 24);
-     ASSERT_EQ(sizeof(TPt<TMem>), 8);
-     ASSERT_EQ(sizeof(TWPt<TMem>), 8);
+     ASSERT_EQ(sizeof(TStr), (uint)8);
+     ASSERT_EQ(sizeof(TChA), (uint)16);
+     ASSERT_EQ(sizeof(TMem), (uint)24);
+     ASSERT_EQ(sizeof(TPt<TMem>), (uint)8);
+     ASSERT_EQ(sizeof(TWPt<TMem>), (uint)8);
 
-     ASSERT_EQ(sizeof(TBlobPt), 8);
-     ASSERT_EQ(sizeof(TPgBlobPt), 8);
+     ASSERT_EQ(sizeof(TBlobPt), (uint)8);
+     ASSERT_EQ(sizeof(TPgBlobPt), (uint)8);
  }
 
  TEST(sizeofQMiner) {
-     /* ASSERT_EQ(sizeof(TQm::TRec), 216); */ // TODO check on Mac and Windows
-     //ASSERT_EQ(sizeof(TQm::TRec), 200);
-     ASSERT_EQ(sizeof(TQm::TRecSet), 56);
-     ASSERT_EQ(sizeof(TQm::TRecFilter), 24);
-     ASSERT_EQ(sizeof(TQm::TAggr), 32);
-     /* ASSERT_EQ(sizeof(TQm::TStreamAggr), 32); */
-     ASSERT_EQ(sizeof(TQm::TStreamAggr), 40);
-     ASSERT_EQ(sizeof(TQm::TFtrExt), 80);
-     ASSERT_EQ(sizeof(TQm::TFtrSpace), 72);
+     /* ASSERT_EQ(sizeof(TQm::TRec), (uint)216); */ // TODO check on Mac and Windows
+     //ASSERT_EQ(sizeof(TQm::TRec), (uint)200);
+     ASSERT_EQ(sizeof(TQm::TRecSet), (uint)56);
+     ASSERT_EQ(sizeof(TQm::TRecFilter), (uint)24);
+     ASSERT_EQ(sizeof(TQm::TAggr), (uint)32);
+     /* ASSERT_EQ(sizeof(TQm::TStreamAggr), (uint)32); */
+     ASSERT_EQ(sizeof(TQm::TStreamAggr), (uint)40);
+     ASSERT_EQ(sizeof(TQm::TFtrExt), (uint)80);
+     ASSERT_EQ(sizeof(TQm::TFtrSpace), (uint)72);
  }
 
 TEST(GetExtraMemberSizeTStr) {
@@ -78,9 +78,9 @@ TEST(GetMemUsedTVec) {
     ASSERT_EQ(StrVV.GetMemUsed(false), sizeof(TVec<TStrV>) + NVecs * sizeof(TStrV));
     ASSERT_EQ(StrVVV.GetMemUsed(false), sizeof(TVec<TVec<TStrV>>) + NVecs * sizeof(TVec<TStrV>));
     // deep
-    ASSERT_EQ(StrV.GetMemUsed(true), VecMem);
-    ASSERT_EQ(StrVV.GetMemUsed(true), VVecMem);
-    ASSERT_EQ(StrVVV.GetMemUsed(true), VVVecMem);
+    ASSERT_EQ(StrV.GetMemUsed(true), (uint)VecMem);
+    ASSERT_EQ(StrVV.GetMemUsed(true), (uint)VVecMem);
+    ASSERT_EQ(StrVVV.GetMemUsed(true), (uint)VVVecMem);
     // default behavior
     ASSERT_EQ(StrV.GetMemUsed(false), StrV.GetMemUsed());
     ASSERT_EQ(StrVV.GetMemUsed(false), StrVV.GetMemUsed());
@@ -91,7 +91,7 @@ TEST(GetMemUsedTHash) {
     const TStr TargetStr = "abcdefghijk";
 
     THash<TInt, TStr> TestH(2);
-    const int BaseMemUsed = TestH.GetMemUsed(true);
+    const uint64 BaseMemUsed = TestH.GetMemUsed(true);
 
     ASSERT_EQ(TestH.GetMemUsed(true), TestH.GetMemUsed(false));
 
