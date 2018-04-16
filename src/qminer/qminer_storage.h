@@ -398,68 +398,115 @@ private:
     /// sets or un-sets NULL flag for specified field
     void SetFieldNull(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const bool& NullP) const;
 
-    /// Fixed-length field setter
-    void SetFieldByte(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uchar& Byte);
-    /// Fixed-length field setter
-    void SetFieldInt(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int& Int);
-    /// Fixed-length field setter
-    void SetFieldInt16(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int16& Int16);
-    /// Fixed-length field setter
-    void SetFieldInt64(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int64& Int64);
-    /// Fixed-length field setter
-    void SetFieldUInt(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint& UInt);
-    /// Fixed-length field setter
-    void SetFieldUInt16(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint16& UInt16);
-    /// Fixed-length field setter
-    void SetFieldUInt64(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& UInt64);
-    /// Fixed-length field setter
-    void SetFieldStr(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TStr& Str);
-    /// Fixed-length field setter
-    void SetFieldBool(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const bool& Bool);
-    /// Fixed-length field setter
-    void SetFieldFlt(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const double& Flt);
-    /// Fixed-length field setter
-    void SetFieldSFlt(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const float& Flt);
-    /// Fixed-length field setter
-    void SetFieldFltPr(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TFltPr& FltPr);
-    /// Fixed-length field setter
-    void SetFieldTm(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TTm& Tm);
-    /// Fixed-length field setter
-    void SetFieldTmMSecs(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& TmMSecs);
-    /// Parse fixed-length type field JSon value and serialize it accordingly to it's type
-    void SetFixedJsonVal(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc,
-        const TFieldDesc& FieldDesc, const PJsonVal& JsonVal);
+    ///// Fixed-length field setter
+    //void SetFieldByte(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uchar& Byte);
+    ///// Fixed-length field setter
+    //void SetFieldInt(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int& Int);
+    ///// Fixed-length field setter
+    //void SetFieldInt16(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int16& Int16);
+    ///// Fixed-length field setter
+    //void SetFieldInt64(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int64& Int64);
+    ///// Fixed-length field setter
+    //void SetFieldUInt(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint& UInt);
+    ///// Fixed-length field setter
+    //void SetFieldUInt16(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint16& UInt16);
+    ///// Fixed-length field setter
+    //void SetFieldUInt64(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& UInt64);
+    ///// Fixed-length field setter
+    //void SetFieldStr(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TStr& Str);
+    ///// Fixed-length field setter
+    //void SetFieldBool(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const bool& Bool);
+    ///// Fixed-length field setter
+    //void SetFieldFlt(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const double& Flt);
+    ///// Fixed-length field setter
+    //void SetFieldSFlt(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const float& Flt);
+    ///// Fixed-length field setter
+    //void SetFieldFltPr(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TFltPr& FltPr);
+    ///// Fixed-length field setter
+    //void SetFieldTm(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TTm& Tm);
+    ///// Fixed-length field setter
+    //void SetFieldTmMSecs(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& TmMSecs);
+    ///// Parse fixed-length type field JSon value and serialize it accordingly to it's type
+    //void SetFixedJsonVal(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc,
+    //    const TFieldDesc& FieldDesc, const PJsonVal& JsonVal);
+
+    ///// Fixed-length field setter
+    //void SetFieldByte(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uchar& Byte);
+    ///// Fixed-length field setter
+    //void SetFieldInt(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int& Int);
+    ///// Fixed-length field setter
+    //void SetFieldInt16(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int16& Int16);
+    ///// Fixed-length field setter
+    //void SetFieldInt64(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int64& Int64);
+    ///// Fixed-length field setter
+    //void SetFieldUInt(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint& UInt);
+    ///// Fixed-length field setter
+    //void SetFieldUInt16(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint16& UInt16);
+    ///// Fixed-length field setter
+    //void SetFieldUInt64(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& UInt64);
+    ///// Fixed-length field setter
+    //void SetFieldStr(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TStr& Str);
+    ///// Fixed-length field setter
+    //void SetFieldBool(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const bool& Bool);
+    ///// Fixed-length field setter
+    //void SetFieldFlt(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const double& Flt);
+    ///// Fixed-length field setter
+    //void SetFieldSFlt(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const float& Flt);
+    ///// Fixed-length field setter
+    //void SetFieldFltPr(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TFltPr& FltPr);
+    ///// Fixed-length field setter
+    //void SetFieldTm(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TTm& Tm);
+    ///// Fixed-length field setter
+    //void SetFieldTmMSecs(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& TmMSecs);
+    ///// Parse fixed-length type field JSon value and serialize it accordingly to it's type
+    //void SetFixedJsonVal(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc,
+    //    const TFieldDesc& FieldDesc, const PJsonVal& JsonVal);
 
     /// Fixed-length field setter
-    void SetFieldByte(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uchar& Byte);
+    template <class T>
+    void SetFieldByte(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uchar& Byte);
     /// Fixed-length field setter
-    void SetFieldInt(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int& Int);
+    template <class T>
+    void SetFieldInt(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int& Int);
     /// Fixed-length field setter
-    void SetFieldInt16(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int16& Int16);
+    template <class T>
+    void SetFieldInt16(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int16& Int16);
     /// Fixed-length field setter
-    void SetFieldInt64(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int64& Int64);
+    template <class T>
+    void SetFieldInt64(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int64& Int64);
     /// Fixed-length field setter
-    void SetFieldUInt(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint& UInt);
+    template <class T>
+    void SetFieldUInt(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint& UInt);
     /// Fixed-length field setter
-    void SetFieldUInt16(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint16& UInt16);
+    template <class T>
+    void SetFieldUInt16(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint16& UInt16);
     /// Fixed-length field setter
-    void SetFieldUInt64(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& UInt64);
+    template <class T>
+    void SetFieldUInt64(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& UInt64);
     /// Fixed-length field setter
-    void SetFieldStr(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TStr& Str);
+    template <class T>
+    void SetFieldStr(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TStr& Str);
     /// Fixed-length field setter
-    void SetFieldBool(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const bool& Bool);
+    template <class T>
+    void SetFieldBool(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const bool& Bool);
     /// Fixed-length field setter
-    void SetFieldFlt(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const double& Flt);
+    template <class T>
+    void SetFieldFlt(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const double& Flt);
     /// Fixed-length field setter
-    void SetFieldSFlt(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const float& Flt);
+    template <class T>
+    void SetFieldSFlt(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const float& Flt);
     /// Fixed-length field setter
-    void SetFieldFltPr(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TFltPr& FltPr);
+    template <class T>
+    void SetFieldFltPr(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TFltPr& FltPr);
     /// Fixed-length field setter
-    void SetFieldTm(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TTm& Tm);
+    template <class T>
+    void SetFieldTm(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TTm& Tm);
     /// Fixed-length field setter
-    void SetFieldTmMSecs(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& TmMSecs);
+    template <class T>
+    void SetFieldTmMSecs(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& TmMSecs);
     /// Parse fixed-length type field JSon value and serialize it accordingly to it's type
-    void SetFixedJsonVal(TMem& RecMem, const TFieldSerialDesc& FieldSerialDesc,
+    template <class T>
+    void SetFixedJsonVal(T& RecMem, const TFieldSerialDesc& FieldSerialDesc,
         const TFieldDesc& FieldDesc, const PJsonVal& JsonVal);
 
     /// Fixed-length field setter

@@ -217,9 +217,9 @@ public:
     }
 
     inline static int GetTestCount() {
-        int res = tests_only().size();
+        int res = (int)tests_only().size();
         if (res > 0) return res;
-        return tests().size();
+        return (int)tests().size();
     }
 
     static void RunSingleTest(const Test &test, FILE* file, size_t &num_failed) {
