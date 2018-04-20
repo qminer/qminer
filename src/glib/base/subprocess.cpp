@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -138,12 +138,12 @@ int TSubProcess::Close(FILE *fp_read,   //returned from pipe_open()
 
 #endif
 
-TSubProcess::TSubProcess(const TStr& Cmd_, TSubProcessMode Mod_) : 
+TSubProcess::TSubProcess(const TStr& Cmd_, TSubProcessMode Mod_) :
 	/*Pip(Cmd_),*/ Cmd(Cmd_), Mode(Mod_), StdoutWr(NULL), StdinWr(NULL), StdinRd(NULL), StdoutRd(NULL) {
 	Thr.SetSubProcess(this);
 	#ifdef GLib_WIN
 
-	
+
 	// create pipes
 	SECURITY_ATTRIBUTES saAttr;
 	saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
@@ -184,10 +184,10 @@ TSubProcess::TSubProcess(const TStr& Cmd_, TSubProcessMode Mod_) :
 	EAssertR(FuncRetn!=0, TStr::Fmt("Can not execute '%s'", Cmd.CStr()).CStr());
 	CloseHandle(piProcInfo.hProcess);
 	CloseHandle(piProcInfo.hThread);
-		
+
 	Thr.Start();
 	#else
-	
+
 	/*if (Mode == spmRead) {
 		StdoutRd = popen(Cmd.CStr(), GetMode(Mode));
 		EAssertR(StdoutRd != NULL,  TStr::Fmt("Can not execute '%s'", Cmd.CStr()).CStr());
@@ -214,7 +214,7 @@ TSubProcess::TSubProcess(const TStr& Cmd_, TSubProcessMode Mod_) :
 		int fd_to_close_in_child, fd_count;
 		Open(cmd, argv, "p", &StdoutRd, &StdinWr, &Pid, NULL, 0);
 	//}
-	
+
 	#endif
 }
 
@@ -242,7 +242,7 @@ PSIn TSubProcess::Pipe(const PSIn& In) {
 	}
 }
 
-void TSubProcess::Execute(const PSIn& Send, PSOut& Receive) { 
+void TSubProcess::Execute(const PSIn& Send, PSOut& Receive) {
 	if (IsWrite(Mode)) {
 		PSOut SOut = OpenForWriting();
 		Stream(Send, SOut);
@@ -259,23 +259,23 @@ void TSubProcess::Execute(const PSIn& Send, PSOut& Receive) {
 }
 
 void TSubProcess::CloseForWriting() {
-	if (StdinRd != NULL) { 
+	if (StdinRd != NULL) {
 		EAssertR(CloseHandle(StdinRd), "Closing read-end of pipe failed");
 		StdinRd = NULL;
 	}
-	if (StdinWr != NULL) { 
-		EAssertR(CloseHandle(StdinWr), "Closing write-end of pipe failed"); 
+	if (StdinWr != NULL) {
+		EAssertR(CloseHandle(StdinWr), "Closing write-end of pipe failed");
 		StdinWr = NULL;
 	}
 }
 
 void TSubProcess::CloseForReading() {
 	if (StdoutRd != NULL) {
-		EAssertR(CloseHandle(StdoutRd), "Closing read-end of pipe failed"); 
+		EAssertR(CloseHandle(StdoutRd), "Closing read-end of pipe failed");
 		StdoutRd = NULL;
 	}
 	if (StdoutWr != NULL) {
-		EAssertR(CloseHandle(StdoutWr), "Closing write-end of pipe failed"); 
+		EAssertR(CloseHandle(StdoutWr), "Closing write-end of pipe failed");
 		StdoutWr = NULL;
 	}
 }
@@ -284,28 +284,28 @@ TSubProcess::~TSubProcess() {
 	#ifdef GLib_WIN
 
 	CloseForWriting();
-	CloseForReading();	
+	CloseForReading();
 
 	#else
 	int Result = 0;
 
 	/*if (StdoutRd != NULL) {
-		EAssertR(pclose(StdoutRd) != -1, "Closing of the process failed"); 
+		EAssertR(pclose(StdoutRd) != -1, "Closing of the process failed");
 	}
-	if (StdinWr != NULL) { 
-		EAssertR(pclose(StdinWr) != -1, "Closing of the process failed"); 
+	if (StdinWr != NULL) {
+		EAssertR(pclose(StdinWr) != -1, "Closing of the process failed");
 	}*/
 	Close(StdoutRd, StdoutWr,  Pid, &Result);
 	#endif
 }
 
 
-TSubProcessHandlerThread::TSubProcessHandlerThread() : Proc(NULL), Output(TMem::New()) {
+TSubProcessHandlerThread::TSubProcessHandlerThread() : Proc(NULL) {
 
 }
 
 void TSubProcessHandlerThread::Run() {
-	PSOut SOut = TMemOut::New(Output);
+	PSOut SOut = TRefMemOut::New(Output);
 	IAssert(Proc != NULL);
 	PSIn SIn = new TSubProcessIn(Proc);
 	TSubProcess::Stream(SIn, SOut);
@@ -483,7 +483,7 @@ PSOut TSubProcessOut::New(const TStr& FNm){
 
 TSubProcessOut::TSubProcessOut(PSubProcess _Proc) : TSBase(_Proc->GetCmd().CStr()), TSOut(_Proc->GetCmd()), Proc(_Proc),Bf(NULL), BfL(0) {
 	EAssertR((!Proc.Empty() && !Proc->GetCmd().Empty()), "Empty command.");
-	Bf = new char[MxBfL]; 
+	Bf = new char[MxBfL];
 	BfL = 0;
 }
 

@@ -545,7 +545,7 @@ void TStr::Base64Decode(const TStr& In, TMem& Mem) {
 /////////////////////////////////////////////////
 // Input-Memory
 TMemIn::TMemIn(const TMem& _Mem, const int& _BfC):
-  TSBase(), TSIn(), Mem(), Bf(_Mem()), BfC(_BfC), BfL(_Mem.Len()){}
+  TSBase(), TSIn(), Bf(_Mem()), BfC(_BfC), BfL(_Mem.Len()){}
 
 int TMemIn::GetBf(const void* LBf, const TSize& LBfL){
   Assert(TSize(BfC+LBfL)<=TSize(BfL));
@@ -581,24 +581,6 @@ int TRefMemOut::PutBf(const void* LBf, const TSize& LBfL){
 
 TStr TRefMemOut::GetSNm() const {
   return "Output-Reference-Memory";
-}
-
-/////////////////////////////////////////////////
-// Output-Memory
-TMemOut::TMemOut(const PMem& _Mem): TSBase(), TSOut(), Mem(_Mem){}
-
-int TMemOut::PutBf(const void* LBf, const TSize& LBfL){
-  int LBfS=0;
-  TMem& _Mem=*Mem;
-  for (TSize LBfC=0; LBfC<LBfL; LBfC++){
-    char Ch=((char*)LBf)[LBfC];
-    LBfS+=Ch; _Mem+=Ch;
-  }
-  return LBfS;
-}
-
-TStr TMemOut::GetSNm() const {
-  return "Output-Memory";
 }
 
 /////////////////////////////////////////////////
