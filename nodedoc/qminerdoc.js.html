@@ -2274,7 +2274,7 @@
 /**
     * Executes a function on each record in record set.
     * @param {function} callback - Function to be executed. It takes two parameters:
-    * &amp;lt;br&gt;1. &#x60;rec&#x60; - The current record. Type {@link module:qm.Record}.
+    * &amp;lt;br&gt;1. &#x60;rec&#x60; - The current record. Type {@link module:qm.Record}. Warning: Do not use &#x60;rec&#x60; outside the scope of the callback. An internal optimization re-uses &#x60;rec&#x60; object between calls to &#x60;callback&#x60;.
     * &amp;lt;br&gt;2. &#x60;idx&#x60; - The index of the current record (&amp;lt;i&gt;optional&amp;lt;/i&gt;). Type &#x60;number&#x60;.
     * @returns {module:qm.RecordSet} Self.
     * @example
@@ -2305,7 +2305,7 @@
 /**
     * Creates an array of function outputs created from the records in record set.
     * @param {function} callback - Function that generates the array. It takes two parameters:
-    * &amp;lt;br&gt;1. &#x60;rec&#x60; - The current record. Type {@link module:qm.Record}.
+    * &amp;lt;br&gt;1. &#x60;rec&#x60; - The current record. Type {@link module:qm.Record}. Warning: Do not use &#x60;rec&#x60; outside the scope of the callback. An internal optimization re-uses &#x60;rec&#x60; object between calls to &#x60;callback&#x60;.
     * &amp;lt;br&gt;2. &#x60;idx&#x60; - The index of the current record (&amp;lt;i&gt;optional&amp;lt;/i&gt;). Type &#x60;number&#x60;.
     * @returns {Array&amp;lt;Object&gt;} The array created by the callback function.
     * @example

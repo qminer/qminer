@@ -1568,7 +1568,7 @@ namespace TQuant {
             if (1 + RightTuple.GetTotalUncert() <= GetMxTupleUncert((double) TupleFirstItemN)) {
                 RightTuple.SwallowOne();
             } else {
-                const uint NewTupleUncert = GetMxTupleUncert((double) TupleFirstItemN)-1;
+                const uint NewTupleUncert = (int)GetMxTupleUncert((double) TupleFirstItemN)-1;
                 Summary.Ins(NewTupleN, TTuple(Val, NewTupleUncert, RightTuple));
             }
         }
@@ -1949,8 +1949,8 @@ namespace TQuant {
             TBase(),
             Delta(_Delta),
             Rnd(_Rnd),
-            MxBuffLen(std::ceil(_Delta*10)),
-            MxCentroids(2*std::ceil(_Delta)) {
+            MxBuffLen((int)std::ceil(_Delta*10)),
+            MxCentroids(2*(int)std::ceil(_Delta)) {
 
         // reserve enough memory so that the structures don't
         // have to be resized later
@@ -1964,7 +1964,7 @@ namespace TQuant {
             Delta(_Delta),
             Rnd(_Rnd),
             MxBuffLen(_MxBuffLen),
-            MxCentroids(2*std::ceil(_Delta)) {
+            MxCentroids(2*(int)std::ceil(_Delta)) {
         EAssert(MxBuffLen >= 1);
 
         // reserve enough memory so that the structures don't
@@ -2063,7 +2063,7 @@ namespace TQuant {
                         ", value is: " + TFlt::GetStr(NewCentWidthK, "%.15f") + ", centroid: " + TCentroid(NewCentroidMean, NewCentroidWgt).GetStr() + "!");
                 AssertR(CentroidV.Empty() || LastTwoWidthK > 1, TStr("Invariant 2 doesn't hold for centroid ") + TInt::GetStr(CentroidN+1) +
                         " out of " + TInt::GetStr(BuffV.Len()) + ", width is: " + TFlt::GetStr(LastTwoWidthK) + ", max width is: " + TFlt::GetStr(MaxWidthK) +
-                        ", probability interval is: <" + TFlt::GetStr(PrevLeftPVal) + ", " + TFlt::GetStr(ProbMax) + "> (diff: " + (ProbMax - ProbMin) + ")" +
+                        ", probability interval is: <" + TFlt::GetStr(PrevLeftPVal) + ", " + TFlt::GetStr(ProbMax) + "> (diff: " + TFlt::GetStr(ProbMax - ProbMin) + ")" +
                         ", p_left: " + TFlt::GetStr(ProbMin) + ", p_right: " + TFlt::GetStr(ProbMax) + ", orig centroid mass: " + TFlt::GetStr(OrigCentroidMass) +
                         "!");
 #endif

@@ -885,77 +885,6 @@ void TRecSerializator::SetFieldNull(char* Bf, const int& BfL, const TFieldSerial
     }
 }
 
-
-void TRecSerializator::SetFieldByte(TMemBase& RecMem,
-        const TFieldSerialDesc& FieldSerialDesc, const uchar& Byte) {
-    SetFieldByte(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, Byte);
-}
-void TRecSerializator::SetFieldInt(TMemBase& RecMem,
-    const TFieldSerialDesc& FieldSerialDesc, const int& Int) {
-    SetFieldInt(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, Int);
-}
-void TRecSerializator::SetFieldInt16(TMemBase& RecMem,
-    const TFieldSerialDesc& FieldSerialDesc, const int16& Int16) {
-    SetFieldInt16(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, Int16);
-}
-void TRecSerializator::SetFieldInt64(TMemBase& RecMem,
-    const TFieldSerialDesc& FieldSerialDesc, const int64& Int64) {
-    SetFieldInt64(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, Int64);
-}
-
-void TRecSerializator::SetFieldUInt(TMemBase& RecMem,
-        const TFieldSerialDesc& FieldSerialDesc, const uint& UInt) {
-    SetFieldUInt(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, UInt);
-}
-void TRecSerializator::SetFieldUInt16(TMemBase& RecMem,
-    const TFieldSerialDesc& FieldSerialDesc, const uint16& UInt16) {
-    SetFieldUInt16(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, UInt16);
-}
-void TRecSerializator::SetFieldUInt64(TMemBase& RecMem,
-    const TFieldSerialDesc& FieldSerialDesc, const uint64& UInt64) {
-    SetFieldUInt64(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, UInt64);
-}
-
-void TRecSerializator::SetFieldStr(TMemBase& RecMem,
-        const TFieldSerialDesc& FieldSerialDesc, const TStr& Str) {
-    SetFieldStr(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, Str);
-}
-
-void TRecSerializator::SetFieldBool(TMemBase& RecMem,
-        const TFieldSerialDesc& FieldSerialDesc, const bool& Bool) {
-    SetFieldBool(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, Bool);
-}
-
-void TRecSerializator::SetFieldFlt(TMemBase& RecMem,
-        const TFieldSerialDesc& FieldSerialDesc, const double& Flt) {
-    SetFieldFlt(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, Flt);
-}
-void TRecSerializator::SetFieldSFlt(TMemBase& RecMem,
-    const TFieldSerialDesc& FieldSerialDesc, const float& Flt) {
-    SetFieldSFlt(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, Flt);
-}
-
-void TRecSerializator::SetFieldFltPr(TMemBase& RecMem,
-        const TFieldSerialDesc& FieldSerialDesc, const TFltPr& FltPr) {
-    SetFieldFltPr(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, FltPr);
-}
-
-void TRecSerializator::SetFieldTm(TMemBase& RecMem,
-        const TFieldSerialDesc& FieldSerialDesc, const TTm& Tm) {
-    SetFieldTm(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, Tm);
-}
-
-void TRecSerializator::SetFieldTmMSecs(TMemBase& RecMem,
-        const TFieldSerialDesc& FieldSerialDesc, const uint64& TmMSecs) {
-    SetFieldTmMSecs(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, TmMSecs);
-}
-
-void TRecSerializator::SetFixedJsonVal(TMemBase& RecMem,
-        const TFieldSerialDesc& FieldSerialDesc, const TFieldDesc& FieldDesc,
-        const PJsonVal& JsonVal) {
-    SetFixedJsonVal(RecMem.GetBf(), RecMem.Len(), FieldSerialDesc, FieldDesc, JsonVal);
-}
-
 void TRecSerializator::SetFieldNull(char* Bf, const int& BfL, const int& FieldId, const bool& NullP) {
     SetFieldNull(Bf, BfL, GetFieldSerialDesc(FieldId), NullP);
 }
@@ -4394,7 +4323,7 @@ TThinMIn TStorePbBlob::GetEditableField(const uint64& RecId, const int& FieldId)
     }
 }
 
-void TStorePbBlob::GetRecData(const uint64& RecId, const int& FieldId, TMemBase& Mem, THash<TUInt64, TPgBlobPt>* &RecIdBlobPtr, PPgBlob& Blob, TPgBlobPt* &PgPt)
+void TStorePbBlob::GetRecData(const uint64& RecId, const int& FieldId, TMem& Mem, THash<TUInt64, TPgBlobPt>* &RecIdBlobPtr, PPgBlob& Blob, TPgBlobPt* &PgPt)
 {
     TMemBase MemInternal;
     if (FieldLocV[FieldId] == TStoreLoc::slDisk) {
