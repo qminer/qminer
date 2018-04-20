@@ -29,8 +29,9 @@ void TNodeJsQm::Init(v8::Local<v8::Object> exports) {
     NODE_SET_METHOD(exports, "stats", _stats);
 
     // Add properties
-    exports->SetAccessor(Isolate->GetCurrentContext(),
+    v8::Maybe<bool> SuccessP = exports->SetAccessor(Isolate->GetCurrentContext(),
       v8::String::NewFromUtf8(Isolate, "flags"), _flags);
+    QmAssert(!SuccessP.IsNothing() && SuccessP.FromJust());
 
     // initialize QMiner environment
     TQm::TEnv::Init();
