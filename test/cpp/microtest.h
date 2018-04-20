@@ -111,6 +111,13 @@
   }\
   void name()
 
+#define TEST_ONLY(name) \
+  void name();\
+  namespace {\
+    bool __##name = mt::TestsManager::AddTestOnly(name, #name);\
+  }\
+  void name()
+
 
 ///////////////
 // Framework //
@@ -192,32 +199,57 @@ public:
         return tests_;
     }
 
+    static std::vector<Test>& tests_only() {
+        static std::vector<Test> tests_only_;
+        return tests_only_;
+    }
+
     // Adds a new test to the current set of tests.
-    // Returns false if a test with the same name already exists.
     inline static bool AddTest(void(*fn)(void), const char* name) {
         tests().push_back({ name, fn });
         return true;
+    }
+
+    // Adds a new test to the current set of exclusive tests.
+    inline static bool AddTestOnly(void(*fn)(void), const char* name) {
+        tests_only().push_back({ name, fn });
+        return true;
+    }
+
+    inline static int GetTestCount() {
+        int res = (int)tests_only().size();
+        if (res > 0) return res;
+        return (int)tests().size();
+    }
+
+    static void RunSingleTest(const Test &test, FILE* file, size_t &num_failed) {
+        // Run the test.
+        // If an AsserFailedException is thrown, the test has failed.
+        try {
+            printRunning(test.name, file);
+            (*test.fn)();
+            printOk(test.name, file);
+        } catch (AssertFailedException& e) {
+            printFailed(test.name, file);
+            fprintf(file, "           %sAssertion failed: %s%s\n", red(), e.what(), def());
+            fprintf(file, "           %s%s:%d%s\n", red(), e.getFilepath(), e.getLine(), def());
+            ++num_failed;
+        }
     }
 
     // Run all tests that are registered.
     // Returns the number of tests that failed.
     inline static size_t RunAllTests(FILE* file = stdout) {
         size_t num_failed = 0;
-
-        for (const Test& test : tests()) {
-            // Run the test.
-            // If an AsserFailedException is thrown, the test has failed.
-            try {
-                printRunning(test.name, file);
-                (*test.fn)();
-                printOk(test.name, file);
-            } catch (AssertFailedException& e) {
-                printFailed(test.name, file);
-                fprintf(file, "           %sAssertion failed: %s%s\n", red(), e.what(), def());
-                fprintf(file, "           %s%s:%d%s\n", red(), e.getFilepath(), e.getLine(), def());
-                ++num_failed;
+        if (tests_only().size() > 0) {
+            for (const Test& test : tests_only()) {
+                RunSingleTest(test, file, num_failed);
             }
-        }
+        } else {
+            for (const Test& test : tests()) {
+                RunSingleTest(test, file, num_failed);
+            }
+        }        
 
         return num_failed;
         /*int return_code = (num_failed > 0) ? 1 : 0;
@@ -250,10 +282,21 @@ public:
       fprintf(stdout, "%s{ summary} All tests succeeded!%s\n", mt::green(), mt::def());\
       return 0;\
     } else {\
-      double percentage = 100.0 * num_failed / mt::TestsManager::tests().size();\
+      double percentage = 100.0 * num_failed / mt::TestsManager::GetTestCount();\
       fprintf(stderr, "%s{ summary} %zu tests failed (%.2f%%)%s\n", mt::red(), num_failed, percentage, mt::def());\
       return -1;\
     }\
   }
 
+///////////////////////////////////////////
+// glib custom extensions
+
+#define ASSERT_EQ_TSTR(a, b)\
+  if (a != b) {\
+    printf("%s{    info} %s", mt::yellow(), mt::def());\
+    std::cout << "Actual values: " << a.CStr() << " != " << b.CStr() << std::endl;\
+  }\
+  ASSERT(a == b);
+
+///////////////////////////////////////////
 #endif // __MICROTEST_H__

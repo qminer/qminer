@@ -264,6 +264,7 @@
                 'src/qminer/qminer_core.h',
                 'src/qminer/qminer_core.cpp',
                 'src/qminer/qminer_storage.h',
+                'src/qminer/qminer_storage.hpp',
                 'src/qminer/qminer_storage.cpp',
                 'src/qminer/qminer_ftr.h',
                 'src/qminer/qminer_ftr.cpp',
