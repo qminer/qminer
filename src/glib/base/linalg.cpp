@@ -536,7 +536,7 @@ void TLinAlgStat::Std(const TFltVV& Mat, TFltV& Res, const int& Flag, const TMat
 		if(Res.Empty()) Res.Gen(Cols);
 		EAssertR(Cols == Res.Len(), "TLAMisc::Std");
 
-		double Scalar = (Flag == 1) ? TMath::Sqrt(1.0/(Rows)) : TMath::Sqrt(1.0/(Rows-1));
+		double Scalar = ((Rows - !Flag) < 0) ? 0 : TMath::Sqrt(1.0 / (Rows - !Flag));
 		TFltV TempRes(Rows);
 		TFltV Ones(Rows);
 		Ones.PutAll(1.0);
@@ -550,7 +550,7 @@ void TLinAlgStat::Std(const TFltVV& Mat, TFltV& Res, const int& Flag, const TMat
 		if(Res.Empty()) Res.Gen(Rows);
 		EAssertR(Rows == Res.Len(), "TLAMisc::Std");
 
-		double Scalar = (Flag == 1) ? TMath::Sqrt(1.0/(Cols)) : TMath::Sqrt(1.0/(Cols-1));
+		double Scalar = ((Cols - !Flag) < 0) ? 0 : TMath::Sqrt(1.0 / (Cols - !Flag));
 		TFltV TempRes(Cols);
 		TFltV Ones(Cols);
 		Ones.PutAll(1.0);

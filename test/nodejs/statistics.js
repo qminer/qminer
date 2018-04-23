@@ -22,8 +22,8 @@ describe('Import test', function(){
     })
 })
 
-var vec = new la.Vector([1, 2, 3])
-var mat = new la.Matrix([[1, 2, 3], [2, 3, 4]])
+var vec = new la.Vector([1, 2, 3]);
+var mat = new la.Matrix([[1, 2, 3], [2, 3, 4]]);
 
 describe('Testing mean functionalities...', function () {
 
@@ -49,6 +49,36 @@ describe('Testing mean functionalities...', function () {
 })
 
 describe('Testing std functionalities...', function () {
+
+    describe('Edge cases std test:', function () {
+
+        it('std of empty 0x0 matrix should return empty vetor', function () {
+            var mat0 = new la.Matrix([]);
+            var std = stat.std(mat0);
+
+            assert.equal(mat0.cols, 0);
+            assert.equal(mat0.rows, 0);
+            assert.equal(std.length, 0);
+        })
+
+        it('std of empty 0x1 matrix should return empty vetor', function () {
+            var mat1 = new la.Matrix([[]]);
+            var std = stat.std(mat1);
+
+            assert.equal(mat1.cols, 0);
+            assert.equal(mat1.rows, 1);
+            assert.equal(std.length, 0);
+        })
+
+        it('std of empty 0x2 matrix should return empty vetor', function () {
+            var mat2 = new la.Matrix([[],[]]);
+            var std = stat.std(mat2);
+
+            assert.equal(mat2.cols, 0);
+            assert.equal(mat2.rows, 2);
+            assert.equal(std.length, 0);
+        })
+    })
 
     describe('Vector std test: Testing vector is la.Vector([1, 2, 3])', function () {
 
