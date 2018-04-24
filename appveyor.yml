@@ -29,8 +29,7 @@ build_script:
   - cd tools
   - genExampleTests.bat
   - cd ..
-  - .\test\nodejs\test.bat
-
+  - npm test
 
 test: off
 deploy: off
