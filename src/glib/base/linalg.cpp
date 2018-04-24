@@ -553,8 +553,8 @@ void TLinAlgStat::Std(const TFltVV& Mat, TFltV& Res, const int& Flag, const TMat
 		if (Flag == 1) {
 			Scalar = TMath::Sqrt(1.0 / (Rows));
 		} else {
-			EAssertR(Rows > 1, TStr::Fmt("TLinAlgStat::Std: Matrix number of rows should "
-				"not be less than 2 when using mean with parameter 'Flag=%d'", Flag));
+			EAssertR(Rows > 1, TStr::Fmt("TLinAlgStat::Std: Matrix number of rows should not be "
+				"less than 2 when using mean with parameter 'Flag=%d' and 'Dim=%d'", Flag, Dim));
 			Scalar = TMath::Sqrt(1.0 / (Rows - 1));
 		}
 
@@ -576,8 +576,8 @@ void TLinAlgStat::Std(const TFltVV& Mat, TFltV& Res, const int& Flag, const TMat
 			Scalar = TMath::Sqrt(1.0 / (Cols));
 		}
 		else {
-			EAssertR(Cols > 1, TStr::Fmt("TLinAlgStat::Std: Matrix number of columns should "
-				"not be less than 2 when using mean with parameter 'Flag=%d'", Flag));
+			EAssertR(Cols > 1, TStr::Fmt("TLinAlgStat::Std: Matrix number of columns should not be "
+				"less than 2 when using mean with parameter 'Flag=%d' and 'Dim=%d'", Flag, Dim));
 			Scalar = TMath::Sqrt(1.0 / (Cols - 1));
 		}
 

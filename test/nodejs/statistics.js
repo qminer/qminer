@@ -28,6 +28,7 @@ var vec = new la.Vector([1, 2, 3]);
 var mat0 = new la.Matrix([]);
 var mat1 = new la.Matrix([[]]);
 var mat2 = new la.Matrix([[1]]);
+var mat2 = new la.Matrix([[1, 1]]);
 var mat = new la.Matrix([[1, 2, 3], [2, 3, 4]]);
 
 describe('Testing mean functionalities...', function () {
@@ -111,12 +112,28 @@ describe('Testing std functionalities...', function () {
             assert.throws(() => { stat.std(mat0, 1, 2) });
         })
 
-        it('std of matrix [0x1] should throw error when flag is 0', function () {
-            assert.throws(() => { stat.std(vec1), 0, 1 });
-            assert.throws(() => { stat.std(vec1, 0, 2) });
-            assert.doesNotThrow(() => { stat.std(vec1, 1) });
-            assert.doesNotThrow(() => { stat.std(vec1, 1, 1) });
-            assert.doesNotThrow(() => { stat.std(vec1, 1, 2) });
+        it('std of matrix [0x1] should throw error when flag is 0 or if mat is column based', function () {
+            assert.throws(() => { stat.std(mat1), 0, 1 });
+            assert.throws(() => { stat.std(mat1, 0, 2) });
+            assert.doesNotThrow(() => { stat.std(mat1, 1) });
+            assert.doesNotThrow(() => { stat.std(mat1, 1, 1) });
+            assert.throws(() => { stat.std(mat1, 1, 2) });
+        })
+
+        it('std of matrix [1x1] should throw error when flag is 0', function () {
+            assert.throws(() => { stat.std(mat2), 0, 1 });
+            assert.throws(() => { stat.std(mat2, 0, 2) });
+            assert.doesNotThrow(() => { stat.std(mat2, 1) });
+            assert.doesNotThrow(() => { stat.std(mat2, 1, 1) });
+            assert.doesNotThrow(() => { stat.std(mat2, 1, 2) });
+        })
+
+        it('std of matrix [2x1] should throw error when flag is 0 and if mat is row based ', function () {
+            assert.throws(() => { stat.std(mat3), 0, 1 });
+            assert.doesNotThrow(() => { stat.std(mat3, 0, 2) });
+            assert.doesNotThrow(() => { stat.std(mat3, 1) });
+            assert.doesNotThrow(() => { stat.std(mat3, 1, 1) });
+            assert.doesNotThrow(() => { stat.std(mat3, 1, 2) });
         })
     })
 
