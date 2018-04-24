@@ -482,7 +482,7 @@ void TLinAlgIO::PrintTIntV(const TIntV& Vec, const TStr& VecNm) {
 //////////////////////////////////////////////////////////////////////
 // Statistics on linear algebra structures
 double TLinAlgStat::Mean(const TFltV& Vec) {
-	 EAssertR(Vec.Len() != 0, "TLAMisc::Mean: Vector length should not be zero");
+	 EAssertR(Vec.Len() != 0, "TLinAlgStat::Mean: Vector length should not be 0");
 	 return TLinAlg::SumVec(Vec) / Vec.Len();
 }
 
@@ -490,6 +490,8 @@ void TLinAlgStat::Mean(const TFltVV& Mat, TFltV& Res, const TMatDim& Dim) {
 	 int Rows = Mat.GetRows();
 	 int Cols = Mat.GetCols();
 	 if (Dim == TMatDim::mdCols) {
+		 EAssertR(Rows != 0, TStr::Fmt("TLinAlgStat::Mean: Matrix number of rows should not be 0 "
+			 "when using mean with parameter 'Dim=%d'", Dim));
 		 if (Res.Len() != Cols) {
 			 Res.Gen(Cols);
 		 }
@@ -497,6 +499,8 @@ void TLinAlgStat::Mean(const TFltVV& Mat, TFltV& Res, const TMatDim& Dim) {
 		 Vec.PutAll(1.0 / Rows);
 		 TLinAlg::MultiplyT(Mat, Vec, Res);
 	 } else if (Dim == TMatDim::mdRows) {
+		 EAssertR(Cols != 0, TStr::Fmt("TLinAlgStat::Mean: Matrix number of columns should not be 0 "
+			 "when using mean with parameter 'Dim=%d'", Dim));
 		 if (Res.Len() != Rows) {
 			 Res.Gen(Rows);
 		 }
@@ -507,13 +511,22 @@ void TLinAlgStat::Mean(const TFltVV& Mat, TFltV& Res, const TMatDim& Dim) {
 }
 
 double TLinAlgStat::Std(const TFltV& Vec, const int& Flag) {
-    EAssertR(Flag == 0 || Flag == 1, "TLAMisc::Std: Invalid value of 'Flag' argument. "
+    EAssertR(Flag == 0 || Flag == 1, "TLinAlgStat::Std: Invalid value of 'Flag' argument. "
         "Supported 'Flag' arguments are 0 or 1. See Matlab std() documentation.");
 
     int Len = Vec.Len();
 
     double Mean = TLinAlgStat::Mean(Vec);
-    double Scalar = (Flag == 1) ? TMath::Sqrt(1.0 / (Len)) : TMath::Sqrt(1.0 / (Len - 1));
+
+	double Scalar;
+	if (Flag == 1) {
+		Scalar = TMath::Sqrt(1.0 / (Len));
+	}
+	else {
+		EAssertR(Len > 1, TStr::Fmt("TLinAlgStat::Std: Matrix number of rows should "
+			"not be less than 2 when using mean with parameter 'Flag=%d'", Flag));
+		Scalar = TMath::Sqrt(1.0 / (Len - 1));
+	}
 
     TFltV TempRes(Len);
     TFltV Ones(Len);
@@ -524,7 +537,7 @@ double TLinAlgStat::Std(const TFltV& Vec, const int& Flag) {
 }
 
 void TLinAlgStat::Std(const TFltVV& Mat, TFltV& Res, const int& Flag, const TMatDim& Dim) {
-	EAssertR(Flag == 0 || Flag == 1, "TLAMisc::Std: Invalid value of 'Flag' argument. "
+	EAssertR(Flag == 0 || Flag == 1, "TLinAlgStat::Std: Invalid value of 'Flag' argument. "
 							"Supported 'Flag' arguments are 0 or 1. See Matlab std() documentation.");
 	int Cols = Mat.GetCols();
 	int Rows = Mat.GetRows();
@@ -534,9 +547,17 @@ void TLinAlgStat::Std(const TFltVV& Mat, TFltV& Res, const int& Flag, const TMat
 
 	if (Dim == TMatDim::mdCols) {
 		if(Res.Empty()) Res.Gen(Cols);
-		EAssertR(Cols == Res.Len(), "TLAMisc::Std");
+		EAssertR(Cols == Res.Len(), "TLinAlgStat::Std");
 
-		double Scalar = ((Rows - !Flag) < 0) ? 0 : TMath::Sqrt(1.0 / (Rows - !Flag));
+		double Scalar;
+		if (Flag == 1) {
+			Scalar = TMath::Sqrt(1.0 / (Rows));
+		} else {
+			EAssertR(Rows > 1, TStr::Fmt("TLinAlgStat::Std: Matrix number of rows should "
+				"not be less than 2 when using mean with parameter 'Flag=%d'", Flag));
+			Scalar = TMath::Sqrt(1.0 / (Rows - 1));
+		}
+
 		TFltV TempRes(Rows);
 		TFltV Ones(Rows);
 		Ones.PutAll(1.0);
@@ -548,9 +569,18 @@ void TLinAlgStat::Std(const TFltVV& Mat, TFltV& Res, const int& Flag, const TMat
 	}
 	else if (Dim == TMatDim::mdRows) {
 		if(Res.Empty()) Res.Gen(Rows);
-		EAssertR(Rows == Res.Len(), "TLAMisc::Std");
+		EAssertR(Rows == Res.Len(), "TLinAlgStat::Std");
 
-		double Scalar = ((Cols - !Flag) < 0) ? 0 : TMath::Sqrt(1.0 / (Cols - !Flag));
+		double Scalar;
+		if (Flag == 1) {
+			Scalar = TMath::Sqrt(1.0 / (Cols));
+		}
+		else {
+			EAssertR(Cols > 1, TStr::Fmt("TLinAlgStat::Std: Matrix number of columns should "
+				"not be less than 2 when using mean with parameter 'Flag=%d'", Flag));
+			Scalar = TMath::Sqrt(1.0 / (Cols - 1));
+		}
+
 		TFltV TempRes(Cols);
 		TFltV Ones(Cols);
 		Ones.PutAll(1.0);
@@ -563,7 +593,7 @@ void TLinAlgStat::Std(const TFltVV& Mat, TFltV& Res, const int& Flag, const TMat
 }
 
 void TLinAlgStat::ZScore(const TFltVV& Mat, TFltVV& Res, const int& Flag, const TMatDim& Dim) {
-	EAssertR(Flag == 0 || Flag == 1, "TLAMisc::ZScore: Invalid value of 'Flag' argument. "
+	EAssertR(Flag == 0 || Flag == 1, "TLinAlgStat::ZScore: Invalid value of 'Flag' argument. "
 							"Supported 'Flag' arguments are 0 or 1. See Matlab std() documentation.");
 
 	int Cols = Mat.GetCols();
