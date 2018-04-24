@@ -28,7 +28,7 @@ var vec = new la.Vector([1, 2, 3]);
 var mat0 = new la.Matrix([]);
 var mat1 = new la.Matrix([[]]);
 var mat2 = new la.Matrix([[1]]);
-var mat2 = new la.Matrix([[1, 1]]);
+var mat3 = new la.Matrix([[1, 1]]);
 var mat = new la.Matrix([[1, 2, 3], [2, 3, 4]]);
 
 describe('Testing mean functionalities...', function () {
