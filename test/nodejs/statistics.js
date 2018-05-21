@@ -18,14 +18,52 @@ var stat = require('qminer').statistics;
 
 describe('Import test', function(){
     it('if import of qminer.node succeeds, return true', function(){
-      assert.equal(1,1);
+        assert.equal(1,1);
     })
 })
 
-var vec = new la.Vector([1, 2, 3])
-var mat = new la.Matrix([[1, 2, 3], [2, 3, 4]])
+var vec0 = new la.Vector([]);
+var vec1 = new la.Vector([1]);
+var vec = new la.Vector([1, 2, 3]);
+var mat0 = new la.Matrix([]);
+var mat1 = new la.Matrix([[]]);
+var mat2 = new la.Matrix([[1]]);
+var mat3 = new la.Matrix([[1, 1]]);
+var mat = new la.Matrix([[1, 2, 3], [2, 3, 4]]);
 
 describe('Testing mean functionalities...', function () {
+
+    describe('Edge cases mean test', () => {
+
+        it('should throw exception if vector of length 0 is sent to mean function', () => {
+            assert.equal(vec0.length, 0);
+            assert.throws(() => { stat.mean(vec0) });
+        })
+
+        it('should throw exception if matrix [0x0] is sent to mean function', () => {
+            assert.equal(mat0.cols, 0);
+            assert.equal(mat0.rows, 0);
+            assert.throws(() => { stat.mean(mat0) });
+            assert.throws(() => { stat.mean(mat0, 1) });
+            assert.throws(() => { stat.mean(mat0, 2) });
+        })
+
+        it('should throw exception if matrix [0x1] is sent to mean function', () => {
+            assert.equal(mat1.cols, 0);
+            assert.equal(mat1.rows, 1);
+            assert.doesNotThrow(() => { stat.mean(mat1) });
+            assert.doesNotThrow(() => { stat.mean(mat1, 1) });
+            assert.throws(() => { stat.mean(mat1, 2) });
+        })
+
+        it('should throw exception if matrix [1x1] is sent to mean function', () => {
+            assert.equal(mat2.cols, 1);
+            assert.equal(mat2.rows, 1);
+            assert.doesNotThrow(() => { stat.mean(mat2) });
+            assert.doesNotThrow(() => { stat.mean(mat2, 1) });
+            assert.doesNotThrow(() => { stat.mean(mat2, 2) });
+        })
+    })
 
     describe('Vector mean test: Testing vector is la.vector([1, 2, 3])', function () {
 
@@ -49,6 +87,55 @@ describe('Testing mean functionalities...', function () {
 })
 
 describe('Testing std functionalities...', function () {
+
+    describe('Edge cases std test:', function () {
+
+        it('std of empty vetor should throw error', function () {
+            assert.throws(() => { stat.std(vec0) });
+            assert.throws(() => { stat.std(vec0, 1) });
+            assert.throws(() => { stat.std(vec0, 0, 2) });
+            assert.throws(() => { stat.std(vec0, 1, 2) });
+        })
+
+        it('std of vector of length 1 should throw error when flag is 0', function () {
+            assert.throws(() => { stat.std(vec1), 0, 1 });
+            assert.throws(() => { stat.std(vec1, 0, 2) });
+            assert.doesNotThrow(() => { stat.std(vec1, 1) });
+            assert.doesNotThrow(() => { stat.std(vec1, 1, 1) });
+            assert.doesNotThrow(() => { stat.std(vec1, 1, 2) });
+        })
+
+        it('std of matrix [0x0] should return empty vetor', function () {
+            assert.throws(() => { stat.std(mat0) });
+            assert.throws(() => { stat.std(mat0, 1) });
+            assert.throws(() => { stat.std(mat0, 0, 2) });
+            assert.throws(() => { stat.std(mat0, 1, 2) });
+        })
+
+        it('std of matrix [0x1] should throw error when flag is 0 or if mat is column based', function () {
+            assert.throws(() => { stat.std(mat1), 0, 1 });
+            assert.throws(() => { stat.std(mat1, 0, 2) });
+            assert.doesNotThrow(() => { stat.std(mat1, 1) });
+            assert.doesNotThrow(() => { stat.std(mat1, 1, 1) });
+            assert.throws(() => { stat.std(mat1, 1, 2) });
+        })
+
+        it('std of matrix [1x1] should throw error when flag is 0', function () {
+            assert.throws(() => { stat.std(mat2), 0, 1 });
+            assert.throws(() => { stat.std(mat2, 0, 2) });
+            assert.doesNotThrow(() => { stat.std(mat2, 1) });
+            assert.doesNotThrow(() => { stat.std(mat2, 1, 1) });
+            assert.doesNotThrow(() => { stat.std(mat2, 1, 2) });
+        })
+
+        it('std of matrix [2x1] should throw error when flag is 0 and if mat is row based ', function () {
+            assert.throws(() => { stat.std(mat3), 0, 1 });
+            assert.doesNotThrow(() => { stat.std(mat3, 0, 2) });
+            assert.doesNotThrow(() => { stat.std(mat3, 1) });
+            assert.doesNotThrow(() => { stat.std(mat3, 1, 1) });
+            assert.doesNotThrow(() => { stat.std(mat3, 1, 2) });
+        })
+    })
 
     describe('Vector std test: Testing vector is la.Vector([1, 2, 3])', function () {
 
