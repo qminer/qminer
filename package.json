@@ -91,7 +91,7 @@
   },
   "main": "./index.js",
   "dependencies": {
-    "node-pre-gyp": "0.6.x"
+    "node-pre-gyp": "0.10.x"
   },
   "bundledDependencies": [
     "node-pre-gyp"
