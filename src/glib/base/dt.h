@@ -170,42 +170,29 @@ public:
 };
 
 /////////////////////////////////////////////////////////////////////
-// Memory chunk - advanced memory buffer, supports resizing etc.
-// There are no additional data members.
-class TMem;
-typedef TPt<TMem> PMem;
-
-/// Memory chunk - advanced memory buffer
+/// Memory chunk. Advanced memory buffer, supports resizing etc.
 class TMem {
-private:
-  TCRef CRef;
-public:
-  friend class TPt<TMem>;
 protected:
   int MxBfL, BfL;
   char* Bf;
   void Resize(const int& _MxBfL);
   bool DoFitLen(const int& LBfL) const {return BfL+LBfL<=MxBfL;}
+
 public:
   TMem(const int& _MxBfL=0) : MxBfL(_MxBfL), BfL(0), Bf(NULL) {
     IAssert(BfL >= 0); BfL = 0; Bf = NULL;
     if (MxBfL>0){Bf=new char[MxBfL]; IAssert(Bf!=NULL);}}
-  static PMem New(const int& MxBfL=0){return new TMem(MxBfL);}
   TMem(const void* _Bf, const int& _BfL) : MxBfL(_BfL), BfL(_BfL), Bf(NULL) {
     IAssert(BfL >= 0); MxBfL = _BfL; BfL = _BfL; Bf = NULL;
     if (BfL > 0) { Bf = new char[BfL]; IAssert(Bf != NULL); memcpy(Bf, _Bf, BfL); } }
-  static PMem New(const void* Bf, const int& BfL){return new TMem(Bf, BfL);}
   TMem(const TMem& Mem) : MxBfL(0), BfL(0), Bf(NULL) {
     MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL;
     if (MxBfL>0){Bf=new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL);}}
-  static PMem New(const TMem& Mem){return new TMem(Mem);}
-  static PMem New(const PMem& Mem){return new TMem(*Mem);}
   TMem(const TStr& Str);
   TMem(TMem&& Src) : MxBfL(0), BfL(0), Bf(NULL) {
     MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf;
     Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;
   }
-  static PMem New(const TStr& Str){return new TMem(Str);}
   ~TMem() { if (Bf != NULL) { delete[] Bf; }; Bf = NULL; }
   explicit TMem(TSIn& SIn) {
     SIn.Load(MxBfL); SIn.Load(BfL);
@@ -270,8 +257,6 @@ public:
 
   static void LoadMem(const PSIn& SIn, TMem& Mem){
     Mem.Clr(); Mem.Gen(SIn->Len()); SIn->GetBf(Mem.Bf, SIn->Len());}
-  static void LoadMem(const PSIn& SIn, const PMem& Mem){
-    Mem->Clr(); Mem->Gen(SIn->Len()); SIn->GetBf(Mem->Bf, SIn->Len());}
   void SaveMem(const PSOut& SOut) const {SOut->SaveBf(Bf, Len());}
 };
 
@@ -279,15 +264,12 @@ public:
 // Input-Memory
 class TMemIn: public TSIn{
 private:
-  PMem Mem;
   const char* Bf;
   int BfC, BfL;
 public:
   TMemIn(const TMem& _Mem, const int& _BfC=0);
   static PSIn New(const TMem& Mem){
     return PSIn(new TMemIn(Mem));}
-  static PSIn New(const PMem& Mem){
-    TMemIn* MemIn=new TMemIn(*Mem); MemIn->Mem=Mem; return PSIn(MemIn);}
   ~TMemIn(){}
 
   bool Eof(){return BfC==BfL;}
@@ -312,27 +294,6 @@ public:
   ~TRefMemOut(){}
 
   int PutCh(const char& Ch){Mem += Ch; return Ch;}
-  int PutBf(const void* LBf, const TSize& LBfL);
-  void Flush(){}
-  
-  TStr GetSNm() const;
-};
-
-/////////////////////////////////////////////////
-// Output-Memory
-class TMemOut: public TSOut{
-private:
-  PMem Mem;
-private:
-  void FlushBf();
-public:
-  TMemOut(const PMem& _Mem);
-  static PSOut New(const PMem& Mem){
-    return new TMemOut(Mem);}
-  ~TMemOut(){}
-
-  int PutCh(const char& Ch){
-    Mem->operator+=(Ch); return Ch;}
   int PutBf(const void* LBf, const TSize& LBfL);
   void Flush(){}
 
@@ -1437,12 +1398,12 @@ public:
     IAssert(Mn<=Mx); return Val<Mn?Mn:(Val>Mx?Mx:Val);}
 
   TStr GetStr() const { return TNum::GetStr(Val); }
-  
+
   static TStr GetStr(const int& Val){ return TStr::Fmt("%d", Val); }
   static TStr GetStr(const TNum& Int){ return GetStr(Int.Val); }
   static TStr GetStr(const int& Val, const char* FmtStr);
   static TStr GetStr(const int& Val, const TStr& FmtStr){ return GetStr(Val, FmtStr.CStr());}
-  
+
   //J: So that TInt can convert any kind of integer to a string
   static TStr GetStr(const uint& Val){ return TStr::Fmt("%u", Val); }
   #ifdef GLib_WIN
@@ -1620,7 +1581,7 @@ public:
   else if (Val>1000000000){
   return GetStr(Val/1000000000)+"."+GetStr((Val%1000000000)/100000000)+"G";}
   else {return GetMegaStr(Val);}}*/
-  
+
   static int64 GetFromBufSafe(const char * Bf) {
 #ifdef ARM
     int64 Val;
@@ -1826,7 +1787,7 @@ public:
     return *((double*)Bf);
     #endif
   }
-  
+
   // TODO test!
   static void SetBufSafe(const double& Val, char * Bf) {
     #ifdef ARM
