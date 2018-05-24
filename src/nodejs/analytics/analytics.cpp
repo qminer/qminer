@@ -4341,16 +4341,16 @@ void TNodeJsGk::cdf(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     if (TNodeJsUtil::IsArgFlt(Args, 0)) {
         const double Val = TNodeJsUtil::GetArgFlt(Args, 0);
-        const double CdfVal = Gk.GetQuantile(Val);
+        const double Quantile = Gk.GetCdf(Val);
 
-        Args.GetReturnValue().Set(v8::Number::New(Isolate, CdfVal));
+        Args.GetReturnValue().Set(v8::Number::New(Isolate, Quantile));
     } else {
         TFltV ValV; TNodeJsUtil::GetArgFltV(Args, 0, ValV);
-        TFltV CdfValV; Gk.GetQuantileV(ValV, CdfValV);
+        TFltV QuantileV; Gk.GetCdfV(ValV, QuantileV);
 
-        v8::Handle<v8::Array> QuantArr = v8::Array::New(Isolate, CdfValV.Len());
-        for (int QuantN = 0; QuantN < CdfValV.Len(); ++QuantN) {
-            QuantArr->Set(QuantN, v8::Number::New(Isolate, CdfValV[QuantN]));
+        v8::Handle<v8::Array> QuantArr = v8::Array::New(Isolate, QuantileV.Len());
+        for (int QuantN = 0; QuantN < QuantileV.Len(); ++QuantN) {
+            QuantArr->Set(QuantN, v8::Number::New(Isolate, QuantileV[QuantN]));
         }
 
         Args.GetReturnValue().Set(QuantArr);
