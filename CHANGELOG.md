@@ -1,5 +1,33 @@
 # QMiner Change Log
 
+## 20 April 2018
+
+**Version 9.2.2**
+
+**Non-breaking with bug fixes**
+
+Bugfix:
+- Queries with joins sometimes crashed due to unsorted intermediate record set  (issue #606)
+- Added clarification to functions `recordSet.each` and `recordSet.map` and `fs.readCsvLines`
+- C++ work again!
+- TMem got slimmer (24 bytes instead of 32 bytes!)
+- Fixed how exceptions are handled in `fs.readLines`
+
+## 13 April 2018
+
+**Verstion 9.2.1**
+
+**Non-breaking with new feature and bug fixes**
+
+Feature:
+- JavaScript APIs cleaned for quantile estimators, moved to `analytics.quantiles`.
+
+Bugfix:
+- Typo bug in Json UTF-16 handling
+- Added implementation for JSON parsing in `newRecord`
+- Fixed issue 606 on sorted joins
+
+
 ## 5 January 2018
 
 **Version 9.1.2**

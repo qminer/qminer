@@ -56,7 +56,7 @@ script:
   - npm install -g mocha
   - npm install -g mustache
   - ./tools/genExampleTests.sh
-  - ./test/nodejs/test.sh
+  - npm test
 
 os: linux
 notifications:
