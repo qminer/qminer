@@ -248,7 +248,7 @@ describe('Gk test', function () {
         })
 
         it('function should be non-decreasing', function () {
-            let previous = 0;
+            var previous = 0;
             for (var i = 0; i <= 100; i++) {
                 assert(previous <= gk.cdf(i));
                 previous = gk.cdf(i);
@@ -256,7 +256,7 @@ describe('Gk test', function () {
         })
         it('check relationship with quantile function', function(){
             pval = 0.5;
-            let quant = gk.quantile(pval);
+            var quant = gk.quantile(pval);
             assert(gk.cdf(quant) >= pval);
         })
     })
