@@ -35,7 +35,7 @@ TGPSMeasurement::TGPSMeasurement(const PJsonVal& Rec) {
             Rec->GetObjKey("activities")->GetArrIntV(SensorActivities);
         }//if it has activities
         if (Rec->IsObjKey("accelerometer")) {
-            Accelerometer = Rec->GetObjKey("accelerometer");
+            Accelerometer = Rec->GetObjKey("accelerometer")->GetStr();
         }//if it has accelerometer
 
         int SensLen = SensorActivities.Len();
@@ -518,9 +518,9 @@ bool TStayPointDetector::ParseGPSRec(const TRec& Rec, TGPSMeasurement& Gps) {
         Gps.Distance = Rec.GetFieldFlt(DistanceFieldId);
     }
 
-    Gps.Accelerometer = TJsonVal::NewNull();
+    Gps.Accelerometer = "";
     if (!Rec.IsFieldNull(AccelerometerFieldId)) {
-        Gps.Accelerometer = Rec.GetFieldJsonVal(AccelerometerFieldId);
+        Gps.Accelerometer = Rec.GetFieldStr(AccelerometerFieldId);
     }
 
     if (!Rec.IsFieldNull(ActivitiesField)) {
