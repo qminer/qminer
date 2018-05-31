@@ -231,6 +231,35 @@ describe('Gk test', function () {
             assert(Math.ceil((cumProb + maxRelErr)*batchSize) >= quant_hat);
         }
     })
+
+    
+    describe('CDF test', function () {
+        var gk = new quants.Gk({
+            eps: 0.01
+        });
+        for (var i = 0; i < 100; i++) {
+            gk.insert(Math.floor(Math.random()*100));
+        }
+        
+        it('values should be bounded between 0 and 1', function () {
+            assert.equal(gk.cdf(100), 1);
+            assert.equal(gk.cdf(-1),0);
+            assert.equal(gk.cdf(1000), 1);
+        })
+
+        it('function should be non-decreasing', function () {
+            var previous = 0;
+            for (var i = 0; i <= 100; i++) {
+                assert(previous <= gk.cdf(i));
+                previous = gk.cdf(i);
+            }
+        })
+        it('check relationship with quantile function', function(){
+            pval = 0.5;
+            var quant = gk.quantile(pval);
+            assert(gk.cdf(quant) >= pval);
+        })
+    })
 })
 
 describe('BiasedGk test', function () {
