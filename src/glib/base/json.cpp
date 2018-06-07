@@ -246,7 +246,7 @@ int64 TJsonVal::GetObjInt64(const char *Key, const int64& DefInt) const {
 uint64 TJsonVal::GetObjUInt64(const TStr& Key, const uint64& DefInt) const {
   EAssertR(IsObj(), "Cannot get property of non-object!");
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetUInt64() : DefInt;
-} 
+}
 
 uint64 TJsonVal::GetObjUInt64(const char *Key, const uint64& DefInt) const {
   EAssertR(IsObj(), "Cannot get property of non-object!");
@@ -271,7 +271,7 @@ void TJsonVal::GetObjFltV(const TStr& Key, TFltV& FltV) const {
   GetObjKey(Key)->GetArrNumV(FltV);
 }
 
-const TStr& TJsonVal::GetObjStr(const TStr& Key, const TStr& DefStr) const { 
+const TStr& TJsonVal::GetObjStr(const TStr& Key, const TStr& DefStr) const {
   EAssertR(IsObj(), "Cannot get property of non-object!");
   return (IsObjKey(Key)) ? KeyValH.GetDat(Key)->GetStr() : DefStr;
 }
@@ -403,58 +403,48 @@ PJsonVal TJsonVal::GetValFromStr(const TStr& JsonStr){
 }
 
 void TJsonVal::AddEscapeChAFromStr(const TStr& Str, TChA& ChA){
-	if (TUnicodeDef::IsDef()) {
-		// parse the UTF8 string
-		TIntV UStr; TUnicodeDef::GetDef()->DecodeUtf8(Str, UStr);
-		// escape the string
-		for (int ChN = 0; ChN < UStr.Len(); ChN++) {
-			const int UCh = UStr[ChN];
-			if (UCh < 0x80) {
-				// 7-bit ascii
-				const char Ch = (char)UCh;
-				switch (Ch) {
-					case '"' : ChA.AddCh('\\'); ChA.AddCh('"'); break;
-					case '\\' : ChA.AddCh('\\'); ChA.AddCh('\\'); break;
-					case '/' : ChA.AddCh('\\'); ChA.AddCh('/'); break;
-					case '\b' : ChA.AddCh('\\'); ChA.AddCh('b'); break;
-					case '\f' : ChA.AddCh('\\'); ChA.AddCh('f'); break;
-					case '\n' : ChA.AddCh('\\'); ChA.AddCh('n'); break;
-					case '\r' : ChA.AddCh('\\'); ChA.AddCh('r'); break;
-					case '\t' : ChA.AddCh('\\'); ChA.AddCh('t'); break;
-					default :
-						ChA.AddCh(Ch);
-				}
-			} else {
-				// escape
-				ChA += "\\u";
-				ChA += TStr::Fmt("%04x", UCh);
-			}
-		}
-	} else {
-		// escape the string
-		for (int ChN = 0; ChN < Str.Len(); ChN++) {
-			const char Ch = Str[ChN];
-			if ((Ch & 0x80) == 0) {
-				// 7-bit ascii
-				switch (Ch) {
-					case '"' : ChA.AddCh('\\'); ChA.AddCh('"'); break;
-					case '\\' : ChA.AddCh('\\'); ChA.AddCh('\\'); break;
-					case '/' : ChA.AddCh('\\'); ChA.AddCh('/'); break;
-					case '\b' : ChA.AddCh('\\'); ChA.AddCh('b'); break;
-					case '\f' : ChA.AddCh('\\'); ChA.AddCh('f'); break;
-					case '\n' : ChA.AddCh('\\'); ChA.AddCh('n'); break;
-					case '\r' : ChA.AddCh('\\'); ChA.AddCh('r'); break;
-					case '\t' : ChA.AddCh('\\'); ChA.AddCh('t'); break;
-					default : ChA.AddCh(Ch);
-				}
-			} else {
-                printf("Warning: no TUnicodeDef, possible errors when escaping unicode characters!");
-				// escape
-				ChA += "\\u";
-				ChA += TStr::Fmt("%02x", (int)Ch);
-			}
-		}
-	}
+    static TUniCodec uniCodec(uehIgnore, false, TUniCodec::DefaultReplacementChar, false);
+    // parse the UTF8 string
+    TIntV UStr; uniCodec.DecodeUtf8(Str, UStr, false);
+    // escape the string
+    for (int ChN = 0; ChN < UStr.Len(); ChN++) {
+        const int UCh = UStr[ChN];
+        if (UCh < 0x80) {
+            // 7-bit ascii
+            const char Ch = (char) UCh;
+            switch (Ch) {
+            case '"': ChA.AddCh('\\'); ChA.AddCh('"'); break;
+            case '\\': ChA.AddCh('\\'); ChA.AddCh('\\'); break;
+            case '/': ChA.AddCh('\\'); ChA.AddCh('/'); break;
+            case '\b': ChA.AddCh('\\'); ChA.AddCh('b'); break;
+            case '\f': ChA.AddCh('\\'); ChA.AddCh('f'); break;
+            case '\n': ChA.AddCh('\\'); ChA.AddCh('n'); break;
+            case '\r': ChA.AddCh('\\'); ChA.AddCh('r'); break;
+            case '\t': ChA.AddCh('\\'); ChA.AddCh('t'); break;
+            default:
+                if (UCh < 32) { ChA += "\\u"; ChA += TStr::Fmt("%04x", UCh); }
+                else ChA.AddCh(Ch);
+            }
+        }
+        else {
+            // escape
+            EAssertR(UCh <= 0x10FFFF, "Unable to JSON encode character U+" +
+                TStr(UCh));
+            if (UCh <= 0xFFFF) {
+                ChA += "\\u";
+                ChA += TStr::Fmt("%04x", UCh);
+            }
+            else {
+                // U+10000 .. U+10FFFF
+                int UChH = 0xD800 + ((UCh - 0x010000) >> 10);
+                int UChL = 0xDC00 + ((UCh - 0x010000) & 0x3FF);
+                ChA += "\\u";
+                ChA += TStr::Fmt("%04x", UChH);
+                ChA += "\\u";
+                ChA += TStr::Fmt("%04x", UChL);
+            }
+        }
+    }
 }
 
 void TJsonVal::AddQChAFromStr(const TStr& Str, TChA& ChA){
