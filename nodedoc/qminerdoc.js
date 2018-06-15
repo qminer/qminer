@@ -551,6 +551,7 @@
  exports.Base.prototype.search = function (query) { return Object.create(require('qminer').RecordSet.prototype); }
 /**
     * Calls qminer garbage collector to remove records outside time windows. For application example see {@link module:qm~SchemaTimeWindowDef}.
+    * @param {number} [max_time=-1] - Maximal number of time each store can spend on cleaning backlog in milisecons. If -1 then no limit is applied.
     */
  exports.Base.prototype.garbageCollect = function () { }
 /**
@@ -2243,7 +2244,7 @@
 /**
     * Executes a function on each record in record set.
     * @param {function} callback - Function to be executed. It takes two parameters:
-    * <br>1. `rec` - The current record. Type {@link module:qm.Record}.
+    * <br>1. `rec` - The current record. Type {@link module:qm.Record}. Warning: Do not use `rec` outside the scope of the callback. An internal optimization re-uses `rec` object between calls to `callback`.
     * <br>2. `idx` - The index of the current record (<i>optional</i>). Type `number`.
     * @returns {module:qm.RecordSet} Self.
     * @example
@@ -2274,7 +2275,7 @@
 /**
     * Creates an array of function outputs created from the records in record set.
     * @param {function} callback - Function that generates the array. It takes two parameters:
-    * <br>1. `rec` - The current record. Type {@link module:qm.Record}.
+    * <br>1. `rec` - The current record. Type {@link module:qm.Record}. Warning: Do not use `rec` outside the scope of the callback. An internal optimization re-uses `rec` object between calls to `callback`.
     * <br>2. `idx` - The index of the current record (<i>optional</i>). Type `number`.
     * @returns {Array<Object>} The array created by the callback function.
     * @example
@@ -2648,7 +2649,7 @@
 * // add a new record to the base
 * base.store("Class").push({ Name: "Peterson", Grade: 9 });
 * base.store("Class").push({ Name: "Ericsson", Grade: 8 });
-* // update the feature space for scaling 
+* // update the feature space for scaling
 * ftr.updateRecords(base.store("Class").allRecords);
 * // get the features of the first record
 * var vec = ftr.extractVector(base.store("Class")[0]); // the vector with the random value
@@ -2709,7 +2710,7 @@
 * base.store("Class").push({ Name: "Fred", StudyGroup: "A" });
 * base.store("Class").push({ Name: "Wilma", StudyGroup: "B" });
 * base.store("Class").push({ Name: "Barney", StudyGroup: "C" });
-* // update the feature space to get the categories 
+* // update the feature space to get the categories
 * ftr.updateRecords(base.store("Class").allRecords);
 * // get the feature vector for the first record
 * var vec = ftr.extractVector(base.store("Class")[0]); // returns vector [1, 0, 0]

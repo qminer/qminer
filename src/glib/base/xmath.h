@@ -20,7 +20,7 @@ public:
   static int Abs(const int& x) { return TInt::Abs(x); }
   static double Inv(const double& x){IAssert(x!=0.0); return (1.0/x);}
   static double Sqr(const double& x){return x*x;}
-  static double Sqrt(const double& x){IAssert(!(x<0.0)); return sqrt(x);}
+  static double Sqrt(const double& x){EAssert(!(x<0.0)); return sqrt(x);}
   static double Log(const double& Val){return log(Val);}
   static double Log2(const double& Val){return log(Val)/LogOf2;}
   static double Round(const double& Val){
@@ -32,9 +32,13 @@ public:
   static int Choose(const int& N, const int& K){ // binomial coefficient
     return Fac(N)/(Fac(K)*Fac(N-K)); }
   static uint Pow2(const int& pow){return uint(1u<<pow);}
+  template <typename TType> static TType Pow2(const TType& pow){return TType(((TType)1)<<pow);}
   static bool IsPow2(const int& Val){return (Val&(Val-1)) == 0;}
   static double Power(const double& Base, const double& Exponent){
     return exp(log(Base)*Exponent);}
+
+  static uint FloorLog2(const uint& Val);
+  static uint64 FloorLog2(const uint64& Val);
 
   template <typename T>
   static int Sign(const T& Val){return Val<0?-1:(Val>0?1:0);}

@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -41,7 +41,7 @@ public:
 	void Load(TSIn& SIn) { v.Load(SIn); prev.Load(SIn); next.Load(SIn); }
 	void Save(TSOut& SOut) const { v.Save(SOut); prev.Save(SOut); next.Save(SOut); }
 	void Clr() { v.Clr(); prev = -1; next = -1; }
-	int Add(const TKey& key, const TDat& dat) { 
+	int Add(const TKey& key, const TDat& dat) {
 		return v.Add(TKdV(key, dat)); }
 };
 
@@ -51,13 +51,13 @@ public:
 //
 // NOTE: This template just shows an example of what must be supported by the classes which will be
 // given to TBtreeOps as the TLeafStore and TInternalStore template parameters.  In practice,
-// you don't have to actually derive your store implementation from IBtreeStore or anything of that sort. 
+// you don't have to actually derive your store implementation from IBtreeStore or anything of that sort.
 //
 // For examples of concrete node store implementations, see TBtreeNodeMemStore
 // and TBtreeNodeMemStore_Paranoid below.
 //
 // The store has to support the following operations:
-// - AllocNode/FreeNode 
+// - AllocNode/FreeNode
 // - CheckOutNode(nodeId): returns a pointer to a TNode instance containing the contents of the given node.
 //   This TNode instance is owned and managed by the store, and will remain valid until the
 //   node is checked in again.
@@ -90,7 +90,7 @@ public:
 	typedef TBtreeNode<TKey, TDat, TNodeId> TNode;
 
 	static TPt<IBtreeNodeStore> Load(TSIn& SIn);
-	void Save(TSOut &SOut) const; 
+	void Save(TSOut &SOut) const;
 
 	TNodeId AllocNode();
 	void FreeNode(const TNodeId& nodeId);
@@ -124,12 +124,12 @@ public:
 // Several of the above methods are actually just wrappers around RangeQuery_, using one of these sinks.
 
 template <
-	typename TKey_, typename TDat_, typename TComp_, typename TNodeId_, 
+	typename TKey_, typename TDat_, typename TComp_, typename TNodeId_,
     typename TInternalStore_, typename TLeafStore_>
 class TBtreeOps
 {
 private:
-	
+
 	// Instantiating this template causes a compile-time error if T and U aren't the same class.
 	template<typename T, typename U> class TSameClass { private: TSameClass(); };
 	template<typename T> class TSameClass<T, T> { public: TSameClass() { } };
@@ -162,7 +162,7 @@ public:
 	bool ownInternalStore, ownLeafStore;
 
 	TBtreeOps(
-		const PInternalStore &InternalStore, const PLeafStore &LeafStore, 
+		const PInternalStore &InternalStore, const PLeafStore &LeafStore,
 		int InternalCapacity, int LeafCapacity,
 		bool OwnInternalStore, bool OwnLeafStore) :
         leafCapacity(LeafCapacity), internalCapacity(InternalCapacity),
@@ -178,15 +178,15 @@ public:
 
 	// This constructor loads the tree from the stream, assuming that the stores were serialized
 	// along with the tree (i.e. the serialized tree owned the stores).
-	explicit TBtreeOps(TSIn& SIn) { 
-		Load(SIn); 
+	explicit TBtreeOps(TSIn& SIn) {
+		Load(SIn);
 		IAssert(ownInternalStore); IAssert(ownLeafStore); }
 
 	// This constructor loads the tree from the stream, assuming that the serialized tree didn't own
 	// the stores and the stores were therefore not serialized with the tree.  Therefore the caller
 	// has to provide stores as parameters to this constructor call.
-	TBtreeOps(TSIn& SIn, const PInternalStore &InternalStore, const PLeafStore &LeafStore) { 
-		Load(SIn); 
+	TBtreeOps(TSIn& SIn, const PInternalStore &InternalStore, const PLeafStore &LeafStore) {
+		Load(SIn);
 		IAssert(! ownInternalStore); IAssert(! ownLeafStore);
 		internalStore = InternalStore; leafStore = LeafStore; }
 
@@ -217,7 +217,7 @@ public:
 		root = internalStore->AllocNode();
 		first.Add(root); last.Add(root);
 		PInternalNode pRoot(internalStore, root, true);
-		pRoot->Clr(); 
+		pRoot->Clr();
 	}
 
 protected:
@@ -251,8 +251,8 @@ protected:
 		void SetDirty() { dirty = true; }
 		TNodeId GetNodeId() { return nodeId; }
 		TNodeAutoPtr& operator = (TNodeAutoPtr& other) {
-			if (&other != this) { 
-				CheckIn(); store = other.store; nodeId = other.nodeId; pNode = other.pNode; dirty = other.dirty; 
+			if (&other != this) {
+				CheckIn(); store = other.store; nodeId = other.nodeId; pNode = other.pNode; dirty = other.dirty;
 				other.store = 0; other.nodeId = -1; other.pNode = 0; other.dirty = false; }
 			return *this; }
 		TNode* operator->() { Assert(pNode != 0); return pNode; }
@@ -275,10 +275,10 @@ public:
 	// split or merged).
 	TKeyLocation Add(const TKey& key, const TDat& dat = TDat())
 	{
-		TVec<TNodeId> branch; 
+		TVec<TNodeId> branch;
 		Assert(nLevels >= 1);
 		branch.Gen(nLevels > 1 ? nLevels - 1 : 1); branch[0] = root;
-		PInternalNode pRoot(internalStore, root); 
+		PInternalNode pRoot(internalStore, root);
 		PLeafNode pLeaf;
 		if (pRoot->v.Empty())
 		{
@@ -300,7 +300,7 @@ public:
 			// The internal node is a collection of (maxKey, childId) pairs, where 'maxKey' is the greatest key
 			// which currently appears in the subtree rooted in the child node 'childId'.  Find the first
 			// child whose maxKey is >= the key that we're currently trying to add.  If there is no such child, this
-			// means that the new key is greater than any key currently in the tree, and will be added to the 
+			// means that the new key is greater than any key currently in the tree, and will be added to the
 			// rightmost leaf in the tree.
 			typename TInternalNode::TKdV &v = pCur->v;
 			int n = v.Len(), idx = 0;
@@ -313,7 +313,7 @@ public:
 		// Now we reached the leaf where the new key should be added.
 		Assert(! pLeaf.Empty());
 		TNodeId leaf = pLeaf.GetNodeId();
-		if (pLeaf->v.Len() < 2 * leafCapacity - 1) 
+		if (pLeaf->v.Len() < 2 * leafCapacity - 1)
 		{
 			int idx = pLeaf->v.Len(); pLeaf->v.Add();
 			while (idx > 0 && cmp(key, pLeaf->v[idx - 1].Key) < 0) {
@@ -335,7 +335,7 @@ public:
 			// is to start at the end and work backwards through the list, moving each element one place down
 			// until we reach the position where the new key needs to be added.  The code below also splits the
 			// list K' at the same time, simply by storing the elements k'_c, ..., k'_{2c-1} into the new leaf
-			// instead of the old one.  
+			// instead of the old one.
 			IAssert(pLeaf->v.Len() == 2 * leafCapacity - 1);
 			pLeaf2->v.Gen(leafCapacity);
 			bool found = false;
@@ -346,8 +346,8 @@ public:
 					kdDest.Key = key; kdDest.Dat = dat; found = true;
 					retVal.Val1 = (dest >= leafCapacity) ? leaf2 : leaf;
 					retVal.Val2 = (dest >= leafCapacity) ? dest - leafCapacity : dest; }
-				else 
-					kdDest = pLeaf->v[dest - (found ? 0 : 1)]; 
+				else
+					kdDest = pLeaf->v[dest - (found ? 0 : 1)];
 			}
 			IAssert(retVal.Val1 >= 0); IAssert(retVal.Val2 >= 0); IAssert(found);
 			pLeaf->v.Reserve(pLeaf->v.Reserved(), leafCapacity); // truncate the old leaf
@@ -367,7 +367,7 @@ public:
 		{
 			IAssert(pCur.GetNodeId() == branch[level]);
 			pCur.SetDirty();
-			// The internal node branch[level] (pointed to by 'pCur') currently includes a pointer to 'oldChild'; 
+			// The internal node branch[level] (pointed to by 'pCur') currently includes a pointer to 'oldChild';
 			// now a new sibling, 'newChild', needs to be inserted immediately after the old child.
 			if (pCur->v.Len() < 2 * internalCapacity - 1)
 			{
@@ -385,21 +385,21 @@ public:
 			IAssert(pCur->v.Len() == 2 * internalCapacity - 1);
 			TNodeId oldParent = pCur.GetNodeId();
 			TNodeId newParent = internalStore->AllocNode();
-			PInternalNode pCur2(internalStore, newParent, true); 
+			PInternalNode pCur2(internalStore, newParent, true);
 			pCur2->v.Gen(internalCapacity);
 			bool found = false;
 			for (int dest = 2 * internalCapacity - 1; dest >= internalCapacity || ! found; dest--)
 			{
 				typename TInternalNode::TKd &kdDest = (dest >= internalCapacity) ? pCur2->v[dest - internalCapacity] : pCur->v[dest];
 				if (! found && pCur->v[dest - 1].Dat == oldChild) // Note that inserting the new child onto index 0 isn't possible (unlike in the case of leaf splitting), as it must come after oldChild.
-				{ 
-					kdDest.Key = newChildMax; kdDest.Dat = newChild; found = true; 
+				{
+					kdDest.Key = newChildMax; kdDest.Dat = newChild; found = true;
 					pCur->v[dest - 1].Key = oldChildMax; // This is a good moment to update the key next to the pointer to the old child,
 						// since the old child's max has probably been changed during the split.  If the loop continues (due to
 						// dest still being > internalCapacity, the next iteration will transfer this into the suitable place in the new parent.
 				}
-				else 
-					kdDest = pCur->v[dest - (found ? 0 : 1)]; 
+				else
+					kdDest = pCur->v[dest - (found ? 0 : 1)];
 			}
 			IAssert(found);
 			pCur->v.Reserve(pCur->v.Reserved(), internalCapacity); // truncate the old parent
@@ -438,7 +438,7 @@ protected:
 	// is normal (i.e. from 'capacity' to '2 * capacity - 1') entries.  If this other node is at
 	// exactly 'capacity' entries, our method will move all entries entries from 'pRight' into
 	// 'pLeft' and set 'deleted' to true, indicating that 'pRight' should be deleted from the tree.
-	// Otherwise, the method sets 'deleted' to false and transfers some of the 
+	// Otherwise, the method sets 'deleted' to false and transfers some of the
 	// entries from the bigger node to the smaller one; in this case, after the method returns, the nodes will
 	// differ in size by at most 1, and both will have at least 'capacity' entries.
 	template <typename PNode>
@@ -450,7 +450,7 @@ protected:
 			pLeft->v.AddV(pRight->v); pRight->v.Clr(); deleted = true; return; }
 		deleted = false;
 		Assert((nLeft == capacity - 1 && nRight > capacity) || (nLeft > capacity && nRight == capacity - 1));
-		int transfer = abs(nRight - nLeft) / 2; 
+		int transfer = abs(nRight - nLeft) / 2;
 		if (nLeft < nRight) {
 			for (int i = 0; i < transfer; i++) pLeft->v.Add(pRight->v[i]);
 			pRight->v.Del(0, transfer - 1); }
@@ -471,7 +471,7 @@ protected:
 		Assert(nLevels >= 1);
 		if (nLevels == 1) return false; // we have just the root, therefore no leaves and therefore no keys either
 		// Descend down the tree and store the IDs of the nodes in 'branch'.
-		TVec<TNodeId> branch; 
+		TVec<TNodeId> branch;
 		branch.Gen(nLevels > 1 ? nLevels - 1 : 1); branch[0] = root;
 		PLeafNode pLeaf; PInternalNode pNode;
 		for (int level = 0; level < nLevels - 1; level++) {
@@ -486,12 +486,12 @@ protected:
 		// We reached a leaf; if the key is present in the tree, it has to be in this leaf.  (Possibly also in
 		// some of the subsequent leaves if the key exists in multiple copies.)
 		{
-			int n = pLeaf->v.Len(), i = 0, cmpResult; Assert(n > 0);
+			int n = pLeaf->v.Len(), i = 0, cmpResult = 0; Assert(n > 0);
 			while (i < n && (cmpResult = cmp(pLeaf->v[i].Key, key)) < 0) i++;
 			if (i >= n || cmpResult != 0) return false; // the key doesn't exist in the tree
 			if (dat) *dat = pLeaf->v[i].Dat;
 			pLeaf->v.Del(i); pLeaf.SetDirty();
-			if (i < n - 1 && pLeaf->v.Len() >= leafCapacity) 
+			if (i < n - 1 && pLeaf->v.Len() >= leafCapacity)
 				// The leaf's maxKey hasn't changed and the leaf is not underfull, so we won't have to change anything
 				// in the upper levels of the tree.
 				return true;
@@ -503,7 +503,7 @@ protected:
 		{
 			Assert(pLeaf->v.Len() == leafCapacity - 1 || (pLeaf->v.Len() < leafCapacity - 1 && pLeaf->prev < 0 && pLeaf->next < 0 && nLevels == 2));
 			int n = pNode->v.Len(), i = 0; while (i < n && pNode->v[i].Dat != leaf) i++; IAssert(i < n);
-			if (i + 1 < n) { 
+			if (i + 1 < n) {
 				leaf2 = pNode->v[i + 1].Dat; pLeaf2.Set(leafStore, leaf2);
 				DelHelper(pLeaf, pLeaf2, leafCapacity, nodeDeleted); }
 			else if (i > 0) {
@@ -512,21 +512,21 @@ protected:
 				DelHelper(pLeaf, pLeaf2, leafCapacity, nodeDeleted); }
 			else {
 				// An internal node with just one child is allowed only if that internal node is the root.
-				Assert(nLevels == 2); Assert(pNode.GetNodeId() == root); 
+				Assert(nLevels == 2); Assert(pNode.GetNodeId() == root);
 				Assert(pNode->v.Len() == 1); Assert(pNode->v[0].Dat == leaf);
-				if (pLeaf->v.Len() == 0) 
+				if (pLeaf->v.Len() == 0)
 				{
 					// The leaf is now empty, so we should delete it and the tree will then consist only of the root.
 					Assert(first[1] == leaf); Assert(last[1] == leaf);
 					pLeaf.CheckIn(); leafStore->FreeNode(leaf);
 					pNode->v.Clr(); pNode.SetDirty();
-					first.DelLast(); last.DelLast(); nLevels--; return true; 
+					first.DelLast(); last.DelLast(); nLevels--; return true;
 				}
 				// The leaf is not empty, but it's the only leaf of the tree, so we have to leave it as it is, even if it's underfull.
 				nodeDeleted = false;
 			}
-			if (nodeDeleted) 
-			{ 
+			if (nodeDeleted)
+			{
 				// Remove the deleted node, 'leaf2', from the linked list.
 				pLeaf->next = pLeaf2->next; pLeaf.SetDirty();
 				Assert(pLeaf2->prev == leaf);
@@ -535,7 +535,7 @@ protected:
 					PLeafNode pLeaf3(leafStore, pLeaf->next, true);
 					Assert(pLeaf3->prev == leaf2); pLeaf3->prev = leaf; }
 				// Delete it from the store.
-				pLeaf2.CheckIn(); leafStore->FreeNode(leaf2); 
+				pLeaf2.CheckIn(); leafStore->FreeNode(leaf2);
 			}
 		}
 		TNodeId child1 = leaf, child2 = leaf2;
@@ -564,7 +564,7 @@ protected:
 			if (nodeDeleted) {
 				// The node 'child2' has been deleted.  We have to remove it from pNode's list of children as well.
 				pNode->v.Del(i + 1); pNode.SetDirty(); n--; }
-			if (pNode->v.Len() >= internalCapacity && cmp(oldNodeMax, pNode->v.Last().Key) == 0) 
+			if (pNode->v.Len() >= internalCapacity && cmp(oldNodeMax, pNode->v.Last().Key) == 0)
 				// The nodes's maxKey hasn't changed and the node is not underfull, so we won't have to change anything
 				// in the upper levels of the tree.
 				return true;
@@ -586,11 +586,11 @@ protected:
 					DelHelper(pNode, pNode2, internalCapacity, nodeDeleted); }
 				else {
 					// Now it seems that 'node' was already the only child of its parent even before the current deletion started.
-					// This would be OK only if 'node' was a leaf and its parent was the root; 
+					// This would be OK only if 'node' was a leaf and its parent was the root;
 					// but we know that 'node' is an internal node, so this shoudn't be happening.
 					IAssert(false); }
-				if (nodeDeleted) 
-				{ 
+				if (nodeDeleted)
+				{
 					// Remove the deleted node, 'node2', from the linked list.
 					pNode->next = pNode2->next; pNode.SetDirty();
 					Assert(pNode2->prev == node);
@@ -599,17 +599,17 @@ protected:
 						PInternalNode pNode3(internalStore, pNode->next, true);
 						Assert(pNode3->prev == node2); pNode3->prev = node; }
 					// Delete it from the store.
-					pNode2.CheckIn(); internalStore->FreeNode(node2); 
+					pNode2.CheckIn(); internalStore->FreeNode(node2);
 				}
 			}
-			child1 = node; child2 = node2; 
+			child1 = node; child2 = node2;
 			child1Max = pNode->v.Last().Key; if (child2 >= 0 && ! nodeDeleted) child2Max = pNode2->v.Last().Key;
 			pNode = pParent;
 		}
 		// Now we're at the root; if it has just 1 child, and that child is an internal node, we should delete the root.
 		Assert(pNode.GetNodeId() == root);
 		Assert(pNode->v.Len() > 0);
-		if (pNode->v.Len() == 1 && nLevels > 2) 
+		if (pNode->v.Len() == 1 && nLevels > 2)
 		{
 			TNodeId newRoot = pNode->v[0].Dat;
 			Assert(first[1] == newRoot); Assert(last[1] == newRoot);
@@ -664,7 +664,7 @@ protected:
 				if (nResultsInSubtree < 0) {
 					// Since the subtree does not lie entirely to the left of the query range,
 					// the only explanation why there are no results in the subtree is that it lies
-					// entirely to the right of the query range.  
+					// entirely to the right of the query range.
 					// - Among other things, this means that the subtree's max is also to the right of the query range.
 					Assert((c = cmp(v[i].Key, Q.maxKey), (c > 0 || (c == 0 && ! Q.includeMax))));
 					// If this subtree lies entirely to the right of the query range, all subsequent subtrees will do so as well.
@@ -684,7 +684,7 @@ protected:
 				if (c > 0 || (c == 0 && ! Q.includeMax)) {
 					Q.stop = true; break; }
 				retVal++;
-				if (! Q.sink(v[i].Key, v[i].Dat)) { 
+				if (! Q.sink(v[i].Key, v[i].Dat)) {
 					Q.stop = true; break; }
 			}
 		}
@@ -696,7 +696,7 @@ public:
 	// TSink must implement 'bool operator()(const TKey&, const TDat&)'.  This operator should return true to continue, false to abort.
 	// IncludeMin/Max specify whether the minKey and maxKey are considered part of the query range or not;
 	// in other words, if we write the query condition as 'minKey op x op maxKey', the question is whether
-	// the 'op's should be <= or <.  
+	// the 'op's should be <= or <.
 	// Returns the number of calls made to 'sink'.  The sink will receive keys in ascending order.
 	template<typename TSink>
 	int RangeQuery_(const TKey& minKey, const TKey& maxKey, bool includeMin, bool includeMax, TSink& sink) const
@@ -710,14 +710,14 @@ public:
 
 public:
 
-	struct TKeySink { 
-		TKeyV &dest; 
-		TKeySink(TKeyV &dest_) : dest(dest_) { } 
+	struct TKeySink {
+		TKeyV &dest;
+		TKeySink(TKeyV &dest_) : dest(dest_) { }
 		bool operator()(const TKey &key, const TDat &dat) { dest.Add(key); return true; } };
 
 	struct TKeyDatSink {
 		TKdV &dest;
-		TKeyDatSink(TKdV &dest_) : dest(dest_) { } 
+		TKeyDatSink(TKdV &dest_) : dest(dest_) { }
 		bool operator()(const TKey &key, const TDat &dat) { dest.Add(TKd(key, dat)); return true; } };
 
 	struct TNullSink {
@@ -730,18 +730,18 @@ public:
 
 public:
 
-	int RangeQuery(const TKey& minKey, const TKey& maxKey, TKeyV& dest, bool ClrDest = true) const { 
+	int RangeQuery(const TKey& minKey, const TKey& maxKey, TKeyV& dest, bool ClrDest = true) const {
 		if (ClrDest) dest.Clr();
 		TKeySink sink(dest); return RangeQuery_(minKey, maxKey, true, true, sink); }
 
-	int RangeQuery(const TKey& minKey, const TKey& maxKey, TKdV& dest, bool ClrDest = true) const { 
+	int RangeQuery(const TKey& minKey, const TKey& maxKey, TKdV& dest, bool ClrDest = true) const {
 		if (ClrDest) dest.Clr();
 		TKeyDatSink sink(dest); return RangeQuery_(minKey, maxKey, true, true, sink); }
 
-	bool IsKey(const TKey& key) const { 
+	bool IsKey(const TKey& key) const {
 		TFindSink sink; RangeQuery_(key, key, true, true, sink); return sink.found; }
 
-	bool IsKeyGetDat(const TKey& key, TDat& dat) const { 
+	bool IsKeyGetDat(const TKey& key, TDat& dat) const {
 		TFindSink sink(&dat); RangeQuery_(key, key, true, true, sink); return sink.found; }
 
 //----------------------------------------------------------------------------
@@ -756,7 +756,7 @@ protected:
 		static TPrinter<typename PNode::TNode::TKey> keyPrinter;
 		static TPrinter<typename PNode::TNode::TDat> datPrinter;
 		fprintf(f, "prev = %d, next = %d; %d entries: [", int(pNode->prev), int(pNode->next), int(pNode->v.Len()));
-		for (int i = 0; i < pNode->v.Len(); i++) { 
+		for (int i = 0; i < pNode->v.Len(); i++) {
 			if (i > 0) fprintf(f, ", ");
 			keyPrinter(f, pNode->v[i].Key); fprintf(f, ": ");
 			datPrinter(f, pNode->v[i].Dat); }
@@ -769,8 +769,8 @@ public:
 	{
 		if (! f) f = stdout;
 		fprintf(f, "\nB-tree dump\n");
-		fprintf(f, "nLevels = %d, internal capacity = %d..%d, leaf capacity = %d..%d, root = %d, first = [", 
-			nLevels, internalCapacity, 2 * internalCapacity - 1, leafCapacity, 2 * leafCapacity - 1, 
+		fprintf(f, "nLevels = %d, internal capacity = %d..%d, leaf capacity = %d..%d, root = %d, first = [",
+			nLevels, internalCapacity, 2 * internalCapacity - 1, leafCapacity, 2 * leafCapacity - 1,
 			int(root));
 		for (int i = 0; i < nLevels; i++) fprintf(f, "%s%d", (i > 0) ? ", " : "", int(first[i]));
 		fprintf(f, "], last = [");
@@ -783,7 +783,7 @@ public:
 				fprintf(f, "- Level %d, node %d [id = %d]: ", level, nNodesOnLevel, int(node));
 				TNodeId next = -1;
 				if (level > 0 && level == nLevels - 1) {
-					PLeafNode pLeaf(leafStore, node); 
+					PLeafNode pLeaf(leafStore, node);
 					nKeys += pLeaf->v.Len(); next = pLeaf->next;
 					DumpNode(f, pLeaf); }
 				else {
@@ -806,9 +806,9 @@ protected:
 	template<class PNode>
 	void Validate_ProcessNode(const PNode &pNode, TNodeId &prev, TNodeId &next, TKey &maxKey, int &nEntries)
 	{
-		prev = pNode->prev; next = pNode->next; 
+		prev = pNode->prev; next = pNode->next;
 		nEntries = pNode->v.Len();
-		if (nEntries <= 0) maxKey = TKey(); else maxKey = pNode->v.Last().Key; 
+		if (nEntries <= 0) maxKey = TKey(); else maxKey = pNode->v.Last().Key;
 		for (int i = 1; i < nEntries; i++) IAssert(cmp(pNode->v[i - 1].Key, pNode->v[i].Key) <= 0);
 	}
 
@@ -817,13 +817,13 @@ public:
 	void Validate()
 	{
 		IAssert(nLevels > 0); IAssert(first.Len() == nLevels); IAssert(last.Len() == nLevels);
-		IAssert(first[0] == root); IAssert(last[0] == root); 
+		IAssert(first[0] == root); IAssert(last[0] == root);
 		IAssert(root >= 0);
 		THash<TNodeId, TVoid> seenInternal, seenLeaves;
 		//
 		TNodeKeyPrV curLevel;
 		PInternalNode pRoot(internalStore, root);
-		curLevel.Add(); curLevel[0].Val1 = root; 
+		curLevel.Add(); curLevel[0].Val1 = root;
 		if (pRoot->v.Empty()) { IAssert(nLevels == 1); curLevel[0].Val2 = TKey(); }
 		else curLevel[0].Val2 = pRoot->v.Last().Key;
 		pRoot.CheckIn();
@@ -836,30 +836,30 @@ public:
 			// starting with 'first[level]' and following the 'next' pointes from there.  We'll verify whether
 			// this list matches what we obtained from the parent level (and is now in 'curLevel').  We'll also
 			// prepare a similar list for the next level ('level + 1'), storing it in 'nextLevel'.
-			// Now we'll go through the nodes 
+			// Now we'll go through the nodes
 			TNodeKeyPrV nextLevel;
-			for (int i = 0; i < curLevel.Len(); i++) 
+			for (int i = 0; i < curLevel.Len(); i++)
 			{
 				TNodeId node = curLevel[i].Val1, prev, next; TKey expectedMaxKey = curLevel[i].Val2, maxKey;
 				int nEntries;
 				if (level > 0 && level == nLevels - 1) {
 					PLeafNode pNode(leafStore, node);
-					Validate_ProcessNode(pNode, prev, next, maxKey, nEntries); 
+					Validate_ProcessNode(pNode, prev, next, maxKey, nEntries);
 					IAssert(nEntries < 2 * leafCapacity);
 					if (level == 1 && first[level] == node && last[level] == node) IAssert(nEntries > 0);
-					else IAssert(nEntries >= leafCapacity); 
+					else IAssert(nEntries >= leafCapacity);
 					for (int j = 0; j < nEntries; j++) nextLevel.Add(TNodeKeyPr(-1, pNode->v[j].Key)); }
 				else {
 					PInternalNode pNode(internalStore, node);
-					Validate_ProcessNode(pNode, prev, next, maxKey, nEntries); 
+					Validate_ProcessNode(pNode, prev, next, maxKey, nEntries);
 					IAssert(nEntries < 2 * internalCapacity);
-					if (level == 0) IAssert(nEntries >= 0); else IAssert(nEntries >= internalCapacity); 
+					if (level == 0) IAssert(nEntries >= 0); else IAssert(nEntries >= internalCapacity);
 					for (int j = 0; j < nEntries; j++) nextLevel.Add(TNodeKeyPr(pNode->v[j].Dat, pNode->v[j].Key)); }
 				//
 				if (i == 0) { IAssert(prev == -1); IAssert(first[level] == node); }
 				else IAssert(prev == curLevel[i - 1].Val1);
 				if (i == curLevel.Len() - 1) { IAssert(next == -1); IAssert(last[level] == node); }
-				else IAssert(next == curLevel[i + 1].Val1); 
+				else IAssert(next == curLevel[i + 1].Val1);
 				IAssert(cmp(maxKey, expectedMaxKey) == 0);
 				IAssert(maxKey == expectedMaxKey); // they shouldn't just compare the same, they should actually be the same, as the max key from the child should have been copied into the parent (the one in 'expectedMaxKey' came from 'curLevel' and thus ultimately from the parent level)
 			}
@@ -991,7 +991,7 @@ protected:
 		TNodeId nodeId;
 		int checkedOut;
 		TNode node;
-		TNode *checkedOutNode; 
+		TNode *checkedOutNode;
 
 		explicit TNodeWrapper(const TNodeId &NodeId) : nodeId(NodeId), checkedOut(0), checkedOutNode(0) { }
 		explicit TNodeWrapper(TSIn &SIn) : nodeId(SIn), checkedOut(TInt(SIn)), node(SIn), checkedOutNode(0) { IAssert(checkedOut == 0); }
@@ -1012,7 +1012,7 @@ protected:
 
 public:
 
-	TBtreeNodeMemStore_Paranoid() { } 
+	TBtreeNodeMemStore_Paranoid() { }
 	TBtreeNodeMemStore_Paranoid(TSIn& SIn) : nodes(SIn), freeNodes(SIn) { }
 	static TPt<TBtreeNodeMemStore_Paranoid> Load(TSIn &SIn) { return new TBtreeNodeMemStore_Paranoid(SIn); }
 	void Save(TSOut &SOut) const { nodes.Save(SOut); freeNodes.Save(SOut); }
@@ -1060,7 +1060,7 @@ public:
 		IAssert(w.checkedOut == 1);
 		IAssert(w.checkedOutNode);
 		IAssert(node == w.checkedOutNode);
-		if (! dirty) 
+		if (! dirty)
 			// The caller says he hasn't modified the node while it was checked out; verify if this is true.
 			w.IAssertNodeEqualsBackup();
 		else {
@@ -1075,7 +1075,7 @@ public:
 		// been checked in.
 		w.checkedOutNode->~TNode();
 		memset(w.checkedOutNode, 0xcd, sizeof(TNode));
-		free(w.checkedOutNode); 
+		free(w.checkedOutNode);
 		w.checkedOut--;
 		w.checkedOutNode = 0;
 	}
@@ -1085,7 +1085,7 @@ public:
 		for (TNodeId node = 0; node < nodes.Len(); node++) {
 			if (nodes[node].Empty()) { nFree++; continue; }
 			IAssert(nodes[node]->nodeId == node);
-			IAssert(nodes[node]->checkedOut == 0); 
+			IAssert(nodes[node]->checkedOut == 0);
 			nUsed++; }
 		IAssert(nFree == freeNodes.Len());
 		nodes.Clr(); freeNodes.Clr(); }

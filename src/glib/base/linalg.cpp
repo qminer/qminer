@@ -482,38 +482,50 @@ void TLinAlgIO::PrintTIntV(const TIntV& Vec, const TStr& VecNm) {
 //////////////////////////////////////////////////////////////////////
 // Statistics on linear algebra structures
 double TLinAlgStat::Mean(const TFltV& Vec) {
-	 EAssertR(Vec.Len() != 0, "TLAMisc::Mean: Vector length should not be zero");
-	 return TLinAlg::SumVec(Vec) / Vec.Len();
+    EAssertR(Vec.Len() != 0, "TLinAlgStat::Mean: Vector length should not be 0");
+    return TLinAlg::SumVec(Vec) / Vec.Len();
 }
 
 void TLinAlgStat::Mean(const TFltVV& Mat, TFltV& Res, const TMatDim& Dim) {
-	 int Rows = Mat.GetRows();
-	 int Cols = Mat.GetCols();
-	 if (Dim == TMatDim::mdCols) {
-		 if (Res.Len() != Cols) {
-			 Res.Gen(Cols);
-		 }
-		 TFltV Vec(Rows);
-		 Vec.PutAll(1.0 / Rows);
-		 TLinAlg::MultiplyT(Mat, Vec, Res);
-	 } else if (Dim == TMatDim::mdRows) {
-		 if (Res.Len() != Rows) {
-			 Res.Gen(Rows);
-		 }
-		 TFltV Vec(Cols);
-		 Vec.PutAll(1.0 / Cols);
-		 TLinAlg::Multiply(Mat, Vec, Res);
-	 }
+    int Rows = Mat.GetRows();
+    int Cols = Mat.GetCols();
+    if (Dim == TMatDim::mdCols) {
+        EAssertR(Rows != 0, TStr::Fmt("TLinAlgStat::Mean: Matrix number of rows should not be 0 "
+            "when using mean with parameter 'Dim=%d'", Dim));
+        if (Res.Len() != Cols) {
+            Res.Gen(Cols);
+        }
+        TFltV Vec(Rows);
+        Vec.PutAll(1.0 / Rows);
+        TLinAlg::MultiplyT(Mat, Vec, Res);
+    } else if (Dim == TMatDim::mdRows) {
+        EAssertR(Cols != 0, TStr::Fmt("TLinAlgStat::Mean: Matrix number of columns should not be 0 "
+            "when using mean with parameter 'Dim=%d'", Dim));
+        if (Res.Len() != Rows) {
+            Res.Gen(Rows);
+        }
+        TFltV Vec(Cols);
+        Vec.PutAll(1.0 / Cols);
+        TLinAlg::Multiply(Mat, Vec, Res);
+    }
 }
 
 double TLinAlgStat::Std(const TFltV& Vec, const int& Flag) {
-    EAssertR(Flag == 0 || Flag == 1, "TLAMisc::Std: Invalid value of 'Flag' argument. "
+    EAssertR(Flag == 0 || Flag == 1, "TLinAlgStat::Std: Invalid value of 'Flag' argument. "
         "Supported 'Flag' arguments are 0 or 1. See Matlab std() documentation.");
 
     int Len = Vec.Len();
-
     double Mean = TLinAlgStat::Mean(Vec);
-    double Scalar = (Flag == 1) ? TMath::Sqrt(1.0 / (Len)) : TMath::Sqrt(1.0 / (Len - 1));
+
+    double Scalar;
+    if (Flag == 1) {
+        Scalar = TMath::Sqrt(1.0 / (Len));
+    }
+    else {
+        EAssertR(Len > 1, TStr::Fmt("TLinAlgStat::Std: Matrix number of rows should "
+            "not be less than 2 when using mean with parameter 'Flag=%d'", Flag));
+        Scalar = TMath::Sqrt(1.0 / (Len - 1));
+    }
 
     TFltV TempRes(Len);
     TFltV Ones(Len);
@@ -524,84 +536,104 @@ double TLinAlgStat::Std(const TFltV& Vec, const int& Flag) {
 }
 
 void TLinAlgStat::Std(const TFltVV& Mat, TFltV& Res, const int& Flag, const TMatDim& Dim) {
-	EAssertR(Flag == 0 || Flag == 1, "TLAMisc::Std: Invalid value of 'Flag' argument. "
-							"Supported 'Flag' arguments are 0 or 1. See Matlab std() documentation.");
-	int Cols = Mat.GetCols();
-	int Rows = Mat.GetRows();
-	TFltV MeanVec;
-	TLinAlgStat::Mean(Mat, MeanVec, Dim);
-	EAssertR(Cols == MeanVec.Len() || Rows == MeanVec.Len(), "TLAMisc::Std");
+    EAssertR(Flag == 0 || Flag == 1, "TLinAlgStat::Std: Invalid value of 'Flag' argument. "
+        "Supported 'Flag' arguments are 0 or 1. See Matlab std() documentation.");
+    int Cols = Mat.GetCols();
+    int Rows = Mat.GetRows();
+    TFltV MeanVec;
+    TLinAlgStat::Mean(Mat, MeanVec, Dim);
+    EAssertR(Cols == MeanVec.Len() || Rows == MeanVec.Len(), "TLAMisc::Std");
 
-	if (Dim == TMatDim::mdCols) {
-		if(Res.Empty()) Res.Gen(Cols);
-		EAssertR(Cols == Res.Len(), "TLAMisc::Std");
+    if (Dim == TMatDim::mdCols) {
+        if(Res.Empty()) Res.Gen(Cols);
+        EAssertR(Cols == Res.Len(), "TLinAlgStat::Std");
 
-		double Scalar = (Flag == 1) ? TMath::Sqrt(1.0/(Rows)) : TMath::Sqrt(1.0/(Rows-1));
-		TFltV TempRes(Rows);
-		TFltV Ones(Rows);
-		Ones.PutAll(1.0);
+        double Scalar;
+        if (Flag == 1) {
+            Scalar = TMath::Sqrt(1.0 / (Rows));
+        }
+        else {
+            EAssertR(Rows > 1, TStr::Fmt("TLinAlgStat::Std: Matrix number of rows should not be "
+                "less than 2 when using mean with parameter 'Flag=%d' and 'Dim=%d'", Flag, Dim));
+            Scalar = TMath::Sqrt(1.0 / (Rows - 1));
+        }
 
-		for (int ColN = 0; ColN < Cols; ColN++) {
-			TLinAlg::LinComb(-1.0, Mat, ColN, MeanVec[ColN], Ones, TempRes);
-			Res[ColN] = Scalar * TLinAlg::Norm(TempRes);
-		}
-	}
-	else if (Dim == TMatDim::mdRows) {
-		if(Res.Empty()) Res.Gen(Rows);
-		EAssertR(Rows == Res.Len(), "TLAMisc::Std");
+        TFltV TempRes(Rows);
+        TFltV Ones(Rows);
+        Ones.PutAll(1.0);
 
-		double Scalar = (Flag == 1) ? TMath::Sqrt(1.0/(Cols)) : TMath::Sqrt(1.0/(Cols-1));
-		TFltV TempRes(Cols);
-		TFltV Ones(Cols);
-		Ones.PutAll(1.0);
+        for (int ColN = 0; ColN < Cols; ColN++) {
+            TLinAlg::LinComb(-1.0, Mat, ColN, MeanVec[ColN], Ones, TempRes);
+            Res[ColN] = Scalar * TLinAlg::Norm(TempRes);
+        }
+    }
+    else if (Dim == TMatDim::mdRows) {
+        if(Res.Empty()) Res.Gen(Rows);
+        EAssertR(Rows == Res.Len(), "TLinAlgStat::Std");
 
-		for (int RowN = 0; RowN < Rows; RowN++) {
-			TLinAlg::LinComb(-1.0, Mat, RowN, MeanVec[RowN], Ones, TempRes, 2);
-			Res[RowN] = Scalar * TLinAlg::Norm(TempRes);
-		}
-	}
+        double Scalar;
+        if (Flag == 1) {
+            Scalar = TMath::Sqrt(1.0 / (Cols));
+        }
+        else {
+            EAssertR(Cols > 1, TStr::Fmt("TLinAlgStat::Std: Matrix number of columns should not be "
+                "less than 2 when using mean with parameter 'Flag=%d' and 'Dim=%d'", Flag, Dim));
+            Scalar = TMath::Sqrt(1.0 / (Cols - 1));
+        }
+
+        TFltV TempRes(Cols);
+        TFltV Ones(Cols);
+        Ones.PutAll(1.0);
+
+        for (int RowN = 0; RowN < Rows; RowN++) {
+            TLinAlg::LinComb(-1.0, Mat, RowN, MeanVec[RowN], Ones, TempRes, 2);
+            Res[RowN] = Scalar * TLinAlg::Norm(TempRes);
+        }
+    }
 }
 
 void TLinAlgStat::ZScore(const TFltVV& Mat, TFltVV& Res, const int& Flag, const TMatDim& Dim) {
-	EAssertR(Flag == 0 || Flag == 1, "TLAMisc::ZScore: Invalid value of 'Flag' argument. "
-							"Supported 'Flag' arguments are 0 or 1. See Matlab std() documentation.");
+    EAssertR(Flag == 0 || Flag == 1, "TLinAlgStat::ZScore: Invalid value of 'Flag' argument. "
+        "Supported 'Flag' arguments are 0 or 1. See Matlab std() documentation.");
 
-	int Cols = Mat.GetCols();
-	int Rows = Mat.GetRows();
+    int Cols = Mat.GetCols();
+    int Rows = Mat.GetRows();
 
-	if (Res.Empty()) Res.Gen(Rows, Cols);
+    if (Res.Empty()) Res.Gen(Rows, Cols);
 
-	TFltV MeanVec;
-	TLinAlgStat::Mean(Mat, MeanVec, Dim);
-	TFltV StdVec;
-	TLinAlgStat::Std(Mat, StdVec, Flag, Dim);
+    TFltV MeanVec;
+    TLinAlgStat::Mean(Mat, MeanVec, Dim);
+    TFltV StdVec;
+    TLinAlgStat::Std(Mat, StdVec, Flag, Dim);
 
-	if (Dim == TMatDim::mdCols) {
+    if (Dim == TMatDim::mdCols) {
 
-		TFltV TempRes(Rows);
-		TFltV Ones(Rows);
-		Ones.PutAll(1.0);
+        TFltV TempRes(Rows);
+        TFltV Ones(Rows);
+        Ones.PutAll(1.0);
 
-		for (int ColN = 0; ColN < Cols; ColN++) {
-			TLinAlg::LinComb(1.0/StdVec[ColN], Mat, ColN, -1.0 * MeanVec[ColN]/StdVec[ColN], Ones, TempRes);
-			for (int RowN = 0; RowN < Rows; RowN++) {
-				Res.At(RowN, ColN) = TempRes[RowN];
-			}
-		}
-	}
-	else if (Dim == TMatDim::mdRows) {
+        for (int ColN = 0; ColN < Cols; ColN++) {
+            double Factor = StdVec[ColN] == 0.0 ? 1.0 : StdVec[ColN].Val;
+            TLinAlg::LinComb(1.0/Factor, Mat, ColN, -1.0 * MeanVec[ColN]/Factor, Ones, TempRes);
+            for (int RowN = 0; RowN < Rows; RowN++) {
+                Res.At(RowN, ColN) = TempRes[RowN];
+            }
+        }
+    }
+    else if (Dim == TMatDim::mdRows) {
 
-		TFltV TempRes(Cols);
-		TFltV Ones(Cols);
-		Ones.PutAll(1.0);
+        TFltV TempRes(Cols);
+        TFltV Ones(Cols);
+        Ones.PutAll(1.0);
 
-		for (int RowN = 0; RowN < Rows; RowN++) {
-			TLinAlg::LinComb(1.0/StdVec[RowN], Mat, RowN, -1.0 * MeanVec[RowN]/StdVec[RowN], Ones, TempRes, 2);
-			for (int ColN = 0; ColN < Cols; ColN++) {
-				Res.At(RowN, ColN) = TempRes[ColN];
-			}
-		}
-	}
+        for (int RowN = 0; RowN < Rows; RowN++) {
+            double Factor = StdVec[RowN] == 0.0 ? 1.0 : StdVec[RowN].Val;
+            TLinAlg::LinComb(1.0/Factor, Mat, RowN, -1.0 * MeanVec[RowN]/Factor, Ones, TempRes, 2);
+            for (int ColN = 0; ColN < Cols; ColN++) {
+                Res.At(RowN, ColN) = TempRes[ColN];
+            }
+        }
+    }
 }
 
 //////////////////////////////////////////////////////////////////////

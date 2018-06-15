@@ -33,14 +33,14 @@ namespace TQm {
             /// Initialize from given store schema
             void InitFromSchema(const TStoreSchema& StoreSchema);
             /// Helper function
-            void SetCallback(const v8::Handle<v8::Value>& CallbacksObj, v8::Persistent<v8::Function>& Callback, const TStr& Name);
+            void SetCallback(const v8::Local<v8::Value>& CallbacksObj, v8::Persistent<v8::Function>& Callback, const TStr& Name);
             /// Sets all callbacks
-            void InitCallbacks(const v8::Handle<v8::Value>& CallbacksObj);
+            void InitCallbacks(const v8::Local<v8::Value>& CallbacksObj);
             /// Get field helper
-            v8::Handle<v8::Value> GetField(const uint64& RecId, const int& FieldId) const;
+            v8::Local<v8::Value> GetField(const uint64& RecId, const int& FieldId) const;
         public:
             ~TNodeJsFuncStore();
-            TNodeJsFuncStore(const TWPt<TBase>& _Base, uint _StoreId, const TStr& _StoreNm, const TStoreSchema& StoreSchema, const v8::Handle<v8::Value>& CallbacksObj);
+            TNodeJsFuncStore(const TWPt<TBase>& _Base, uint _StoreId, const TStr& _StoreNm, const TStoreSchema& StoreSchema, const v8::Local<v8::Value>& CallbacksObj);
 
             virtual bool HasRecNm() const { return !GetRecNmFun.IsEmpty(); }
 
@@ -86,7 +86,7 @@ namespace TQm {
             /// Delete the first DelRecs records (the records that were inserted first)
             virtual void DeleteFirstRecs(const int& DelRecs) { throw TQmExcept::New("Not implemented"); }
             /// Delete specific records
-            virtual void DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK = true) { throw TQmExcept::New("Not implemented"); }
+            virtual void DeleteRecs(const TUInt64V& DelRecIdV, const int& MxTimeMSecs = -1, const bool& AssertOK = true) { throw TQmExcept::New("Not implemented"); }
 
             /// Get field value using field id (default implementation throws exception)
             virtual int GetFieldInt(const uint64& RecId, const int& FieldId) const;
@@ -118,7 +118,7 @@ namespace TQm {
             virtual PJsonVal GetStats() { throw TQmExcept::New("Not implemented"); }
         };
 
-        TVec<TWPt<TStore> > CreateJsStoresFromSchema(const TWPt<TBase>& Base, const PJsonVal& SchemaVal, const v8::Handle<v8::Value>& CallbacksObj);
+        TVec<TWPt<TStore> > CreateJsStoresFromSchema(const TWPt<TBase>& Base, const PJsonVal& SchemaVal, const v8::Local<v8::Value>& CallbacksObj);
 
     }
 

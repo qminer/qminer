@@ -1,16 +1,45 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
+#if defined(GLib_MSC)
+#ifndef __lzcnt
+#include <intrin.h>
+#endif
+#endif
 
 /////////////////////////////////////////////////
 // Mathematical-Utilities
 double TMath::E=2.71828182845904523536;
 double TMath::Pi=3.14159265358979323846;
 double TMath::LogOf2=log(double(2));
+
+uint TMath::FloorLog2(const uint& Val) {
+#if defined(GLib_GCC)
+    return (unsigned) (8 * sizeof(uint) - __builtin_clz(Val) - 1);
+#elif defined(GLib_CLANG)
+    return (unsigned) (8 * sizeof(uint) - __builtin_clz(Val) - 1);
+#elif defined(GLib_MSC)
+    return (unsigned) (8 * sizeof(uint) - __lzcnt(Val) - 1);
+#else
+    Fail; return 0;
+#endif
+}
+
+uint64 TMath::FloorLog2(const uint64& Val) {
+#if defined(GLib_GCC)
+    return (unsigned) (8 * sizeof(uint64) - __builtin_clzll(Val) - 1);
+#elif defined(GLib_CLANG)
+    return (unsigned) (8 * sizeof(uint64) - __builtin_clzll(Val) - 1);
+#elif defined(GLib_MSC)
+    return (unsigned) (8 * sizeof(uint64) - __lzcnt64(Val) - 1);
+#else
+    Fail; return 0;
+#endif
+}
 
 /////////////////////////////////////////////////
 // Special-Functions
@@ -201,9 +230,9 @@ void TSpecFunc::LinearFit(
 }
 
 void TSpecFunc::LinearFit(const TFltV& X, const TFltV& Y, double& A, double& B) {
-	int N = X.Len();	
+	int N = X.Len();
 	EAssertR(Y.Len() == N, "Simple linear regression: dimension missmatch");
-	if (N == 0) { A = 0; B = 0; return; }	
+	if (N == 0) { A = 0; B = 0; return; }
 	double EX = TLinAlg::SumVec(X) / N;
 	double EY = TLinAlg::SumVec(Y) / N;
 	double EXX = TLinAlg::DotProduct(X, X) / N;
@@ -285,14 +314,14 @@ double TSpecFunc::Entropy(const double& Prob) {
 
 void TSpecFunc::EntropyFracDim(const TIntV& ValV, TFltV& EntropyV) {
   TFltV NewValV(ValV.Len());
-  for (int i = 0; i < ValV.Len(); i++) { 
+  for (int i = 0; i < ValV.Len(); i++) {
     EAssert(ValV[i]==1 || ValV[i] == 0);
-    NewValV[i] = ValV[i]; 
+    NewValV[i] = ValV[i];
   }
   EntropyFracDim(NewValV, EntropyV);
 }
 
-// Entropy fractal dimension. Input is a vector {0,1}^n. 
+// Entropy fractal dimension. Input is a vector {0,1}^n.
 // Where 0 means the event did not occur, and 1 means it occured.
 // Works exactly as Mengzi Wang's code.
 void TSpecFunc::EntropyFracDim(const TFltV& ValV, TFltV& EntropyV) {
@@ -300,7 +329,7 @@ void TSpecFunc::EntropyFracDim(const TFltV& ValV, TFltV& EntropyV) {
   int Pow2 = 1;
   while (2*Pow2 <= ValV.Len()) { Pow2 *= 2; }
   ValV1.Gen(Pow2);
-  for (int i = 0; i < Pow2; i++) { ValV1[i] = ValV[i]; 
+  for (int i = 0; i < Pow2; i++) { ValV1[i] = ValV[i];
     EAssert(ValV[i]==1.0 || ValV[i] == 0.0); }
   EntropyV.Clr();
   EntropyV.Add(Entropy(ValV1)); // 2^Pow2 windows
@@ -331,7 +360,7 @@ double TSpecFunc::EntropyBias(const double& B){
 
 // MLE of the power-law coefficient
 double TSpecFunc::GetPowerCoef(const TFltV& XValV, double MinX) {
-  for (int i = 0; MinX <= 0.0 && i < XValV.Len(); i++) { 
+  for (int i = 0; MinX <= 0.0 && i < XValV.Len(); i++) {
     MinX = XValV[i]; }
   EAssert(MinX > 0.0);
   double LnSum=0.0;
@@ -343,7 +372,7 @@ double TSpecFunc::GetPowerCoef(const TFltV& XValV, double MinX) {
 }
 
 double TSpecFunc::GetPowerCoef(const TFltPrV& XValCntV, double MinX) {
-  for (int i = 0; MinX <= 0.0 && i < XValCntV.Len(); i++) { 
+  for (int i = 0; MinX <= 0.0 && i < XValCntV.Len(); i++) {
     MinX = XValCntV[i].Val1; }
   EAssert(MinX > 0.0);
   double NSamples=0.0, LnSum=0.0;
@@ -430,7 +459,7 @@ void TMom::Def(){
     double CurSumW = 0;
     for (int ValN=0; ValN<ValWgtV.Len(); ValN++){
       CurSumW += ValWgtV[ValN].Val2;
-      if (CurSumW > 0.5*SumW) { 
+      if (CurSumW > 0.5*SumW) {
         Median = ValWgtV[ValN].Val1; break; }
       else if (CurSumW == 0.5*SumW) {
         Median = 0.5 * (ValWgtV[ValN].Val1+ValWgtV[ValN+1].Val1); break; }
@@ -443,7 +472,7 @@ void TMom::Def(){
       if (Quart1==TFlt::Mn) {
         if (CurSumW > 0.25*SumW) {  Quart1 = ValWgtV[ValN].Val1; }
         //else if (CurSumW == 0.25*SumW) { Quart1 = 0.5 * (ValWgtV[ValN].Val1+ValWgtV[ValN+1].Val1); }
-      } 
+      }
       if (Quart3==TFlt::Mn) {
         if (CurSumW > 0.75*SumW) { Quart3 = ValWgtV[ValN].Val1; }
         //else if (CurSumW == 0.75*SumW) { Quart3 = 0.5 * (ValWgtV[ValN].Val1+ValWgtV[ValN+1].Val1); }
@@ -465,7 +494,7 @@ void TMom::Def(){
     PercentileV[0]=Mn; PercentileV[100]=Mx;
     for (int ValN=0; ValN<ValWgtV.Len(); ValN++){
       CurSumW += ValWgtV[ValN].Val2;
-      if (CurSumW > SumW*DecileN*0.1) { 
+      if (CurSumW > SumW*DecileN*0.1) {
         DecileV[DecileN] = ValWgtV[ValN].Val1;  DecileN++; }
       if (CurSumW > SumW*PercentileN*0.01) {
         PercentileV[PercentileN] = ValWgtV[ValN].Val1;  PercentileN++; }
@@ -1299,7 +1328,7 @@ void TSvd::GetCfUncerV(TFltV& CfUncerV){
   }
 }
 
-// all vectors (matrices) start with 0 
+// all vectors (matrices) start with 0
 void TSvd::Svd(const TFltVV& InMtx, TFltVV& LSingV, TFltV& SingValV, TFltVV& RSingV) {
   //LSingV = InMtx;
   LSingV.Gen(InMtx.GetYDim()+1, InMtx.GetYDim()+1);

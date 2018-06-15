@@ -399,35 +399,50 @@ private:
     void SetFieldNull(char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc, const bool& NullP) const;
 
     /// Fixed-length field setter
-    void SetFieldByte(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uchar& Byte);
+    template <class T>
+    void SetFieldByte(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uchar& Byte);
     /// Fixed-length field setter
-    void SetFieldInt(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int& Int);
+    template <class T>
+    void SetFieldInt(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int& Int);
     /// Fixed-length field setter
-    void SetFieldInt16(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int16& Int16);
+    template <class T>
+    void SetFieldInt16(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int16& Int16);
     /// Fixed-length field setter
-    void SetFieldInt64(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int64& Int64);
+    template <class T>
+    void SetFieldInt64(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const int64& Int64);
     /// Fixed-length field setter
-    void SetFieldUInt(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint& UInt);
+    template <class T>
+    void SetFieldUInt(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint& UInt);
     /// Fixed-length field setter
-    void SetFieldUInt16(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint16& UInt16);
+    template <class T>
+    void SetFieldUInt16(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint16& UInt16);
     /// Fixed-length field setter
-    void SetFieldUInt64(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& UInt64);
+    template <class T>
+    void SetFieldUInt64(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& UInt64);
     /// Fixed-length field setter
-    void SetFieldStr(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TStr& Str);
+    template <class T>
+    void SetFieldStr(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TStr& Str);
     /// Fixed-length field setter
-    void SetFieldBool(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const bool& Bool);
+    template <class T>
+    void SetFieldBool(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const bool& Bool);
     /// Fixed-length field setter
-    void SetFieldFlt(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const double& Flt);
+    template <class T>
+    void SetFieldFlt(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const double& Flt);
     /// Fixed-length field setter
-    void SetFieldSFlt(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const float& Flt);
+    template <class T>
+    void SetFieldSFlt(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const float& Flt);
     /// Fixed-length field setter
-    void SetFieldFltPr(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TFltPr& FltPr);
+    template <class T>
+    void SetFieldFltPr(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TFltPr& FltPr);
     /// Fixed-length field setter
-    void SetFieldTm(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TTm& Tm);
+    template <class T>
+    void SetFieldTm(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const TTm& Tm);
     /// Fixed-length field setter
-    void SetFieldTmMSecs(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& TmMSecs);
+    template <class T>
+    void SetFieldTmMSecs(T& RecMem, const TFieldSerialDesc& FieldSerialDesc, const uint64& TmMSecs);
     /// Parse fixed-length type field JSon value and serialize it accordingly to it's type
-    void SetFixedJsonVal(TMemBase& RecMem, const TFieldSerialDesc& FieldSerialDesc,
+    template <class T>
+    void SetFixedJsonVal(T& RecMem, const TFieldSerialDesc& FieldSerialDesc,
         const TFieldDesc& FieldDesc, const PJsonVal& JsonVal);
 
     /// Fixed-length field setter
@@ -816,7 +831,7 @@ public:
     void DeleteAllRecs() { };
     void DeleteFirstRecs(const int& DelRecs) { };
     // throw exception if somebody trys to delete specific record
-    void DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK = true) { throw TQmExcept::New("TStoreEmpty does not store records"); };
+    void DeleteRecs(const TUInt64V& DelRecIdV, const int& MxTimeMSecs = -1, const bool& AssertOK = true) { throw TQmExcept::New("TStoreEmpty does not store records"); };
 
     // we do not store anything, throw exceptions if somebody trys to get any field
     bool IsFieldNull(const uint64& RecId, const int& FieldId) const { throw TQmExcept::New("TStoreEmpty does not store records"); }
@@ -1022,13 +1037,13 @@ public:
     void UpdateRec(const uint64& RecId, const PJsonVal& RecVal);
 
     /// Purge records that fall out of store window (when it has one)
-    void GarbageCollect();
+    void GarbageCollect(const int& MxTimeMSecs = -1);
     /// Deletes all records
     void DeleteAllRecs();
     /// Delete the first DelRecs records (the records that were inserted first)
     void DeleteFirstRecs(const int& Recs);
-    /// Delete specific record
-    void DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK = true);
+    /// Delete specific record.
+    void DeleteRecs(const TUInt64V& DelRecIdV, const int& MxTimeMSecs = -1, const bool& AssertOK = true);
 
     /// Check if the value of given field for a given record is NULL
     bool IsFieldNull(const uint64& RecId, const int& FieldId) const;
@@ -1265,7 +1280,7 @@ private:
     TThinMIn GetEditableField(const uint64& RecId, const int& FieldId);
 
     // given the recid and the fieldid get the memory that contains it, get blob that contains it and the page blob pointer
-    void GetRecData(const uint64& RecId, const int& FieldId, TMemBase& Mem, THash<TUInt64, TPgBlobPt>* &RecIdBlobPtr, PPgBlob& Blob, TPgBlobPt* &PgPt);
+    void GetRecData(const uint64& RecId, const int& FieldId, TMem& Mem, THash<TUInt64, TPgBlobPt>* &RecIdBlobPtr, PPgBlob& Blob, TPgBlobPt* &PgPt);
 
 public:
     TStorePbBlob(const TWPt<TBase>& _Base, const uint& StoreId,
@@ -1314,13 +1329,13 @@ public:
     void UpdateRec(const uint64& RecId, const PJsonVal& RecVal);
 
     /// Purge records that fall out of store window (when it has one)
-    void GarbageCollect();
+    void GarbageCollect(const int& MxTimeMSecs = -1);
     /// Perform defragmentation
     void Defrag();
     /// Deletes all records
     void DeleteAllRecs();
     void DeleteFirstRecs(const int& Recs);
-    void DeleteRecs(const TUInt64V& DelRecIdV, const bool& AssertOK = true);
+    void DeleteRecs(const TUInt64V& DelRecIdV, const int& MxTimeMSecs = -1, const bool& AssertOK = true);
 
     /// Check if the value of given field for a given record is NULL
     bool IsFieldNull(const uint64& RecId, const int& FieldId) const;
@@ -1556,14 +1571,14 @@ TVec<TWPt<TStore> > CreateStoresFromSchema(const TWPt<TBase>& Base, const PJsonV
 ///////////////////////////////
 /// Create new base given a schema definition
 TWPt<TBase> NewBase(const TStr& FPath, const PJsonVal& SchemaVal, const uint64& IndexCacheSize,
-    const uint64& DefStoreCacheSize, const bool& StrictNameP, 
+    const uint64& DefStoreCacheSize, const bool& StrictNameP,
     const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(), const TStrUInt64H& IndexTypeCacheSizeH = TStrUInt64H(),
     const bool& InitP = true, const int& SplitLen = 1024, bool UsePaged = true);
 
 ///////////////////////////////
 /// Load base created from a schema definition
 TWPt<TBase> LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& IndexCacheSize,
-    const uint64& StoreCacheSize, 
+    const uint64& StoreCacheSize,
     const TStrUInt64H& StoreNmCacheSizeH = TStrUInt64H(), const TStrUInt64H& IndexTypeCacheSizeH = TStrUInt64H(),
     const bool& InitP = true, const int& SplitLen = 1024);
 
@@ -1571,8 +1586,9 @@ TWPt<TBase> LoadBase(const TStr& FPath, const TFAccess& FAccess, const uint64& I
 /// Save base created from a schema definition
 void SaveBase(const TWPt<TBase>& Base);
 
-} // TStorage name space
+#include "qminer_storage.hpp"
 
+} // TStorage name space
 }
 
 #endif

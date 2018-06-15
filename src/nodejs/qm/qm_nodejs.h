@@ -33,7 +33,7 @@
 class TNodeJsQm : public node::ObjectWrap {
 public:
     // Node framework
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     // TNodeJsRec needs this to select a template. TODO remove, see comment in
     //   v8::Local<v8::Object> TNodeJsRec::New(const TQm::TRec& Rec, const TInt& _Fq)
     static THash<TStr, TUInt> BaseFPathToId;
@@ -434,7 +434,7 @@ private:
     ~TNodeJsBase() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
     static const int MAX_BASES;
-    static void Init(v8::Handle<v8::Object> Exports);
+    static void Init(v8::Local<v8::Object> Exports);
     static const TStr GetClassId() { return "Base"; }
     // wrapped C++ object
     TWPt<TQm::TBase> Base;
@@ -663,6 +663,7 @@ private:
 
     /**
     * Calls qminer garbage collector to remove records outside time windows. For application example see {@link module:qm~SchemaTimeWindowDef}.
+    * @param {number} [max_time=-1] - Maximal number of time each store can spend on cleaning backlog in milisecons. If -1 then no limit is applied.
     */
     //# exports.Base.prototype.garbageCollect = function () { }
     JsDeclareFunction(garbageCollect);
@@ -957,7 +958,7 @@ private:
     ~TNodeJsStore() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
     // Node framework
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "Store"; }
     // Wrapped C++ object
     TWPt<TQm::TStore> Store;
@@ -1912,7 +1913,7 @@ private:
     ~TNodeJsRecByValV() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
     // Node framework
-    static void Init(v8::Handle<v8::Object> Exports);
+    static void Init(v8::Local<v8::Object> Exports);
     static const TStr GetClassId() { return "RecordVector"; }
     // Object that knows if Base is valid
     PNodeJsBaseWatcher Watcher;
@@ -2019,7 +2020,7 @@ private:
     ~TNodeJsRecSet() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
     // Node framework
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "RecSet"; }
     // C++ wrapped object
     TQm::PRecSet RecSet;
@@ -2606,7 +2607,7 @@ private:
     /**
     * Executes a function on each record in record set.
     * @param {function} callback - Function to be executed. It takes two parameters:
-    * <br>1. `rec` - The current record. Type {@link module:qm.Record}.
+    * <br>1. `rec` - The current record. Type {@link module:qm.Record}. Warning: Do not use `rec` outside the scope of the callback. An internal optimization re-uses `rec` object between calls to `callback`.
     * <br>2. `idx` - The index of the current record (<i>optional</i>). Type `number`.
     * @returns {module:qm.RecordSet} Self.
     * @example
@@ -2639,7 +2640,7 @@ private:
     /**
     * Creates an array of function outputs created from the records in record set.
     * @param {function} callback - Function that generates the array. It takes two parameters:
-    * <br>1. `rec` - The current record. Type {@link module:qm.Record}.
+    * <br>1. `rec` - The current record. Type {@link module:qm.Record}. Warning: Do not use `rec` outside the scope of the callback. An internal optimization re-uses `rec` object between calls to `callback`.
     * <br>2. `idx` - The index of the current record (<i>optional</i>). Type `number`.
     * @returns {Array<Object>} The array created by the callback function.
     * @example
@@ -2914,7 +2915,7 @@ private:
 
 public:
     // Node framework
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "StoreIter"; }
 
     // C++ wrapped object
@@ -2994,7 +2995,7 @@ private:
     v8::Persistent<v8::Function> Callback;
 
 public:
-    TJsRecFilter(TWPt<TQm::TStore> _Store, v8::Handle<v8::Function> _Callback);
+    TJsRecFilter(TWPt<TQm::TStore> _Store, v8::Local<v8::Function> _Callback);
     /// We need to clean reference to callback
     ~TJsRecFilter() { Callback.Reset(); }
     /// Filter function
@@ -3011,7 +3012,7 @@ private:
     v8::Persistent<v8::Function> Callback;
 
 public:
-    TJsRecPairFilter(TWPt<TQm::TStore> _Store, v8::Handle<v8::Function> _Callback);
+    TJsRecPairFilter(TWPt<TQm::TStore> _Store, v8::Local<v8::Function> _Callback);
     /// We need to clean reference to callback
     ~TJsRecPairFilter() { Callback.Reset(); }
     /// Comparator
@@ -3028,7 +3029,7 @@ private:
     ~TNodeJsIndexKey() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
     // Node framework
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "IndexKey"; }
     // C++ wrapped object
     TWPt<TQm::TStore> Store;
@@ -3057,12 +3058,12 @@ class TNodeJsFuncFtrExt : public TQm::TFtrExt, public node::ObjectWrap {
 private:
     // private constructor
     TNodeJsFuncFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal,
-        const v8::Handle<v8::Function> _Fun, v8::Isolate* Isolate);
+        const v8::Local<v8::Function> _Fun, v8::Isolate* Isolate);
     ~TNodeJsFuncFtrExt() { Fun.Reset(); }
 public:
     // public smart pointer
     static TQm::PFtrExt NewFtrExt(const TWPt<TQm::TBase>& Base, const PJsonVal& ParamVal,
-        const v8::Handle<v8::Function>& Fun, v8::Isolate* Isolate);
+        const v8::Local<v8::Function>& Fun, v8::Isolate* Isolate);
 private:
     // Core part
     TInt Dim;
@@ -3199,7 +3200,7 @@ public:
 * // add a new record to the base
 * base.store("Class").push({ Name: "Peterson", Grade: 9 });
 * base.store("Class").push({ Name: "Ericsson", Grade: 8 });
-* // update the feature space for scaling 
+* // update the feature space for scaling
 * ftr.updateRecords(base.store("Class").allRecords);
 * // get the features of the first record
 * var vec = ftr.extractVector(base.store("Class")[0]); // the vector with the random value
@@ -3262,7 +3263,7 @@ public:
 * base.store("Class").push({ Name: "Fred", StudyGroup: "A" });
 * base.store("Class").push({ Name: "Wilma", StudyGroup: "B" });
 * base.store("Class").push({ Name: "Barney", StudyGroup: "C" });
-* // update the feature space to get the categories 
+* // update the feature space to get the categories
 * ftr.updateRecords(base.store("Class").allRecords);
 * // get the feature vector for the first record
 * var vec = ftr.extractVector(base.store("Class")[0]); // returns vector [1, 0, 0]
@@ -3512,7 +3513,7 @@ private:
     ~TNodeJsFtrSpace() { TNodeJsUtil::ObjNameH.GetDat(GetClassId()).Val3++; TNodeJsUtil::ObjCount.Val3++; }
 public:
     // Node framework
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "FeatureSpace"; }
 
     TQm::PFtrSpace FtrSpace;
@@ -3529,9 +3530,9 @@ private:
         TNodeJsRecByValV* JsRecV;
 
     public:
-        TUpdateRecsTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        TUpdateRecsTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
 
-        v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
     };
 
@@ -3542,9 +3543,9 @@ private:
         TNodeJsFltVV* JsFtrVV;
 
     public:
-        TExtractMatrixTask(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        TExtractMatrixTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool& IsAsync);
 
-        v8::Handle<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
+        v8::Local<v8::Function> GetCallback(const v8::FunctionCallbackInfo<v8::Value>& Args);
         void Run();
         v8::Local<v8::Value> WrapResult();
     };
@@ -4117,7 +4118,7 @@ public:
 private:
     static TQm::PFtrExt NewFtrExtFromFunc(const TWPt<TQm::TBase>& Base, v8::Local<v8::Object>& Settings, v8::Isolate* Isolate) {
         PJsonVal ParamVal = TNodeJsUtil::GetObjProps(Settings);
-        v8::Handle<v8::Function> Func = v8::Handle<v8::Function>::Cast(Settings->Get(v8::String::NewFromUtf8(Isolate, "fun")));
+        v8::Local<v8::Function> Func = v8::Local<v8::Function>::Cast(Settings->Get(v8::String::NewFromUtf8(Isolate, "fun")));
         return TNodeJsFuncFtrExt::NewFtrExt(Base, ParamVal, Func, Isolate);
     }
 };
