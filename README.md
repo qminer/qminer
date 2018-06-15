@@ -21,7 +21,7 @@ hardware, providing efficient storage, retrieval and analytics mechanisms with r
 
 ### Prerequisites
 
-**node.js v8.x, v6.x, v4.x and npm 5.3 or higher**
+**node.js v 10.x, v8.x, v6.x and npm 5.3 or higher**
 
 To test that your node.js version is correct, run ```node --version``` and ```npm --version```. Not compatible with nodejs v0.10 or older.
 
