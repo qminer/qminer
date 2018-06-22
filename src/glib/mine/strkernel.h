@@ -156,9 +156,9 @@ public:
     void UpdateAlphN(const int& NewAlphN) { AlphN = NewAlphN; }
     // new weithgts vector
     void NewWeightV(const TFltV& NewWeightV) {
-		if (KernelType == 0) { KernelType = 1; }
-		WeightV = NewWeightV;
-	}
+        if (KernelType == 0) { KernelType = 1; }
+        WeightV = NewWeightV;
+    }
     // prints kernel info
     void WhoAmI(const TStr& intro) const;
     // max subsequence lengths
