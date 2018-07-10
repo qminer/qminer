@@ -2545,8 +2545,8 @@
      * Provided a given value or array of values it returns the corresponding
      * values of the cumulative distribution function.
      *
-     * @param {number|Array} pVals - the p-values which we a querying
-     * @returns {number|Array} quantiles - depending whether the input was a single value or array the method returns a quantile or array of quantiles
+     * @param {number|Array} vals - the values which we a querying (quantiles)
+     * @returns {number|Array} pVals - depending whether the input was a single value or array the method returns a probability or array of probabilities
      *
      * @example
      * var qm = require('qminer');
@@ -2560,9 +2560,9 @@
      * gk.insert(3.0);
      * gk.insert(2.0);
      *
-     * console.log(gk.cdf(0.01));   // prints the CDF for x = 0.01
-     * console.log(gk.cdf(10));   // prints the CDF for x = 10
-     * console.log(gk.cdf(100));    // prints the CDF for x = 100
+     * console.log(gk.cdf(0));   // prints the CDF for x = 0
+     * console.log(gk.cdf(2));   // prints the CDF for x = 2
+     * console.log(gk.cdf(4));    // prints the CDF for x = 4
      */
  exports.Gk.prototype.cdf = function (x) { return 0; }
 /**
