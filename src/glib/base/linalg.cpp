@@ -1403,13 +1403,14 @@ void TNumericalStuff::LUSolve(const TFltVV& A, const TIntV& indx, TFltV& b) {
         ip=indx[i-1];
         sum=b[ip-1];
         b[ip-1]=b[i-1];
-        if (ii)
-            for (j=ii;j<=i-1;j++) sum -= A(i-1,j-1)*b[j-1];
-        else if (sum) ii=i;b[i-1]=sum;
+        if (ii) {
+            for (j=ii;j<=i-1;j++) { sum -= A(i-1,j-1)*b[j-1]; }
+        } else if (sum) { ii=i; }
+        b[i-1]=sum;
     }
     for (i=n;i>=1;i--) {
         sum=b[i-1];
-        for (j=i+1;j<=n;j++) sum -= A(i-1,j-1)*b[j-1];
+        for (j=i+1;j<=n;j++) { sum -= A(i-1,j-1)*b[j-1]; }
         b[i-1]=sum/A(i-1,i-1);
     }
 }
