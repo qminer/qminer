@@ -6,12 +6,11 @@ env:
    - secure: "jnpbDDHcg2Llnqr+eRrpGS+Bi+Xzcs3XJM+go9kFjM/oVVaB5etCJ3pNyD6zZNJRR00xub7XMODtNYGnJAh5b9Z73zN5QhoB4+czijUyibpBGzhQ+V4kEmycz+9ByDTmpH9rJKPB+kNlGU4htUrwSpgr/mUkymqfRgkaoZSVkAo="
    - secure: "dBebU6FnEv3z/ht9ImWUgOGR5acvbzqihuQ/l57dJiblWYl3OWGG+1z3bw+doIhTcPp3JmgeznapN/Cv6cPGx1cuoGQrcFQrWearikzz7zms0ZJr9klNjI2BYEo/wT9B7wB4ubsjuZUXvc203QGFIsIC9qx1+ByeFb1cen7IUIE="
   matrix:
-   - export NODE_VERSION="4"
-   - export NODE_VERSION="5"
    - export NODE_VERSION="6"
    - export NODE_VERSION="7"
    - export NODE_VERSION="8"
    - export NODE_VERSION="9"
+   - export NODE_VERSION="10"
    
 before_install:
   - CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang
