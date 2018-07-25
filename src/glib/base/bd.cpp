@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -9,40 +9,6 @@
 #if defined(SW_TRACE)
 #include <execinfo.h>
 #include <signal.h>
-#endif
-
-/////////////////////////////////////////////////
-// Mathmatical-Errors
-#if defined(__BCPLUSPLUS__) && (__BCPLUSPLUS__==0x0530)
-int std::_matherr(struct math_exception* e){
-  e->retval=0;
-  return 1;
-}
-#elif defined(GLib_GLIBC) || defined(GLib_BSD)
-int _matherr(struct __exception* e){
-  e->retval=0;
-  return 1;
-}
-#elif defined(GLib_SOLARIS)
-int _matherr(struct __math_exception* e){
-  e->retval=0;
-  return 1;
-}
-#elif defined(GLib_CYGWIN)
-int matherr(struct __exception *e){
-  e->retval=0;
-  return 1;
-}
-#elif defined(GLib_MACOSX)
-//int matherr(struct exception *e) {
-//  e->retval=0;
-//  return 1;
-//}
-#else
-int _matherr(struct _exception* e){
-  e->retval=0;
-  return 1;
-}
 #endif
 
 /////////////////////////////////////////////////
