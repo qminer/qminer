@@ -1857,7 +1857,8 @@ void TVrml::InsertBillboard(PSOut SOut, const TFltVV& Rlf,
     const double Spacing = Scale / Rlf.GetXDim();
     int PosX = TFlt::Round(Scale*x/Spacing);
     int PosY = TFlt::Round(Scale*y/Spacing);
-    if (PosX < 0) PosX = 0; if (PosY < 0) PosY = 0;
+    if (PosX < 0) { PosX = 0; }
+    if (PosY < 0) { PosY = 0; }
     if (PosX >= Rlf.GetXDim()) PosX = Rlf.GetXDim() - 1;
     if (PosY >= Rlf.GetYDim()) PosY = Rlf.GetYDim() - 1;
     const double z = Rlf(PosX, PosY) + Height;

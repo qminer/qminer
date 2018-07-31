@@ -321,8 +321,13 @@ public:
   TTuple& operator = (const TTuple& Tup) { if (this != & Tup) {
     for (int i=0; i<Len(); i++) ValV[i]=Tup[i]; } return *this; }
   bool operator == (const TTuple& Tup) const {
-    if (Len()!=Tup.Len()) { return false; }  if (&Tup==this) { return true; }
-    for (int i=0; i<Len(); i++) if(ValV[i]!=Tup[i]){return false;} return true; }
+    if (Len()!=Tup.Len()) { return false; }
+	if (&Tup==this) { return true; }
+	for (int i = 0; i < Len(); i++) {
+	  if (ValV[i] != Tup[i]) { return false; }
+	}
+	return true;
+  }
   bool operator < (const TTuple& Tup) const {
     if (Len() == Tup.Len()) { for (int i=0; i<Len(); i++) {
       if(ValV[i]<Tup[i]){return true;} else if(ValV[i]>Tup[i]){return false;} } return false; }

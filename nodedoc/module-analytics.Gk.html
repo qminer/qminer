@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.2.2</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.2.4</a>
       </div>
     </div>
   </nav>
@@ -88,7 +88,7 @@
                     <dt><a href="module-analytics.Gk.html#.save">save(fout)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.Gk.html#cdf">cdf(pVals)</a></dt>
+                    <dt><a href="module-analytics.Gk.html#cdf">cdf(vals)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -382,7 +382,7 @@ gk.insert(2.0);</code></pre>
                   <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;- the output stream</p>
                 </dd>
               </dl>
-              <h3 id="cdf"><span class="symbol-name">cdf</span><span class="signature"><span class="signature-params">(pVals)</span>&nbsp;&rarr; <span class="signature-returns"> (number or Array)</span></span></h3>
+              <h3 id="cdf"><span class="symbol-name">cdf</span><span class="signature"><span class="signature-params">(vals)</span>&nbsp;&rarr; <span class="signature-returns"> (number or Array)</span></span></h3>
               <p>Provided a given value or array of values it returns the corresponding values of the cumulative distribution function.</p>
               <section>
                 <h4>
@@ -400,9 +400,9 @@ gk.insert(1.0);
 gk.insert(3.0);
 gk.insert(2.0);
 
-console.log(gk.cdf(0.01));   // prints the CDF for x = 0.01
-console.log(gk.cdf(10));   // prints the CDF for x = 10
-console.log(gk.cdf(100));    // prints the CDF for x = 100</code></pre>
+console.log(gk.cdf(0));   // prints the CDF for x = 0
+console.log(gk.cdf(2));   // prints the CDF for x = 2
+console.log(gk.cdf(4));    // prints the CDF for x = 4</code></pre>
                 </div>
               </section>
               <section>
@@ -419,7 +419,7 @@ console.log(gk.cdf(100));    // prints the CDF for x = 100</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>pVals</p>
+                        <p>vals</p>
                       </td>
                       <td>
                         <p>(number or Array)</p>
@@ -428,7 +428,7 @@ console.log(gk.cdf(100));    // prints the CDF for x = 100</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>the p-values which we a querying</p>
+                        <p>the values which we a querying (quantiles)</p>
                       </td>
                     </tr>
                   </tbody>
@@ -437,7 +437,7 @@ console.log(gk.cdf(100));    // prints the CDF for x = 100</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(number or Array)</code>&nbsp;quantiles - depending whether the input was a single value or array the method returns a quantile or array of quantiles</p>
+                  <p><code>(number or Array)</code>&nbsp;pVals - depending whether the input was a single value or array the method returns a probability or array of probabilities</p>
                 </dd>
               </dl>
               <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> module:analytics.quantiles~GkParam</span></span></h3>

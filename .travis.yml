@@ -11,15 +11,14 @@ addons:
     packages: [ 'gcc-4.8', 'g++-4.8', 'gcc-4.8-multilib', 'g++-4.8-multilib', 'libc6-dev-i386', 'linux-libc-dev:i386' ]
 
 node_js:
-  - 6
-  - 8
+  - 10
 
 env:
   - CXXFLAGS=-std=c++0x CC=gcc-4.8 CXX=g++-4.8
 
 matrix:
   include:
-    - node_js: 4
+    - node_js: 6
       env: LLVM_VERSION=3.6.0 CXXFLAGS=-std=c++0x CXX=clang++ CC=clang NPMOPT=--clang=1 QMDEBUG=--debug
 
 cache:
@@ -56,8 +55,7 @@ script:
   - npm install -g mocha
   - npm install -g mustache
   - ./tools/genExampleTests.sh
-  - ./test/nodejs/test.sh
-  - ./test/cpp/test.sh
+  - npm test
 
 os: linux
 notifications:

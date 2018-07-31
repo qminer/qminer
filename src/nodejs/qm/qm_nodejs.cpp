@@ -29,8 +29,9 @@ void TNodeJsQm::Init(v8::Local<v8::Object> exports) {
     NODE_SET_METHOD(exports, "stats", _stats);
 
     // Add properties
-    exports->SetAccessor(Isolate->GetCurrentContext(),
+    v8::Maybe<bool> SuccessP = exports->SetAccessor(Isolate->GetCurrentContext(),
       v8::String::NewFromUtf8(Isolate, "flags"), _flags);
+    QmAssert(!SuccessP.IsNothing() && SuccessP.FromJust());
 
     // initialize QMiner environment
     TQm::TEnv::Init();
@@ -332,6 +333,19 @@ void TNodeJsQm::flags(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v
     JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(float)")), v8::Integer::New(Isolate, sizeof(float)));
     JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(double)")), v8::Integer::New(Isolate, sizeof(double)));
     JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(char*)")), v8::Integer::New(Isolate, sizeof(char*)));
+
+    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(TStr)")), v8::Integer::New(Isolate, sizeof(TStr)));
+    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(TChA)")), v8::Integer::New(Isolate, sizeof(TChA)));
+    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(TMem)")), v8::Integer::New(Isolate, sizeof(TMem)));
+    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(TBlobPt)")), v8::Integer::New(Isolate, sizeof(TBlobPt)));
+    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(TPgBlobPt)")), v8::Integer::New(Isolate, sizeof(TPgBlobPt)));
+    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(TRec)")), v8::Integer::New(Isolate, sizeof(TQm::TRec)));
+    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(TRecSet)")), v8::Integer::New(Isolate, sizeof(TQm::TRecSet)));
+    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(TRecFilter)")), v8::Integer::New(Isolate, sizeof(TQm::TRecFilter)));
+    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(TAggr)")), v8::Integer::New(Isolate, sizeof(TQm::TAggr)));
+    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(TStreamAggr)")), v8::Integer::New(Isolate, sizeof(TQm::TStreamAggr)));
+    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(TFtrExt)")), v8::Integer::New(Isolate, sizeof(TQm::TFtrExt)));
+    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "sizeof(TFtrSpace)")), v8::Integer::New(Isolate, sizeof(TQm::TFtrSpace)));
 
     Info.GetReturnValue().Set(JsObj);
 }

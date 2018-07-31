@@ -24,7 +24,7 @@ TEST(sizeofBasicTypes) {
 
      ASSERT_EQ(sizeof(TStr), (uint)8);
      ASSERT_EQ(sizeof(TChA), (uint)16);
-     ASSERT_EQ(sizeof(TMem), (uint)24);
+     ASSERT_EQ(sizeof(TMem), (uint)16);
      ASSERT_EQ(sizeof(TPt<TMem>), (uint)8);
      ASSERT_EQ(sizeof(TWPt<TMem>), (uint)8);
 
@@ -33,12 +33,10 @@ TEST(sizeofBasicTypes) {
  }
 
  TEST(sizeofQMiner) {
-     /* ASSERT_EQ(sizeof(TQm::TRec), (uint)216); */ // TODO check on Mac and Windows
-     //ASSERT_EQ(sizeof(TQm::TRec), (uint)200);
+     /* ASSERT_EQ(sizeof(TQm::TRec), (uint)192); */ // TODO check on Mac and Windows
      ASSERT_EQ(sizeof(TQm::TRecSet), (uint)56);
      ASSERT_EQ(sizeof(TQm::TRecFilter), (uint)24);
      ASSERT_EQ(sizeof(TQm::TAggr), (uint)32);
-     /* ASSERT_EQ(sizeof(TQm::TStreamAggr), (uint)32); */
      ASSERT_EQ(sizeof(TQm::TStreamAggr), (uint)40);
      ASSERT_EQ(sizeof(TQm::TFtrExt), (uint)80);
      ASSERT_EQ(sizeof(TQm::TFtrSpace), (uint)72);
