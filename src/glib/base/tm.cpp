@@ -1093,7 +1093,7 @@ uint64 TTm::GetCurUniMSecs(){
   return TSysTm::GetCurUniMSecs();
 }
 
-uint64 TTm::GetCurUniUnixMSecs(){
+int64 TTm::GetCurUniUnixMSecs(){
   return TTm::GetUnixMSecsFromWinMSecs(TTm::GetCurUniMSecs());
 }
 
