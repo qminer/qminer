@@ -108,7 +108,7 @@ public:
   static TTm GetCurUniTm();
   static TTm GetCurLocTm();
   static uint64 GetCurUniMSecs();
-  static uint64 GetCurLocMSecs();
+  // static uint64 GetCurLocMSecs(); // deprecated
   static uint64 GetMSecsFromTm(const TTm& Tm);
   static TTm GetTmFromMSecs(const uint64& MSecs);
   static uint GetMSecsFromOsStart();
@@ -228,7 +228,7 @@ public:
   static TTm GetCurUniTm();
   static TTm GetCurLocTm();
   static uint64 GetCurUniMSecs();
-  static uint64 GetCurLocMSecs();
+  //static uint64 GetCurLocMSecs(); // deprecated
   static uint64 GetMSecsFromTm(const TTm& Tm);
   static TTm GetTmFromMSecs(const uint64& MSecs);
   static uint GetMSecsFromOsStart();

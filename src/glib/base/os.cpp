@@ -177,13 +177,13 @@ uint64 TSysTm::GetCurUniMSecs(){
   return UInt64.Val/uint64(10000);
 }
 
-uint64 TSysTm::GetCurLocMSecs(){
-  SYSTEMTIME SysTm; FILETIME FileTm;
-  GetLocalTime(&SysTm);
-  IAssert(SystemTimeToFileTime(&SysTm, &FileTm));
-  TUInt64 UInt64(uint(FileTm.dwHighDateTime), uint(FileTm.dwLowDateTime));
-  return UInt64.Val/uint64(10000);
-}
+// uint64 TSysTm::GetCurLocMSecs(){
+//   SYSTEMTIME SysTm; FILETIME FileTm;
+//   GetLocalTime(&SysTm);
+//   IAssert(SystemTimeToFileTime(&SysTm, &FileTm));
+//   TUInt64 UInt64(uint(FileTm.dwHighDateTime), uint(FileTm.dwLowDateTime));
+//   return UInt64.Val/uint64(10000);
+// }
 
 uint64 TSysTm::GetMSecsFromTm(const TTm& Tm){
   SYSTEMTIME SysTm; FILETIME FileTm;
@@ -634,9 +634,9 @@ uint64 TSysTm::GetCurUniMSecs(){
   return TSysTm::GetMSecsFromTm(GetCurLocTm());
 }
 
-uint64 TSysTm::GetCurLocMSecs(){
-  return TSysTm::GetMSecsFromTm(GetCurUniTm());
-}
+// uint64 TSysTm::GetCurLocMSecs(){
+//   return TSysTm::GetMSecsFromTm(GetCurUniTm());
+// }
 
 uint64 TSysTm::GetMSecsFromTm(const TTm& Tm){
   time_t t;
