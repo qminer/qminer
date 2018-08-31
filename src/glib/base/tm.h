@@ -320,7 +320,7 @@ public:
   static TTm GetUniqueCurUniTm(const int& UniqueSpaces, const int& UniqueSpaceN);
   static TTm GetCurLocTm();
   static uint64 GetCurUniMSecs();
-  static uint64 GetCurLocMSecs();
+  static int64 GetCurUniUnixMSecs(); //< Number of milliseconds since 1970-01-01T00:00:00 (UTC)
   static uint64 GetMSecsFromTm(const TTm& Tm);
   static TTm GetTmFromMSecs(const uint64& MSecs);
   static uint GetMSecsFromOsStart();
