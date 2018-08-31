@@ -1603,7 +1603,8 @@ exports.statistics= require('qminer_stat');
 /**
  * Vector of records by value.
  * @class
- * @param {module:fs.FIn} [arg] - Load vector from input stream.
+ * @param {module:qm.Base} base - Qminer base object.
+ * @param {module:fs.FIn} [fin] - Load vector from input stream.
  * @classdesc Vector storing records defined by value. Vector can be serialized and
  * iterated over. For storing records by reference use {@link module:qm.RecordSet} or
  * {@link module:la.IntVector}.
@@ -1636,7 +1637,7 @@ exports.statistics= require('qminer_stat');
  * }
  * base.close();
  */
- exports.RecordVector = function(arg) { return Object.create(require('qminer').qm.RecordVector.prototype) };
+ exports.RecordVector = function(base, fin) { return Object.create(require('qminer').qm.RecordVector.prototype) };
 /**
      * Adds a new record to the vector.
      * @param {module:qm.Record} rec - The added record. The record must be provided by value.
