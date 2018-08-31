@@ -1,5 +1,22 @@
 # QMiner Change Log
 
+
+## 31 August 2018
+
+**Version 9.3.0**
+
+**Non-breaking with new feature**
+
+New feature:
+- Added `TTm::GetCurUniUnixMSecs()` that returns Unix version of timestamp
+
+Bugfix:
+- Added check to `TWPt::Del` that pointer is not `NULL`
+- Removed confusing local version of timestamps
+- Fixed documentation for `RecordVector` consturctor in Node.JS API
+- Removed unused code in `bd.cpp` that did not compile in recent versions of GCC
+
+
 ## 10 July 2018
 
 **Version 9.2.3**
