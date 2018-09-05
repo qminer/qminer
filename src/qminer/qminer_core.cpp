@@ -730,9 +730,11 @@ void TStore::DelJoin(const int& JoinId, const uint64& RecId, const uint64 JoinRe
         if (InverseJoinDesc.IsIndexJoin()) {
             Index->DeleteJoin(JoinStore, InverseJoinId, JoinRecId, RecId, JoinFq);
         } else {
-            JoinStore->SetFieldNull(JoinRecId, InverseJoinDesc.GetJoinRecFieldId());
-            if (InverseJoinDesc.GetJoinFqFieldId() >= 0) {
-                JoinStore->SetFieldInt64Safe(JoinRecId, InverseJoinDesc.GetJoinFqFieldId(), 0);
+            if (JoinStore->IsRecId(JoinRecId)) {
+                JoinStore->SetFieldNull(JoinRecId, InverseJoinDesc.GetJoinRecFieldId());
+                if (InverseJoinDesc.GetJoinFqFieldId() >= 0) {
+                    JoinStore->SetFieldInt64Safe(JoinRecId, InverseJoinDesc.GetJoinFqFieldId(), 0);
+                }
             }
         }
     }
