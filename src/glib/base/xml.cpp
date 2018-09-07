@@ -1421,6 +1421,7 @@ PXmlDoc TXmlDoc::LoadTxt(TXmlLx& Lx){
     Doc->Ok=true; Doc->MsgStr="Ok";
   }
   catch (PExcept& Except){
+    printf("Exception while parsing XML document: %s\n", Except->GetMsgStr().CStr());
     Doc->Ok=false; Doc->MsgStr=Except->GetMsgStr();
   }
   return Doc;

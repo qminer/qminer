@@ -16,7 +16,7 @@
 
 v8::Persistent<v8::Function> TNodeJsStreamAggr::Constructor;
 
-void TNodeJsStreamAggr::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsStreamAggr::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -278,7 +278,7 @@ void TNodeJsStreamAggr::saveJson(const v8::FunctionCallbackInfo<v8::Value>& Args
 
     const TInt Limit = TNodeJsUtil::GetArgInt32(Args, 0, -1);
     PJsonVal Json = JsSA->SA->SaveJson(Limit);
-    v8::Handle<v8::Value> V8Json = TNodeJsUtil::ParseJson(Isolate, Json);
+    v8::Local<v8::Value> V8Json = TNodeJsUtil::ParseJson(Isolate, Json);
 
     Args.GetReturnValue().Set(V8Json);
 }
@@ -290,6 +290,7 @@ void TNodeJsStreamAggr::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     // unwrap
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
     TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
+    EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     // save
     JsSA->SA->SaveState(*JsFOut->SOut);
     JsFOut->SOut->Flush();
@@ -319,7 +320,7 @@ void TNodeJsStreamAggr::saveStateJson(const v8::FunctionCallbackInfo<v8::Value>&
 
     // save
     PJsonVal StateJson = JsSA->SA->SaveStateJson();
-    v8::Handle<v8::Value> Result = TNodeJsUtil::ParseJson(Isolate, StateJson);
+    v8::Local<v8::Value> Result = TNodeJsUtil::ParseJson(Isolate, StateJson);
     Args.GetReturnValue().Set(Result);
 }
 
@@ -745,7 +746,7 @@ void TNodeJsStreamAggr::getValueVector(const v8::FunctionCallbackInfo<v8::Value>
     }
 }
 
-void TNodeJsStreamAggr::name(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsStreamAggr::name(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -755,7 +756,7 @@ void TNodeJsStreamAggr::name(v8::Local<v8::String> Name, const v8::PropertyCallb
 }
 
 
-void TNodeJsStreamAggr::val(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsStreamAggr::val(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -764,7 +765,7 @@ void TNodeJsStreamAggr::val(v8::Local<v8::String> Name, const v8::PropertyCallba
     Info.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsSA->SA->SaveJson(-1)));
 }
 
-void TNodeJsStreamAggr::init(v8::Local<v8::String> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+void TNodeJsStreamAggr::init(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -775,7 +776,7 @@ void TNodeJsStreamAggr::init(v8::Local<v8::String> Name, const v8::PropertyCallb
 
 ///////////////////////////////
 // QMiner-JavaScript-Stream-Aggr
-TNodeJsFuncStreamAggr::TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Handle<v8::Object> TriggerVal) : TStreamAggr(_Base, _AggrNm) {
+TNodeJsFuncStreamAggr::TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr& _AggrNm, v8::Local<v8::Object> TriggerVal) : TStreamAggr(_Base, _AggrNm) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     ThisObj.Reset(Isolate, TriggerVal);
@@ -785,188 +786,188 @@ TNodeJsFuncStreamAggr::TNodeJsFuncStreamAggr(TWPt<TQm::TBase> _Base, const TStr&
         TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onStep")), "TNodeJsFuncStreamAggr constructor, name: " + _AggrNm + ", type: javaScript. Missing onAdd/onTime/onStep (any) callback. Possible reason: type of the aggregate was not specified and it defaulted to javaScript.");
 
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "reset"))) {
-        v8::Handle<v8::Value> _ResetFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "reset"));
+        v8::Local<v8::Value> _ResetFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "reset"));
         QmAssert(_ResetFun->IsFunction());
-        ResetFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_ResetFun));
+        ResetFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_ResetFun));
     }
 
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onStep"))) {
-        v8::Handle<v8::Value> _OnStepFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onStep"));
+        v8::Local<v8::Value> _OnStepFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onStep"));
         QmAssert(_OnStepFun->IsFunction());
-        OnStepFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnStepFun));
+        OnStepFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_OnStepFun));
     }
 
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onTime"))) {
-        v8::Handle<v8::Value> _OnTimeFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onTime"));
+        v8::Local<v8::Value> _OnTimeFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onTime"));
         QmAssert(_OnTimeFun->IsFunction());
-        OnTimeFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnTimeFun));
+        OnTimeFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_OnTimeFun));
     } else if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onStep"))) {
-        v8::Handle<v8::Value> _OnStepFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onStep"));
+        v8::Local<v8::Value> _OnStepFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onStep"));
         QmAssert(_OnStepFun->IsFunction());
-        OnTimeFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnStepFun));
+        OnTimeFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_OnStepFun));
     }
 
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onAdd"))) {
-        v8::Handle<v8::Value> _OnAddFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onAdd"));
+        v8::Local<v8::Value> _OnAddFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onAdd"));
         QmAssert(_OnAddFun->IsFunction());
-        OnAddFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnAddFun));
+        OnAddFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_OnAddFun));
     } else if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onStep"))) {
-        v8::Handle<v8::Value> _OnStepFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onStep"));
+        v8::Local<v8::Value> _OnStepFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onStep"));
         QmAssert(_OnStepFun->IsFunction());
-        OnAddFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnStepFun));
+        OnAddFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_OnStepFun));
     }
 
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onUpdate"))) {
-        v8::Handle<v8::Value> _OnUpdateFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onUpdate"));
+        v8::Local<v8::Value> _OnUpdateFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onUpdate"));
         QmAssert(_OnUpdateFun->IsFunction());
-        OnUpdateFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnUpdateFun));
+        OnUpdateFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_OnUpdateFun));
     }
 
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "onDelete"))) {
-        v8::Handle<v8::Value> _OnDeleteFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onDelete"));
+        v8::Local<v8::Value> _OnDeleteFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "onDelete"));
         QmAssert(_OnDeleteFun->IsFunction());
-        OnDeleteFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_OnDeleteFun));
+        OnDeleteFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_OnDeleteFun));
     }
 
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "saveJson"))) {
-        v8::Handle<v8::Value> _SaveJsonFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "saveJson"));
+        v8::Local<v8::Value> _SaveJsonFun = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "saveJson"));
         QmAssert(_SaveJsonFun->IsFunction());
-        SaveJsonFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_SaveJsonFun));
+        SaveJsonFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_SaveJsonFun));
     }
 
     // StreamAggr::IsInit
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "init"))) {
-        v8::Handle<v8::Value> _IsInit = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "init"));
+        v8::Local<v8::Value> _IsInit = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "init"));
         QmAssert(_IsInit->IsFunction());
-        IsInitFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_IsInit));
+        IsInitFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_IsInit));
     }
 
     // StreamAggr::SaveState
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "save"))) {
-        v8::Handle<v8::Value> _Save = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "save"));
+        v8::Local<v8::Value> _Save = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "save"));
         QmAssert(_Save->IsFunction());
-        SaveFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_Save));
+        SaveFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_Save));
     }
 
     // StreamAggr::LoadState
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "load"))) {
-        v8::Handle<v8::Value> _Load = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "load"));
+        v8::Local<v8::Value> _Load = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "load"));
         QmAssert(_Load->IsFunction());
-        LoadFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_Load));
+        LoadFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_Load));
     }
 
     // StreamAggr::SaveStateJson
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "saveStateJson"))) {
-        v8::Handle<v8::Value> _SaveStateJson = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "saveStateJson"));
+        v8::Local<v8::Value> _SaveStateJson = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "saveStateJson"));
         QmAssert(_SaveStateJson->IsFunction());
-        SaveStateJsonFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_SaveStateJson));
+        SaveStateJsonFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_SaveStateJson));
     }
 
     // StreamAggr::LoadStateJson
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "loadStateJson"))) {
-        v8::Handle<v8::Value> _LoadStateJson = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "loadStateJson"));
+        v8::Local<v8::Value> _LoadStateJson = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "loadStateJson"));
         QmAssert(_LoadStateJson->IsFunction());
-        LoadStateJsonFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_LoadStateJson));
+        LoadStateJsonFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_LoadStateJson));
     }
 
     // StreamAggr::GetParams
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getParams"))) {
-        v8::Handle<v8::Value> _GetParamsJson = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getParams"));
+        v8::Local<v8::Value> _GetParamsJson = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getParams"));
         QmAssert(_GetParamsJson->IsFunction());
-        GetParamsFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetParamsJson));
+        GetParamsFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_GetParamsJson));
     }
 
      // StreamAggr::SetParams
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "setParams"))) {
-       v8::Handle<v8::Value> _SetParamsJson = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "setParams"));
+       v8::Local<v8::Value> _SetParamsJson = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "setParams"));
        QmAssert(_SetParamsJson->IsFunction());
-       SetParamsFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_SetParamsJson));
+       SetParamsFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_SetParamsJson));
     }
 
     // IInt
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInteger"))) {
-        v8::Handle<v8::Value> _GetInt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInteger"));
+        v8::Local<v8::Value> _GetInt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInteger"));
         QmAssert(_GetInt->IsFunction());
-        GetIntFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetInt));
+        GetIntFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_GetInt));
     }
     // IFlt
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFloat"))) {
-        v8::Handle<v8::Value> _GetFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFloat"));
+        v8::Local<v8::Value> _GetFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFloat"));
         QmAssert(_GetFlt->IsFunction());
-        GetFltFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetFlt));
+        GetFltFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_GetFlt));
     }
     // ITm
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getTimestamp"))) {
-        v8::Handle<v8::Value> _GetTm = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getTimestamp"));
+        v8::Local<v8::Value> _GetTm = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getTimestamp"));
         QmAssert(_GetTm->IsFunction());
-        GetTmMSecsFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetTm));
+        GetTmMSecsFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_GetTm));
     }
     // IFltIO
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInFloatVector"))) {
-        v8::Handle<v8::Value> _GetInFltV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInFloatVector"));
+        v8::Local<v8::Value> _GetInFltV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInFloatVector"));
         QmAssert(_GetInFltV->IsFunction());
-        GetInFltVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetInFltV));
+        GetInFltVFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_GetInFltV));
     }
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getOutFloatVector"))) {
-        v8::Handle<v8::Value> _GetOutFltV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getOutFloatVector"));
+        v8::Local<v8::Value> _GetOutFltV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getOutFloatVector"));
         QmAssert(_GetOutFltV->IsFunction());
-        GetOutFltVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetOutFltV));
+        GetOutFltVFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_GetOutFltV));
     }
     // ITmIO
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getInTimestampVector"))) {
-        v8::Handle<v8::Value> _GetInTmV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInTimestampVector"));
+        v8::Local<v8::Value> _GetInTmV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getInTimestampVector"));
         QmAssert(_GetInTmV->IsFunction());
-        GetInTmMSecsVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetInTmV));
+        GetInTmMSecsVFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_GetInTmV));
     }
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getOutTimestampVector"))) {
-        v8::Handle<v8::Value> _GetOutTmV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getOutTimestampVector"));
+        v8::Local<v8::Value> _GetOutTmV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getOutTimestampVector"));
         QmAssert(_GetOutTmV->IsFunction());
-        GetOutTmMSecsVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetOutTmV));
+        GetOutTmMSecsVFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_GetOutTmV));
     }
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getNumberOfRecords"))) {
-        v8::Handle<v8::Value> _GetN = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getNumberOfRecords"));
+        v8::Local<v8::Value> _GetN = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getNumberOfRecords"));
         QmAssert(_GetN->IsFunction());
-        GetNFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetN));
+        GetNFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_GetN));
     }
 
     // IFltVec
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFloatLength"))) {
-        v8::Handle<v8::Value> _GetFltLen = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFloatLength"));
+        v8::Local<v8::Value> _GetFltLen = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFloatLength"));
         QmAssert(_GetFltLen->IsFunction());
-        GetFltLenFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetFltLen));
+        GetFltLenFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_GetFltLen));
     }
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFloatAt"))) {
-        v8::Handle<v8::Value> _GetFltAt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFloatAt"));
+        v8::Local<v8::Value> _GetFltAt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFloatAt"));
         QmAssert(_GetFltAt->IsFunction());
-        GetFltAtFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetFltAt));
+        GetFltAtFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_GetFltAt));
     }
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getFloatVector"))) {
-        v8::Handle<v8::Value> _GetFltV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFloatVector"));
+        v8::Local<v8::Value> _GetFltV = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getFloatVector"));
         QmAssert(_GetFltV->IsFunction());
-        GetFltVFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetFltV));
+        GetFltVFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_GetFltV));
     }
 
     // INmFlt
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "isNameFloat"))) {
-        v8::Handle<v8::Value> _IsNmFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "isNameFloat"));
+        v8::Local<v8::Value> _IsNmFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "isNameFloat"));
         QmAssert(_IsNmFlt->IsFunction());
-        IsNmFltFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_IsNmFlt));
+        IsNmFltFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_IsNmFlt));
     }
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getNameFloat"))) {
-        v8::Handle<v8::Value> _GetNmFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getNameFloat"));
+        v8::Local<v8::Value> _GetNmFlt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getNameFloat"));
         QmAssert(_GetNmFlt->IsFunction());
-        GetNmFltFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetNmFlt));
+        GetNmFltFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_GetNmFlt));
     }
     // INmInt
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "isNameInteger"))) {
-        v8::Handle<v8::Value> _IsNmInt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "isNameInteger"));
+        v8::Local<v8::Value> _IsNmInt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "isNameInteger"));
         QmAssert(_IsNmInt->IsFunction());
-        IsNmIntFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_IsNmInt));
+        IsNmIntFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_IsNmInt));
     }
     if (TriggerVal->Has(v8::String::NewFromUtf8(Isolate, "getNameInteger"))) {
-        v8::Handle<v8::Value> _GetNmInt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getNameInteger"));
+        v8::Local<v8::Value> _GetNmInt = TriggerVal->Get(v8::String::NewFromUtf8(Isolate, "getNameInteger"));
         QmAssert(_GetNmInt->IsFunction());
-        GetNmIntFun.Reset(Isolate, v8::Handle<v8::Function>::Cast(_GetNmInt));
+        GetNmIntFun.Reset(Isolate, v8::Local<v8::Function>::Cast(_GetNmInt));
     }
 }
 
@@ -1028,7 +1029,7 @@ void TNodeJsFuncStreamAggr::Reset() {
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, ResetFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
-        v8::TryCatch TryCatch;
+        v8::TryCatch TryCatch(Isolate);
         Callback->Call(This, 0, NULL);
 
         TNodeJsUtil::CheckJSExcept(TryCatch);
@@ -1044,7 +1045,7 @@ void TNodeJsFuncStreamAggr::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnStepFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
-        v8::TryCatch TryCatch;
+        v8::TryCatch TryCatch(Isolate);
         if (CallerAggr.Empty()) {
             Callback->Call(This, 0, NULL);
         } else {
@@ -1066,7 +1067,7 @@ void TNodeJsFuncStreamAggr::OnTime(const uint64& Time, const TWPt<TStreamAggr>& 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnTimeFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
-        v8::TryCatch TryCatch;
+        v8::TryCatch TryCatch(Isolate);
         if (CallerAggr.Empty()) {
             const unsigned Argc = 1;
             v8::Local<v8::Value> ArgV[Argc] = { v8::Number::New(Isolate, (double)Time) };
@@ -1090,7 +1091,7 @@ void TNodeJsFuncStreamAggr::OnAddRec(const TQm::TRec& Rec, const TWPt<TStreamAgg
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnAddFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
-        v8::TryCatch TryCatch;
+        v8::TryCatch TryCatch(Isolate);
         if (CallerAggr.Empty()) {
             const unsigned Argc = 1;
             v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)) };
@@ -1114,7 +1115,7 @@ void TNodeJsFuncStreamAggr::OnUpdateRec(const TQm::TRec& Rec, const TWPt<TStream
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnUpdateFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
-        v8::TryCatch TryCatch;
+        v8::TryCatch TryCatch(Isolate);
         if (CallerAggr.Empty()) {
             const unsigned Argc = 1;
             v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)) };
@@ -1138,7 +1139,7 @@ void TNodeJsFuncStreamAggr::OnDeleteRec(const TQm::TRec& Rec, const TWPt<TStream
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, OnDeleteFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
-        v8::TryCatch TryCatch;
+        v8::TryCatch TryCatch(Isolate);
         if (CallerAggr.Empty()) {
             const unsigned Argc = 1;
             v8::Local<v8::Value> ArgV[Argc] = { TNodeJsRec::NewInstance(new TNodeJsRec(TNodeJsBaseWatcher::New(), Rec)) };
@@ -1162,7 +1163,7 @@ PJsonVal TNodeJsFuncStreamAggr::SaveJson(const int& Limit) const {
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
         const unsigned Argc = 1;
         v8::Local<v8::Value> ArgV[Argc] = { v8::Number::New(Isolate, Limit) };
-        v8::TryCatch TryCatch;
+        v8::TryCatch TryCatch(Isolate);
         v8::Local<v8::Value> ReturnVal = Callback->Call(This, Argc, ArgV);
 
         TNodeJsUtil::CheckJSExcept(TryCatch);
@@ -1186,8 +1187,8 @@ bool TNodeJsFuncStreamAggr::IsInit() const {
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, IsInitFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
-        v8::TryCatch TryCatch;
-        v8::Handle<v8::Value> RetVal = Callback->Call(This, 0, NULL);
+        v8::TryCatch TryCatch(Isolate);
+        v8::Local<v8::Value> RetVal = Callback->Call(This, 0, NULL);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         QmAssertR(RetVal->IsBoolean(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", init did not return a boolean!");
         return RetVal->BooleanValue();
@@ -1206,6 +1207,7 @@ void TNodeJsFuncStreamAggr::SaveState(TSOut& SOut) const {
 
         PSOut POut(&SOut);
         TNodeJsFOut* FOut = new TNodeJsFOut(POut);
+        EAssertR(!FOut->SOut.Empty(), "Output stream closed!");
         v8::Local<v8::Object> JsFOut = TNodeJsUtil::NewInstance<TNodeJsFOut>(FOut);
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, SaveFun);
@@ -1213,7 +1215,7 @@ void TNodeJsFuncStreamAggr::SaveState(TSOut& SOut) const {
         const unsigned Argc = 1;
         v8::Local<v8::Value> ArgV[Argc] = { JsFOut };
 
-        v8::TryCatch TryCatch;
+        v8::TryCatch TryCatch(Isolate);
         Callback->Call(This, Argc, ArgV);
         FOut->SOut.Clr();
         TNodeJsUtil::CheckJSExcept(TryCatch);
@@ -1235,7 +1237,7 @@ void TNodeJsFuncStreamAggr::LoadState(TSIn& SIn) {
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
         const unsigned Argc = 1;
         v8::Local<v8::Value> ArgV[Argc] = { JsFIn };
-        v8::TryCatch TryCatch;
+        v8::TryCatch TryCatch(Isolate);
         Callback->Call(This, Argc, ArgV);
         TNodeJsUtil::CheckJSExcept(TryCatch);
     }
@@ -1252,8 +1254,8 @@ PJsonVal TNodeJsFuncStreamAggr::SaveStateJson() const {
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, SaveStateJsonFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
-        v8::TryCatch TryCatch;
-        v8::Handle<v8::Value> RetVal = Callback->Call(This, 0, NULL);
+        v8::TryCatch TryCatch(Isolate);
+        v8::Local<v8::Value> RetVal = Callback->Call(This, 0, NULL);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         return TNodeJsUtil::GetObjJson(RetVal);
     }
@@ -1273,7 +1275,7 @@ void TNodeJsFuncStreamAggr::LoadStateJson(const PJsonVal& State) {
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
         const unsigned Argc = 1;
         v8::Local<v8::Value> ArgV[Argc] = { StateObj };
-        v8::TryCatch TryCatch;
+        v8::TryCatch TryCatch(Isolate);
         Callback->Call(This, Argc, ArgV);
         TNodeJsUtil::CheckJSExcept(TryCatch);
     }
@@ -1289,8 +1291,8 @@ PJsonVal TNodeJsFuncStreamAggr::GetParams() const {
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, GetParamsFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
-        v8::TryCatch TryCatch;
-        v8::Handle<v8::Value> RetVal = Callback->Call(This, 0, NULL);
+        v8::TryCatch TryCatch(Isolate);
+        v8::Local<v8::Value> RetVal = Callback->Call(This, 0, NULL);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         return TNodeJsUtil::GetObjJson(RetVal);
     }
@@ -1309,7 +1311,7 @@ void TNodeJsFuncStreamAggr::SetParams(const PJsonVal& Params) {
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
         const unsigned Argc = 1;
         v8::Local<v8::Value> ArgV[Argc] = { ParamObj };
-        v8::TryCatch TryCatch;
+        v8::TryCatch TryCatch(Isolate);
         Callback->Call(This, Argc, ArgV);
         TNodeJsUtil::CheckJSExcept(TryCatch);
     }
@@ -1324,8 +1326,8 @@ int TNodeJsFuncStreamAggr::GetInt() const {
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, GetIntFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
-        v8::TryCatch TryCatch;
-        v8::Handle<v8::Value> RetVal = Callback->Call(This, 0, NULL);
+        v8::TryCatch TryCatch(Isolate);
+        v8::Local<v8::Value> RetVal = Callback->Call(This, 0, NULL);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         QmAssertR(RetVal->IsInt32(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getInteger(): Return type expected to be integer");
         return RetVal->Int32Value();
@@ -1344,8 +1346,8 @@ double TNodeJsFuncStreamAggr::GetFlt() const {
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, GetFltFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
-        v8::TryCatch TryCatch;
-        v8::Handle<v8::Value> RetVal = Callback->Call(This, 0, NULL);
+        v8::TryCatch TryCatch(Isolate);
+        v8::Local<v8::Value> RetVal = Callback->Call(This, 0, NULL);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getFloat(): Return type expected to be a number");
         return RetVal->NumberValue();
@@ -1364,8 +1366,8 @@ uint64 TNodeJsFuncStreamAggr::GetTmMSecs() const {
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, GetTmMSecsFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
-        v8::TryCatch TryCatch;
-        v8::Handle<v8::Value> RetVal = Callback->Call(This, 0, NULL);
+        v8::TryCatch TryCatch(Isolate);
+        v8::Local<v8::Value> RetVal = Callback->Call(This, 0, NULL);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getTm(): Return type expected to be number");
         uint64 UnixMSecs =  (uint64)RetVal->NumberValue();
@@ -1417,11 +1419,11 @@ void TNodeJsFuncStreamAggr::GetValV(TFltV& ValV) const {
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, GetFltVFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
-        v8::TryCatch TryCatch;
-        v8::Handle<v8::Value> RetVal = Callback->Call(This, 0, NULL);
+        v8::TryCatch TryCatch(Isolate);
+        v8::Local<v8::Value> RetVal = Callback->Call(This, 0, NULL);
         TNodeJsUtil::CheckJSExcept(TryCatch);
-        QmAssertR(RetVal->IsObject() && TNodeJsUtil::IsClass(v8::Handle<v8::Object>::Cast(RetVal), TNodeJsFltV::GetClassId()), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ",GetFltV did not return a vector!");
-        TNodeJsFltV* JsVec = TNodeJsUtil::Unwrap<TNodeJsFltV>(v8::Handle<v8::Object>::Cast(RetVal));
+        QmAssertR(RetVal->IsObject() && TNodeJsUtil::IsClass(v8::Local<v8::Object>::Cast(RetVal), TNodeJsFltV::GetClassId()), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ",GetFltV did not return a vector!");
+        TNodeJsFltV* JsVec = TNodeJsUtil::Unwrap<TNodeJsFltV>(v8::Local<v8::Object>::Cast(RetVal));
 
         ValV = JsVec->Vec;
 
@@ -1455,9 +1457,9 @@ bool TNodeJsFuncStreamAggr::IsNmFlt(const TStr& Nm) const {
             (ProvidedGetNmFltFun ? v8::Local<v8::Function>::New(Isolate, GetNmFltFun) : v8::Local<v8::Function>::New(Isolate, GetFltFun));
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
-        v8::TryCatch TryCatch;
-        v8::Handle<v8::Value> Argv[1] = { v8::String::NewFromUtf8(Isolate, Nm.CStr()) };
-        v8::Handle<v8::Value> RetVal = Callback->Call(This, 1, Argv);
+        v8::TryCatch TryCatch(Isolate);
+        v8::Local<v8::Value> Argv[1] = { v8::String::NewFromUtf8(Isolate, Nm.CStr()) };
+        v8::Local<v8::Value> RetVal = Callback->Call(This, 1, Argv);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         if (ProvidedIsNmFltFun) {
             QmAssertR(RetVal->IsBoolean(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", isNameFloat(): Return type expected to be a boolean value");
@@ -1479,9 +1481,9 @@ double TNodeJsFuncStreamAggr::GetNmFlt(const TStr& Nm) const {
         v8::Local<v8::Function> Callback = ProvidedGetNmFltFun ? v8::Local<v8::Function>::New(Isolate, GetNmFltFun) : v8::Local<v8::Function>::New(Isolate, GetFltFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
-        v8::TryCatch TryCatch;
-        v8::Handle<v8::Value> Argv[1] = { v8::String::NewFromUtf8(Isolate, Nm.CStr()) };
-        v8::Handle<v8::Value> RetVal = Callback->Call(This, 1, Argv);
+        v8::TryCatch TryCatch(Isolate);
+        v8::Local<v8::Value> Argv[1] = { v8::String::NewFromUtf8(Isolate, Nm.CStr()) };
+        v8::Local<v8::Value> RetVal = Callback->Call(This, 1, Argv);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getNameFloat(): Return type expected to be a number");
         return RetVal->NumberValue();
@@ -1502,9 +1504,9 @@ bool TNodeJsFuncStreamAggr::IsNmInt(const TStr& Nm) const {
             (ProvidedGetNmIntFun ? v8::Local<v8::Function>::New(Isolate, GetNmIntFun) : v8::Local<v8::Function>::New(Isolate, GetIntFun));
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
-        v8::TryCatch TryCatch;
-        v8::Handle<v8::Value> Argv[1] = { v8::String::NewFromUtf8(Isolate, Nm.CStr()) };
-        v8::Handle<v8::Value> RetVal = Callback->Call(This, 1, Argv);
+        v8::TryCatch TryCatch(Isolate);
+        v8::Local<v8::Value> Argv[1] = { v8::String::NewFromUtf8(Isolate, Nm.CStr()) };
+        v8::Local<v8::Value> RetVal = Callback->Call(This, 1, Argv);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         if (ProvidedIsNmIntFun) {
             QmAssertR(RetVal->IsBoolean(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", isNameInteger(): Return type expected to be a boolean value");
@@ -1527,9 +1529,9 @@ int TNodeJsFuncStreamAggr::GetNmInt(const TStr& Nm) const {
         v8::Local<v8::Function> Callback = ProvidedGetNmIntFun ? v8::Local<v8::Function>::New(Isolate, GetNmIntFun) : v8::Local<v8::Function>::New(Isolate, GetIntFun);
         v8::Local<v8::Object> This = v8::Local<v8::Object>::New(Isolate, ThisObj);
 
-        v8::TryCatch TryCatch;
-        v8::Handle<v8::Value> Argv[1] = { v8::String::NewFromUtf8(Isolate, Nm.CStr()) };
-        v8::Handle<v8::Value> RetVal = Callback->Call(This, 1, Argv);
+        v8::TryCatch TryCatch(Isolate);
+        v8::Local<v8::Value> Argv[1] = { v8::String::NewFromUtf8(Isolate, Nm.CStr()) };
+        v8::Local<v8::Value> RetVal = Callback->Call(This, 1, Argv);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStreamAggr, name: " + GetAggrNm() + ", getNameInteger(): Return type expected to be a number");
         return (int)RetVal->NumberValue();

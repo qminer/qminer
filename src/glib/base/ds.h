@@ -93,6 +93,7 @@ typedef TPair<TBool, TBool> TBoolPr;
 typedef TPair<TBool, TCh> TBoolChPr;
 typedef TPair<TBool, TFlt> TBoolFltPr;
 typedef TPair<TUCh, TUCh> TUChPr;
+typedef TPair<TInt, TUInt> TIntUIntPr;
 typedef TPair<TUCh, TInt> TUChIntPr;
 typedef TPair<TUCh, TUInt64> TUChUInt64Pr;
 typedef TPair<TUCh, TStr> TUChStrPr;
@@ -320,8 +321,13 @@ public:
   TTuple& operator = (const TTuple& Tup) { if (this != & Tup) {
     for (int i=0; i<Len(); i++) ValV[i]=Tup[i]; } return *this; }
   bool operator == (const TTuple& Tup) const {
-    if (Len()!=Tup.Len()) { return false; }  if (&Tup==this) { return true; }
-    for (int i=0; i<Len(); i++) if(ValV[i]!=Tup[i]){return false;} return true; }
+    if (Len()!=Tup.Len()) { return false; }
+	if (&Tup==this) { return true; }
+	for (int i = 0; i < Len(); i++) {
+	  if (ValV[i] != Tup[i]) { return false; }
+	}
+	return true;
+  }
   bool operator < (const TTuple& Tup) const {
     if (Len() == Tup.Len()) { for (int i=0; i<Len(); i++) {
       if(ValV[i]<Tup[i]){return true;} else if(ValV[i]>Tup[i]){return false;} } return false; }
@@ -894,6 +900,7 @@ typedef TVec<TIntQu> TIntQuV;
 typedef TVec<TFltPr> TFltPrV;
 typedef TVec<TFltTr> TFltTrV;
 typedef TVec<TIntKd> TIntKdV;
+typedef TVec<TIntUIntPr> TIntUIntPrV;
 typedef TVec<TUChIntPr> TUChIntPrV;
 typedef TVec<TUChUInt64Pr> TUChUInt64PrV;
 typedef TVec<TIntUInt64Pr> TIntUInt64PrV;

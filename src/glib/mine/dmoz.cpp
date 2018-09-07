@@ -263,6 +263,8 @@ PBowDocPart TDMozBs::GetBowDocPart(
   // create document partition
   PBowDocPart DocPart=TBowDocPart::New();
   DocPart->PutNm("Root");
+
+  printf("getting the main cluster ...\n");
   // get main-cluster
   PBowDocPartClust DocPartClust=GetBowDocPartClust(
    RootCatId, PosCatIdV, NegCatIdV, BowDocBs, BowDocWgtBs, BowSim, MnCatDocs, Cats, CatN);
@@ -384,6 +386,9 @@ PDMozBs TDMozBs::LoadTxt(const TStr& FPath,
     DMozContFNm=DMozNrFPath+TDMozInfo::RdfContentSampleFBase;
   }
 
+  printf("structure file `%s`\n", DMozStructFNm.CStr());
+  printf("content file `%s`\n", DMozContFNm.CStr());
+
   // aliases
   THash<TMd5Sig, TDMozAlias> SymMd5ToAliasH;
   TStrPool AliasStrPool;
@@ -391,6 +396,7 @@ PDMozBs TDMozBs::LoadTxt(const TStr& FPath,
   // create topic & alias entries
   {printf("Create topic & alias entries ...\n");
   PSIn DMozStructSIn=TFIn::New(DMozStructFNm);
+  printf("skipping top tag\n");
   TXmlDoc::SkipTopTag(DMozStructSIn);
   PXmlDoc XmlDoc; int XmlDocs=0;
   forever{
@@ -402,7 +408,12 @@ PDMozBs TDMozBs::LoadTxt(const TStr& FPath,
        TUInt64::GetMegaStr(uint64(DMozBs->CatNmPool.Len())).CStr());
     }
     XmlDoc=TXmlDoc::LoadTxt(DMozStructSIn);
-    if (!XmlDoc->IsOk()){break;}
+
+    if (!XmlDoc->IsOk()){
+        printf("%s\n", XmlDoc->GetMsgStr().CStr());
+        break;
+    }
+
     // extract fields from xml-trees
     PXmlTok TopTok=XmlDoc->GetTok();
     if (TopTok->IsTag("Topic")){
@@ -445,7 +456,10 @@ PDMozBs TDMozBs::LoadTxt(const TStr& FPath,
     // load xml tree
     XmlDocs++; if (XmlDocs%1000==0){printf("%d Docs\r", XmlDocs);}
     XmlDoc=TXmlDoc::LoadTxt(DMozStructSIn);
-    if (!XmlDoc->IsOk()){break;}
+    if (!XmlDoc->IsOk()){
+        printf("%s\n", XmlDoc->GetMsgStr().CStr());
+        break;
+    }
     // extract fields from xml-trees
     PXmlTok TopTok=XmlDoc->GetTok();
     if (TopTok->IsTag("Topic")){
@@ -516,6 +530,8 @@ PDMozBs TDMozBs::LoadTxt(const TStr& FPath,
   SymMd5ToAliasH.Clr();
   AliasStrPool.Clr();
 
+  int MissingCatN = 0;
+
   if (!StructOnlyP){
     // create external-urls
     {printf("Create external-urls ...\n");
@@ -532,6 +548,7 @@ PDMozBs TDMozBs::LoadTxt(const TStr& FPath,
          TUInt64::GetMegaStr(uint64(DMozBs->ExtPgStrPool.Len())).CStr());
       }
       XmlDoc=TXmlDoc::LoadTxt(DMozContSIn);
+
       if (!XmlDoc->IsOk()){break;}
       // extract fields from xml-trees
       PXmlTok TopTok=XmlDoc->GetTok();
@@ -541,7 +558,12 @@ PDMozBs TDMozBs::LoadTxt(const TStr& FPath,
         // get category entry
         TMd5Sig CatMd5(CatNm);
         // if(!DMozBs->CatMd5ToTopicH.IsKey(CatMd5)) {printf("%s", CatNm.CStr());}
-        IAssert(DMozBs->CatMd5ToTopicH.IsKey(CatMd5));
+        /* IAssertR(DMozBs->CatMd5ToTopicH.IsKey(CatMd5), "Category not present `" + CatNm + "`"); */
+        if (!DMozBs->CatMd5ToTopicH.IsKey(CatMd5)) {
+            printf("category missing `%s`, ignoring\n", CatNm.CStr());
+            ++MissingCatN;
+            continue;
+        }
         TDMozTopic& DMozTopic=DMozBs->CatMd5ToTopicH.AddDat(CatMd5);
         // prepare external-urls vector
         DMozTopic.ExtUrlIdVN=DMozBs->ExtUrlIdV.Len();
@@ -601,6 +623,10 @@ PDMozBs TDMozBs::LoadTxt(const TStr& FPath,
         Fail;
       }
     }}
+  }
+
+  if (MissingCatN > 0) {
+      printf("number of categories missing in the structure: %d\n", MissingCatN);
   }
 
   // return DMoz

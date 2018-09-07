@@ -1926,6 +1926,10 @@ void TRec::GetFieldTMem(const int& FieldId, TMem& Mem) const {
 PJsonVal TRec::GetFieldJsonVal(const int& FieldId) const {
     if (IsByRef()) {
         return Store->GetFieldJsonVal(RecId, FieldId);
+    } else if (FieldIdPosH.IsKey(FieldId)){
+        const int Pos = FieldIdPosH.GetDat(FieldId);
+        TMIn MIn(RecVal.GetBf() + Pos, RecVal.Len() - Pos, false);
+        return TJsonVal::GetValFromStr(TStr(MIn));
     } else {
         throw FieldError(FieldId, "JsonVal");
     }
@@ -4054,7 +4058,7 @@ PRecSet TRecSet::DoJoin(const TWPt<TBase>& Base, const int& JoinId, const int& S
         // do join using index
         const int JoinKeyId = JoinDesc.GetJoinKeyId();
         // prepare join query
-        TUInt64V RecIdV;
+        TUInt64V RecIdV(SampleRecs, 0);
         for (int RecN = 0; RecN < SampleRecs; RecN++) {
             const uint64 RecId = SampleRecIdKdV[RecN].Key;
             RecIdV.Add(RecId);
@@ -5627,6 +5631,60 @@ bool TIndex::DoQueryTiny(const TPt<TQmGixExpItemTiny>& ExpItem, TVec<TQmGixItemF
     return Not;
 }
 
+void TIndex::DoJoinQueryFull(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& RecIdFqV) const {
+    // temporary story for joined records
+    THash<TUInt64, TInt> RecIdFqH;
+    // lambda that goes over child vectors and updates the hash table with counts
+    auto Handler = [&RecIdFqH](TVec<TQmGixItemFull> ItemV) {
+        for (const TQmGixItemFull& RecIdFq : ItemV) {
+            RecIdFqH.AddDat(RecIdFq.Key) += RecIdFq.Dat;
+        }
+    };
+    // go over all records we want to join
+    for (uint64 RecId : RecIdV) {
+        GixFull->GetItemV(TQmGixKey(KeyId, RecId), Handler);
+    }
+    // convert to vector
+    RecIdFqH.GetKeyDatKdV(RecIdFqV);
+    RecIdFqV.Sort();
+}
+
+void TIndex::DoJoinQuerySmall(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& RecIdFqV) const {
+    // temporary story for joined records
+    THash<TUInt64, TInt> RecIdFqH;
+    // lambda that goes over child vectors and updates the hash table with counts
+    auto Handler = [&RecIdFqH](TVec<TQmGixItemSmall> ItemV) {
+        for (const TQmGixItemSmall& RecIdFq : ItemV) {
+            RecIdFqH.AddDat((uint64)RecIdFq.Key) += (int)RecIdFq.Dat;
+        }
+    };
+    // go over all records we want to join
+    for (uint64 RecId : RecIdV) {
+        GixSmall->GetItemV(TQmGixKey(KeyId, RecId), Handler);
+    }
+    // convert to vector
+    RecIdFqH.GetKeyDatKdV(RecIdFqV);
+    RecIdFqV.Sort();
+}
+
+void TIndex::DoJoinQueryTiny(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& RecIdFqV) const {
+    // temporary story for joined records
+    THash<TUInt64, TInt> RecIdFqH;
+    // lambda that goes over child vectors and updates the hash table with counts
+    auto Handler = [&RecIdFqH](TVec<TQmGixItemTiny> ItemV) {
+        for (const TQmGixItemTiny& RecId : ItemV) {
+            RecIdFqH.AddDat((uint64)RecId) += 1;
+        }
+    };
+    // go over all records we want to join
+    for (uint64 RecId : RecIdV) {
+        GixTiny->GetItemV(TQmGixKey(KeyId, RecId), Handler);
+    }
+    // convert to vector
+    RecIdFqH.GetKeyDatKdV(RecIdFqV);
+    RecIdFqV.Sort();
+}
+
 void TIndex::DoQueryPos(const int& KeyId, const TUInt64V& WordIdV,
         const int& MaxDiff, TUInt64IntKdV& RecIdFqV) const {
 
@@ -6294,21 +6352,16 @@ void TIndex::SearchGixJoin(const int& KeyId, const uint64& RecId, TUInt64IntKdV&
 }
 
 void TIndex::SearchGixJoin(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& JoinRecIdFqV) const {
-    // prepare keys for gix
-    TKeyWordV KeyWordV(RecIdV.Len(), 0);
-    for (const uint64 RecId : RecIdV) {
-        KeyWordV.Add(TKeyWord(KeyId, RecId));
-    }
     // check which Gix to use
     const TIndexKeyGixType GixType = GetGixType(KeyId);
     // go to appropriate gix and always first check if we have the key at all
     switch (GixType) {
     case oikgtFull:
-        DoQueryFull(TQmGixExpItemFull::NewOrV(KeyWordV), JoinRecIdFqV); break;
+        DoJoinQueryFull(KeyId, RecIdV, JoinRecIdFqV); break;
     case oikgtSmall:
-        DoQuerySmall(TQmGixExpItemSmall::NewOrV(KeyWordV), JoinRecIdFqV); break;
+        DoJoinQuerySmall(KeyId, RecIdV, JoinRecIdFqV); break;
     case oikgtTiny:
-        DoQueryTiny(TQmGixExpItemTiny::NewOrV(KeyWordV), JoinRecIdFqV); break;
+        DoJoinQueryTiny(KeyId, RecIdV, JoinRecIdFqV); break;
     default:
         throw TQmExcept::New("[TIndex::SearchGixJoin] Unsupported gix type!");
     }
@@ -7216,11 +7269,62 @@ PRecSet TBase::Search(const PJsonVal& QueryVal) {
     return Search(TQuery::New(this, QueryVal));
 }
 
-void TBase::GarbageCollect() {
+void TBase::GarbageCollect(const int& MxTimeMSecs) {
     int StoreKeyId = StoreH.FFirstKeyId();
     while (StoreH.FNextKeyId(StoreKeyId)) {
-        StoreH[StoreKeyId]->GarbageCollect();
+        StoreH[StoreKeyId]->GarbageCollect(MxTimeMSecs);
     }
+}
+
+int TBase::PartialFlush(const int& WndInMsec) {
+    int DirtyStores = (GetStores() + 1);
+    int Saved = 100;
+    int TotalSaved = 0;
+    TTmStopWatch Sw(true);
+
+    TVec<TPair<TWPt<TStore>, bool>> DirtyStoreV;
+    bool FlushIndex = true;
+
+    for (int i = 0; i < GetStores(); i++) {
+        DirtyStoreV.Add(TPair<TWPt<TStore>, bool>(GetStoreByStoreN(i), true));
+    }
+
+    while (Saved > 0) {
+        if (Sw.GetMSecInt() > WndInMsec) {
+            break; // time is up
+        }
+        int TimeSliceMs = WndInMsec / DirtyStores; // time-TimeSliceMs per store
+        DirtyStores = 0;
+        Saved = 0; // how many saved in this loop
+        int xsaved = 0; // how many saved in this loop into last store/index
+        for (int i = 0; i < DirtyStoreV.Len(); i++) {
+            if (!DirtyStoreV[i].Val2)
+                continue; // this store had no dirty data in previous loop
+            xsaved = DirtyStoreV[i].Val1->PartialFlush(TimeSliceMs);
+            if (xsaved == 0) {
+                DirtyStoreV[i].Val2 = false; // ok, this store is clean now
+            } else {
+                DirtyStores++;
+                Saved += xsaved;
+            }
+            TQm::TEnv::Debug->OnStatusFmt("Partial flush:     store %s = %d", DirtyStoreV[i].Val1->GetStoreNm().CStr(), xsaved);
+        }
+        if (FlushIndex) { // save index
+            xsaved = Index->PartialFlush(TimeSliceMs);
+            FlushIndex = (xsaved > 0);
+            if (FlushIndex) {
+                DirtyStores++;
+            }
+            Saved += xsaved;
+            TQm::TEnv::Debug->OnStatusFmt("Partial flush:     index = %d", xsaved);
+        }
+        TotalSaved += Saved;
+        TQm::TEnv::Debug->OnStatusFmt("Partial flush: this loop = %d", Saved);
+    }
+    Sw.Stop();
+    TQm::TEnv::Debug->OnStatusFmt("Partial flush: %d msec, total saved = %d", Sw.GetMSecInt(), TotalSaved);
+
+    return TotalSaved;
 }
 
 bool TBase::SaveJSonDump(const TStr& DumpDir) {
@@ -7451,58 +7555,6 @@ void TBase::PrintIndex(const TStr& FNm, const bool& SortP) {
             FOut.PutStrLn(StrPool->GetStr(StrId));
         }
     }
-}
-
-// perform partial flush of data
-int TBase::PartialFlush(int WndInMsec) {
-    int DirtyStores = (GetStores() + 1);
-    int Saved = 100;
-    int TotalSaved = 0;
-    TTmStopWatch Sw(true);
-
-    TVec<TPair<TWPt<TStore>, bool>> DirtyStoreV;
-    bool FlushIndex = true;
-
-    for (int i = 0; i < GetStores(); i++) {
-        DirtyStoreV.Add(TPair<TWPt<TStore>, bool>(GetStoreByStoreN(i), true));
-    }
-
-    while (Saved > 0) {
-        if (Sw.GetMSecInt() > WndInMsec) {
-            break; // time is up
-        }
-        int TimeSliceMs = WndInMsec / DirtyStores; // time-TimeSliceMs per store
-        DirtyStores = 0;
-        Saved = 0; // how many saved in this loop
-        int xsaved = 0; // how many saved in this loop into last store/index
-        for (int i = 0; i < DirtyStoreV.Len(); i++) {
-            if (!DirtyStoreV[i].Val2)
-                continue; // this store had no dirty data in previous loop
-            xsaved = DirtyStoreV[i].Val1->PartialFlush(TimeSliceMs);
-            if (xsaved == 0) {
-                DirtyStoreV[i].Val2 = false; // ok, this store is clean now
-            } else {
-                DirtyStores++;
-                Saved += xsaved;
-            }
-            TQm::TEnv::Debug->OnStatusFmt("Partial flush:     store %s = %d", DirtyStoreV[i].Val1->GetStoreNm().CStr(), xsaved);
-        }
-        if (FlushIndex) { // save index
-            xsaved = Index->PartialFlush(TimeSliceMs);
-            FlushIndex = (xsaved > 0);
-            if (FlushIndex) {
-                DirtyStores++;
-            }
-            Saved += xsaved;
-            TQm::TEnv::Debug->OnStatusFmt("Partial flush:     index = %d", xsaved);
-        }
-        TotalSaved += Saved;
-        TQm::TEnv::Debug->OnStatusFmt("Partial flush: this loop = %d", Saved);
-    }
-    Sw.Stop();
-    TQm::TEnv::Debug->OnStatusFmt("Partial flush: %d msec, total saved = %d", Sw.GetMSecInt(), TotalSaved);
-
-    return TotalSaved;
 }
 
 /// get performance statistics in JSON form

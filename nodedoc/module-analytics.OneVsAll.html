@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v8.6.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.0</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">OneVsAll</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-3126">analyticsdoc.<wbr>js:3126</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-3082">analyticsdoc.<wbr>js:3082</a></p>
             <div class="symbol-classdesc">
               <p>One vs All model for multiclass prediction. Builds binary model for each category and predicts the one with the highest score. Binary model is provided as part of the constructor.</p>
             </div>
@@ -76,7 +76,7 @@
                 <pre class="prettyprint"><code>// import analytics module
 var analytics = require(&#x27;qminer&#x27;).analytics;
 // create a new OneVsAll object with the model analytics.SVC
-var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });</code></pre>
+var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });</code></pre>
               </div>
             </section>
             <section>
@@ -125,7 +125,7 @@ var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 1
 var analytics = require(&#x27;qminer&#x27;).analytics;
 var la = require(&#x27;qminer&#x27;).la;
 // create a new OneVsAll object with the model analytics.SVC
-var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
 // create the data (matrix and vector) used to fit the model
 var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
 var vector = new la.Vector([0, 0, 1, 1]);
@@ -185,7 +185,7 @@ var prediction = onevsall.decisionFunction(test); // returns the vector of score
 var analytics = require(&#x27;qminer&#x27;).analytics;
 var la = require(&#x27;qminer&#x27;).la;
 // create a new OneVsAll object with the model analytics.SVC
-var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
 // create the data (matrix and vector) used to fit the model
 var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
 var vector = new la.Vector([0, 0, 1, 1]);
@@ -252,10 +252,10 @@ onevsall.fit(matrix, vector);</code></pre>
                   <pre class="prettyprint"><code>// import analytics module
 var analytics = require(&#x27;qminer&#x27;).analytics;
 // create a new OneVsAll object with the model analytics.SVC
-var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
 // get the parameters
 // returns the JSon object
-// { model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2, models: [] }
+// { model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2, models: [] }
 var params = onevsall.getParams();</code></pre>
                 </div>
               </section>
@@ -276,7 +276,7 @@ var params = onevsall.getParams();</code></pre>
 var analytics = require(&#x27;qminer&#x27;).analytics;
 var la = require(&#x27;qminer&#x27;).la;
 // create a new OneVsAll object with the model analytics.SVC
-var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
 // create the data (matrix and vector) used to fit the model
 var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
 var vector = new la.Vector([0, 0, 1, 1]);
@@ -335,7 +335,7 @@ var prediction = onevsall.predict(test); // returns 0</code></pre>
                   <pre class="prettyprint"><code>// import analytics module
 var analytics = require(&#x27;qminer&#x27;).analytics;
 // create a new OneVsAll object with the model analytics.SVC
-var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 12000 }, cats: 2 });
+var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
 // set the parameters
 var params = onevsall.setParams({ model: analytics.SVR, modelParam: { c: 12, maxTime: 10000}, cats: 3, verbose: true });</code></pre>
                 </div>

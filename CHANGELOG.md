@@ -1,5 +1,147 @@
 # QMiner Change Log
 
+
+## 31 August 2018
+
+**Version 9.3.0**
+
+**Non-breaking with new feature**
+
+New feature:
+- Added `TTm::GetCurUniUnixMSecs()` that returns Unix version of timestamp
+
+Bugfix:
+- Added check to `TWPt::Del` that pointer is not `NULL`
+- Removed confusing local version of timestamps
+- Fixed documentation for `RecordVector` consturctor in Node.JS API
+- Removed unused code in `bd.cpp` that did not compile in recent versions of GCC
+
+
+## 10 July 2018
+
+**Version 9.2.3**
+
+**Non-breaking with bug fixes**
+
+Bugfix:
+- Fixed GCC compile warnings
+- Fixed JSON escaping
+- Added Node.js 10 to CI
+- Fixed quantile CDF functions
+- Fixed standard deviation function (better handling of edge cases)
+- TMem got slimmer (16 bytes instead of 24 bytes!)
+- Fixed running of `npm test`
+
+
+## 20 April 2018
+
+**Version 9.2.2**
+
+**Non-breaking with bug fixes**
+
+Bugfix:
+- Queries with joins sometimes crashed due to unsorted intermediate record set  (issue #606)
+- Added clarification to functions `recordSet.each` and `recordSet.map` and `fs.readCsvLines`
+- C++ work again!
+- TMem got slimmer (24 bytes instead of 32 bytes!)
+- Fixed how exceptions are handled in `fs.readLines`
+
+
+## 13 April 2018
+
+**Verstion 9.2.1**
+
+**Non-breaking with new feature and bug fixes**
+
+Feature:
+- JavaScript APIs cleaned for quantile estimators, moved to `analytics.quantiles`.
+
+Bugfix:
+- Typo bug in Json UTF-16 handling
+- Added implementation for JSON parsing in `newRecord`
+- Fixed issue 606 on sorted joins
+
+
+## 5 January 2018
+
+**Version 9.1.2**
+
+**Non-breaking with bug fixes**
+
+Bugfix:
+- Added UTF-16 surrogate pair encoding for seralization of non-BMP characters
+
+## 8 December 2017
+
+**Version 9.1.1**
+
+**Non-breaking with bug fixes**
+
+Bugfix:
+- Replaced deprecated v8 API usages 
+- Assert output stream not closed before write or close
+
+## 1 December 2017
+
+**Version 9.1.0**
+
+**Non-breaking with new feature and a bug fix**
+
+Feature:
+- TNodeTask aware if executed in async mode
+
+Bugfix:
+- Removed `TQm` dependancy from glib/mine/svm
+
+## 27 October 2017
+
+**Version 9.0.0**
+
+**Breaking with new features**
+
+Breaking changes:
+- SVC and SVR models are backward binary incompatible
+
+Features:
+- LIBSVM nonlinear classification supported (previously only linear models were wrapped)
+- Active learning (javascript implementation in analytics module): uses SVC (preferably LIBSVC)
+  and maximum uncertainty criterion for semisupervised classification
+- Json parsing extended to support scalar values for strings and floats
+- Faster index joins to go over hash tables and not binary tree
+
+Bugfix:
+- Lock gets deleted when creating a base with createClean
+- Added a fix for the text positional index
+- Fixed division by zero in zscore
+- Fixed unit test silent failing
+- Fixed stream aggregate example unit test that was halting
+- Fixed when parsing string literal with escaped null character
+- Fixed resize for TCHa larger then 1GB
+- When parsing json-s we ignore invalid escape characters
+- Fixed TDir::Exists for Linux
+- Fixed TVec::Resize to not crash in case of 64bit index and size being TInt::Mx - 1024
+
+Other:
+- Fixed V8 API deprecated warnings
+- C++ unit tests for TJsonVal and TDir
+- Added performance tests for memory allocations
+
+## 8 September 2017
+
+**Version 8.6.1**
+
+**Non-breaking with no new features**
+
+Bugfix:
+- Analytics `PNotify` segfault bug fixed (smartpoitners to static notify objects changed to weak pointers)
+- Unit testing silent failing fix + improved example unit test generation 
+- Several unit tests fixed that were failing
+- Division by zero fixed in bag-of-words feature extractor (unknown words + IDF weighting bug)
+- Fixed #550: frequency is computed correctly for tiny joins
+- Fixed #459 : `PJsonVal` returning temporary strings given as default value by reference
+- Fixed #446 : Added timeout parameter to `TStore::GarbageCollect()`
+- Fixes #455 : Fixed documentation and example for `fs.readLines(...)`
+
 ## 1 September 2017
 
 **Version 8.6.0**

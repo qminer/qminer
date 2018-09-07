@@ -1493,7 +1493,11 @@ void TOnlineLinReg::Learn(const TFltV& FtrV, const double& Val) {
     }
     // solve the system
     // w = XX \ Xy
+#ifdef LAPACKE
+    MKLfunctions::CholeskySolve(XX, WgtV, XyByN);
+#else
     TNumericalStuff::SolveLinearSystem(XX, XyByN, WgtV);
+#endif
 }
 
 void TOnlineLinReg::GetCoeffs(TFltV& _WgtV) const {

@@ -581,6 +581,7 @@
  exports.Base.prototype.search = function (query) { return Object.create(require(&#x27;qminer&#x27;).RecordSet.prototype); }
 /**
     * Calls qminer garbage collector to remove records outside time windows. For application example see {@link module:qm~SchemaTimeWindowDef}.
+    * @param {number} [max_time=-1] - Maximal number of time each store can spend on cleaning backlog in milisecons. If -1 then no limit is applied.
     */
  exports.Base.prototype.garbageCollect = function () { }
 /**
@@ -1623,7 +1624,8 @@
 /**
  * Vector of records by value.
  * @class
- * @param {module:fs.FIn} [arg] - Load vector from input stream.
+ * @param {module:qm.Base} base - Qminer base object.
+ * @param {module:fs.FIn} [fin] - Load vector from input stream.
  * @classdesc Vector storing records defined by value. Vector can be serialized and
  * iterated over. For storing records by reference use {@link module:qm.RecordSet} or
  * {@link module:la.IntVector}.
@@ -1656,7 +1658,7 @@
  * }
  * base.close();
  */
- exports.RecordVector = function(arg) { return Object.create(require(&#x27;qminer&#x27;).qm.RecordVector.prototype) };
+ exports.RecordVector = function(base, fin) { return Object.create(require(&#x27;qminer&#x27;).qm.RecordVector.prototype) };
 /**
      * Adds a new record to the vector.
      * @param {module:qm.Record} rec - The added record. The record must be provided by value.
@@ -2273,7 +2275,7 @@
 /**
     * Executes a function on each record in record set.
     * @param {function} callback - Function to be executed. It takes two parameters:
-    * &amp;lt;br&gt;1. &#x60;rec&#x60; - The current record. Type {@link module:qm.Record}.
+    * &amp;lt;br&gt;1. &#x60;rec&#x60; - The current record. Type {@link module:qm.Record}. Warning: Do not use &#x60;rec&#x60; outside the scope of the callback. An internal optimization re-uses &#x60;rec&#x60; object between calls to &#x60;callback&#x60;.
     * &amp;lt;br&gt;2. &#x60;idx&#x60; - The index of the current record (&amp;lt;i&gt;optional&amp;lt;/i&gt;). Type &#x60;number&#x60;.
     * @returns {module:qm.RecordSet} Self.
     * @example
@@ -2304,7 +2306,7 @@
 /**
     * Creates an array of function outputs created from the records in record set.
     * @param {function} callback - Function that generates the array. It takes two parameters:
-    * &amp;lt;br&gt;1. &#x60;rec&#x60; - The current record. Type {@link module:qm.Record}.
+    * &amp;lt;br&gt;1. &#x60;rec&#x60; - The current record. Type {@link module:qm.Record}. Warning: Do not use &#x60;rec&#x60; outside the scope of the callback. An internal optimization re-uses &#x60;rec&#x60; object between calls to &#x60;callback&#x60;.
     * &amp;lt;br&gt;2. &#x60;idx&#x60; - The index of the current record (&amp;lt;i&gt;optional&amp;lt;/i&gt;). Type &#x60;number&#x60;.
     * @returns {Array&amp;lt;Object&gt;} The array created by the callback function.
     * @example
@@ -2678,7 +2680,7 @@
 * // add a new record to the base
 * base.store(&quot;Class&quot;).push({ Name: &quot;Peterson&quot;, Grade: 9 });
 * base.store(&quot;Class&quot;).push({ Name: &quot;Ericsson&quot;, Grade: 8 });
-* // update the feature space for scaling 
+* // update the feature space for scaling
 * ftr.updateRecords(base.store(&quot;Class&quot;).allRecords);
 * // get the features of the first record
 * var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]); // the vector with the random value
@@ -2739,7 +2741,7 @@
 * base.store(&quot;Class&quot;).push({ Name: &quot;Fred&quot;, StudyGroup: &quot;A&quot; });
 * base.store(&quot;Class&quot;).push({ Name: &quot;Wilma&quot;, StudyGroup: &quot;B&quot; });
 * base.store(&quot;Class&quot;).push({ Name: &quot;Barney&quot;, StudyGroup: &quot;C&quot; });
-* // update the feature space to get the categories 
+* // update the feature space to get the categories
 * ftr.updateRecords(base.store(&quot;Class&quot;).allRecords);
 * // get the feature vector for the first record
 * var vec = ftr.extractVector(base.store(&quot;Class&quot;)[0]); // returns vector [1, 0, 0]

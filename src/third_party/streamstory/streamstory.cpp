@@ -1406,7 +1406,7 @@ namespace intens {
             }
         }
 
-        DeltaTm = MeanSampleInterval;
+        DeltaTm = (uint64)MeanSampleInterval;
 
         // fit the regression models
 

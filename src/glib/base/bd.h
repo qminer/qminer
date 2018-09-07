@@ -566,7 +566,7 @@ public:
 
   bool Empty() const {return Addr==NULL;}
   void Clr(){Addr=NULL;}
-  void Del(){delete Addr; Addr=NULL;}
+  void Del(){Assert(Addr!=NULL); delete Addr; Addr=NULL;}
 
   int GetPrimHashCd() const {return Addr->GetPrimHashCd();}
   int GetSecHashCd() const { return Addr->GetSecHashCd(); }
@@ -755,6 +755,7 @@ namespace gtraits {
   template <> struct is_shallow<TCh> : true_type{};
   template <> struct is_shallow<TUCh> : true_type{};
   template <> struct is_shallow<TUSInt> : true_type{};
+
   // TNum
   template <class Base> struct is_shallow<TNum<Base>> : true_type{};
   // TPair

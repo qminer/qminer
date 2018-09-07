@@ -823,7 +823,7 @@ int TVizMapXmlDoc::AddToBowDocBs(PVizMapXmlDocBs VizMapXmlDocBs, PBowDocBs BowDo
 
 //////////////////////////////////////////////////////////////////////////
 // Visualization-Map Xml-Document-Base
-TVizMapXmlDocBs::TVizMapXmlDocBs(const TStr& XmlFNm, const PNotify& Notify) {
+TVizMapXmlDocBs::TVizMapXmlDocBs(const TStr& XmlFNm, const TWPt<TNotify>& Notify) {
     PSIn XmlSIn = TFIn::New(XmlFNm); TXmlDoc::SkipTopTag(XmlSIn);
     PXmlDoc XmlDoc; int XmlDocs=0;
     forever {
@@ -878,75 +878,6 @@ TVizMapXmlDocBs::TVizMapXmlDocBs(const TStr& XmlFNm, const PNotify& Notify) {
     Notify->OnStatus(TStr::Fmt("%d", XmlDocs-1));
 }
 
-//TVizMapXmlDocBs::TVizMapXmlDocBs(const PWdGixRSet& RSet, 
-//        const TVizMapXmlDocGrouping& Grouping, const PNotify& Notify) {
-//
-//    const int Docs = RSet->GetDocs();
-//    for (int DocN = 0; DocN < Docs; DocN++) {
-//        TVizMapXmlDoc VizMapXmlDoc;
-//        // get frame
-//        TTm DateTm = RSet->GetDocDateTime(DocN);
-//        int FrameSortN = 0; TStr FrameNm = "";
-//        if (Grouping == vmxdgDay) {
-//            FrameNm = DateTm.GetWebLogDateStr();
-//            FrameSortN = TTm::GetDateIntFromTm(DateTm);
-//        } else if (Grouping == vmxdgMonth) {
-//            FrameNm = TStr::Fmt("%04d-%02d", DateTm.GetYear(), DateTm.GetMonth());
-//            FrameSortN = TTm::GetMonthIntFromTm(DateTm);
-//        } else if (Grouping == vmxdgYear) {
-//            FrameNm = TStr::Fmt("%04d", DateTm.GetYear());
-//            FrameSortN = DateTm.GetYear();
-//        }
-//        // keep track of all the frames
-//        if (Grouping == vmxdgNone) { 
-//            IAssert(FrameNmToSortN.Empty());
-//        } else {
-//            if (FrameNmToSortN.IsKey(FrameNm)) {
-//                IAssert(FrameSortN == FrameNmToSortN(FrameNm));
-//            } else {
-//                FrameNmToSortN.AddDat(FrameNm, FrameSortN);
-//            }
-//        }
-//        VizMapXmlDoc.FrameNm = FrameNm;
-//        VizMapXmlDoc.FrameSortN = FrameSortN;
-//
-//        // parse document content
-//        PXmlDoc Doc=TXmlDoc::LoadStr(RSet->GetDocStr(DocN));
-//        IAssertR(Doc->IsOk(), Doc->GetMsgStr());
-//        // parse title 
-//        VizMapXmlDoc.Nm =Doc->GetTagTok("doc|title")->GetTokStr(false);
-//        // parse content and name entities
-//        TChA BodyChA; VizMapXmlDoc.AuthorIdV.Clr();
-//        TXmlTokV ParTokV; Doc->GetTagTokV("doc|body|p", ParTokV);
-//        for (int ParTokN = 0; ParTokN < ParTokV.Len(); ParTokN++){
-//            TStr ParStr = ParTokV[ParTokN]->GetTokStr(false);
-//            if (!BodyChA.Empty()) { BodyChA += "\r\n"; }
-//            BodyChA += ParStr;  
-//            // check for new name entities
-//            TXmlTokV NmEnTokV; ParTokV[ParTokN]->GetTagTokV("nmobj", NmEnTokV);
-//            for (int NmEnTokN = 0; NmEnTokN < NmEnTokV.Len(); NmEnTokN++) {
-//                TStr NmEnStr = NmEnTokV[NmEnTokN]->GetTokStr(false);
-//                const int NmEnId = AuthorNmH.AddKey(NmEnStr);
-//                VizMapXmlDoc.AuthorIdV.AddMerged(NmEnId);
-//            }
-//        }
-//        VizMapXmlDoc.Body = BodyChA;
-//        // codes
-//        VizMapXmlDoc.CatIdV.Clr();        
-//        const TStrV& CatNmV = RSet->GetDocCatNmV(DocN);
-//        for (int CatNmN = 0; CatNmN < CatNmV.Len(); CatNmN++) {
-//            const TStr& CatNm = CatNmV[CatNmN];
-//            const int CatId = CatNmH.AddKey(CatNm); CatNmH[CatId]++;
-//            VizMapXmlDoc.CatIdV.AddMerged(CatId);
-//        }
-//        // add doc to base
-//        const int DocId = XmlDocV.Add(VizMapXmlDoc);
-//        if (!FrameNmToSortN.Empty()) {
-//            FrameSortNToDocId.AddDat(VizMapXmlDoc.FrameSortN).Add(DocId);
-//        }
-//    }
-//}
-
 PBowDocBs TVizMapXmlDocBs::LoadBowDocBs(const TStr& XmlFNm, PSwSet SwSet, 
         PStemmer Stemmer, const int& MxNGramLen, const int& MnNGramFq) {
 
@@ -998,7 +929,7 @@ PBowDocBs TVizMapXmlDocBs::LoadBowDocBs(const TStr& XmlFNm, PSwSet SwSet,
 //////////////////////////////////////////////////////////////////////////
 // Visualization-Map Factory
 void TVizMapFactory::CG(const TMatrix& Matrix, const TFltV& b, 
-        TFltV& x, PNotify Notify, const int& MaxStep, const double& EpsTer) {
+        TFltV& x, const TWPt<TNotify>& Notify, const int& MaxStep, const double& EpsTer) {
     int M = x.Len(), R = b.Len(), i;
     TFltV r(M), p(M), q(M), tmp(R);
 
@@ -1041,7 +972,7 @@ void TVizMapFactory::CG(const TMatrix& Matrix, const TFltV& b,
 void TVizMapFactory::MakeFlat(const PSVMTrainSet& Set, 
         const TVizDistType& DistType, TVec<TFltV>& DocPointV, 
         const int& MxStep, const int& MxSecs, const double& MnDiff, 
-        const bool& RndStartPos, PNotify& Notify) {
+        const bool& RndStartPos, const TWPt<TNotify>& Notify) {
 
 
     const int Len = Set->Len();
@@ -1152,7 +1083,7 @@ void TVizMapFactory::NormalizePoints(TVec<TFltV>& PointV) {
 void TVizMapFactory::LsiMds(TVec<PBowSpV> DocSpV, PSemSpace SemSpace, 
         TVec<TFltV>& DocPointV, const double& SemSpaceThresh, 
         const int& MxStep, const int& MxSecs, const double& MnDiff, 
-        PNotify Notify) {
+        const TWPt<TNotify>& Notify) {
 
     double ApproxVal;
     Notify->OnStatus(TStr::Fmt("Approximating %d docs ...\n", DocSpV.Len()));
@@ -1177,7 +1108,7 @@ void TVizMapFactory::LsiMds(TVec<PBowSpV> DocSpV, PSemSpace SemSpace,
 PVizMapFrame TVizMapFactory::DocLsiMds(PBowDocWgtBs BowDocWgtBs,
         PSemSpace SemSpace, const TVec<TFltV>& _DocPointV, 
         const double& SemSpaceThresh, const int& MxStep, 
-        const int& MxSecs, const double& MnDiff, PNotify Notify) {
+        const int& MxSecs, const double& MnDiff, const TWPt<TNotify>& Notify) {
 
     // calculate positions for documents
     const int Docs = BowDocWgtBs->GetDocs();
@@ -1252,7 +1183,7 @@ void TVizMapFactory::AddDocMetadata(PVizMapFrame VizMapFrame,
 
 void TVizMapFactory::LndMrk(PBowDocWgtBs BowDocWgtBs, PBowSim BowSim,
         const TVec<PBowSpV>& ClustSpV, const TVec<TFltV>& ClustPointV, 
-        TVec<TFltV>& DocPointV, const int& LinCombNum, PNotify Notify) {
+        TVec<TFltV>& DocPointV, const int& LinCombNum, const TWPt<TNotify>& Notify) {
     
     const int Clusts = ClustSpV.Len();
     const int TopClustN = TInt::GetMn(LinCombNum, Clusts);
@@ -1290,7 +1221,7 @@ void TVizMapFactory::LndMrk(PBowDocWgtBs BowDocWgtBs, PBowSim BowSim,
 
 PVizMapFrame TVizMapFactory::DocLndMrk(PBowDocWgtBs BowDocWgtBs, 
         const TVec<PBowSpV>& ClustSpV, const TVec<TFltV>& ClustPointV, 
-        const int& LinCombNum, PNotify Notify) {
+        const int& LinCombNum, const TWPt<TNotify>& Notify) {
 
     // calculate positons for 
     TVec<TFltV> DocPointV; 
@@ -1315,7 +1246,7 @@ PVizMapFrame TVizMapFactory::DocLndMrk(PBowDocWgtBs BowDocWgtBs,
 PVizMapFrame TVizMapFactory::ClustLsiMdsDocLndMrk(PBowDocWgtBs BowDocWgtBs,
         PBowDocPart BowDocPart, PSemSpace SemSpace, const int& LinCombNum, 
         const double& SemSpaceThresh, const int& MxStep, const int& MxSecs, 
-        const double& MnDiff, PNotify Notify) {
+        const double& MnDiff, const TWPt<TNotify>& Notify) {
 
     // calculate positions for clusters' centroids
     const int Clusts = BowDocPart->GetClusts();
@@ -1332,7 +1263,7 @@ PVizMapFrame TVizMapFactory::ClustLsiMdsDocLndMrk(PBowDocWgtBs BowDocWgtBs,
 
 PVizMapFrame TVizMapFactory::NewVizMapFrame(PBowDocBs BowDocBs, PBowDocWgtBs BowDocWgtBs,
         PBowDocBs KeyWdBowDocBs, PBowDocWgtBs KeyWdBowDocWgtBs, const int& ThDocs,
-        const int& Clusts, const double& SvdThreshold, const PNotify& Notify, 
+        const int& Clusts, const double& SvdThreshold, const TWPt<TNotify>& Notify,
         const bool& LndPointWgt, const bool& CalcLandscapeP) {
 
     TIntV AllDIdV; BowDocBs->GetAllDIdV(AllDIdV); PVizMapFrame VizMapFrame;
@@ -1388,7 +1319,7 @@ PVizMapFrame TVizMapFactory::NewVizMapFrame(PBowDocBs BowDocBs, PBowDocWgtBs Bow
 }
 
 PVizMapFrame TVizMapFactory::NewVizMapFrame(PBowDocBs BowDocBs, const int& ThDocs,
-        const int& Clusts, const double& SvdThreshold, const PNotify& Notify, 
+        const int& Clusts, const double& SvdThreshold, const TWPt<TNotify>& Notify,
         const bool& LndPointWgt, const bool& CalcLandscapeP) {
 
     PBowDocWgtBs BowDocWgtBs = TBowDocWgtBs::New(BowDocBs, bwwtLogDFNrmTFIDF);
@@ -1398,7 +1329,7 @@ PVizMapFrame TVizMapFactory::NewVizMapFrame(PBowDocBs BowDocBs, const int& ThDoc
 
 PVizMapFrame TVizMapFactory::NewVizMapFrameFromLndMrk(PBowDocBs BowDocBs, 
         PBowDocWgtBs BowDocWgtBs, PVizMapLndMrk VizMapLndMrk, const bool& LndMrkLndP, 
-        const bool& LndMrkKeyWdP, const PNotify& Notify) { // TODO use LndMrkKeyWdP
+        const bool& LndMrkKeyWdP, const TWPt<TNotify>& Notify) { // TODO use LndMrkKeyWdP
 
     // position documents using landmarks from the LndMrk
     Notify->OnStatus(TStr::Fmt("Size of dataset: %d docs", BowDocWgtBs->GetDocs()));
@@ -1437,7 +1368,7 @@ PVizMapFrame TVizMapFactory::NewVizMapFrameFromLndMrk(PBowDocBs BowDocBs,
 // Visualization-for-Dummys
 PVizMap TVizMapFactory::NewVizMap(PBowDocBs BowDocBs, PBowDocWgtBs BowDocWgtBs,
         PBowDocBs KeyWdBowDocBs, PBowDocWgtBs KeyWdBowDocWgtBs, const int& ThDocs,
-        const int& Clusts, const double& SvdThreshold, const PNotify& Notify, 
+        const int& Clusts, const double& SvdThreshold, const TWPt<TNotify>& Notify,
         const bool& LndPointWgtP, const bool& CalcLandscapeP) {
 
     return TVizMap::New(NewVizMapFrame(BowDocBs, BowDocWgtBs, KeyWdBowDocBs,
@@ -1446,7 +1377,7 @@ PVizMap TVizMapFactory::NewVizMap(PBowDocBs BowDocBs, PBowDocWgtBs BowDocWgtBs,
 }
 
 PVizMap TVizMapFactory::NewVizMap(PBowDocBs BowDocBs, const int& ThDocs,
-        const int& Clusts, const double& SvdThreshold, const PNotify& Notify,
+        const int& Clusts, const double& SvdThreshold, const TWPt<TNotify>& Notify,
         const bool& LndPointWgtP, const bool& CalcLandscapeP) {
 
     return TVizMap::New(NewVizMapFrame(BowDocBs, ThDocs, Clusts, 
@@ -1457,7 +1388,7 @@ PVizMap TVizMapFactory::NewVizMap(PBowDocBs BowDocBs, const int& ThDocs,
 // Visualization-of-DAX-strucutres (Document-Atlas-Xml format)
 PVizMap TVizMapFactory::NewVizMapStaticDoc(const PVizMapXmlDocBs& XmlDocBs, 
         PSwSet SwSet, PStemmer Stemmer, const int& ThDocs, const int& Clusts, 
-        const double& SvdThreshold, const PNotify& Notify, const bool& LndPointWgt, 
+        const double& SvdThreshold, const TWPt<TNotify>& Notify, const bool& LndPointWgt,
         const bool& CalcLandscapeP) {
 
     // load documents to bow
@@ -1477,7 +1408,7 @@ PVizMap TVizMapFactory::NewVizMapStaticDoc(const PVizMapXmlDocBs& XmlDocBs,
 
 PVizMap TVizMapFactory::NewVizMapDynamicDoc(const PVizMapXmlDocBs& XmlDocBs, 
         PSwSet SwSet, PStemmer Stemmer, const int& ThDocs, const int& Clusts, 
-        const double& SvdThreshold, const PNotify& Notify, const bool& LndPointWgt, 
+        const double& SvdThreshold, const TWPt<TNotify>& Notify, const bool& LndPointWgt,
         const bool& CalcLandscapeP) {
 
     // load documents to bow
@@ -1532,7 +1463,7 @@ PVizMap TVizMapFactory::NewVizMapDynamicDoc(const PVizMapXmlDocBs& XmlDocBs,
 
 PVizMap TVizMapFactory::NewVizMapStaticAuthor(const PVizMapXmlDocBs& XmlDocBs, 
         PSwSet SwSet, PStemmer Stemmer, const int& MxAuthors, const int& ThDocs, 
-        const int& Clusts, const double& SvdThreshold, const PNotify& Notify, 
+        const int& Clusts, const double& SvdThreshold, const TWPt<TNotify>& Notify,
         const bool& LndPointWgt, const bool& CalcLandscapeP) {
 
     const TVizMapXmlDocV& XmlDocV = XmlDocBs->XmlDocV;
@@ -1611,7 +1542,7 @@ PVizMap TVizMapFactory::NewVizMapStaticAuthor(const PVizMapXmlDocBs& XmlDocBs,
 PVizMap TVizMapFactory::NewVizMapDynamicAuthor(const PVizMapXmlDocBs& XmlDocBs, 
         PSwSet SwSet, PStemmer Stemmer, const int& MxFrames,
         const int& MxAuthors, const int& ThDocs, 
-        const int& Clusts, const double& SvdThreshold, const PNotify& Notify, 
+        const int& Clusts, const double& SvdThreshold, const TWPt<TNotify>& Notify,
         const bool& LndPointWgt, const bool& CalcLandscapeP) {
 
     const TVizMapXmlDocV& XmlDocV = XmlDocBs->XmlDocV;
@@ -1741,7 +1672,7 @@ PVizMap TVizMapFactory::NewVizMapDynamicAuthor(const PVizMapXmlDocBs& XmlDocBs,
 PVizMap TVizMapFactory::NewVizMap(const PVizMapXmlDocBs& XmlDocBs, 
         const TVizXmlMapType& VizXmlMapType, PSwSet SwSet, PStemmer Stemmer, 
         const int& ThDocs, const int& Clusts, const double& SvdThreshold, 
-        const PNotify& Notify, const bool& LndPointWgt, const bool& CalcLandscapeP) {
+        const TWPt<TNotify>& Notify, const bool& LndPointWgt, const bool& CalcLandscapeP) {
             
     // act according to MapType
     if (VizXmlMapType == vxmtStaticDoc) {
@@ -1766,7 +1697,7 @@ PVizMap TVizMapFactory::NewVizMap(const PVizMapXmlDocBs& XmlDocBs,
 
 PVizMap TVizMapFactory::NewVizMap(const TStr& XmlFNm, const TVizXmlMapType& VizXmlMapType,
         PSwSet SwSet, PStemmer Stemmer, const int& ThDocs, const int& Clusts, 
-        const double& SvdThreshold, const PNotify& Notify, const bool& LndPointWgt,
+        const double& SvdThreshold, const TWPt<TNotify>& Notify, const bool& LndPointWgt,
         const bool& CalcLandscapeP) {
 
     // parse xml    
@@ -1780,7 +1711,7 @@ PVizMap TVizMapFactory::NewVizMap(const TStr& XmlFNm, const TVizXmlMapType& VizX
 // Generation of LandMark-Maps
 PVizMapLndMrk TVizMapFactory::NewVizMapLndMrk(PBowDocBs BowDocBs, 
         PBowDocWgtBs BowDocWgtBs, const int& ThDocs, const int& Clusts, 
-        const double& SvdThreshold, const PNotify& Notify) {
+        const double& SvdThreshold, const TWPt<TNotify>& Notify) {
     
     Notify->OnStatus(TStr::Fmt("Size of dataset: %d docs", BowDocWgtBs->GetDocs()));
     // load landmarks
@@ -1823,7 +1754,7 @@ PVizMapLndMrk TVizMapFactory::NewVizMapLndMrk(PBowDocBs BowDocBs,
 
 PVizMapLndMrk TVizMapFactory::NewVizMapLndMrk(PBowDocBs BowDocBs, 
         const TIntV& DIdV, const int& ThDocs, const int& Clusts, 
-        const double& SvdThreshold, const PNotify& Notify) {
+        const double& SvdThreshold, const TWPt<TNotify>& Notify) {
 
     TIntV NewDIdV; 
     if (DIdV.Empty()) { BowDocBs->GetAllDIdV(NewDIdV); } else { NewDIdV = DIdV; }
@@ -1835,7 +1766,7 @@ PVizMapLndMrk TVizMapFactory::NewVizMapLndMrk(PBowDocBs BowDocBs,
 // Visualization using Landmark-Maps
 PVizMap TVizMapFactory::NewVizMapFromLndMrk(PBowDocBs BowDocBs, PBowDocWgtBs BowDocWgtBs, 
         PVizMapLndMrk VizMapLndMrk, const bool& LndMrkLndP, const bool& LndMrkKeyWdP, 
-        const PNotify& Notify) { 
+        const TWPt<TNotify>& Notify) {
 
     return TVizMap::New(NewVizMapFrameFromLndMrk(BowDocBs, BowDocWgtBs, 
         VizMapLndMrk, LndMrkLndP, LndMrkKeyWdP, Notify));
@@ -1843,7 +1774,7 @@ PVizMap TVizMapFactory::NewVizMapFromLndMrk(PBowDocBs BowDocBs, PBowDocWgtBs Bow
 
 PVizMap TVizMapFactory::NewVizMapFromLndMrk(PBowDocBs BowDocBs, const TIntV& DIdV, 
         PVizMapLndMrk VizMapLndMrk, const bool& LndMrkLndP, const bool& LndMrkKeyWdP, 
-        const TBowWordWgtType& WgtType, const PNotify& Notify) {
+        const TBowWordWgtType& WgtType, const TWPt<TNotify>& Notify) {
 
     PBowDocWgtBs BowDocWgtBs = TBowDocWgtBs::New(BowDocBs, WgtType, 0, 0, DIdV);
     return TVizMap::New(NewVizMapFrameFromLndMrk(BowDocBs, BowDocWgtBs, 
@@ -1926,7 +1857,8 @@ void TVrml::InsertBillboard(PSOut SOut, const TFltVV& Rlf,
     const double Spacing = Scale / Rlf.GetXDim();
     int PosX = TFlt::Round(Scale*x/Spacing);
     int PosY = TFlt::Round(Scale*y/Spacing);
-    if (PosX < 0) PosX = 0; if (PosY < 0) PosY = 0;
+    if (PosX < 0) { PosX = 0; }
+    if (PosY < 0) { PosY = 0; }
     if (PosX >= Rlf.GetXDim()) PosX = Rlf.GetXDim() - 1;
     if (PosY >= Rlf.GetYDim()) PosY = Rlf.GetYDim() - 1;
     const double z = Rlf(PosX, PosY) + Height;

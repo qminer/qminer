@@ -1,9 +1,9 @@
 {
   "name": "qminer",
-  "version": "8.6.0",
+  "version": "9.3.0",
   "description": "A C++ based data analytics platform for processing large-scale real-time streams containing structured and unstructured data",
   "engines": {
-    "node": ">=0.12"
+    "node": ">=4"
   },
   "license": "BSD-2-Clause-FreeBSD",
   "author": "Blaz Fortuna <blaz@blazfortuna.com>",
@@ -91,8 +91,7 @@
   },
   "main": "./index.js",
   "dependencies": {
-    "sget": "~0.1.5",
-    "node-pre-gyp": "0.6.x"
+    "node-pre-gyp": "0.10.x"
   },
   "bundledDependencies": [
     "node-pre-gyp"
@@ -107,7 +106,7 @@
   },
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build",
-    "test": "cd test & cd nodejs & mocha *.js --timeout 30000"
+    "test": "cd test && cd nodejs && mocha *.js --timeout 30000 && cd .. && cd .. && node ./test/cpp/run_tests.js"
   },
   "binary": {
     "module_name": "qm",
