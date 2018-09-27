@@ -1,127 +1,127 @@
 {
-  "name": "qminer",
-  "version": "9.1.2",
-  "description": "A C++ based data analytics platform for processing large-scale real-time streams containing structured and unstructured data",
-  "engines": {
-    "node": ">=4"
-  },
-  "license": "BSD-2-Clause-FreeBSD",
-  "author": "Blaz Fortuna <blaz@blazfortuna.com>",
-  "contributors": [
-    {
-      "name": "Janez Brank",
-      "email": "janez.brank@ijs.si"
+    "name": "qminer",
+    "version": "9.3.0",
+    "description": "A C++ based data analytics platform for processing large-scale real-time streams containing structured and unstructured data",
+    "engines": {
+      "node": ">=4"
     },
-    {
-      "name": "Blaz Fortuna",
-      "email": "blaz@blazfortuna.com"
+    "license": "BSD-2-Clause-FreeBSD",
+    "author": "Blaz Fortuna <blaz@blazfortuna.com>",
+    "contributors": [
+      {
+        "name": "Janez Brank",
+        "email": "janez.brank@ijs.si"
+      },
+      {
+        "name": "Blaz Fortuna",
+        "email": "blaz@blazfortuna.com"
+      },
+      {
+        "name": "Carolina Fortuna",
+        "email": "carolina.fortuna@ijs.si"
+      },
+      {
+        "name": "Marko Grobelnik",
+        "email": "marko.grobelnik@ijs.si"
+      },
+      {
+        "name": "Viktor Jovanoski",
+        "email": "viktor@carvic.si"
+      },
+      {
+        "name": "Mario Karlovcec",
+        "email": "mario.karlovcec@ijs.si"
+      },
+      {
+        "name": "Blaz Kazic",
+        "email": "blaz.kazic@ijs.si"
+      },
+      {
+        "name": "Klemen Kenda",
+        "email": "klemen.kenda@ijs.si"
+      },
+      {
+        "name": "Gregor Leban",
+        "email": "gregor.leban@ijs.si"
+      },
+      {
+        "name": "Blaz Novak",
+        "email": "blaz.novak@ijs.si"
+      },
+      {
+        "name": "Andrej Muhic",
+        "email": "andrej.muhic@ijs.si"
+      },
+      {
+        "name": "Dunja Mladenic",
+        "email": "dunja.mladenic@ijs.si"
+      },
+      {
+        "name": "Erik Novak",
+        "email": "novak.erik@gmail.com"
+      },
+      {
+        "name": "Jost Novljan",
+        "email": "jost.novljan@ijs.si"
+      },
+      {
+        "name": "Miha Papler",
+        "email": "miha.papler@ijs.si"
+      },
+      {
+        "name": "Luis Rei",
+        "email": "luis.rei@ijs.si"
+      },
+      {
+        "name": "Jan Rupnik",
+        "email": "jan.rupnik@ijs.si"
+      },
+      {
+        "name": "Blaz Sovdat",
+        "email": "blaz.sovdat@ijs.si"
+      },
+      {
+        "name": "Luka Stopar",
+        "email": "luka.stopar@ijs.si"
+      }
+    ],
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/qminer/qminer"
     },
-    {
-      "name": "Carolina Fortuna",
-      "email": "carolina.fortuna@ijs.si"
+    "main": "./index.js",
+    "dependencies": {
+      "node-pre-gyp": "0.10.x"
     },
-    {
-      "name": "Marko Grobelnik",
-      "email": "marko.grobelnik@ijs.si"
+    "bundledDependencies": [
+      "node-pre-gyp"
+    ],
+    "devDependencies": {
+      "async": "^2.0.0-rc.6",
+      "aws-sdk": "~2.0.0-rc.15",
+      "jsdoc": "~3.3.0-beta3",
+      "jsdoc-baseline": "https://github.com/hegemonic/jsdoc-baseline.git#d161c4136e12ca5d5674747d4b115067a6980185",
+      "mocha": "2.1.x",
+      "mustache": "~2.2.0"
     },
-    {
-      "name": "Viktor Jovanoski",
-      "email": "viktor@carvic.si"
+    "scripts": {
+      "install": "node-pre-gyp install --fallback-to-build",
+      "test": "cd test && cd nodejs && mocha *.js --timeout 30000 && cd .. && cd .. && node ./test/cpp/run_tests.js"
     },
-    {
-      "name": "Mario Karlovcec",
-      "email": "mario.karlovcec@ijs.si"
+    "binary": {
+      "module_name": "qm",
+      "module_path": "./out",
+      "host": "https://node-qminer-binary.s3.amazonaws.com"
     },
-    {
-      "name": "Blaz Kazic",
-      "email": "blaz.kazic@ijs.si"
-    },
-    {
-      "name": "Klemen Kenda",
-      "email": "klemen.kenda@ijs.si"
-    },
-    {
-      "name": "Gregor Leban",
-      "email": "gregor.leban@ijs.si"
-    },
-    {
-      "name": "Blaz Novak",
-      "email": "blaz.novak@ijs.si"
-    },
-    {
-      "name": "Andrej Muhic",
-      "email": "andrej.muhic@ijs.si"
-    },
-    {
-      "name": "Dunja Mladenic",
-      "email": "dunja.mladenic@ijs.si"
-    },
-    {
-      "name": "Erik Novak",
-      "email": "novak.erik@gmail.com"
-    },
-    {
-      "name": "Jost Novljan",
-      "email": "jost.novljan@ijs.si"
-    },
-    {
-      "name": "Miha Papler",
-      "email": "miha.papler@ijs.si"
-    },
-    {
-      "name": "Luis Rei",
-      "email": "luis.rei@ijs.si"
-    },
-    {
-      "name": "Jan Rupnik",
-      "email": "jan.rupnik@ijs.si"
-    },
-    {
-      "name": "Blaz Sovdat",
-      "email": "blaz.sovdat@ijs.si"
-    },
-    {
-      "name": "Luka Stopar",
-      "email": "luka.stopar@ijs.si"
-    }
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/qminer/qminer"
-  },
-  "main": "./index.js",
-  "dependencies": {
-    "node-pre-gyp": "0.6.x"
-  },
-  "bundledDependencies": [
-    "node-pre-gyp"
-  ],
-  "devDependencies": {
-    "async": "^2.0.0-rc.6",
-    "aws-sdk": "~2.0.0-rc.15",
-    "jsdoc": "~3.3.0-beta3",
-    "jsdoc-baseline": "https://github.com/hegemonic/jsdoc-baseline.git#d161c4136e12ca5d5674747d4b115067a6980185",
-    "mocha": "2.1.x",
-    "mustache": "~2.2.0"
-  },
-  "scripts": {
-    "install": "node-pre-gyp install --fallback-to-build",
-    "test": "cd test & cd nodejs & mocha *.js --timeout 30000"
-  },
-  "binary": {
-    "module_name": "qm",
-    "module_path": "./out",
-    "host": "https://node-qminer-binary.s3.amazonaws.com"
-  },
-  "keywords": [
-    "addon",
-    "machine-learning",
-    "linear-algebra",
-    "snap",
-    "social-network-analysis",
-    "analytics",
-    "data",
-    "mining",
-    "text-mining"
-  ]
-}
+    "keywords": [
+      "addon",
+      "machine-learning",
+      "linear-algebra",
+      "snap",
+      "social-network-analysis",
+      "analytics",
+      "data",
+      "mining",
+      "text-mining"
+    ]
+  }
