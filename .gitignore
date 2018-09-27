@@ -25,7 +25,6 @@ config.log
 npm-debug.log
 /node_modules/*
 !/node_modules/qminer.js
-/package-lock.json
 
 
 # project files from Eclipse
@@ -150,6 +149,7 @@ binding-1.gyp
 /test/nodejs/example*.js
 /test/cpp/gtest*
 /test/perf/memheap/memheap
+test*.txt
 
 # GIT FILES
 *.orig

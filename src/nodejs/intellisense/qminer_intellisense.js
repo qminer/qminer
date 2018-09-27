@@ -1603,7 +1603,8 @@ exports.statistics= require('qminer_stat');
 /**
  * Vector of records by value.
  * @class
- * @param {module:fs.FIn} [arg] - Load vector from input stream.
+ * @param {module:qm.Base} base - Qminer base object.
+ * @param {module:fs.FIn} [fin] - Load vector from input stream.
  * @classdesc Vector storing records defined by value. Vector can be serialized and
  * iterated over. For storing records by reference use {@link module:qm.RecordSet} or
  * {@link module:la.IntVector}.
@@ -1636,7 +1637,7 @@ exports.statistics= require('qminer_stat');
  * }
  * base.close();
  */
- exports.RecordVector = function(arg) { return Object.create(require('qminer').qm.RecordVector.prototype) };
+ exports.RecordVector = function(base, fin) { return Object.create(require('qminer').qm.RecordVector.prototype) };
 /**
      * Adds a new record to the vector.
      * @param {module:qm.Record} rec - The added record. The record must be provided by value.
@@ -2253,7 +2254,7 @@ exports.statistics= require('qminer_stat');
 /**
     * Executes a function on each record in record set.
     * @param {function} callback - Function to be executed. It takes two parameters:
-    * <br>1. `rec` - The current record. Type {@link module:qm.Record}.
+    * <br>1. `rec` - The current record. Type {@link module:qm.Record}. Warning: Do not use `rec` outside the scope of the callback. An internal optimization re-uses `rec` object between calls to `callback`.
     * <br>2. `idx` - The index of the current record (<i>optional</i>). Type `number`.
     * @returns {module:qm.RecordSet} Self.
     * @example
@@ -2284,7 +2285,7 @@ exports.statistics= require('qminer_stat');
 /**
     * Creates an array of function outputs created from the records in record set.
     * @param {function} callback - Function that generates the array. It takes two parameters:
-    * <br>1. `rec` - The current record. Type {@link module:qm.Record}.
+    * <br>1. `rec` - The current record. Type {@link module:qm.Record}. Warning: Do not use `rec` outside the scope of the callback. An internal optimization re-uses `rec` object between calls to `callback`.
     * <br>2. `idx` - The index of the current record (<i>optional</i>). Type `number`.
     * @returns {Array<Object>} The array created by the callback function.
     * @example

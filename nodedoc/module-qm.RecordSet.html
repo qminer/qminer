@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.1.2</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.0</a>
       </div>
     </div>
   </nav>
@@ -25,7 +25,7 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">RecordSet</span></h1>
-            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1705">qminerdoc.<wbr>js:1705</a></p>
+            <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1706">qminerdoc.<wbr>js:1706</a></p>
             <dl class="dl-compact">
             </dl>
           </header>
@@ -345,7 +345,8 @@ base.close();</code></pre>
                       </td>
                       <td>
                         <p>Function to be executed. It takes two parameters:
-                          <br>1. <code>rec</code> - The current record. Type <a href="module-qm.Record.html">module:qm.Record</a>.
+                          <br>1. <code>rec</code> - The current record. Type <a href="module-qm.Record.html">module:qm.Record</a>. Warning: Do not use <code>rec</code> outside the scope of the callback. An internal optimization re-uses <code>rec</code> object
+                          between calls to <code>callback</code>.
                           <br>2. <code>idx</code> - The index of the current record (<i>optional</i>). Type <code>number</code>.</p>
                       </td>
                     </tr>
@@ -959,7 +960,8 @@ base.close();</code></pre>
                       </td>
                       <td>
                         <p>Function that generates the array. It takes two parameters:
-                          <br>1. <code>rec</code> - The current record. Type <a href="module-qm.Record.html">module:qm.Record</a>.
+                          <br>1. <code>rec</code> - The current record. Type <a href="module-qm.Record.html">module:qm.Record</a>. Warning: Do not use <code>rec</code> outside the scope of the callback. An internal optimization re-uses <code>rec</code> object
+                          between calls to <code>callback</code>.
                           <br>2. <code>idx</code> - The index of the current record (<i>optional</i>). Type <code>number</code>.</p>
                       </td>
                     </tr>

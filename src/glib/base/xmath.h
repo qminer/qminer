@@ -20,7 +20,7 @@ public:
   static int Abs(const int& x) { return TInt::Abs(x); }
   static double Inv(const double& x){IAssert(x!=0.0); return (1.0/x);}
   static double Sqr(const double& x){return x*x;}
-  static double Sqrt(const double& x){IAssert(!(x<0.0)); return sqrt(x);}
+  static double Sqrt(const double& x){EAssert(!(x<0.0)); return sqrt(x);}
   static double Log(const double& Val){return log(Val);}
   static double Log2(const double& Val){return log(Val)/LogOf2;}
   static double Round(const double& Val){

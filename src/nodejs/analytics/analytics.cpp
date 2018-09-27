@@ -4341,12 +4341,12 @@ void TNodeJsGk::cdf(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     if (TNodeJsUtil::IsArgFlt(Args, 0)) {
         const double Val = TNodeJsUtil::GetArgFlt(Args, 0);
-        const double CdfVal = Gk.GetQuantile(Val);
+        const double CdfVal = Gk.GetCdf(Val);
 
         Args.GetReturnValue().Set(v8::Number::New(Isolate, CdfVal));
     } else {
         TFltV ValV; TNodeJsUtil::GetArgFltV(Args, 0, ValV);
-        TFltV CdfValV; Gk.GetQuantileV(ValV, CdfValV);
+        TFltV CdfValV; Gk.GetCdfV(ValV, CdfValV);
 
         v8::Handle<v8::Array> QuantArr = v8::Array::New(Isolate, CdfValV.Len());
         for (int QuantN = 0; QuantN < CdfValV.Len(); ++QuantN) {

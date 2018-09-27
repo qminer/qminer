@@ -554,6 +554,10 @@ exports = {}; require.modules.qminer_fs = exports;
     
     /**
      * Reads a buffer, containing a CSV file, line by line and calls a callback for each line.
+     * As specified in CSV format standard defined in [RFC 4180]{@link https://tools.ietf.org/html/rfc4180}
+     * double-quotes (") can be used as escape characters. If a double-quote appears in a field, the field nust be
+     * enclosed in double-quotes and the double-quote appearing inside a field must be escaped by preceding it with
+     * another double quote.
      * The callback function accepts an array with the values of the current line.
      * @param {Buffer} buffer - The Node.js buffer.
      * @param {Object} opts - Options parameter.
@@ -563,9 +567,32 @@ exports = {}; require.modules.qminer_fs = exports;
      * @param {Number} opts.lineLimit - The maximum number of lines read.
      * @param {Number} opts.skipLines - The number of lines that should be skipped before first calling the callback.
      * @example
-     * // import fs module
-     * var fs = require('qminer').fs;
-     * // open a csv file and read the lines
+     * // import fs module                                                                                                                                   
+     * let fs = require('qminer').fs;                                                                                                                        
+     * // create a file and write some lines                                                                                                                 
+     * let fout = fs.openWrite('test.csv');                                                                                                                  
+     * fout.write('name,movie\nGeorge Clooney,"O Brother, Where Art Thou?"\n"Sylvester ""Sly"" Stallone",Expendables');                                      
+     * fout.close();                                                                                                                                         
+     * // open the file in read mode                                                                                                                         
+     * let fin = fs.openRead('test.csv');                                                                                                                    
+     * // prepare callbacks for csv parsing                                                                                                                  
+     * // count the lines and for each line output the parsed cells                                                                                          
+     * let nLines = 0;                                                                                                                                       
+     * function onLine(lineVals) {                                                                                                                           
+     *     nLines += 1;                                                                                                                                      
+     *     console.log(lineVals);                                                                                                                            
+     *     return true;                                                                                                                                      
+     * }                                                                                                                                                     
+     * // at the end output the number of lines                                                                                                              
+     * function onEnd(err) {                                                                                                                                 
+     *     if (err) { console.log("Error:", err); }                                                                                                          
+     *     console.log("Number of lines", nLines);                                                                                                           
+     * }                                                                                                                                                     
+     * // parse the csv files                                                                                                                                
+     * fs.readCsvLines(fin, {                                                                                                                                
+     *     "onLine": onLine,                                                                                                                                 
+     *     "onEnd": onEnd                                                                                                                                    
+     * });                                                                                                                                                   
      */
     exports.readCsvLines = function (fin, opts) {
     	exports.readLines(fin, processCsvLine(opts), opts.onEnd);

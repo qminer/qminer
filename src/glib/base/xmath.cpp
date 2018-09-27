@@ -5,6 +5,11 @@
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
+#if defined(GLib_MSC)
+#ifndef __lzcnt
+#include <intrin.h>
+#endif
+#endif
 
 /////////////////////////////////////////////////
 // Mathematical-Utilities

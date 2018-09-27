@@ -291,18 +291,31 @@ TStr TThinMIn::GetSNm() const {
 }
 /////////////////////////////////////////////////
 // Memory
+
+void TMem::Copy(const TMem& Mem) {
+  if (this != &Mem) {
+    if (Bf != NULL) { delete[] Bf; }
+    MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL;
+    if (MxBfL>0) { Bf = new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL); }
+  }
+}
+void TMem::Copy(const TMemBase& Mem) {
+  if (Bf != NULL) { delete[] Bf; }
+  MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL;
+  if (MxBfL>0) { Bf = new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL); }
+}
+
 void TMem::Resize(const int& _MxBfL){
   if (_MxBfL<=MxBfL){return;}
   else {if (MxBfL*2<_MxBfL){MxBfL=_MxBfL;} else {MxBfL*=2;}}
   char* NewBf=new char[MxBfL]; IAssert(NewBf!=NULL);
   if (BfL>0){memcpy(NewBf, Bf, BfL);}
-  if (Bf!=NULL && Owner){delete[] Bf;}
-  Owner = true;
+  if (Bf!=NULL){delete[] Bf;}
   Bf=NewBf;
 }
 
-TMem::TMem(const TStr& Str) : TMemBase() {
-	MxBfL = Str.Len(); BfL = MxBfL; Bf = NULL; Owner = true;
+TMem::TMem(const TStr& Str) {
+  MxBfL = Str.Len(); BfL = MxBfL; Bf = NULL;
   if (MxBfL>0){
     Bf=new char[MxBfL];
     if (BfL>0){memcpy(Bf, Str.CStr(), BfL);}
@@ -342,6 +355,41 @@ TMem& TMem::operator+=(const PSIn& SIn){
   if (LBfL>0){memcpy(Bf+BfL, LBf, LBfL);}
   delete[] LBf;
   BfL+=LBfL; return *this;
+}
+
+TMem& TMem::operator=(const TMem& Mem) {
+  if (this != &Mem) {
+    if (Bf != NULL) { delete[] Bf; }
+    MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL;
+    if (MxBfL>0) { Bf = new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL); }
+  }
+  return *this;
+}
+TMem& TMem::operator=(TMem&& Src) {
+  if (this != &Src) {
+    if (Bf != NULL) { delete[] Bf; }
+    MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf;
+    Src.MxBfL = Src.BfL = 0; Src.Bf = NULL;
+  }
+  return *this;
+}
+TMem& TMem::operator=(const TMemBase& Mem) {
+  if (Bf != NULL) { delete[] Bf; }
+  MxBfL = Mem.MxBfL; BfL = Mem.BfL; Bf = NULL;
+  if (MxBfL>0) { Bf = new char[MxBfL]; memcpy(Bf, Mem.Bf, BfL); }
+  return *this;
+}
+TMem& TMem::operator=(TMemBase&& Src) {
+  if (Bf != NULL) { delete[] Bf; }
+  if (Src.Owner) { // take over the buffer
+    MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = Src.Bf;
+    Src.MxBfL = Src.BfL = 0; Src.Bf = NULL; Src.Owner = false;
+  }
+  else { // copy the contents
+    MxBfL = Src.MxBfL; BfL = Src.BfL; Bf = NULL;
+    if (MxBfL>0) { Bf = new char[MxBfL]; memcpy(Bf, Src.Bf, BfL); }
+  }
+  return *this;
 }
 
 void TMem::Del(const int& BChN, const int& EChN){
@@ -497,7 +545,7 @@ void TStr::Base64Decode(const TStr& In, TMem& Mem) {
 /////////////////////////////////////////////////
 // Input-Memory
 TMemIn::TMemIn(const TMem& _Mem, const int& _BfC):
-  TSBase(), TSIn(), Mem(), Bf(_Mem()), BfC(_BfC), BfL(_Mem.Len()){}
+  TSBase(), TSIn(), Bf(_Mem()), BfC(_BfC), BfL(_Mem.Len()){}
 
 int TMemIn::GetBf(const void* LBf, const TSize& LBfL){
   Assert(TSize(BfC+LBfL)<=TSize(BfL));
@@ -533,24 +581,6 @@ int TRefMemOut::PutBf(const void* LBf, const TSize& LBfL){
 
 TStr TRefMemOut::GetSNm() const {
   return "Output-Reference-Memory";
-}
-
-/////////////////////////////////////////////////
-// Output-Memory
-TMemOut::TMemOut(const PMem& _Mem): TSBase(), TSOut(), Mem(_Mem){}
-
-int TMemOut::PutBf(const void* LBf, const TSize& LBfL){
-  int LBfS=0;
-  TMem& _Mem=*Mem;
-  for (TSize LBfC=0; LBfC<LBfL; LBfC++){
-    char Ch=((char*)LBf)[LBfC];
-    LBfS+=Ch; _Mem+=Ch;
-  }
-  return LBfS;
-}
-
-TStr TMemOut::GetSNm() const {
-  return "Output-Memory";
 }
 
 /////////////////////////////////////////////////

@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.1.2</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.0</a>
       </div>
     </div>
   </nav>
@@ -25,16 +25,16 @@
         <div id="jsdoc-main" role="main">
           <header class="page-header">
             <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">BiasedGk</span></h1>
-            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2483">analyticsdoc.<wbr>js:2483</a></p>
+            <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2683">analyticsdoc.<wbr>js:2683</a></p>
             <div class="symbol-classdesc">
               <p>The CKMS (GK adapted for biased quantiles) algorithm for online biased quantile estimation. Given a probability p the algorithm returns the approximate value of the p-th quantile. The algorithm is most accurate in one of the extremes (which
                 extreme depends on the parameters).</p>
               <p> The algorithm works by keeping a summary of buckets, each summarizing a range of values. Through the run of the algorithm new buckets are created and periodically merged if possible.</p>
-              <p> It was first explained in: &quot;Effective Computation of Biased Quantiles over Data Streams&quot; https://www.cs.rutgers.edu/~muthu/bquant.pdf
-              </p>
+              <p> It was first explained in: &quot;Effective Computation of Biased Quantiles over Data Streams&quot; https://
+                <a href="http://www.cs.rutgers.edu/~muthu/bquant.pdf">www.cs.rutgers.edu/~muthu/bquant.pdf</a></p>
               <p> Only the biased version is implemented (the targeted version is flawed).</p>
               <p> The error is bounded by the rank of the element (not the absolute value). Specifically, the worst case relative error is bounded by max(eps<em>p, eps</em>p0) where eps is an accuracy paramter, p0 is the <code>targetProb</code> and p is the
-                p-value set as the parameter of function <code>predict</code>.</p>
+                p-value set as the parameter of function <code>quantile</code>.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -45,6 +45,9 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.BiasedGk.html#.init">init</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.BiasedGk.html#.memory">memory</a></dt>
                     <dd>
                     </dd>
@@ -52,6 +55,9 @@
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
+                    <dt><a href="module-analytics.BiasedGk.html#.samples">samples</a></dt>
+                    <dd>
+                    </dd>
                     <dt><a href="module-analytics.BiasedGk.html#.size">size</a></dt>
                     <dd>
                     </dd>
@@ -86,7 +92,7 @@
                 </div>
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.BiasedGk.html#predict">predict(pVals)</a></dt>
+                    <dt><a href="module-analytics.BiasedGk.html#quantile">quantile(pVals)</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -104,10 +110,10 @@
                 <pre class="prettyprint"><code>// import modules
 var qm = require(&#x27;qminer&#x27;);
 var fs = require(&#x27;qminer&#x27;).fs;
-var analytics = qm.analytics;
+var quants = qm.analytics.quantiles;
 
 // create the BiasedGk object
-var gk = new analytics.BiasedGk({
+var gk = new quants.BiasedGk({
     eps: 0.1,
     targetProb: 0.99,
     compression: &#x27;periodic&#x27;,
@@ -119,15 +125,15 @@ var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
 
 // fit the model
 for (var i = 0; i &lt; inputs.length; i++) {
-    gk.partialFit(inputs[i]);
+    gk.insert(inputs[i]);
 }
 
-// make the prediction for the 0.1 quantile
-var prediction = gk.predict(0.1);
+// make the estimation for the 0.1 quantile
+var quant = gk.quantile(0.1);
 // save the model
 gk.save(fs.openWrite(&#x27;gk.bin&#x27;)).close();
 // open the gk model under a new variable
-var gk2 = new analytics.BiasedGk(fs.openRead(&#x27;gk.bin&#x27;));</code></pre>
+var gk2 = new analytics.quantiles.BiasedGk(fs.openRead(&#x27;gk.bin&#x27;));</code></pre>
               </div>
             </section>
             <section>
@@ -147,14 +153,14 @@ var gk2 = new analytics.BiasedGk(fs.openRead(&#x27;gk.bin&#x27;));</code></pre>
                       <p>arg</p>
                     </td>
                     <td>
-                      <p>(<a href="module-analytics.html#~BiasedGkParam">module:analytics~BiasedGkParam</a> or module:fs:FIn)</p>
+                      <p>(module:analytics.quantiles~BiasedGkParam or module:fs:FIn)</p>
                     </td>
                     <td>
                       <p>Yes</p>
                     </td>
                     <td>
                       <p>Constructor arguments. There are 2 ways of constructing:
-                        <br>1. Using the <a href="module-analytics.html#~BiasedGkParam">module:analytics~BiasedGkParam</a> object,
+                        <br>1. Using the module:analytics.quantiles~BiasedGkParam object,
                         <br>2. using the file input stream <a href="module-fs.FIn.html">module:fs.FIn</a>.</p>
                     </td>
                   </tr>
@@ -167,8 +173,16 @@ var gk2 = new analytics.BiasedGk(fs.openRead(&#x27;gk.bin&#x27;));</code></pre>
           <section>
             <h2>Properties</h2>
             <section>
+              <h3 id=".init"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">init</span></h3>
+              <p>Indicates whether the model is initialized (has seen at least one value).</p>
+              <dl class="dl-compact">
+              </dl>
               <h3 id=".memory"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">memory</span></h3>
               <p>Returns the models current memory consumption.</p>
+              <dl class="dl-compact">
+              </dl>
+              <h3 id=".samples"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">samples</span></h3>
+              <p>Returns the number of samples seen by the model.</p>
               <dl class="dl-compact">
               </dl>
               <h3 id=".size"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">size</span></h3>
@@ -186,7 +200,7 @@ var gk2 = new analytics.BiasedGk(fs.openRead(&#x27;gk.bin&#x27;));</code></pre>
                   <p>reference to self</p>
                 </dd>
               </dl>
-              <h3 id=".compress"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">compress</span><span class="signature"><span class="signature-params">(val)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.Gk.html">module:analytics.Gk</a></span></span></h3>
+              <h3 id=".compress"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">compress</span><span class="signature"><span class="signature-params">(val)</span>&nbsp;&rarr; <span class="signature-returns"> module:analytics.quantiles.Gk</span></span></h3>
               <p>Adds a new value to the summary.</p>
               <section>
                 <h4>
@@ -195,9 +209,9 @@ var gk2 = new analytics.BiasedGk(fs.openRead(&#x27;gk.bin&#x27;));</code></pre>
                 <div>
                   <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
 
-var gk = new qm.analytics.BiasedGk();
-gk.partialFit(1.0);
-gk.partialFit(2.0);</code></pre>
+var gk = new qm.analytics.quantiles.BiasedGk();
+gk.insert(1.0);
+gk.insert(2.0);</code></pre>
                 </div>
               </section>
               <section>
@@ -232,7 +246,7 @@ gk.partialFit(2.0);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.Gk.html">module:analytics.Gk</a></code>&nbsp;reference to self</p>
+                  <p><code>module:analytics.quantiles.Gk</code>&nbsp;reference to self</p>
                 </dd>
               </dl>
               <h3 id=".save"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
@@ -272,18 +286,18 @@ gk.partialFit(2.0);</code></pre>
                   <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;- the output stream</p>
                 </dd>
               </dl>
-              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~BiasedGkParam">module:analytics~BiasedGkParam</a></span></span></h3>
+              <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> module:analytics.quantiles~BiasedGkParam</span></span></h3>
               <p>Returns the models' parameters as a JavaScript object (JSON). These parameters are the same as are set through the constructor.</p>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.html#~BiasedGkParam">module:analytics~BiasedGkParam</a></code>&nbsp;The construction parameters.</p>
-                  <p>var analytics = qm.analytics; var gk = new analytics.BiasedGk(); var params = gk.getParams();</p>
+                  <p><code>module:analytics.quantiles~BiasedGkParam</code>&nbsp;The construction parameters.</p>
+                  <p>var analytics = qm.analytics; var gk = new analytics.quantiles.BiasedGk(); var params = gk.getParams();</p>
                   <p>console.log(params.targetProb); console.log(params.eps); console.log(params.autoCompress); console.log(params.useBands);
                   </p>
                 </dd>
               </dl>
-              <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(pVals)</span>&nbsp;&rarr; <span class="signature-returns"> (number or Array)</span></span></h3>
+              <h3 id="quantile"><span class="symbol-name">quantile</span><span class="signature"><span class="signature-params">(pVals)</span>&nbsp;&rarr; <span class="signature-returns"> (number or Array)</span></span></h3>
               <p>Given an input cumulative probability, returns a quantile associated with that probability (e.g. for input 0.5 it will return the median).</p>
               <section>
                 <h4>
@@ -292,19 +306,19 @@ gk.partialFit(2.0);</code></pre>
                 <div>
                   <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
 
-var gk = new qm.analytics.BiasedGk({
+var gk = new qm.analytics.quantiles.BiasedGk({
     eps: 0.1,
     targetProb: 0.01
 });
-gk.partialFit(1.0);
-gk.partialFit(2.0);
-gk.partialFit(1.0);
-gk.partialFit(3.0);
-gk.partialFit(2.0);
+gk.insert(1.0);
+gk.insert(2.0);
+gk.insert(1.0);
+gk.insert(3.0);
+gk.insert(2.0);
 
-console.log(gk.predict(0.01));   // prints the first percentile
-console.log(gk.predict(0.25));   // prints the first quartile
-console.log(gk.predict(0.5));    // prints the median</code></pre>
+console.log(gk.quantile(0.01));   // prints the first percentile
+console.log(gk.quantile(0.25));   // prints the first quartile
+console.log(gk.quantile(0.5));    // prints the median</code></pre>
                 </div>
               </section>
               <section>

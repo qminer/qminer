@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -163,7 +163,7 @@ public:
     /// Total number of objects (create by factories, created using new, deleted)
     static TTriple<TInt, TInt, TInt> ObjCount;
 
-    /// Map from ClassId to JS object name accessor (example: "TRec" -> "$id", "Store" -> "name", "StreamAggr" -> "name") 
+    /// Map from ClassId to JS object name accessor (example: "TRec" -> "$id", "Store" -> "name", "StreamAggr" -> "name")
     static THash<TStr, TStr> ClassNmAccessorH;
     /// Registers the name of JS object name accessor for the given class
     static void RegisterClassNmAccessor(const TStr& ClassId, const TStr& NmProp) { ClassNmAccessorH.AddDat(ClassId, NmProp); }
@@ -272,7 +272,7 @@ public:
     static bool IsObjFld(v8::Local<v8::Object> Obj, const TStr& FldNm);
     /// returns true is the field is not defined or is null
     static bool IsFldNull(v8::Local<v8::Object> Obj, const TStr& FldNm);
-    /// returns true if the object contains a field with class of given class id 
+    /// returns true if the object contains a field with class of given class id
     static bool IsFldClass(v8::Local<v8::Object> Obj, const TStr& FldNm, const TStr& ClassId);
     /// returns true if the object contains a field with of given class
     template <class TClass>
@@ -347,17 +347,17 @@ public:
     /// The Constructor should be linked with a function template that uses TNodeJsUtil::_NewCpp<Obj> as callback
     template <class TClass>
     static v8::Local<v8::Object> NewInstance(TClass* Obj);
-    
+
     static v8::Local<v8::Value> V8JsonToV8Str(const v8::Local<v8::Value>& Json);
     static TStr JSONStringify(const v8::Local<v8::Value>& Json) { return GetStr(V8JsonToV8Str(Json)->ToString()); }
 
     /// TStrV -> v8 string array
-    static v8::Local<v8::Value> GetStrArr(const TStrV& StrV);   
+    static v8::Local<v8::Value> GetStrArr(const TStrV& StrV);
 
     static v8::Local<v8::Object> NewBuffer(const char* ChA, const size_t& Len);
 
-    /// Convert v8 external array (binary data) to PMem
-    static PMem GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
+    /// Convert v8 external array (binary data) to TMem
+    static TMem GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN);
 
     /// Used for unwrapping objects that depend on TBase being valid
     template <class TClass>
@@ -537,4 +537,3 @@ public: \
 Autogen ## Name Autogen_ ## Name; \
 
 #endif
-

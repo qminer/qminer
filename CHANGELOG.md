@@ -1,5 +1,67 @@
 # QMiner Change Log
 
+
+## 31 August 2018
+
+**Version 9.3.0**
+
+**Non-breaking with new feature**
+
+New feature:
+- Added `TTm::GetCurUniUnixMSecs()` that returns Unix version of timestamp
+
+Bugfix:
+- Added check to `TWPt::Del` that pointer is not `NULL`
+- Removed confusing local version of timestamps
+- Fixed documentation for `RecordVector` consturctor in Node.JS API
+- Removed unused code in `bd.cpp` that did not compile in recent versions of GCC
+
+
+## 10 July 2018
+
+**Version 9.2.3**
+
+**Non-breaking with bug fixes**
+
+Bugfix:
+- Fixed GCC compile warnings
+- Fixed JSON escaping
+- Added Node.js 10 to CI
+- Fixed quantile CDF functions
+- Fixed standard deviation function (better handling of edge cases)
+- TMem got slimmer (16 bytes instead of 24 bytes!)
+- Fixed running of `npm test`
+
+
+## 20 April 2018
+
+**Version 9.2.2**
+
+**Non-breaking with bug fixes**
+
+Bugfix:
+- Queries with joins sometimes crashed due to unsorted intermediate record set  (issue #606)
+- Added clarification to functions `recordSet.each` and `recordSet.map` and `fs.readCsvLines`
+- C++ work again!
+- TMem got slimmer (24 bytes instead of 32 bytes!)
+- Fixed how exceptions are handled in `fs.readLines`
+
+
+## 13 April 2018
+
+**Verstion 9.2.1**
+
+**Non-breaking with new feature and bug fixes**
+
+Feature:
+- JavaScript APIs cleaned for quantile estimators, moved to `analytics.quantiles`.
+
+Bugfix:
+- Typo bug in Json UTF-16 handling
+- Added implementation for JSON parsing in `newRecord`
+- Fixed issue 606 on sorted joins
+
+
 ## 5 January 2018
 
 **Version 9.1.2**

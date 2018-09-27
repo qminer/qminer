@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -68,7 +68,7 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Value>& Val, const bool& Ig
 
             TStr ClassNm = GetClass(Obj);
             EAssertR(IgnoreWrappedObj || ClassNm.Empty(), "TNodeJsUtil::GetObjJson: Cannot convert '" + ClassNm + "' to json!");
-            
+
             if (ClassNm.Empty()) {
                 v8::Local<v8::Array> FldNmV = Obj->GetOwnPropertyNames();
                 for (uint i = 0; i < FldNmV->Length(); i++) {
@@ -110,7 +110,7 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Value>& Val, const bool& Ig
 
 v8::Local<v8::Value> TNodeJsUtil::ParseJson(v8::Isolate* Isolate, const PJsonVal& JsonVal) {
     v8::EscapableHandleScope HandleScope(Isolate);
-    
+
     if (!JsonVal->IsDef()) {
         return v8::Undefined(Isolate);
     }
@@ -336,7 +336,7 @@ bool TNodeJsUtil::GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, co
     EAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
     v8::Local<v8::Value> Val = Args[ArgN];
     EAssertR(Val->IsBoolean(), TStr::Fmt("Argument %d expected to be bool", ArgN));
-    v8::Local<v8::BooleanObject> BoolObj = v8::Local<v8::BooleanObject>::Cast(Val->ToObject()); 
+    v8::Local<v8::BooleanObject> BoolObj = v8::Local<v8::BooleanObject>::Cast(Val->ToObject());
     return static_cast<bool>(BoolObj->ValueOf());
 }
 
@@ -854,7 +854,7 @@ v8::Local<v8::Object> TNodeJsUtil::NewBuffer(const char* ChA, const size_t& Len)
 #endif
 }
 
-PMem TNodeJsUtil::GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
+TMem TNodeJsUtil::GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
     EAssertR(Args.Length() > ArgN, "TNodeJsUtil::GetArgMem: Invalid number of arguments!");
     EAssertR(Args[ArgN]->IsObject(), "TNodeJsUtil::GetArgMem: Argument is not an object!");
 
@@ -862,13 +862,13 @@ PMem TNodeJsUtil::GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, con
     v8::HandleScope HandleScope(Isolate);
     v8::Local<v8::Object> Obj = Args[0]->ToObject();
 #if NODE_MODULE_VERSION >= 46 /* Node.js >= v4.0.0 */
-    if (!Obj->IsUint8Array()) return TMem::New();
-    return TMem::New(node::Buffer::Data(Obj), (int) node::Buffer::Length(Obj));
+    if (!Obj->IsUint8Array()) return TMem();
+    return TMem(node::Buffer::Data(Obj), (int) node::Buffer::Length(Obj));
 #else
     v8::ExternalArrayType ExternalType = Obj->GetIndexedPropertiesExternalArrayDataType();
     if (ExternalType != v8::ExternalArrayType::kExternalUint8Array) return TMem::New();
     int Len = Obj->GetIndexedPropertiesExternalArrayDataLength();
-    return TMem::New(static_cast<char*>(Obj->GetIndexedPropertiesExternalArrayData()), Len);
+    return TMem(static_cast<char*>(Obj->GetIndexedPropertiesExternalArrayData()), Len);
 #endif
 }
 
@@ -912,13 +912,13 @@ TNodeTask::TNodeTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    v8::Local<v8::Array> ArgsArr = v8::Array::New(Isolate, Args.Length() + 1);  
-    
+    v8::Local<v8::Array> ArgsArr = v8::Array::New(Isolate, Args.Length() + 1);
+
     for (int ArgN = 0; ArgN < Args.Length(); ArgN++) {
         ArgsArr->Set(ArgN, Args[ArgN]);
     }
     ArgsArr->Set(Args.Length(), Args.Holder());
-    
+
     ArgPersist.Reset(Isolate, ArgsArr);
 }
 
@@ -1143,7 +1143,7 @@ void TNodeJsAsyncUtil::ExecuteOnWorker(TAsyncTask* Task) {
 PJsonVal TNodeJsUtil::GetObjToNmJson(const v8::Local<v8::Value>& Val) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     if (Val->IsObject()) {
         // we don't allow functions in the JSON configuration
         EAssertR(!Val->IsFunction(), "TNodeJsUtil::GetObjToNmJson: Cannot parse functions!");

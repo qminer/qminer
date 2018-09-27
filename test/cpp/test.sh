@@ -2,18 +2,11 @@
 # a single fail results in global fail
 set -e
 
-CURRENT_PATH=`pwd`
-
-TEST_PATH_=`readlink -f $0`
-TEST_PATH=`dirname $TEST_PATH_`
-
-cd $TEST_PATH
-
-make
-
-if [ $CODE -eq 0 ]; then
-    echo "Tests success!"
-else
-    echo "Errors found!"
-    exit 1
+if [ -d "build/Release" ]; then
+  ls -l build/Release
+  build/Release/qminer-test
+fi
+if [ -d "build/Debug" ]; then
+  ls -l build/Debug
+  build/Debug/qminer-test
 fi

@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.1.2</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.0</a>
       </div>
     </div>
   </nav>
@@ -52,7 +52,7 @@ var analytics = qm.analytics;
                     <dt><a href="module-analytics.BiasedGk.html">BiasedGk([arg])</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.CountWindowGk.html">CountWindowGk([arg])</a></dt>
+                    <dt><a href="module-analytics.BufferedTDigest.html">BufferedTDigest([arg])</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.DpMeans.html">DpMeans([arg])</a></dt>
@@ -117,10 +117,10 @@ var analytics = qm.analytics;
                     <dt><a href="module-analytics.ThresholdModel.html">ThresholdModel([arg])</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.TimeWindowGk.html">TimeWindowGk([arg])</a></dt>
+                    <dt><a href="module-analytics.Tokenizer.html">Tokenizer([arg])</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.Tokenizer.html">Tokenizer([arg])</a></dt>
+                    <dt><a href="module-analytics-ActiveLearner.html">ActiveLearner([arg])</a></dt>
                     <dd>
                     </dd>
                   </dl>
@@ -175,7 +175,7 @@ var analytics = qm.analytics;
                     <dt><a href="module-analytics.html#~BiasedGkParam">BiasedGkParam</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.html#~CountWindowGkParam">CountWindowGkParam</a></dt>
+                    <dt><a href="module-analytics.html#~BufferedDigestParam">BufferedDigestParam</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.html#~detectorParam">detectorParam</a></dt>
@@ -243,9 +243,6 @@ var analytics = qm.analytics;
                     <dt><a href="module-analytics.html#~TDigestParam">TDigestParam</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.html#~TimeWindowGkParam">TimeWindowGkParam</a></dt>
-                    <dd>
-                    </dd>
                     <dt><a href="module-analytics.html#~tokenizerParam">tokenizerParam</a></dt>
                     <dd>
                     </dd>
@@ -258,7 +255,7 @@ var analytics = qm.analytics;
             <h2>Classes</h2>
             <section id='members-links'>
               <h3><a href="module-analytics.BiasedGk.html">BiasedGk</a></h3>
-              <h3><a href="module-analytics.CountWindowGk.html">CountWindowGk</a></h3>
+              <h3><a href="module-analytics.BufferedTDigest.html">BufferedTDigest</a></h3>
               <h3><a href="module-analytics.DpMeans.html">DpMeans</a></h3>
               <h3><a href="module-analytics.Gk.html">Gk</a></h3>
               <h3><a href="module-analytics.KMeans.html">KMeans</a></h3>
@@ -277,8 +274,8 @@ var analytics = qm.analytics;
               <h3><a href="module-analytics.SVR.html">SVR</a></h3>
               <h3><a href="module-analytics.TDigest.html">TDigest</a></h3>
               <h3><a href="module-analytics.ThresholdModel.html">ThresholdModel</a></h3>
-              <h3><a href="module-analytics.TimeWindowGk.html">TimeWindowGk</a></h3>
               <h3><a href="module-analytics.Tokenizer.html">Tokenizer</a></h3>
+              <h3><a href="module-analytics-ActiveLearner.html">ActiveLearner</a></h3>
             </section>
             <h2>Namespaces</h2>
             <section id='members-links'>
@@ -525,7 +522,7 @@ var V = result.V;</code></pre>
               </dl>
               <h3 id="~BiasedGkParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">BiasedGkParam</span><small class="property-type">
             &nbsp;Object</small></h3>
-              <p>An object used for the construction of <a href="module-analytics.BiasedGk.html">module:analytics.BiasedGk</a>.</p>
+              <p>An object used for the construction of module:analytics.quantiles.BiasedGk.</p>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -603,9 +600,9 @@ var V = result.V;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~CountWindowGkParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">CountWindowGkParam</span><small class="property-type">
+              <h3 id="~BufferedDigestParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">BufferedDigestParam</span><small class="property-type">
             &nbsp;Object</small></h3>
-              <p>An object used for the construction of <a href="module-analytics.CountWindowGk.html">module:analytics.CountWindowGk</a>.</p>
+              <p>An object used for the construction of module:analytics.quantiles.BufferedTDigest.</p>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -620,7 +617,7 @@ var V = result.V;</code></pre>
                   <tbody>
                     <tr>
                       <td>
-                        <p>windowSize</p>
+                        <p>delta</p>
                       </td>
                       <td>
                         <p>number</p>
@@ -629,13 +626,13 @@ var V = result.V;</code></pre>
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>Number of values to store in the window.</p>
-                        <p>Defaults to <code>10000</code>.</p>
+                        <p>The number of clusters in the summary is bounded by floor(minClusters) &lt;= clusters &lt; 2*ceil(minClusters)</p>
+                        <p>Defaults to <code>100</code>.</p>
                       </td>
                     </tr>
                     <tr>
                       <td>
-                        <p>quantileEps</p>
+                        <p>bufferLen</p>
                       </td>
                       <td>
                         <p>number</p>
@@ -644,13 +641,13 @@ var V = result.V;</code></pre>
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>Worst-case error of the quantile estimation procedure.</p>
-                        <p>Defaults to <code>0.01</code>.</p>
+                        <p>the size of the buffer is minClusters<em>bufferLenFactor, when the buffer fills it is merged with the summary. Also, the algorithm initializes after seeing minClusters</em>bufferLenFactor examples.</p>
+                        <p>Defaults to <code>1000</code>.</p>
                       </td>
                     </tr>
                     <tr>
                       <td>
-                        <p>countEps</p>
+                        <p>seed</p>
                       </td>
                       <td>
                         <p>number</p>
@@ -659,8 +656,8 @@ var V = result.V;</code></pre>
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>Worst-case error of the sliding window (exponential histogram) procedure.</p>
-                        <p>Defaults to <code>0.005</code>.</p>
+                        <p>random seed (values above 1 are deterministic)</p>
+                        <p>Defaults to <code>0</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -992,7 +989,7 @@ var V = result.V;</code></pre>
               </dl>
               <h3 id="~GkParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">GkParam</span><small class="property-type">
             &nbsp;Object</small></h3>
-              <p>An object used for the construction of <a href="module-analytics.Gk.html">module:analytics.Gk</a>.</p>
+              <p>An object used for the construction of module:analytics.quantiles.Gk.</p>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -1032,6 +1029,21 @@ var V = result.V;</code></pre>
                       </td>
                       <td>
                         <p>Whether the summary should be compresses automatically or manually.</p>
+                        <p>Defaults to <code>true</code>.</p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <p>useBands</p>
+                      </td>
+                      <td>
+                        <p>boolean</p>
+                      </td>
+                      <td>
+                        <p>Yes</p>
+                      </td>
+                      <td>
+                        <p>Whether the algorithm should use the 'band' subprocedure. Using this subprocedure should result in a smaller summary.</p>
                         <p>Defaults to <code>true</code>.</p>
                       </td>
                     </tr>
@@ -2292,7 +2304,7 @@ var V = result.V;</code></pre>
               </dl>
               <h3 id="~TDigestParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">TDigestParam</span><small class="property-type">
             &nbsp;Object</small></h3>
-              <p>An object used for the construction of <a href="module-analytics.TDigest.html">module:analytics.TDigest</a>.</p>
+              <p>An object used for the construction of module:analytics.quantiles.TDigest.</p>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -2333,71 +2345,6 @@ var V = result.V;</code></pre>
                       <td>
                         <p>The number of 1-d clusters (large values lead to higher memory usage).</p>
                         <p>Defaults to <code>100</code>.</p>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-              <dl class="dl-compact">
-              </dl>
-              <h3 id="~TimeWindowGkParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">TimeWindowGkParam</span><small class="property-type">
-            &nbsp;Object</small></h3>
-              <p>An object used for the construction of <a href="module-analytics.TimeWindowGk.html">module:analytics.TimeWindowGk</a>.</p>
-              <section>
-                <h4>Properties</h4>
-                <table class="jsdoc-details-table">
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Type</th>
-                      <th>Optional</th>
-                      <th>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <p>window</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Duration of the time window.</p>
-                        <p>Defaults to <code>1000*60*60</code>.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>quantileEps</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Worst-case error of the quantile estimation procedure.</p>
-                        <p>Defaults to <code>0.01</code>.</p>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <p>countEps</p>
-                      </td>
-                      <td>
-                        <p>number</p>
-                      </td>
-                      <td>
-                        <p>Yes</p>
-                      </td>
-                      <td>
-                        <p>Worst-case error of the sliding window (exponential histogram) procedure.</p>
-                        <p>Defaults to <code>0.005</code>.</p>
                       </td>
                     </tr>
                   </tbody>
