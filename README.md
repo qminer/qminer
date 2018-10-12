@@ -57,9 +57,7 @@ The authors would like to acknowledge funding from the European Union Seventh Fr
 
 This project has received funding from the European Union's Horizon 2020 research and innovation programme under grant agreement No 636160-2 ([Optimum](http://www.optimumproject.eu/)).
 
-![](http://ailab.ijs.si/~blazf/eu.png)
-
-Thanks to [Deleaker](http://deleaker.com) for supporting open-source projects.
+![](http://analytics.ijs.si/~blazf/eu.png)
 
 [npm-image]: https://img.shields.io/npm/v/qminer.svg
 [npm-url]: https://npmjs.org/package/qminer
