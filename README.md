@@ -51,7 +51,7 @@ To test that your node.js version is correct, run ```node --version``` and ```np
 ## Acknowledgments
 
 [QMiner](http://qminer.ijs.si/) is developed by [AILab](http://ailab.ijs.si/) at 
-[Jozef Stefan Institute](http://www.ijs.si/), [Quintelligence](http://quintelligence.com) and other contributors.
+[Jozef Stefan Institute](http://www.ijs.si/), [Quintelligence](http://quintelligence.com), [Qlector](http://qlector.com) and other contributors.
 
 The authors would like to acknowledge funding from the European Union Seventh Framework Programme, under Grant Agreements 288342 ([XLike](http://www.xlike.org/)), 611346 ([XLime](http://xlime.eu)), 611875 ([Symphony](http://projectsymphony.eu)), 317534 ([Sophocles](http://sophocles.eu/)), 318452 ([Mobis](https://sites.google.com/site/mobiseuprojecteu/)), 600074 ([NRG4Cast](http://nrg4cast.org)), 619437 ([Sunseed](http://sunseed-fp7.eu)), 632840 ([FI-Impact](http://fi-impact.net/home/)) and 612329 ([ProaSense](http://www.proasense.eu)).
 
