@@ -2199,6 +2199,77 @@ public:
     TStr Type() const { return GetType(); }
 };
 
+//////////////////////////////////////////////////////////////////////////////////
+/// Page-Hinkley test for concept drift detection aggregate
+///
+/// This change detection method works by computing the observed values and their mean up to the current
+/// moment. Page Hinkley won't output warning zone warnings, only change detections. The method works by
+/// means of the Page Hinkley test.In general lines it will detect a concept drift if the observed mean
+/// at some instant is greater then a threshold value lambda.
+class TPageHinkley : public TStreamAggr, 
+					 public TStreamAggrOut::INmInt,
+					 public TStreamAggrOut::IInt {
+private:
+	/// Input for prediction
+	TWPt<TStreamAggrOut::IFlt> InAggrVal;
+	/// Minimum instances to trigger concept drift
+	TInt MinInstances;
+	/// The delta factor for Page-Hinkley test
+	TFlt Delta;
+	/// The change detection threshold
+	TFlt Lambda;
+	/// The forgetting factor, used to weight the observed value and the mean
+	TFlt Alpha;
+	/// Mean of the input values
+	TFlt XMean;
+	/// Count of the samples
+	TInt SampleCount;
+	/// Sum for calculating standard deviation
+	TFlt Sum;
+	/// Drift was detected
+	TInt Drift;
+	/// How long ago drift was detected
+	TInt DriftOffset;
+
+protected:	
+	/// Placeholder just throwing exception. 
+	void OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr);
+	/// Placeholder just throwing exception.  
+	void OnStep(const TWPt<TStreamAggr>& CallerAggr);
+	/// JSON based constructor.
+	TPageHinkley(const TWPt<TBase>& Base, const PJsonVal& ParamVal);
+public:
+	/// Smart pointer constructor
+	static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { return new TPageHinkley(Base, ParamVal); }
+	
+	/// Loads state
+	void LoadState(TSIn& SIn);
+	/// Saves state
+	void SaveState(TSOut& SOut) const;	
+	
+	/// Returns the parameters
+	PJsonVal GetParams() const;
+	/// Sets the parameters - used for updating the map (extend or replace)
+	void SetParams(const PJsonVal& ParamVal);
+
+	/// Is the aggregate initialized?
+	bool IsInit() const { return SampleCount > MinInstances; }
+	/// Returns true if the string is supported
+	bool IsNmInt(const TStr& Nm) const { return (Nm == "driftOffset") || (Nm == "drift"); }
+	/// Returns current drift status
+	int GetInt() const;
+	/// Returns the current drift status and last drift offset
+	int GetNmInt(const TStr& Nm) const;
+	/// Resets the aggregate
+	void Reset();
+	/// JSON serialization
+	PJsonVal SaveJson(const int& Limit) const;
+	/// Stream aggregator type name
+	static TStr GetType() { return "pagehinkley"; }
+	/// Stream aggregator type name
+	TStr Type() const { return GetType(); }
+};
+
 ///////////////////////////////
 /// Template class implementation
 #include "qminer_aggr.hpp"

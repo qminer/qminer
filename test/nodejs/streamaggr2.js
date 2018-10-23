@@ -24,7 +24,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
                     { name: "Time", type: "datetime" }
                 ]
             }]
-        });		
+        });
         try {
             var store = base.store('Store');
 
@@ -70,7 +70,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
             assert.equal(tmp1.counts[3], 0);
             assert.equal(tmp1.counts[4], 0);
             //console.log(JSON.stringify(tmp1));
-            
+
             store.push({ Time: '2015-06-10T01:13:30.0', ClusterId: 0 });
             store.push({ Time: '2015-06-10T02:14:30.0', ClusterId: 0 });
             store.push({ Time: '2015-06-10T03:15:31.0', ClusterId: 1 });
@@ -124,7 +124,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
                     { name: "Time", type: "datetime" }
                 ]
             }]
-        });		
+        });
         try {
             var store = base.store('Store');
 
@@ -170,7 +170,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
             assert.equal(tmp1.counts[3], 0);
             assert.equal(tmp1.counts[4], 0);
             //console.log(JSON.stringify(tmp1));
-            
+
             store.push({ Time: '2015-06-10T01:13:30.0', ClusterId: 0 });
             store.push({ Time: '2015-06-10T02:14:30.0', ClusterId: 0 });
             store.push({ Time: '2015-06-10T03:15:31.0', ClusterId: 1 });
@@ -422,7 +422,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
             assert.equal(tmp1.counts[3], 0);
             assert.equal(tmp1.counts[4], 0);
             //console.log(JSON.stringify(tmp1));
-            
+
             store.push({ Time: '2015-06-10T01:13:30.0', ClusterId: 0 });
             store.push({ Time: '2015-06-10T02:14:30.0', ClusterId: 0 });
             store.push({ Time: '2015-06-10T03:15:31.0', ClusterId: 1 });
@@ -629,7 +629,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
                     { name: "Time", type: "datetime" }
                 ]
             }]
-        });		
+        });
         try {
             var store = base.store('Store');
 
@@ -660,7 +660,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
             var hist1 = base.store("Store").addStreamAggr(aggrJson1);
 
             // create a new time series stream aggregator for the 'Store' store that takes the recorded cluster id
-            // and the timestamp from the 'Time' field. 
+            // and the timestamp from the 'Time' field.
             var timeser2 = {
                 name: 'TimeSeries2',
                 type: 'timeSeriesWinBuf',
@@ -684,7 +684,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
                 addPosInf: false
             };
             var hist2 = base.store("Store").addStreamAggr(aggrJson2);
-        
+
             // add diff aggregator that subtracts Histogram1 with 2h window from Histogram2 with 6h window
             var aggrJson3 = {
                 name: 'DiffAggr',
@@ -697,7 +697,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
             var diff = store.addStreamAggr(aggrJson3);
 
             ////////////////////////////////////////////////////////////////////
-                
+
             // add some values
             store.push({ Time: '2015-06-10T00:13:30.0', ClusterId: 0 });
             store.push({ Time: '2015-06-10T00:14:30.0', ClusterId: 0 });
@@ -723,7 +723,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
             assert.equal(tmp2.counts[2], 2);
             assert.equal(tmp2.counts[3], 0);
             assert.equal(tmp2.counts[4], 0);
-                        
+
             // difference
             var tmp3 = diff.saveJson();
             //console.log(JSON.stringify(tmp3));
@@ -732,10 +732,10 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
             assert.equal(tmp3.diff[2], 1);
             assert.equal(tmp3.diff[3], 0);
             assert.equal(tmp3.diff[4], 0);
-            
+
             // show distribution for expected values
             //console.log(diff);
-            
+
         } finally {
             base.close();
         }
@@ -786,7 +786,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
             var hist1 = base.store("Store").addStreamAggr(aggrJson1);
 
             // create a new time series stream aggregator for the 'Store' store that takes the recorded cluster id
-            // and the timestamp from the 'Time' field. 
+            // and the timestamp from the 'Time' field.
             var timeser2 = {
                 name: 'TimeSeries2',
                 type: 'timeSeriesWinBuf',
@@ -898,18 +898,18 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 
             // show distribution for expected values
             //console.log(diff);
-            
+
             /////////////////////////////////////////////////////////
             var fout = qm.fs.openWrite("aggr.tmp");
-            hist1.save(fout);			
+            hist1.save(fout);
             timeSeries1.save(fout);
-            hist2.save(fout);			
+            hist2.save(fout);
             timeSeries2.save(fout);
-            diff.save(fout);			
+            diff.save(fout);
             fout.close();
 
             store.resetStreamAggregates();
-                
+
             var fin = qm.fs.openRead("aggr.tmp");
             hist1.load(fin);
             timeSeries1.load(fin);
@@ -921,7 +921,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
             var tmp1x = hist1.saveJson();
             var tmp2x = hist2.saveJson();
             var tmp3x = diff.saveJson();
-            
+
             assert.equal(JSON.stringify(tmp1), JSON.stringify(tmp1x));
             assert.equal(JSON.stringify(tmp2), JSON.stringify(tmp2x));
             assert.equal(JSON.stringify(tmp3), JSON.stringify(tmp3x));
@@ -988,7 +988,7 @@ describe('Time Series Window Buffer Feature Extractor', function () {
             assert.equal(valVec.full().minus(new qm.la.Matrix([[0,0], [0,0], [0,0], [0,0], [1,0], [0,1]])).frob(), 0);
         });
     });
-    
+
     describe('Feature space getter', function () {
         it('should return the internal feature space', function () {
             var aggr = {
@@ -1009,7 +1009,7 @@ describe('Time Series Window Buffer Feature Extractor', function () {
             store.push({ Time: '2015-06-10T14:14:34.0', Text: 'c' }); // 2
             store.push({ Time: '2015-06-10T14:15:35.0', Text: 'd' }); // 3
             store.push({ Time: '2015-06-10T14:15:36.0', Text: 'e' }); // 4
-            store.push({ Time: '2015-06-10T14:15:37.0', Text: 'f' }); // 5				
+            store.push({ Time: '2015-06-10T14:15:37.0', Text: 'f' }); // 5
             var featureSpace = sa.getFeatureSpace();
             assert.equal(featureSpace.dim, 6);
         });
@@ -1036,7 +1036,7 @@ describe('Time Series Window Buffer Feature Extractor', function () {
             store.push({ Time: '2015-06-10T14:15:35.0', Text: 'd' }); // 3
             store.push({ Time: '2015-06-10T14:15:36.0', Text: 'e' }); // 4
             store.push({ Time: '2015-06-10T14:15:37.0', Text: 'f' }); // 5
-            
+
             var fout = qm.fs.openWrite('fsWinBuf.bin');
             sa.save(fout).close();
             var fin = qm.fs.openRead('fsWinBuf.bin');
@@ -1074,7 +1074,7 @@ describe('Time Series Window Buffer Feature Extractor', function () {
             store.push({ Time: '2015-06-10T14:15:35.0', Text: 'd' }); // 3
             store.push({ Time: '2015-06-10T14:15:36.0', Text: 'e' }); // 4
             store.push({ Time: '2015-06-10T14:15:37.0', Text: 'f' }); // 5
-            
+
             // 6 dim,  vals indices {4,5}, in {5}, out {3}
             var inValVec = sa.getInValueVector();
             assert.equal(inValVec.cols, 1);
@@ -1085,7 +1085,7 @@ describe('Time Series Window Buffer Feature Extractor', function () {
             var valVec = sa.getValueVector();
             assert.equal(valVec.cols, 2);
             assert.equal(valVec.full().minus(new qm.la.Matrix([[0,0], [0,0], [0,0], [0,0], [1,0], [0,1]])).frob(), 0);
-            
+
             var valVec2 = sa2.getValueVector();
             assert.equal(valVec2.full().minus(new qm.la.Vector([0, 0, 0, 0, 1, 1])).norm(), 0);
         });
@@ -1114,7 +1114,7 @@ describe('Time Series  - EMA for sparse vectors', function () {
     afterEach(function () {
         base.close();
     });
-    
+
     it('should construct sparse-vector time-series - EMA', function () {
         var aggr = {
             name: 'featureSpaceWindow',
@@ -1158,7 +1158,7 @@ describe('Time Series  - EMA for sparse vectors', function () {
         //sa3.getValueVector().print();
         store.push({ Time: 6000, Text: 'f' }); // 5
         //sa3.getValueVector().print();
-                    
+
         var valVec2 = sa2.getValueVector();
         //valVec2.print();
         assert.equal(valVec2.full().minus(new qm.la.Vector([0, 0, 0, 0, 0, 1])).norm(), 0);
@@ -1168,12 +1168,12 @@ describe('Time Series  - EMA for sparse vectors', function () {
         //console.log(valVec3.full().length);
         assert.ok(valVec3.full().minus(new qm.la.Vector([
             0.082085,
-            0.05325, 
+            0.05325,
             0.087795,
             0.144749,
             0.238651,
             0.393469])).norm() < 0.000001);
-    });    
+    });
 });
 
 
@@ -1248,7 +1248,7 @@ describe('Simple linear regression test', function () {
             assert.eqtol(res.bands[1], 1.5);
         })
     });
-        
+
     describe('GetFloatVector Tests', function () {
         it('should return the float vector of values in the buffer', function () {
             var tickX = store.addStreamAggr({
@@ -1289,20 +1289,204 @@ describe('Simple linear regression test', function () {
             store.push({ Time: '2015-06-10T14:13:32.006', X: 1, Y: -0 });
             store.push({ Time: '2015-06-10T14:13:32.007', X: 1, Y: 2 });
             store.push({ Time: '2015-06-10T14:13:32.008', X: 1, Y: 3 });
-            
+
             var fout = qm.fs.openWrite("linreg.tmp");
             var res = linReg.saveJson();
             linReg.save(fout);
             fout.close();
 
         store.resetStreamAggregates();
-                
+
         var fin = qm.fs.openRead("linreg.tmp");
         linReg.load(fin);
         fin.close();
         var res2 = linReg.saveJson();
         assert.equal(JSON.stringify(res), JSON.stringify(res2));
-            
+
         })
     });
 });
+
+describe("test concept drift methods", function() {
+    let qm = require('qminer');
+
+    describe("Page-Hinkley", function() {
+        let base;
+        let store;
+        let pht;
+
+        before(function() {
+            // create a base with a simple store
+            // the store records results of clustering
+            base = new qm.Base({
+                mode: "createClean",
+                schema: [
+                {
+                    name: "Store",
+                    fields: [
+                        { name: "Value", type: "float" },
+                        { name: "Time", type: "datetime" }
+                    ]
+                }]
+            });
+
+            // create a new time series stream aggregator for the 'Store' store that takes the recorded cluster id
+            // and the timestamp from the 'Time' field. The size of the window is 2 hours.
+            let timeser = {
+                name: 'seriesTick1',
+                type: 'timeSeriesTick',
+                store: 'Store',
+                timestamp: 'Time',
+                value: 'Value'
+            };
+            let timeSeries1 = base.store("Store").addStreamAggr(timeser);
+
+            // add a histogram aggregator, that is connected with the 'TimeSeries1' aggregator
+            let aggrPHT = {
+                name: 'PageHinkley',
+                type: 'pagehinkley',
+                store: 'Store',
+                inAggr: 'seriesTick1',
+                minInstances: 30,
+                delta: 0.005,
+                lambda: 50,
+                alpha: 0.9999
+            };
+            store = base.store("Store");
+            pht = store.addStreamAggr(aggrPHT);
+        });
+
+        after(function() {
+            base.close();
+        });
+
+        it("should initialize stream aggregate and return default values", function() {
+            assert.deepEqual(pht.saveJson(), {
+                minInstances: 30,
+                delta: 0.005,
+                alpha: 0.9999,
+                lambda: 50,
+                drift: 0,
+                driftOffset: -1
+            });
+        });
+
+        it ('should not detect concept drift', function() {
+            // creating start time
+            let time = new Date();
+            let timeStr = time.toISOString();
+            let changes = 0;
+            time.setSeconds(time.getSeconds() - 1000);
+
+            for (let i = 0; i < 1000; i++) {
+                // add one second to the timestamp and create an ISO string
+                time.setSeconds(time.getSeconds() + 1);
+                let timeStr = time.toISOString();
+                // create value
+                let value = Math.random() * 1;
+                // adding values to the signal store
+                store.push({ Time: timeStr, Value: value });
+                // counting changes
+                if (pht.saveJson().drift == 1) {
+                    changes++;
+                }
+            }
+            // checking if drift has been correctly detected
+            assert.equal(changes, 0);
+            driftOffset = pht.saveJson().driftOffset;
+            assert.equal(driftOffset, -1);
+        });
+
+        it('should detect concept drift in proximity of simulated change', function() {
+            // creating start time
+            let time = new Date();
+            let timeStr = time.toISOString();
+            let changes = 0;
+
+            // simulating concept drift at element 1000 in a time series
+            for (let i = 0; i < 2000; i++) {
+                // add one second to the timestamp and create an ISO string
+                time.setSeconds(time.getSeconds() + 1);
+                let timeStr = time.toISOString();
+                // create value
+                let value = Math.random() * 1;
+                if (i > 1000) {
+                    value = Math.random() * 2 + 1;
+                }
+                // adding values to the signal store
+                store.push({ Time: timeStr, Value: value });
+                // counting changes
+                if (pht.saveJson().drift == 1) {
+                    changes++;
+                }
+            }
+            // checking if drift has been correctly detected
+            assert.equal(changes, 1);
+            driftOffset = pht.saveJson().driftOffset;
+            assert.equal((driftOffset < 1000) && (driftOffset > 900), true);
+        })
+
+        it('should save and then load the aggregate', function() {
+            let fout = qm.fs.openWrite("pagehinkley.bin");
+            let phtJSONoriginal = pht.saveJson();
+            pht.save(fout);
+            fout.close();
+
+            store.resetStreamAggregates();
+
+            let fin = qm.fs.openRead("pagehinkley.bin");
+            pht.load(fin);
+            fin.close();
+            var phtJSONloaded = pht.saveJson();
+            assert.deepEqual(phtJSONloaded, phtJSONoriginal);
+        })
+
+        it('should return value of the newest value for drift and drift offset', function() {
+            assert.equal(pht.getInteger("driftOffset"), pht.saveJson().driftOffset);
+            assert.equal(pht.getInteger("drift"), 0);
+            assert.equal(pht.getInteger(), 0);
+            assert.equal(pht.getInteger("doesnotexist"), null);
+        })
+
+        it('should reset Page-Hinkley stream aggregate', function() {
+            store.resetStreamAggregates();
+            assert.deepEqual(pht.saveJson(), {
+                minInstances: 30,
+                delta: 0.005,
+                alpha: 0.9999,
+                lambda: 50,
+                drift: 0,
+                driftOffset: 0
+            });
+        })
+
+        it('should return the name of the aggregator', function() {
+            assert.equal(pht.name, 'PageHinkley');
+        })
+
+        it('should return parameters of the aggregator', function() {
+            assert.deepEqual(pht.getParams(), {
+                minInstances: 30,
+                delta: 0.005,
+                alpha: 0.9999,
+                lambda: 50
+            })
+        })
+
+        it('should set parametres of the aggregator', function() {
+            pht.setParams({
+                minInstances: 100,
+                delta: 0.003,
+                alpha: 0.99999,
+                lambda: 51
+            });
+            assert.deepEqual(pht.getParams(), {
+                minInstances: 100,
+                delta: 0.003,
+                alpha: 0.99999,
+                lambda: 51
+            })
+        })
+
+    });
+})
