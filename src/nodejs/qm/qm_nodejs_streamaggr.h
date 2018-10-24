@@ -1834,7 +1834,7 @@
 * @property {string} type - The type for the stream aggregator. <b>Important:</b> It must be equal to `'pagehinkley'`.
 * @property {string} store - The name of the store consistent with the records that it processes.
 * @property {string} inAggr - The name of the stream aggregate used for input (i.e. {@link module:qm.StreamAggrTimeSeriesTick}).
-* @property {number} maxInstances - Minimal number of instances needed for initialization of the aggregator (when can first concept drift be initialized?).
+* @property {number} minInstances - Minimal number of instances needed for initialization of the aggregator (when can first concept drift be initialized?).
 * @property {number} delta - The delta factor for the Page Hinkley test.
 * @property {number} lambda - The change detection threshold.
 * @property {number} alpha - The forgetting factor, used to weight the observed value and the mean.
@@ -1882,7 +1882,6 @@
 *
 * // creating start time
 * let time = new Date();
-* let timeStr = time.toISOString();
 * let changes = 0;
 *
 * // simulating concept drift at element 1000 in a time series
@@ -1904,8 +1903,8 @@
 * }
 *
 * // checking if drift has been correctly detected
-* if (changes >= 1) console.log("Last concept drift was detected " + pht.val.driftOffset + " samples ago.");
-* else console.log("No concept drift was detected!");
+* if (changes >= 1) { console.log("Last concept drift was detected " + pht.val.driftOffset + " samples ago."); }
+* else { console.log("No concept drift was detected!"); }
 *
 * // clean up
 * base.close();

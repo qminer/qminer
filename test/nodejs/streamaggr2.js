@@ -1374,7 +1374,6 @@ describe("test concept drift methods", function() {
         it ('should not detect concept drift', function() {
             // creating start time
             let time = new Date();
-            let timeStr = time.toISOString();
             let changes = 0;
             time.setSeconds(time.getSeconds() - 1000);
 
@@ -1391,7 +1390,7 @@ describe("test concept drift methods", function() {
                     changes++;
                 }
             }
-            // checking if drift has been correctly detected
+            // checking that drift has not been detected
             assert.equal(changes, 0);
             driftOffset = pht.saveJson().driftOffset;
             assert.equal(driftOffset, -1);
@@ -1400,7 +1399,6 @@ describe("test concept drift methods", function() {
         it('should detect concept drift in proximity of simulated change', function() {
             // creating start time
             let time = new Date();
-            let timeStr = time.toISOString();
             let changes = 0;
 
             // simulating concept drift at element 1000 in a time series

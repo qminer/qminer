@@ -2785,121 +2785,112 @@ PJsonVal THistogramAD::SaveJson(const int& Limit) const {
 //////////////////////////////////////////////////////////////////////////////////
 /// Page-Hinkley test for concept drift detection aggregate
 
-void TPageHinkley::OnStep(const TWPt<TStreamAggr>& CallerAggr) {	
-	TScopeStopWatch StopWatch(ExeTm);
-	
-	if (Drift > 0) Reset();
-	TFlt X = InAggrVal->GetFlt();
-	XMean = XMean + (X - XMean) / (1.0 * SampleCount);
-	Sum = Alpha * Sum + (X - XMean - Delta);
-	
-	SampleCount++;
-	
-	/// Only update drift offset, if it has already occured
-	if (DriftOffset >= 0) DriftOffset++;
+void TPageHinkley::OnStep(const TWPt<TStreamAggr>& CallerAggr) {
+    TScopeStopWatch StopWatch(ExeTm);
 
-	if ((SampleCount > MinInstances) && (Sum > Lambda)) {
-		Drift = 1;
-		DriftOffset = 0;
-	}	
+	if (Drift > 0) { Reset(); };
+    double X = InAggrVal->GetFlt();
+    XMean = XMean + (X - XMean) / (double)SampleCount;
+    Sum = Alpha * Sum + (X - XMean - Delta);
+
+    SampleCount++;
+
+    /// Only update drift offset, if it has already occured
+	if (DriftOffset >= 0) { DriftOffset++; };
+
+    if ((SampleCount > MinInstances) && (Sum > Lambda)) {
+        Drift = 1;
+        DriftOffset = 0;
+    }	
 }
 
 void TPageHinkley::OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr) {
-	throw TExcept::New("TPageHinkley::OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr) not supported.");
+    throw TExcept::New("TPageHinkley::OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr) not supported.");
 }
 
 TPageHinkley::TPageHinkley(const TWPt<TBase>& Base, const PJsonVal& ParamVal) : TStreamAggr(Base, ParamVal) {
-	Reset();
-	// only set drift offset to negative value in the beginning
-	// DriftOffset = 0 is set, when the first drift has been detected
-	// after that the offset is incremented in each step so that we can
-	// monitor, when the concept drift appeared
-	DriftOffset = -1;
-	MinInstances = (int)ParamVal->GetObjNum("minInstances", 30);
-	Delta = (double)ParamVal->GetObjNum("delta", 0.005);
-	Lambda = (double)ParamVal->GetObjNum("lambda", 50.0);
-	Alpha = (double)ParamVal->GetObjNum("alpha", 0.9999);
-	// parse out input aggregate
-	InAggrVal = Cast<TStreamAggrOut::IFlt>(ParseAggr(ParamVal, "inAggr"));	
+    Reset();
+    // only set drift offset to negative value in the beginning
+    // DriftOffset = 0 is set, when the first drift has been detected
+    // after that the offset is incremented in each step so that we can
+    // monitor, when the concept drift appeared
+    DriftOffset = -1;
+    MinInstances = (int)ParamVal->GetObjNum("minInstances", 30);
+    Delta = (double)ParamVal->GetObjNum("delta", 0.005);
+    Lambda = (double)ParamVal->GetObjNum("lambda", 50.0);
+    Alpha = (double)ParamVal->GetObjNum("alpha", 0.9999);
+    // parse out input aggregate
+    InAggrVal = Cast<TStreamAggrOut::IFlt>(ParseAggr(ParamVal, "inAggr"));	
 }
 
 PJsonVal TPageHinkley::GetParams() const {
-	PJsonVal Obj = TJsonVal::NewObj();
-	Obj->AddToObj("minInstances", MinInstances);
-	Obj->AddToObj("delta", Delta);
-	Obj->AddToObj("lambda", Lambda);
-	Obj->AddToObj("alpha", Alpha);
-	return Obj;
+    PJsonVal Obj = TJsonVal::NewObj();
+    Obj->AddToObj("minInstances", MinInstances);
+    Obj->AddToObj("delta", Delta);
+    Obj->AddToObj("lambda", Lambda);
+    Obj->AddToObj("alpha", Alpha);
+    return Obj;
 }
 
 void TPageHinkley::SetParams(const PJsonVal& ParamVal) {
-	MinInstances = (int)ParamVal->GetObjNum("minInstances", 30);
-	Delta = (double)ParamVal->GetObjNum("delta", 0.005);
-	Lambda = (double)ParamVal->GetObjNum("lambda", 50.0);
-	Alpha = (double)ParamVal->GetObjNum("alpha", 0.9999);
+    MinInstances = (int)ParamVal->GetObjNum("minInstances", 30);
+    Delta = (double)ParamVal->GetObjNum("delta", 0.005);
+    Lambda = (double)ParamVal->GetObjNum("lambda", 50.0);
+    Alpha = (double)ParamVal->GetObjNum("alpha", 0.9999);
 }
 
-void TPageHinkley::LoadState(TSIn& SIn) {	
-	MinInstances.Load(SIn);
-	Delta.Load(SIn);
-	Lambda.Load(SIn);
-	Alpha.Load(SIn);
-	XMean.Load(SIn);
-	SampleCount.Load(SIn);
-	Sum.Load(SIn); 
-	Drift.Load(SIn);
-	DriftOffset.Load(SIn);
+void TPageHinkley::LoadState(TSIn& SIn) {    
+    XMean.Load(SIn);
+    SampleCount.Load(SIn);
+    Sum.Load(SIn); 
+    Drift.Load(SIn);
+    DriftOffset.Load(SIn);
 }
 
-void TPageHinkley::SaveState(TSOut& SOut) const {	
-	MinInstances.Save(SOut);
-	Delta.Save(SOut);
-	Lambda.Save(SOut);
-	Alpha.Save(SOut);
-	XMean.Save(SOut);
-	SampleCount.Save(SOut);
-	Sum.Save(SOut);
-	Drift.Save(SOut);
-	DriftOffset.Save(SOut);
+void TPageHinkley::SaveState(TSOut& SOut) const {
+    XMean.Save(SOut);
+    SampleCount.Save(SOut);
+    Sum.Save(SOut);
+    Drift.Save(SOut);
+    DriftOffset.Save(SOut);
 }
 
 void TPageHinkley::Reset() {
-	MinInstances = 30;
-	Delta = 0.005;
-	Lambda = 50.0;
-	Alpha = 0.9999;
-	XMean = 0.0;
-	SampleCount = 1;
-	Sum = 0.0;
-	Drift = 0;
-	DriftOffset = 0;
+    Delta = 0.005;
+    Lambda = 50.0;
+    Alpha = 0.9999;
+    XMean = 0.0;
+    SampleCount = 1;
+    Sum = 0.0;
+    Drift = 0;
+    DriftOffset = 0;
 }
 
 int TPageHinkley::GetInt() const {
-	return GetNmInt("drift");
+    return GetNmInt("drift");
 }
 
 int TPageHinkley::GetNmInt(const TStr& Nm) const {
-	if (Nm == "drift") {
-		return Drift;
-	}
-	else if (Nm == "driftOffset") {
-		return DriftOffset;
-	}
-	else {
-		throw TExcept::New("TPageHinkley::GetNmInt unknown key: " + Nm);
-	}
+    if (Nm == "drift") {
+        return Drift;
+    }
+    else if (Nm == "driftOffset") {
+        return DriftOffset;
+    }
+    else {
+        throw TExcept::New("TPageHinkley::GetNmInt unknown key: " + Nm);
+    }
 }
 
 PJsonVal TPageHinkley::SaveJson(const int& Limit) const {
-	PJsonVal Obj = TJsonVal::NewObj();
-	Obj->AddToObj("minInstances", MinInstances);
-	Obj->AddToObj("delta", Delta);	
-	Obj->AddToObj("lambda", Lambda);
-	Obj->AddToObj("alpha", Alpha);
-	Obj->AddToObj("drift", Drift);
-	Obj->AddToObj("driftOffset", DriftOffset);
-	return Obj;
+    PJsonVal Obj = TJsonVal::NewObj();
+    Obj->AddToObj("minInstances", MinInstances);
+    Obj->AddToObj("delta", Delta);	
+    Obj->AddToObj("lambda", Lambda);
+    Obj->AddToObj("alpha", Alpha);
+    Obj->AddToObj("drift", Drift);
+    Obj->AddToObj("driftOffset", DriftOffset);
+    return Obj;
 }
 
 } // TStreamAggrs namespace
