@@ -2856,9 +2856,6 @@ void TPageHinkley::SaveState(TSOut& SOut) const {
 }
 
 void TPageHinkley::Reset() {
-    Delta = 0.005;
-    Lambda = 50.0;
-    Alpha = 0.9999;
     XMean = 0.0;
     SampleCount = 1;
     Sum = 0.0;

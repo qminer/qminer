@@ -1371,6 +1371,41 @@ describe("test concept drift methods", function() {
             });
         });
 
+        it("should save and load unused stream aggregate", function() {
+            let fout = qm.fs.openWrite("pagehinkley.bin");
+            let phtJSONoriginal = pht.saveJson();
+            pht.save(fout);
+            fout.close();
+
+            let time = new Date();
+            // simulating concept drift at element 1000 in a time series
+            for (let i = 0; i < 2000; i++) {
+                // add one second to the timestamp and create an ISO string
+                time.setSeconds(time.getSeconds() + 1);
+                let timeStr = time.toISOString();
+                // create value
+                let value = Math.random() * 1;
+                if (i > 1000) {
+                    value = Math.random() * 2 + 1;
+                }
+                // adding values to the signal store
+                store.push({ Time: timeStr, Value: value });
+            }
+
+            let fin = qm.fs.openRead("pagehinkley.bin");
+            pht.load(fin);
+            fin.close();
+
+            assert.deepEqual(pht.saveJson(), {
+                minInstances: 30,
+                delta: 0.005,
+                alpha: 0.9999,
+                lambda: 50,
+                drift: 0,
+                driftOffset: -1
+            });
+        })
+
         it ('should not detect concept drift', function() {
             // creating start time
             let time = new Date();
@@ -1424,13 +1459,14 @@ describe("test concept drift methods", function() {
             assert.equal((driftOffset < 1000) && (driftOffset > 900), true);
         })
 
-        it('should save and then load the aggregate', function() {
+        it('should save, then properly reset and then load the aggregate properly', function() {
             let fout = qm.fs.openWrite("pagehinkley.bin");
             let phtJSONoriginal = pht.saveJson();
             pht.save(fout);
             fout.close();
 
             store.resetStreamAggregates();
+            assert.deepEqual(pht.saveJson(), { "minInstances": 30, "alpha": 0.9999, "delta": 0.005, "lambda": 50, "drift": 0, "driftOffset": 0});
 
             let fin = qm.fs.openRead("pagehinkley.bin");
             pht.load(fin);
