@@ -6612,6 +6612,7 @@ void TStreamAggr::Init() {
     Register<TStreamAggrs::TWinBufSpVecSum>();
     Register<TStreamAggrs::TRecSwitchAggr>();
     Register<TStreamAggrs::THistogramAD>();
+    Register<TStreamAggrs::TPageHinkley>();
     Register<TStreamAggrs::TSwGk>();
 }
 
