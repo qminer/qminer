@@ -10,9 +10,7 @@ class TestRunnable {
 };
 
 TEST(constructor) {
-    //PNotify Notify = TStdNotify::New();
-    printf("HEJ\n");
-    TThreadExecutor ThreadExecutor(10);//, Notify);
+    TThreadPool ThreadPool(1);
 }
 
 #endif

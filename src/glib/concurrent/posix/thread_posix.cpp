@@ -220,12 +220,13 @@ void TThread::Cancel() {
 	if (!IsAlive()) { return; }
 	Status = STATUS_CANCELLED;
 	int code = pthread_cancel(ThreadHandle);
-	EAssertR(code == 0, "Failed to cancel thread!");
+	EAssertR(code == 0, "Failed to queue thread cancelation!");
 }
 
 int TThread::Join() {
     printf("Join %ld\n", GetThreadId());
-	pthread_join(ThreadHandle, NULL);
+	int code = pthread_join(ThreadHandle, NULL);
+    printf("Join code %d\n", code);
     printf("Joined %ld\n", GetThreadId());
 	return 0;
 }
