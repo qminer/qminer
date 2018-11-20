@@ -224,7 +224,9 @@ void TThread::Cancel() {
 }
 
 int TThread::Join() {
+    printf("Join %ld\n", GetThreadId());
 	pthread_join(ThreadHandle, NULL);
+    printf("Joined %ld\n", GetThreadId());
 	return 0;
 }
 

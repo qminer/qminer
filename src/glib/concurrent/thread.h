@@ -12,8 +12,8 @@
 #include <base.h>
 
 enum TMutexType {
-	mtFast,
-	mtRecursive
+    mtFast,
+    mtRecursive
 };
 
 #if defined(GLib_WIN)
@@ -32,15 +32,15 @@ enum TMutexType {
 
 ClassTPE(TInterruptibleThread, PInterruptipleThread, TThread)// {
 protected:
-	// Use for interrupting and waiting
-	TBlocker SleeperBlocker;
+    // Use for interrupting and waiting
+    TBlocker SleeperBlocker;
 public:
-	TInterruptibleThread(): TThread() { }
-	TInterruptibleThread(const TInterruptibleThread& Other): TThread() { operator=(Other); }
-	TInterruptibleThread& operator=(const TInterruptibleThread& Other);
-	
-	void WaitForInterrupt(const int Msecs = INFINITE);
-	void Interrupt();
+    TInterruptibleThread(): TThread() { }
+    TInterruptibleThread(const TInterruptibleThread& Other): TThread() { operator=(Other); }
+    TInterruptibleThread& operator=(const TInterruptibleThread& Other);
+    
+    void WaitForInterrupt(const int Msecs = INFINITE);
+    void Interrupt();
 };
 
 ////////////////////////////////////////////
@@ -48,13 +48,13 @@ public:
 //   Wrapper around critical section, which automatically enters
 //   on construct, and leaves on scope unwinding (destruct)
 class TLock {
-	friend class TCondVarLock;
+    friend class TCondVarLock;
 private:
-	TCriticalSection& CriticalSection;
+    TCriticalSection& CriticalSection;
 public:
-	TLock(TCriticalSection& _CriticalSection):
-		CriticalSection(_CriticalSection) { CriticalSection.Enter(); }
-	~TLock() { CriticalSection.Leave(); }
+    TLock(TCriticalSection& _CriticalSection):
+        CriticalSection(_CriticalSection) { CriticalSection.Enter(); }
+    ~TLock() { CriticalSection.Leave(); }
 };
 
 ////////////////////////////////////////////
@@ -62,56 +62,47 @@ public:
 //   contains a pool of threads which can execute a TRunnable object
 class TThreadExecutor {
 public:
-	class TRunnable;
-		typedef TPt<TRunnable> PRunnable;
-	class TRunnable {
-	private:
-		TCRef CRef;
-	public:
-		friend class TPt<TRunnable>;
-	public:
-		TRunnable() {}
-		virtual ~TRunnable() {}
+    class TRunnable {
+    public:
+        TRunnable() {}
+        virtual ~TRunnable() {}
 
-		virtual void Run() = 0;
-		bool operator ==(const TRunnable& Other) const { return this == &Other; }
-	};
+        virtual void Run() = 0;
+        bool operator ==(const TRunnable& Other) const { return this == &Other; }
+    };
 private:
-	class TExecutorThread: public TThread {
-	private:
-		TThreadExecutor* Executor;
-		PRunnable Runnable;
-		PNotify Notify;
-	public:
-		TExecutorThread();
-		TExecutorThread(TThreadExecutor* Executor, const PNotify& Notify);
+    class TExecutorThread: public TThread {
+    private:
+        TThreadExecutor* Executor;
+        TWPt<TRunnable> Runnable;
+        //PNotify Notify;
+    public:
+        TExecutorThread();
+        TExecutorThread(TThreadExecutor* Executor);//, const PNotify& Notify);
 
-		void Run();
-		void SetRunnable(const PRunnable& _Runnable) { Runnable = _Runnable; };
-	};
+        void Run();
+        void SetRunnable(const TWPt<TRunnable>& _Runnable) { Runnable = _Runnable; };
+    };
 
 private:
-	typedef TThreadV<TExecutorThread> TExecThreadV;
-	typedef TLinkedQueue<PRunnable> TTaskQueue;
+    typedef TThreadV<TExecutorThread> TExecThreadV;
+    typedef TLinkedQueue<TWPt<TRunnable>> TTaskQueue;
 
-	TExecThreadV ThreadV;
-	TTaskQueue TaskQ;
+    TExecThreadV ThreadV;
+    TTaskQueue TaskQ;
 
-	TCondVarLock Lock;
+    TCondVarLock Lock;
 
-	PNotify Notify;
-
-	volatile bool IsFinished;
-
+    //PNotify Notify;
 public:
-	TThreadExecutor(const TInt& PoolSize=1, const PNotify& Notify=TNullNotify::New());
+    TThreadExecutor(const int& PoolSize=1);//, const PNotify& Notify=TNullNotify::New());
 
-	~TThreadExecutor();
+    ~TThreadExecutor();
 
-	void Execute(const PRunnable& Runnable);
+    void Execute(const TWPt<TRunnable>& Runnable);
 
 private:
-	PRunnable WaitForTask();
+    TWPt<TRunnable> WaitForTask();
 };
 
 #endif

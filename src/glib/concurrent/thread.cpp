@@ -25,112 +25,117 @@
 
 TInterruptibleThread& TInterruptibleThread::operator=(const TInterruptibleThread& Other) {
     TThread::operator =(Other);
-	SleeperBlocker = Other.SleeperBlocker;
-	return *this;
+    SleeperBlocker = Other.SleeperBlocker;
+    return *this;
 }
-	
+    
 void TInterruptibleThread::WaitForInterrupt(const int Msecs) {
-	SleeperBlocker.Block(Msecs);
+    SleeperBlocker.Block(Msecs);
 }
 
 void TInterruptibleThread::Interrupt() {
-	SleeperBlocker.Release();
+    SleeperBlocker.Release();
 }
 
 
 ////////////////////////////////////////////
 // Thread executor
 TThreadExecutor::TExecutorThread::TExecutorThread():
-		TThread(),
-		Executor(NULL),
-		Runnable(NULL),
-		Notify(NULL) {}
+        TThread(),
+        Executor(NULL),
+        Runnable(NULL) { printf("created thread\n"); } //,
+        //Notify(NULL) {}
 
-TThreadExecutor::TExecutorThread::TExecutorThread(TThreadExecutor* _Executor, const PNotify& _Notify):
-		TThread(),
-		Executor(_Executor),
-		Runnable(NULL),
-		Notify(_Notify) {}
+TThreadExecutor::TExecutorThread::TExecutorThread(TThreadExecutor* _Executor): //, const PNotify& _Notify):
+        TThread(),
+        Executor(_Executor),
+        Runnable(NULL) { printf("created thread for executor\n"); } //,
+        //Notify(_Notify) {}
 
 
 void TThreadExecutor::TExecutorThread::Run() {
-	while (true) {
-		try {
-			// get a task
-			PRunnable Runnable = Executor->WaitForTask();
-			// check if the executor was terminated
-			if (Runnable.Empty()) { break; }
-			// run the task
-			Runnable->Run();
-		} catch (const PExcept& Except) {
-			Notify->OnNotifyFmt(TNotifyType::ntErr, "Exception in worker thread: %s", Except->GetMsgStr().CStr());
-		}
-	}
+    while (true) {
+        try {
+            // get a task
+            printf("Waiting for work, %ld\n", GetThreadId());
+            TWPt<TRunnable> Runnable = Executor->WaitForTask();
+            // check if the executor was terminated
+            if (Runnable.Empty()) { 
+                printf("Thread got empty runnable, %ld\n", GetThreadId());
+                break; }
+            printf("Thread calling run, %ld\n", GetThreadId());
+            // run the task
+            Runnable->Run();
+        } catch (const PExcept& Except) {
+            printf("Exception in worker thread %ld: %s\n", GetThreadId(), Except->GetMsgStr().CStr());
+        }
+    }
 
-	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Thread %ld exiting finished ...", GetThreadId());
+    printf("Thread %ld exiting finished ...\n", GetThreadId());
 }
 
-TThreadExecutor::TThreadExecutor(const TInt& PoolSize, const PNotify& _Notify):
-		ThreadV(),
-		TaskQ(),
-		Lock(),
-		Notify(_Notify),
-		IsFinished(false) {
+TThreadExecutor::TThreadExecutor(const int& PoolSize): //, const PNotify& _Notify):
+        ThreadV(),
+        TaskQ(),
+        Lock() { //,
+        //Notify(_Notify) {
 
-	Notify->OnNotifyFmt(TNotifyType::ntInfo, "Creating executor with %d threads ...", PoolSize.Val);
+    printf("Creating executor with %d threads ...\n", PoolSize);
 
-	for (int i = 0; i < PoolSize; i++) {
-		ThreadV.Add(TExecutorThread(this, Notify));
-	}
-
-	ThreadV.StartAll();
+    for (int i = 0; i < PoolSize; i++) {
+        ThreadV.Add(TExecutorThread(this)); //, Notify));
+    }
+    printf("Starting %d threads ...\n", PoolSize);
+    ThreadV.StartAll();
 }
 
 TThreadExecutor::~TThreadExecutor() {
-	// cancel the threads
-	Lock.Lock();
+    printf("Destroying executor with %d threads ...\n", ThreadV.Len());
+    // cancel the threads
+    //Lock.Lock();
 
-	for (int i = 0; i < ThreadV.Len(); i++) {
-		if (ThreadV[i].IsAlive()) {
-			ThreadV[i].Cancel();
-		}
-	}
+    for (int i = 0; i < ThreadV.Len(); i++) {
+        if (ThreadV[i].IsAlive()) {
+            printf("Canceling thread %ld...\n", ThreadV[i].GetThreadId());
+            ThreadV[i].Cancel();
+        }
+    }
 
-	Lock.Release();
-	// join
-	ThreadV.Join();
+    //Lock.Release();
+    // join
+    printf("Calling join for %d...\n", ThreadV.Len());
+    ThreadV.Join();
+    printf("Destroyed %d...\n", ThreadV.Len());
 }
 
-void TThreadExecutor::Execute(const PRunnable& Runnable) {
-	if (Runnable.Empty()) { return; }
+void TThreadExecutor::Execute(const TWPt<TRunnable>& Runnable) {
+    if (Runnable.Empty()) { return; }
 
-	Lock.Lock();
+    Lock.Lock();
 
-	Notify->OnNotify(TNotifyType::ntInfo, "Adding new runnable to queue ...");
-	TaskQ.Push(Runnable);
-	Lock.Signal();
+    printf("Adding new runnable to queue ...\n");
+    TaskQ.Push(Runnable);
+    Lock.Signal();
 
-	uint64 QSize = TaskQ.Len();
+    uint64 QSize = TaskQ.Len();
 
-	Lock.Release();
+    Lock.Release();
 
-	if (QSize > 0 && QSize % 100 == 0) {
-		Notify->OnNotifyFmt(TNotifyType::ntWarn, "Task queue has %ld pending tasks!", QSize);
-	}
+    if (QSize > 0 && QSize % 100 == 0) {
+        printf("Task queue has %ld pending tasks!\n", QSize);
+    }
 }
 
-TThreadExecutor::PRunnable TThreadExecutor::WaitForTask() {
-	Lock.Lock();
+TWPt<TThreadExecutor::TRunnable> TThreadExecutor::WaitForTask() {
+    Lock.Lock();
+    printf("Waiting for task!!\n");
+    while (TaskQ.Empty()) {
+        Lock.WaitForSignal();
+    }
+    printf("Got for task!!\n");
+    TWPt<TRunnable> Runnable = TaskQ.Pop();
 
-	while (!IsFinished && TaskQ.Empty()) {
-		Lock.WaitForSignal();
-	}
+    Lock.Release();
 
-	if (IsFinished) { return nullptr; }
-
-	PRunnable Runnable = TaskQ.Pop();
-
-	Lock.Release();
-
-	return Runnable;
+    return Runnable;
 }
