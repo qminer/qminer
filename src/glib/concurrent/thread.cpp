@@ -42,70 +42,70 @@ void TInterruptibleThread::Interrupt() {
 // Thread pool
 TThreadPool::TWorkerThread::TWorkerThread():
         TThread(),
-        Pool(NULL) {}
+        Pool(NULL),
+        Notify(NULL) {}
 
-TThreadPool::TWorkerThread::TWorkerThread(TWPt<TThreadPool> _Pool):
+TThreadPool::TWorkerThread::TWorkerThread(TWPt<TThreadPool> Pool, const TWPt<TNotify>& Notify):
         TThread(),
-        Pool(_Pool) {}
+        Pool(Pool),
+        Notify(Notify) {}
 
 void TThreadPool::TWorkerThread::Run() {
     uint64 ThreadId = GetThreadId();
     while (true) {
         try {
             // get a task, empty task will stop this thread
-            printf("Waiting for work, %ld\n", ThreadId);
             TWPt<TRunnable> Runnable = Pool->WaitForTask(ThreadId);
-            // check if the executor was terminated
+            // thread is stopped by thread pool by sending a NULL pointer
             if (Runnable.Empty()) { 
-                printf("Thread got empty runnable, %ld\n", ThreadId);
                 break; }
-            printf("Thread calling run, %ld\n", ThreadId);
+            Notify->OnNotifyFmt(TNotifyType::ntInfo, "Calling run in thread [%ld]", ThreadId);
             // run the task
             Runnable->Run();
+            // free memory (runnable not empty)
+            Runnable.Del();
         } catch (const PExcept& Except) {
-            printf("Exception in worker thread %ld: %s\n", ThreadId, Except->GetMsgStr().CStr());
+            Notify->OnNotifyFmt(TNotifyType::ntErr, "Exception in worker thread [%ld]: %s", ThreadId, Except->GetMsgStr().CStr());
+        } catch (...) {
+            Notify->OnNotifyFmt(TNotifyType::ntErr, "Unhandeled exception in worker thread [%ld]", ThreadId);
         }
     }
 
-    printf("Thread %ld exiting finished ...\n", ThreadId);
+    Notify->OnNotifyFmt(TNotifyType::ntInfo, "Exiting thread [%ld]", ThreadId);
 }
 
-TThreadPool::TThreadPool(const int& PoolSize):
+TThreadPool::TThreadPool(const int& PoolSize, const PNotify& Notify):
         ThreadV(),
         TaskQ(),
-        Lock() {
+        Lock(),
+        Notify(Notify) {
     EAssertR(PoolSize > 0, "Pool size should be greater than zero.");
-    printf("Creating pool with %d threads ...\n", PoolSize);
-
+    Notify->OnNotifyFmt(TNotifyType::ntInfo, "Creating a pool with %d threads ...", PoolSize);
     for (int ThreadN = 0; ThreadN < PoolSize; ThreadN++) {
-        ThreadV.Add(TWorkerThread(this));
+        ThreadV.Add(TWorkerThread(this, Notify()));
+        ThreadV[ThreadN].Start();
     }
-    printf("Starting %d threads ...\n", PoolSize);
-    ThreadV.StartAll();
 }
 
 TThreadPool::~TThreadPool() {
     int PoolSize = ThreadV.Len();
-    TSysProc::Sleep(3000);
-    printf("Destroying pool with %d threads ...\n", PoolSize);
     // Add empty tasks that will stop threads
     for (int ThreadN = 0; ThreadN < PoolSize; ThreadN++) {
         Execute(NULL);
     }
 
-    // join
-    printf("Calling join for %d...\n", PoolSize);
-    ThreadV.Join();
-    printf("Destroyed %d...\n", PoolSize);
+    // join waits for all threads to terminate after consuming NULL
+    Notify->OnNotifyFmt(TNotifyType::ntInfo, "Waiting for %d threads to finish...", PoolSize);
+    for (int ThreadN = 0; ThreadN < PoolSize; ThreadN++) {
+        ThreadV[ThreadN].Join();
+    }
+    Notify->OnNotifyFmt(TNotifyType::ntInfo, "Destroyed %d threads...", PoolSize);
 }
 
 void TThreadPool::Execute(const TWPt<TRunnable>& Runnable) {
-    printf("Acquiring a lock...\n");
     Lock.Lock();
 
-    printf("Adding new runnable to queue ...\n");
     TaskQ.Push(Runnable);
-    printf("Sending signal in main thread!!\n");
     Lock.Signal();
 
     uint64 QSize = TaskQ.Len();
@@ -113,17 +113,17 @@ void TThreadPool::Execute(const TWPt<TRunnable>& Runnable) {
     Lock.Release();
 
     if (QSize > 0 && QSize % 100 == 0) {
-        printf("Task queue has %ld pending tasks!\n", QSize);
+        Notify->OnNotifyFmt(TNotifyType::ntStat, "Task queue has %ld pending tasks!", QSize);
     }
 }
 
 TWPt<TThreadPool::TRunnable> TThreadPool::WaitForTask(const uint64& ThreadId) {
     Lock.Lock();
     while (TaskQ.Empty()) {
+        // releases lock and waits for signal
+        // automatically acquires lock when it catches a signal
         Lock.WaitForSignal();
-        printf("Got signal in thread %ld!!\n", ThreadId);
     }
-    printf("Got runnable for thread %ld!!\n", ThreadId);
     TWPt<TRunnable> Runnable = TaskQ.Pop();
 
     Lock.Release();

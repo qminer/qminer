@@ -88,7 +88,9 @@ void TCriticalSection::Leave() {
 ////////////////////////////////////////////
 // Conditional variable lock
 TCondVarLock::TCondVarLock():
-	Mutex(TMutexType::mtRecursive) {}
+	Mutex(TMutexType::mtRecursive) {
+        pthread_cond_init(&CondVar, NULL);
+    }
 
 TCondVarLock::~TCondVarLock() {
 	// pthread_cond_destroy should be called to free a condition variable that is no longer needed
@@ -157,6 +159,8 @@ void * TThread::EntryPoint(void * pArg) {
 
     try {
     	pThis->Run();
+    } catch (const PExcept& Except) {
+        printf("Exception in thread %ld: %s\n", pThis->GetThreadId(), Except->GetMsgStr().CStr());
     } catch (...) {
     	printf("Unknown exception while running thread: %s!\n", TUInt64::GetStr(pThis->GetThreadId()).CStr());
     }
@@ -205,13 +209,13 @@ void TThread::Start() {
 	Status = STATUS_STARTED;
 
     // create new thread
-	int code = pthread_create(
+	int Code = pthread_create(
 			&ThreadHandle,	// Handle
 			NULL,			// Attributes
 			EntryPoint,		// Thread func
 			this			// Arg
 	);
-	EAssert(code == 0);
+	EAssert(Code == 0);
 }
 
 void TThread::Cancel() {
@@ -219,16 +223,13 @@ void TThread::Cancel() {
 
 	if (!IsAlive()) { return; }
 	Status = STATUS_CANCELLED;
-	int code = pthread_cancel(ThreadHandle);
-	EAssertR(code == 0, "Failed to queue thread cancelation!");
+	int Code = pthread_cancel(ThreadHandle);
+	EAssertR(Code == 0, "Failed to queue thread cancelation!");
 }
 
 int TThread::Join() {
-    printf("Join %ld\n", GetThreadId());
-	int code = pthread_join(ThreadHandle, NULL);
-    printf("Join code %d\n", code);
-    printf("Joined %ld\n", GetThreadId());
-	return 0;
+	int Code = pthread_join(ThreadHandle, NULL);
+	return Code;
 }
 
 bool TThread::IsAlive() {

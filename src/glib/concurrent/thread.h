@@ -58,10 +58,13 @@ public:
 };
 
 ////////////////////////////////////////////
-// Thread pool
-//   Contains a pool of worker threads which can execute TRunnable objects. The runnable
-//   objects (tasks) form a queue internally. If the queue is empty all worker threads wait
-//   for a signal from the pool.
+/// Thread pool
+///   Contains a pool of worker threads which can execute TRunnable objects. The runnable
+///   objects (tasks) form a queue internally. If the queue is empty all worker threads wait
+///   for a signal from the pool.
+///  Execute function represents the main functionality.
+///  IMPORTANT: thread pool takes ownership of runnable objects and will free them after a task
+///  executes them.
 class TThreadPool {
 public:
     /// Has to implement Run()
@@ -79,32 +82,36 @@ private:
     private:
         /// Pool is queried for new tasks that are to be run on this thread
         TWPt<TThreadPool> Pool;
+        /// Notify
+        TWPt<TNotify> Notify;
     public:
         /// Only needed for Vector constructor
         TWorkerThread();
         /// Main constructor
-        TWorkerThread(TWPt<TThreadPool> Pool);
+        TWorkerThread(TWPt<TThreadPool> Pool, const TWPt<TNotify>& Notify);
         /// Waits for a task from the pool and executes it.
         void Run();
     };
 
 private:
-    typedef TThreadV<TWorkerThread> TWorkerThreadV;
-    typedef TLinkedQueue<TWPt<TRunnable>> TTaskQueue;
-
     /// Vector of threads
-    TWorkerThreadV ThreadV;
+    TVec<TWorkerThread> ThreadV;
     /// Queue of tasks (runnable objects)
-    TTaskQueue TaskQ;
-
-    TCondVarLock Lock; /// Used for signaling to worker threads when the queue is non-empty (work is to be done)
+    TLinkedQueue<TWPt<TRunnable>> TaskQ;
+    /// Used for signaling to worker threads when the queue is non-empty (work is to be done)
+    TCondVarLock Lock;
+    /// Notifiy
+    PNotify Notify;
 public:
     /// Creates and starts threads. When the pool is generated the threads
     /// wait for the task queue to become non-empty.
-    TThreadPool(const int& PoolSize=1);
-    /// Destructor
+    TThreadPool(const int& PoolSize=1, const PNotify& Notify=TNullNotify::New());
+    /// Destructor waits for all work to stop
     ~TThreadPool();
     /// Pushes a runnable task to the queue, which will be executed when a thread is free.
+    /// IMPORTANT: takes ownership of Runnable and frees memmory when the
+    /// task is finished.
+    /// Sending NULL will stop one thread, which is used internally in destructor.
     void Execute(const TWPt<TRunnable>& Runnable);
 
 private:
