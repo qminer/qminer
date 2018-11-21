@@ -92,7 +92,7 @@ TThreadPool::~TThreadPool() {
     int PoolSize = ThreadV.Len();
     // Add empty tasks that will stop threads
     for (int ThreadN = 0; ThreadN < PoolSize; ThreadN++) {
-        Execute(NULL);
+        Execute(NULL, false);
     }
 
     // join waits for all threads to terminate after consuming NULL
@@ -103,7 +103,8 @@ TThreadPool::~TThreadPool() {
     Notify->OnNotifyFmt(TNotifyType::ntInfo, "Destroyed %d threads...", PoolSize);
 }
 
-void TThreadPool::Execute(const TWPt<TRunnable>& Runnable) {
+void TThreadPool::Execute(const TWPt<TRunnable>& Runnable, const bool& CheckNullP) {
+    if (CheckNullP) { EAssertR(!Runnable.Empty(), "Runnable object should not be NULL!"); }
     Lock.Lock();
 
     TaskQ.Push(Runnable);

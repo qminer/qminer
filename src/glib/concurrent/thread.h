@@ -70,7 +70,7 @@ public:
     /// Has to implement Run()
     class TRunnable {
     public:
-        /// Emtpty default constructor
+        /// Empty default constructor
         TRunnable() {}
         /// Destructor
         virtual ~TRunnable() {}
@@ -102,6 +102,7 @@ private:
     TCondVarLock Lock;
     /// Notifiy
     PNotify Notify;
+
 public:
     /// Creates and starts threads. When the pool is generated the threads
     /// wait for the task queue to become non-empty.
@@ -109,12 +110,15 @@ public:
     /// Destructor waits for all work to stop
     ~TThreadPool();
     /// Pushes a runnable task to the queue, which will be executed when a thread is free.
-    /// IMPORTANT: takes ownership of Runnable and frees memmory when the
+    /// IMPORTANT: takes ownership of Runnable and frees memory when the
     /// task is finished.
-    /// Sending NULL will stop one thread, which is used internally in destructor.
-    void Execute(const TWPt<TRunnable>& Runnable);
-
+    void Execute(const TWPt<TRunnable>& Runnable) { Execute(Runnable, true); }
 private:
+    /// Private version of Execute where NULL checks on Runnable
+    /// can be enabled/disabled (set to true in public version).
+    /// If NULL checks are disabled and NULL is passed, then the thread
+    /// is stopped (internal mechanism used in destructor).
+    void Execute(const TWPt<TRunnable>& Runnable, const bool& CheckNullP);
     /// Used by each thread. Threads wait until a runnable object is assigned
     /// to them. Threads pass their id (for tracing).
     TWPt<TRunnable> WaitForTask(const uint64& ThreadId);
