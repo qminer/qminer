@@ -58,16 +58,17 @@ void TThreadPool::TWorkerThread::Run() {
             TWPt<TRunnable> Runnable = Pool->WaitForTask(ThreadId);
             // thread is stopped by thread pool by sending a NULL pointer
             if (Runnable.Empty()) { 
-                break; }
+                break;
+            }
             Notify->OnNotifyFmt(TNotifyType::ntInfo, "Calling run in thread [%ld]", ThreadId);
             // run the task
             Runnable->Run();
             // free memory (runnable not empty)
             Runnable.Del();
         } catch (const PExcept& Except) {
-            Notify->OnNotifyFmt(TNotifyType::ntErr, "Exception in worker thread [%ld]: %s", ThreadId, Except->GetMsgStr().CStr());
+            Notify->OnNotifyFmt(TNotifyType::ntErr, "Unhandeled exception in worker thread [%ld]: %s", ThreadId, Except->GetMsgStr().CStr());
         } catch (...) {
-            Notify->OnNotifyFmt(TNotifyType::ntErr, "Unhandeled exception in worker thread [%ld]", ThreadId);
+            Notify->OnNotifyFmt(TNotifyType::ntErr, "Unknown unhandeled exception in worker thread [%ld]", ThreadId);
         }
     }
 
