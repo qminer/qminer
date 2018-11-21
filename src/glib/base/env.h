@@ -29,7 +29,7 @@ public:
   // basic arguments & command line
   int GetArgs() const {return ArgV.Len();}
   TStr GetArg(const int& ArgN) const {
-    IAssert((0<=ArgN)&&(ArgN<GetArgs())); return ArgV[ArgN];}
+    EAssert((0<=ArgN)&&(ArgN<GetArgs())); return ArgV[ArgN];}
   const TStrV& GetArgV() const { return ArgV; }
   TStr GetExeFNm() const;
   TStr GetExeFPath() const {return GetExeFNm().GetFPath();}

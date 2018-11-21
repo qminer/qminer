@@ -125,6 +125,7 @@
                 'test/cpp/test_temaspvec.cpp',
                 'test/cpp/test_tgix.cpp',
                 'test/cpp/test_thash.cpp',
+                'test/cpp/test_thread_executor.cpp',
                 'test/cpp/test_tjsonval.cpp',
                 'test/cpp/test_tpt.cpp',
                 'test/cpp/test_tqqueue.cpp',

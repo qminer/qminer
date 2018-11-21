@@ -20,22 +20,22 @@
 ////////////////////////////////////////////
 // Mutex
 TMutex::TMutex(const TMutexType& _Type, const bool& LockOnStartP):
-		Type(_Type) {
-	pthread_mutexattr_init(&Attributes);
-	pthread_mutexattr_setpshared(&Attributes, PTHREAD_PROCESS_SHARED);
+        Type(_Type) {
+    pthread_mutexattr_init(&Attributes);
+    pthread_mutexattr_setpshared(&Attributes, PTHREAD_PROCESS_SHARED);
 
-	switch (Type) {
-	case mtFast:
-		pthread_mutexattr_settype(&Attributes, PTHREAD_MUTEX_NORMAL);
-		break;
-	case mtRecursive:
-		pthread_mutexattr_settype(&Attributes, PTHREAD_MUTEX_RECURSIVE);
-		break;
-	default:
-		throw TExcept::New("Invalid critical section type!", "TCriticalSection::Init()");
-	}
+    switch (Type) {
+    case mtFast:
+        pthread_mutexattr_settype(&Attributes, PTHREAD_MUTEX_NORMAL);
+        break;
+    case mtRecursive:
+        pthread_mutexattr_settype(&Attributes, PTHREAD_MUTEX_RECURSIVE);
+        break;
+    default:
+        throw TExcept::New("Invalid critical section type!", "TCriticalSection::Init()");
+    }
 
-	pthread_mutex_init(&MutexHandle, &Attributes);
+    pthread_mutex_init(&MutexHandle, &Attributes);
 }
 
 TMutex::~TMutex() {
@@ -44,101 +44,103 @@ TMutex::~TMutex() {
 }
 
 bool TMutex::Wait(const int& MxMSecs) {
-	timespec waitTime;
-	long nano = MxMSecs * 1000000;
-	waitTime.tv_nsec = nano;
+    timespec waitTime;
+    long nano = MxMSecs * 1000000;
+    waitTime.tv_nsec = nano;
 #ifdef GLib_MACOSX
     //TODO: does not work on OS X
     Fail; return false;
 #else
-	return pthread_mutex_timedlock(&MutexHandle, &waitTime) == 0;
+    return pthread_mutex_timedlock(&MutexHandle, &waitTime) == 0;
 #endif
 }
 
 bool TMutex::Release() {
-	return pthread_mutex_unlock(&MutexHandle) == 0;
+    return pthread_mutex_unlock(&MutexHandle) == 0;
 }
 
 void TMutex::GetLock() {
-	pthread_mutex_lock(&MutexHandle);
+    pthread_mutex_lock(&MutexHandle);
 }
 
 TCriticalSection::TCriticalSection() {
-	pthread_mutexattr_init(&CsAttr);
+    pthread_mutexattr_init(&CsAttr);
 
-	// allow the thread to enter thecritical section multiple times
-	pthread_mutexattr_settype(&CsAttr, PTHREAD_MUTEX_RECURSIVE);
+    // allow the thread to enter thecritical section multiple times
+    pthread_mutexattr_settype(&CsAttr, PTHREAD_MUTEX_RECURSIVE);
 
-	pthread_mutex_init(&Cs, &CsAttr);
+    pthread_mutex_init(&Cs, &CsAttr);
 }
 TCriticalSection::~TCriticalSection() {
-	pthread_mutex_destroy(&Cs);
-	pthread_mutexattr_destroy(&CsAttr);
+    pthread_mutex_destroy(&Cs);
+    pthread_mutexattr_destroy(&CsAttr);
 }
 void TCriticalSection::Enter() {
-	pthread_mutex_lock(&Cs);
+    pthread_mutex_lock(&Cs);
 }
 bool TCriticalSection::TryEnter() {
-	return pthread_mutex_trylock(&Cs);
+    return pthread_mutex_trylock(&Cs);
 }
 void TCriticalSection::Leave() {
-	pthread_mutex_unlock(&Cs);
+    pthread_mutex_unlock(&Cs);
 }
 
 ////////////////////////////////////////////
 // Conditional variable lock
 TCondVarLock::TCondVarLock():
-	Mutex(TMutexType::mtRecursive) {}
+    Mutex(TMutexType::mtRecursive) {
+        pthread_cond_init(&CondVar, NULL);
+    }
 
 TCondVarLock::~TCondVarLock() {
-	// pthread_cond_destroy should be called to free a condition variable that is no longer needed
-	pthread_cond_destroy(&CondVar);
+    // pthread_cond_destroy should be called to free a condition variable that is no longer needed
+    pthread_cond_destroy(&CondVar);
 }
 
 void TCondVarLock::Lock() {
-	Mutex.GetLock();
+    Mutex.GetLock();
 }
 
 bool TCondVarLock::Release() {
-	return Mutex.Release();
+    return Mutex.Release();
 }
 
 void TCondVarLock::WaitForSignal() {
-	pthread_cond_wait(&CondVar, &Mutex.MutexHandle);
+    pthread_cond_wait(&CondVar, &Mutex.MutexHandle);
 }
 
 void TCondVarLock::Signal() {
-	pthread_cond_signal(&CondVar);
+    pthread_cond_signal(&CondVar);
 }
 
 void TCondVarLock::Broadcast() {
-	pthread_cond_broadcast(&CondVar);
+    pthread_cond_broadcast(&CondVar);
 }
 
 TBlocker::TBlocker() {
-	/*Event = CreateEvent(
+    /*Event = CreateEvent(
         NULL,               // default security attributes
         false,               // auto-reset event
         false,              // initial state is nonsignaled
-        NULL);	// object name
-	IAssert(Event != NULL);*/
-	pthread_cond_init(&Event, NULL);
-	pthread_mutex_init(&Mutex, NULL);
+        NULL);    // object name
+    IAssert(Event != NULL);*/
+    pthread_cond_init(&Event, NULL);
+    pthread_mutex_init(&Mutex, NULL);
 }
 
 TBlocker::~TBlocker() {
-	pthread_cond_destroy(&Event);
-	pthread_mutex_destroy(&Mutex);
+    pthread_cond_destroy(&Event);
+    pthread_mutex_destroy(&Mutex);
 }
 
 void TBlocker::Block(int Msecs) {
-	timespec waitTime;
-	long nano = Msecs * 1000000;
-	waitTime.tv_nsec = nano;
-	pthread_cond_timedwait(&Event, &Mutex, &waitTime);
+    timespec waitTime;
+    long nano = Msecs * 1000000;
+    waitTime.tv_nsec = nano;
+    pthread_cond_timedwait(&Event, &Mutex, &waitTime);
 }
 void TBlocker::Release() {
-	pthread_cond_broadcast(&Event);
+    pthread_cond_broadcast(&Event);
 }
 
 
@@ -156,9 +158,11 @@ void * TThread::EntryPoint(void * pArg) {
     pthread_cleanup_push(SetFinished, pThis);
 
     try {
-    	pThis->Run();
+        pThis->Run();
+    } catch (const PExcept& Except) {
+        printf("Exception in thread %ld: %s\n", pThis->GetThreadId(), Except->GetMsgStr().CStr());
     } catch (...) {
-    	printf("Unknown exception while running thread: %s!\n", TUInt64::GetStr(pThis->GetThreadId()).CStr());
+        printf("Unknown exception while running thread: %s!\n", TUInt64::GetStr(pThis->GetThreadId()).CStr());
     }
 
     // pop and execute the cleanup routine
@@ -167,110 +171,110 @@ void * TThread::EntryPoint(void * pArg) {
 }
 
 void TThread::SetFinished(void *pArg) {
-	TThread *pThis = (TThread *) pArg;
+    TThread *pThis = (TThread *) pArg;
 
-	TLock Lck(pThis->CriticalSection);
-	pThis->Status = STATUS_FINISHED;
+    TLock Lck(pThis->CriticalSection);
+    pThis->Status = STATUS_FINISHED;
 }
 
 TThread::TThread():
-		ThreadHandle(),
-		CriticalSection(),
-		Status(STATUS_CREATED) { }
+        ThreadHandle(),
+        CriticalSection(),
+        Status(STATUS_CREATED) { }
 
 TThread::~TThread() {
-	TLock Lck(CriticalSection);
-	if (IsAlive() && !IsCancelled()) {
-		Cancel();
-	}
+    TLock Lck(CriticalSection);
+    if (IsAlive() && !IsCancelled()) {
+        Cancel();
+    }
 }
 
 TThread &TThread::operator =(const TThread& Other) {
-	ThreadHandle = Other.ThreadHandle;
-	CriticalSection = Other.CriticalSection;
-	return *this;
+    ThreadHandle = Other.ThreadHandle;
+    CriticalSection = Other.CriticalSection;
+    return *this;
 }
 
 void TThread::Start() {
-	TLock Lck(CriticalSection);
+    TLock Lck(CriticalSection);
 
-	if (IsAlive()) {
-		printf("Tried to start a thread that is already alive! Ignoring ...\n");
-		return;
-	}
-	if (IsCancelled()) {
-		return;
-	}
+    if (IsAlive()) {
+        printf("Tried to start a thread that is already alive! Ignoring ...\n");
+        return;
+    }
+    if (IsCancelled()) {
+        return;
+    }
 
-	Status = STATUS_STARTED;
+    Status = STATUS_STARTED;
 
     // create new thread
-	int code = pthread_create(
-			&ThreadHandle,	// Handle
-			NULL,			// Attributes
-			EntryPoint,		// Thread func
-			this			// Arg
-	);
-	EAssert(code == 0);
+    int Code = pthread_create(
+            &ThreadHandle,    // Handle
+            NULL,            // Attributes
+            EntryPoint,        // Thread func
+            this            // Arg
+    );
+    EAssert(Code == 0);
 }
 
 void TThread::Cancel() {
-	TLock Lck(CriticalSection);
+    TLock Lck(CriticalSection);
 
-	if (!IsAlive()) { return; }
-	Status = STATUS_CANCELLED;
-	int code = pthread_cancel(ThreadHandle);
-	EAssertR(code == 0, "Failed to cancel thread!");
+    if (!IsAlive()) { return; }
+    Status = STATUS_CANCELLED;
+    int Code = pthread_cancel(ThreadHandle);
+    EAssertR(Code == 0, "Failed to queue thread cancelation!");
 }
 
 int TThread::Join() {
-	pthread_join(ThreadHandle, NULL);
-	return 0;
+    int Code = pthread_join(ThreadHandle, NULL);
+    return Code;
 }
 
 bool TThread::IsAlive() {
-	TLock Lck(CriticalSection);
-	return Status == STATUS_STARTED || IsCancelled();
+    TLock Lck(CriticalSection);
+    return Status == STATUS_STARTED || IsCancelled();
 }
 
 bool TThread::IsCancelled() {
-	TLock Lck(CriticalSection);
-	return Status == STATUS_CANCELLED;
+    TLock Lck(CriticalSection);
+    return Status == STATUS_CANCELLED;
 }
 
 bool TThread::IsFinished() {
-	TLock Lck(CriticalSection);
-	return Status == STATUS_FINISHED;
+    TLock Lck(CriticalSection);
+    return Status == STATUS_FINISHED;
 }
 
 int TThread::GetCoreCount() {
-	int NumCpu;
-	#if defined(GLib_LINUX) || defined(GLIB_SOLARIS) || defined(GLib_CYGWIN)
-		NumCpu = sysconf( _SC_NPROCESSORS_ONLN );
-	#elif defined(GLib_BSD)
-		nt mib[4];
-		size_t len;
+    int NumCpu;
+    #if defined(GLib_LINUX) || defined(GLIB_SOLARIS) || defined(GLib_CYGWIN)
+        NumCpu = sysconf( _SC_NPROCESSORS_ONLN );
+    #elif defined(GLib_BSD)
+        nt mib[4];
+        size_t len;
 
-		/* set the mib for hw.ncpu */
-		mib[0] = CTL_HW;
-		mib[1] = HW_AVAILCPU;  // alternatively, try HW_NCPU;
+        /* set the mib for hw.ncpu */
+        mib[0] = CTL_HW;
+        mib[1] = HW_AVAILCPU;  // alternatively, try HW_NCPU;
 
-		/* get the number of CPUs from the system */
-		sysctl(mib, 2, &NumCpu, &len, NULL, 0);
+        /* get the number of CPUs from the system */
+        sysctl(mib, 2, &NumCpu, &len, NULL, 0);
 
-		if( numCPU < 1 )
-		{
-			 mib[1] = HW_NCPU;
-			 sysctl( mib, 2, &NumCpu, &len, NULL, 0 );
+        if( numCPU < 1 )
+        {
+             mib[1] = HW_NCPU;
+             sysctl( mib, 2, &NumCpu, &len, NULL, 0 );
 
-			 if( NumCpu < 1 )
-			 {
-				  NumCpu = 1;
-			 }
-		}
-	#else
-		NumCpu = 1;
-	#endif
+             if( NumCpu < 1 )
+             {
+                  NumCpu = 1;
+             }
+        }
+    #else
+        NumCpu = 1;
+    #endif
 
-	return NumCpu;
+    return NumCpu;
 }
