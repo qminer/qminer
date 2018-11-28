@@ -90,13 +90,24 @@ void TEnv::InitLogger(const int& _Verbosity,
 }
 
 void ErrorLog(const TStr& MsgStr) {
+    IAssertR(!TEnv::Error.Empty(),
+             "[TQm::ErrorLog] Qminer environment loggers not initialized!");
     TEnv::Error->OnStatus(MsgStr);
 }
 void InfoLog(const TStr& MsgStr) {
-    if (TEnv::Verbosity >= 1) { TEnv::Logger->OnStatus(MsgStr); }
+    if (TEnv::Verbosity >= 1) {
+        IAssertR(!TEnv::Logger.Empty(),
+                 "[TQm::InfoLog] Qminer environment loggers not initialized!");
+        TEnv::Logger->OnStatus(MsgStr);
+    }
 }
 void DebugLog(const TStr& MsgStr) {
-    if (TEnv::Verbosity >= 2) { TEnv::Debug->OnStatus(MsgStr); }
+    if (TEnv::Verbosity >= 2) {
+        IAssertR(!TEnv::Debug.Empty(),
+                 "[TQm::DebugLog] Qminer environment loggers not initialized!");
+        TEnv::Debug->OnStatus(MsgStr);
+
+    }
 }
 
 ///////////////////////////////
