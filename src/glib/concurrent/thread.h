@@ -79,6 +79,7 @@ public:
     };
 private:
     class TWorkerThread: public TThread {
+    friend class TThreadPool;
     private:
         /// Pool is queried for new tasks that are to be run on this thread
         TWPt<TThreadPool> Pool;
@@ -102,7 +103,11 @@ private:
     TCondVarLock Lock;
     /// Notifiy
     PNotify Notify;
-
+    /// Outstainding Tasks
+    TInt OutstandingTasks;
+protected:
+    /// Executed when a runnable finishes executing
+    void OnRunnableDone();
 public:
     /// Creates and starts threads. When the pool is generated the threads
     /// wait for the task queue to become non-empty.
@@ -113,6 +118,8 @@ public:
     /// IMPORTANT: takes ownership of Runnable and frees memory when the
     /// task is finished.
     void Execute(const TWPt<TRunnable>& Runnable) { Execute(Runnable, true); }
+    /// Returns the number of remaining tasks (thread safe). Acquires and releases lock (slow).
+    int GetOutstandingTasks();
 private:
     /// Private version of Execute where NULL checks on Runnable
     /// can be enabled/disabled (set to true in public version).
