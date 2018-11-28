@@ -79,7 +79,6 @@ void TThreadPool::TWorkerThread::Run() {
 void TThreadPool::OnRunnableDone() {
     Lock.Lock();
     OutstandingTasks--;
-    printf("%d outstaning\n", OutstandingTasks.Val);
     Lock.Release();
 }
 
