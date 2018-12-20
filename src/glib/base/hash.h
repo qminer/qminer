@@ -1031,6 +1031,279 @@ typedef TStrHash<TInt> TStrSH;
 typedef TStrHash<TInt> TStrIntSH;
 typedef TStrHash<TIntV> TStrToIntVSH;
 
+
+/////////////////////////////////////////////////
+// Trie
+
+// TTrie behaves like a hash table where the KeyV is a sequence of symbols (of type TSym).
+// Each KeyV is associated with one TDat value.
+// Keys can be added but not removed (except by clearing the whole trie).
+// - AddDat adds a KeyV with the given TDat; if the KeyV already exists, its TDat is
+//   overwritten by the new one.  This is exactly the same behaviour as in THash.
+// - AddIfNew adds the KeyV (with the given TDat) only if it is new; if the KeyV
+//   already exists, the trie is not modified.
+// Searching by Prefix is also supported and returns the DatV of all the keys that
+// begin with a given Prefix.  The trie does not guarantee that the DatV are
+// returned in any particular order (in the current implementation, more recently 
+// addes sub-branches of the tree are traversed First).
+// - SearchByPrefixEx allows you to pass a callable object that gets called with each
+//   matching TDat; it should return 'true' to continue searching or 'false' to stop.
+// - SearchByPrefix returns the matching TDat's in a vector.
+// For all these functions, the KeyV (when adding) or Prefix (when searching) 
+// can be provided as:
+// - a pair of iterators 'First' and 'Last', such that the KeyV is [First, Last);
+// - a TVec<T> or std::initializer_list<T> - if a TSym can be initialized from a T;
+// - a TStr, TChA, or const char * - if a TSym can be initialized from a char.
+//
+// Examples:
+//    TTrie<TCh, TInt> trie;
+//    trie.AddDat("ena", 111);
+//    TStr s = "dve"; trie.AddDat(s, 222);
+//    TChA c = "tri"; trie.AddDat(c, 333);
+//    const char *p = "devet"; trie.AddDat(p, 999);
+//    TIntV results; trie.SearchByPrefix("d", results);
+//    for (int i : results) printf("%d\n", i);  // prints 222 and 999
+//    trie.SearchByPrefix("en", results);
+//    for (int i : results) printf("%d\n", i);  // prints 111
+//
+//    TTrie<TInt, TStr> trie2;
+//    trie2.AddDat({2, 3, 5, 7, 11}, "primes");
+//    trie2.AddDat({2, 4, 6}, "even");
+//    trie2.AddDat({4, 9, 16, 25}, "squares");
+//    trie2.AddDat({2, 3, 5, 8, 13, 21}, "fib");
+//    TIntV Prefix; Prefix.Add(2); Prefix.Add(3); 
+//    TStrV results2; trie2.SearchByPrefix(Prefix, results2);
+//    for (const TStr& s2: results2) printf("%s\n", s2.CStr()); // prints 'primes' and 'fib'
+
+template <typename TSym_, typename TDat_>
+class TTrie
+{
+public:
+    typedef TDat_ TDat;
+    typedef TSym_ TSym;
+    typedef decltype(reinterpret_cast<THash<TInt, TInt>*>(nullptr)->GetKeyId(0)) TNodeId;
+    typedef TNodeId TDatIdx;
+    typedef TVec<TSym> TSymV;
+protected:
+    // Make sure that we have boxed varsions of TNodeId and TDatIdx for use
+    // in hash table keys etc., and an unboxed version of TDatIdx for use
+    // as the index type in TDatVec.
+    template <typename I> struct TBox { typedef TNum<I> B; };
+    template <typename I> struct TBox<TNum<I>> { typedef TNum<I> B; };
+    typedef typename TBox<TNodeId>::B TNodeIdB;
+    typedef typename TBox<TDatIdx>::B TDatIdxB;
+    template <typename I> struct TUnBox { typedef I U; };
+    template <typename I> struct TUnBox<TNum<I>> { typedef I U; };
+    typedef typename TUnBox<TDatIdx>::U TDatIdxU;
+    struct TNode
+    {
+        // If one of the keys ends at this Node, 'DatV[DatIdx]' is its corresponding Dat.
+        // Otherwise, 'DatIdx' will be -1.
+        TDatIdxB DatIdx;
+        // FirstChild and NextSib are used to form linked lists of sibling nodes.
+        TNodeIdB FirstChild, NextSib;
+        TNode() : DatIdx(-1), FirstChild(-1), NextSib(-1) { }
+        explicit TNode(TSIn& SIn) { DatIdx.Load(SIn); FirstChild.Load(SIn); NextSib.Load(SIn); }
+        void Save(TSOut& SOut) const { DatIdx.Save(SOut); FirstChild.Save(SOut); NextSib.Save(SOut); }
+    };
+    typedef TPair<TNodeIdB, TSym> TNodeIdSymPr; // (parent Node ID, label on the outgoing link)
+    typedef THash<TNodeIdSymPr, TNode> TTrieHash;
+    typedef TVec<TDat, TDatIdxU> TDatVec;
+    TTrieHash TrieH; // KeyId: TNodeId
+    TDatVec DatV; // index: TDatIdx
+    TNodeId Root; // should be 0
+    // The following Begin/End functions are used by AddDat, AddIfNew, SearchByPrefix[Ex]
+    // to convert a TKey into a pair of iterators.  Why don't we simply use begin(KeyV) and
+    // end(KeyV) in every case?  Because then someone would call AddDat("foo", someDat)
+    // and be unpleasantly surprised to discover that his KeyV is a sequence of 
+    // 4 characters, {'F', 'o', 'o', '\0'}, rather than a sequence of 3 characters.
+    struct TKeyAccess
+    {
+        template<typename T> inline static auto Begin(const TVec<T>& KeyV) { return KeyV.begin(); }
+        inline static auto Begin(const TStr& Key) { return Key.begin(); }
+        inline static auto Begin(const TChA& Key) { return Key.Empty() ? nullptr : Key.CStr(); }
+        inline static auto Begin(const char *Key) { return Key; }
+        inline static auto End(const TSymV& Key) { return Key.end(); }
+        template<typename T> inline static auto End(const TVec<T>& Key) { return Key.end(); }
+        inline static auto End(const TStr& Key) { return Key.end(); }
+        inline static auto End(const TChA& Key) { return Key.Empty() ? nullptr : Key.CStr() + Key.Len(); }
+        inline static auto End(const char *Key) { if (Key) while (*Key) ++Key; return Key; }
+    };
+public:
+    void Clr() { TrieH.Clr(); DatV.Clr(); Root = TrieH.AddKey({ -1, TSym{} }); TrieH[Root] = {}; }
+    TTrie() { Clr(); }
+    void Save(TSOut& SOut) const { TrieH.Save(SOut); DatV.Save(SOut); SOut.Save(Root); SOut.SaveCs(); }
+    void Load(TSIn& SIn) { TrieH.Load(SIn); DatV.Load(SIn); SIn.Load(Root); SIn.LoadCs(); }
+    explicit TTrie(TSIn& SIn) { Load(SIn); }
+    bool Empty() const { return DatV.Empty(); }
+    TDatIdx Len() const { return DatV.Len(); }
+    TNodeId Nodes() const { return TrieH.Len(); }
+protected:
+    template<typename TIt> TNodeId GetKeyId(TIt First, TIt Last) const;
+    template<typename TIt> TNodeId AddKey(TIt First, TIt Last);
+public:
+    // Returns 'true' iff the sequence [First..Last) is present and associated with a 'Dat' 
+    // (as opposed to e.g. just being present in the trie because it happens to be a Prefix of some longer KeyV).
+    template<typename TIt> bool IsKey(TIt First, TIt Last) const {
+        auto KeyId = GetKeyId(First, Last); return KeyId >= 0 && TrieH[KeyId].DatIdx >= 0;
+    }
+    // If the KeyV is new, AddDat adds it, otherwise it overwrites its existing TDat.
+    // It also returns a reference to the TDat (in 'DatV').  
+    // In other words, this works just like THash::AddKey.
+    template<typename TIt> TDat& AddDat(TIt First, TIt Last, const TDat& Dat) {
+        auto &Node = TrieH[AddKey(First, Last)];
+        if (Node.DatIdx < 0) {
+            Node.DatIdx = DatV.Len();
+            DatV.Add(Dat);
+            return DatV.Last();
+        }
+        else {
+            TDat &R = DatV[Node.DatIdx];
+            R = Dat;
+            return R;
+        }
+    }
+    template<typename TKey> TDat& AddDat(const TKey &Key, const TDat& Dat) { return AddDat(TKeyAccess::Begin(Key), TKeyAccess::End(Key), Dat); }
+    template<typename T> TDat& AddDat(const std::initializer_list<T> &KeyV, const TDat& Dat) { return AddDat(KeyV.begin(), KeyV.end(), Dat); }
+    // If the KeyV is new, AddIfNew function adds it and returns true; 
+    // otherwise it returns false and does not change anything.
+    template<typename TIt> bool AddIfNew(TIt First, TIt Last, const TDat& Dat) {
+        auto &Node = TrieH[AddKey(First, Last)];
+        if (Node.DatIdx >= 0) {
+            return false;
+        }
+        Node.DatIdx = DatV.Len();
+        DatV.Add(Dat);
+        return true;
+    }
+    template<typename TKey> bool AddIfNew(const TKey& Key, const TDat& Dat) { using std::begin; using std::end; return AddIfNew(begin(Key), end(Key), Dat); }
+protected:
+    // Traverses all the nodes in the subtree rooted by 'NodeId', 
+    // calling 'Sink(Dat)' for each of them that has an associated TDat.
+    // The Sink should return 'false' to interrupt the traversal, 'true' to continue.
+    // TraverseSubtree returns 'false' if it was interrupted by the Sink, 'true' otherwise.
+    template<typename TSink> bool TraverseSubtree(TNodeId NodeId, TSink&& Sink) const;
+public:
+    // SearchByPrefixEx() searches for items whose KeyV begins with 'Prefix'; for each of
+    // them, it calls 'Sink(Dat)' with the corresponding TDat.
+    // If the Sink returns false, the search stops immediately, otherwise it continues.
+    // SearchByPrefixEx() returns the number of calls made to the Sink.
+    template<typename TIt, typename TSink> void SearchByPrefixEx(TIt PrefixFirst, TIt PrefixLast, TSink&& Sink) const {
+        TNodeId NodeId = GetKeyId(PrefixFirst, PrefixLast);
+        if (NodeId >= 0) {
+            TraverseSubtree(NodeId, Sink);
+        }
+    }
+    template<typename TKey, typename TSink> void SearchByPrefixEx(const TKey& Prefix, TSink&& Sink) const { SearchByPrefixEx(TKeyAccess::Begin(Prefix), TKeyAccess::End(Prefix), Sink); }
+    template<typename T, typename TSink> void SearchByPrefixEx(const std::initializer_list<T> &Prefix, TSink&& Sink) const { SearchByPrefixEx(Prefix.Begin(), Prefix.End(), Sink); }
+    // SearchByPrefix() adds, to 'DestV', all the TDat's whose KeyV starts with 'Prefix'.  
+    // If MaxResults >= 0, at most MaxResults DatV are added and others are ignored.  
+    // SearchByPrefix() returns the number of elements added to 'DestV'.
+    template<typename TIt> int SearchByPrefix(TIt PrefixFirst, TIt PrefixLast, TDatVec& DestV, int MaxResults = -1, bool ClrDest = true) const;
+    template<typename TKey> int SearchByPrefix(const TKey& Prefix, TDatVec& DestV, int MaxResults = -1, bool ClrDest = true) const { return SearchByPrefix(TKeyAccess::Begin(Prefix), TKeyAccess::End(Prefix), DestV, MaxResults, ClrDest); }
+    template<typename T> int SearchByPrefix(const std::initializer_list<T>& Prefix, TDatVec& DestV, int MaxResults = -1, bool ClrDest = true) const { return SearchByPrefix(Prefix.begin(), Prefix.end(), DestV, MaxResults, ClrDest); }
+    // Dump() prints the contents of the trie to 'F'.  The writers must support calls
+    // of the form 'SymWriter(FILE *, TSym)' and 'DatWriter(FILE *, TDat).
+    template<typename TSymWriter, typename TDatWriter> void Dump(FILE *F, TSymWriter&& SymWriter, TDatWriter&& DatWriter) const;
+};
+
+template <typename TSym_, typename TDat_>
+template<typename TSymWriter, typename TDatWriter>
+void  TTrie<TSym_, TDat_>::Dump(FILE *F, TSymWriter&& SymWriter, TDatWriter&& DatWriter) const
+{
+    if (!F) {
+        F = stdout;
+    }
+    typedef long long ll;
+    //typename TUnBox<TInt>::U x1; typename TUnBox<int>::U x2; typename TBox<TInt>::B x3; typename TBox<int>::B x4;
+    fprintf(F, "TTrie: %lld nodes, %lld DatV\n", ll(TrieH.Len()), ll(DatV.Len()));
+    for (TNodeId nodeId = TrieH.FFirstKeyId(); TrieH.FNextKeyId(nodeId); )
+    {
+        const auto &pr = TrieH.GetKey(nodeId); const auto &node = TrieH[nodeId];
+        fprintf(F, "- (parent %lld + label ", ll(pr.Val1)); SymWriter(F, pr.Val2);
+        fprintf(F, ") -> Node %lld, firstChld %lld, NextSib %lld, DatIdx %lld", ll(nodeId), ll(node.FirstChild), ll(node.NextSib), ll(node.DatIdx));
+        if (node.DatIdx >= 0) {
+            fprintf(F, " ");
+            DatWriter(F, DatV[node.DatIdx]);
+        }
+        fprintf(F, "\n");
+    }
+}
+
+template <typename TSym_, typename TDat_>
+template <typename TIt>
+typename TTrie<TSym_, TDat_>::TNodeId TTrie<TSym_, TDat_>::AddKey(TIt First, TIt Last)
+{
+    TNodeId NodeId = Root;
+    for (; First != Last; ++First)
+    {
+        TNodeIdSymPr NextPr{ NodeId, *First };
+        TNodeId ChildId = TrieH.GetKeyId(NextPr);
+        if (ChildId < 0) {
+            ChildId = TrieH.AddKey(NextPr);
+            TNode &Child = TrieH[ChildId], &Node = TrieH[NodeId];
+            Child.NextSib = Node.FirstChild; Node.FirstChild = ChildId;
+        }
+        NodeId = ChildId;
+    }
+    return NodeId;
+}
+
+template <typename TSym_, typename TDat_>
+template <typename TIt>
+typename TTrie<TSym_, TDat_>::TNodeId TTrie<TSym_, TDat_>::GetKeyId(TIt First, TIt Last) const
+{
+    TNodeId NodeId = Root; if (NodeId < 0) return NodeId;
+    for (; First != Last; ++First)
+    {
+        NodeId = TrieH.GetKeyId({ NodeId, *First });
+        if (NodeId < 0) {
+            break;
+        }
+    }
+    return NodeId;
+}
+
+template <typename TSym_, typename TDat_>
+template <typename TSink>
+bool TTrie<TSym_, TDat_>::TraverseSubtree(TNodeId NodeId, TSink&& Sink) const
+{
+    if (NodeId < 0) {
+        return true;
+    }
+    const TNode &Node = TrieH[NodeId]; if (Node.DatIdx >= 0) {
+        if (!Sink(DatV[Node.DatIdx])) {
+            return false;
+        }
+    }
+    for (TNodeId ChildId = Node.FirstChild; ChildId >= 0; ChildId = TrieH[ChildId].NextSib) {
+        if (!TraverseSubtree(ChildId, Sink)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template <typename TSym_, typename TDat_>
+template <typename TIt>
+int TTrie<TSym_, TDat_>::SearchByPrefix(TIt PrefixFirst, TIt PrefixLast, TDatVec& Dest, int MaxResults, bool ClrDest) const
+{
+    if (ClrDest) {
+        Dest.Clr();
+    }
+    if (MaxResults == 0) {
+        return 0;
+    }
+    int NAdded = 0;
+    SearchByPrefixEx(PrefixFirst, PrefixLast, [&Dest, &NAdded, MaxResults](const TDat& dat) {
+        Dest.Add(dat);
+        NAdded++;
+        return MaxResults < 0 || NAdded < MaxResults;
+        });
+    return NAdded;
+}
+
+
 /////////////////////////////////////////////////
 // Cache
 template <class TKey, class TDat, class THashFunc = TDefaultHashFunc<TKey> >
