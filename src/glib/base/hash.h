@@ -1119,15 +1119,15 @@ protected:
     // 4 characters, {'F', 'o', 'o', '\0'}, rather than a sequence of 3 characters.
     struct TKeyAccess
     {
-        template<typename T> inline static auto Begin(const TVec<T>& KeyV) { return KeyV.begin(); }
-        inline static auto Begin(const TStr& Key) { return Key.begin(); }
-        inline static auto Begin(const TChA& Key) { return Key.Empty() ? nullptr : Key.CStr(); }
-        inline static auto Begin(const char *Key) { return Key; }
-        inline static auto End(const TSymV& Key) { return Key.end(); }
-        template<typename T> inline static auto End(const TVec<T>& Key) { return Key.end(); }
-        inline static auto End(const TStr& Key) { return Key.end(); }
-        inline static auto End(const TChA& Key) { return Key.Empty() ? nullptr : Key.CStr() + Key.Len(); }
-        inline static auto End(const char *Key) { if (Key) while (*Key) ++Key; return Key; }
+        template<typename T> inline static T* Begin(const TVec<T>& KeyV) { return KeyV.begin(); }
+        inline static const char* Begin(const TStr& Key) { return Key.begin(); }
+        inline static const char* Begin(const TChA& Key) { return Key.Empty() ? nullptr : Key.CStr(); }
+        inline static const char* Begin(const char *Key) { return Key; }
+        inline static TSym* End(const TSymV& Key) { return Key.end(); }
+        template<typename T> inline static T* End(const TVec<T>& Key) { return Key.end(); }
+        inline static const char* End(const TStr& Key) { return Key.end(); }
+        inline static const char* End(const TChA& Key) { return Key.Empty() ? nullptr : Key.CStr() + Key.Len(); }
+        inline static const char* End(const char *Key) { if (Key) while (*Key) ++Key; return Key; }
     };
 public:
     void Clr() { TrieH.Clr(); DatV.Clr(); Root = TrieH.AddKey({ -1, TSym{} }); TrieH[Root] = {}; }
