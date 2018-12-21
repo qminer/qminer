@@ -1081,7 +1081,7 @@ class TTrie
 public:
     typedef TDat_ TDat;
     typedef TSym_ TSym;
-    typedef decltype(reinterpret_cast<THash<TInt, TInt>*>(nullptr)->GetKeyId(0)) TNodeId;
+    typedef decltype(static_cast<THash<TInt, TInt>*>(nullptr)->GetKeyId(0)) TNodeId;
     typedef TNodeId TDatIdx;
     typedef TVec<TSym> TSymV;
 protected:
