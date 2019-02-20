@@ -316,6 +316,49 @@ void TJsonVal::AssertObjKeyBool(const TStr& Key, const TStr& Fun) {
   if (!GetObjKey(Key)->IsBool()) { throw TExcept::New("Exception in function `" + Fun + "`: JSON property:`" + Key + "` is not a boolean."); }
 }
 
+PJsonVal TJsonVal::AssertGetObjKey(const TStr& Property, const TStr& ObjNm) {
+    EAssertR(IsObj(), ObjNm + " should be an object");
+    EAssertR(IsObjKey(Property), ObjNm + " should have `" + Property + "` property");
+    PJsonVal Result = GetObjKey(Property);
+    return Result;
+}
+
+TStr TJsonVal::AssertGetObjStr(const TStr& Property, const TStr& ObjNm) {
+    PJsonVal Result = AssertGetObjKey(Property, ObjNm);
+    EAssertR(Result->IsStr(), ObjNm + "." + Property + " must be a string");
+    return Result->GetStr();
+}
+
+double TJsonVal::AssertGetObjNum( const TStr& Property, const TStr& ObjNm) {
+    PJsonVal Result = AssertGetObjKey(Property, ObjNm);
+    EAssertR(Result->IsNum(), ObjNm + "." + Property + " must be a number");
+    return Result->GetNum();
+}
+
+int TJsonVal::AssertGetObjInt(const TStr& Property, const TStr& ObjNm) {
+    double Result = AssertGetObjNum(Property, ObjNm);
+    EAssertR(Result == floor(Result), ObjNm + "." + Property + " must be an integer");
+    return (int)Result;
+}
+
+bool TJsonVal::AssertGetObjBool(const TStr& Property, const TStr& ObjNm) {
+    PJsonVal Result = AssertGetObjKey(Property, ObjNm);
+    EAssertR(Result->IsBool(), ObjNm + "." + Property + " must be a boolean");
+    return Result->GetBool();
+}
+
+PJsonVal TJsonVal::AssertGetObjArr(const TStr& Property, const TStr& ObjNm) {
+    PJsonVal Result = AssertGetObjKey(Property, ObjNm);
+    EAssertR(Result->IsArr(), ObjNm + "." + Property + " must be an array");
+    return Result;
+}
+
+PJsonVal TJsonVal::AssertGetObjObj(const TStr& Property, const TStr& ObjNm) {
+    PJsonVal Result = AssertGetObjKey(Property, ObjNm);
+    EAssertR(Result->IsObj(), ObjNm + "." + Property + " must be an object");
+    return Result;
+}
+
 uint64 TJsonVal::GetMemUsed() const {
   return sizeof(TJsonVal) +
     // JsonValType is an enum and is already counted
@@ -403,69 +446,48 @@ PJsonVal TJsonVal::GetValFromStr(const TStr& JsonStr){
 }
 
 void TJsonVal::AddEscapeChAFromStr(const TStr& Str, TChA& ChA){
-  if (TUnicodeDef::IsDef()) {
+    static TUniCodec UniCodec(uehIgnore, false, TUniCodec::DefaultReplacementChar, false);
     // parse the UTF8 string
-    TIntV UStr; TUnicodeDef::GetDef()->DecodeUtf8(Str, UStr);
+    TIntV UStr; UniCodec.DecodeUtf8(Str, UStr, false);
     // escape the string
     for (int ChN = 0; ChN < UStr.Len(); ChN++) {
-      const int UCh = UStr[ChN];
-      if (UCh < 0x80) {
-        // 7-bit ascii
-        const char Ch = (char)UCh;
-        switch (Ch) {
-          case '"' : ChA.AddCh('\\'); ChA.AddCh('"'); break;
-          case '\\' : ChA.AddCh('\\'); ChA.AddCh('\\'); break;
-          case '/' : ChA.AddCh('\\'); ChA.AddCh('/'); break;
-          case '\b' : ChA.AddCh('\\'); ChA.AddCh('b'); break;
-          case '\f' : ChA.AddCh('\\'); ChA.AddCh('f'); break;
-          case '\n' : ChA.AddCh('\\'); ChA.AddCh('n'); break;
-          case '\r' : ChA.AddCh('\\'); ChA.AddCh('r'); break;
-          case '\t' : ChA.AddCh('\\'); ChA.AddCh('t'); break;
-          default :
-            ChA.AddCh(Ch);
+        const int UCh = UStr[ChN];
+        if (UCh < 0x80) {
+            // 7-bit ascii
+            const char Ch = (char) UCh;
+            switch (Ch) {
+            case '"': ChA.AddCh('\\'); ChA.AddCh('"'); break;
+            case '\\': ChA.AddCh('\\'); ChA.AddCh('\\'); break;
+            case '/': ChA.AddCh('\\'); ChA.AddCh('/'); break;
+            case '\b': ChA.AddCh('\\'); ChA.AddCh('b'); break;
+            case '\f': ChA.AddCh('\\'); ChA.AddCh('f'); break;
+            case '\n': ChA.AddCh('\\'); ChA.AddCh('n'); break;
+            case '\r': ChA.AddCh('\\'); ChA.AddCh('r'); break;
+            case '\t': ChA.AddCh('\\'); ChA.AddCh('t'); break;
+            default:
+                if (UCh < 32) { ChA += "\\u"; ChA += TStr::Fmt("%04x", UCh); }
+                else ChA.AddCh(Ch);
+            }
         }
-      } else {
-        // escape
-        EAssertR(UCh <= 0x10FFFF, "Unable to JSON encode character U+" + TStr(UCh));
-        if (UCh <= 0xFFFF) {
-          ChA += "\\u";
-          ChA += TStr::Fmt("%04x", UCh);
-        } else {
-          // U+10000 .. U+10FFFF
-          int UChH = 0xD800 + ((UCh - 0x010000) >> 10);
-          int UChL = 0xDC00 + ((UCh - 0x010000) & 0x3FF);
-          ChA += "\\u";
-          ChA += TStr::Fmt("%04x", UChH);
-          ChA += "\\u";
-          ChA += TStr::Fmt("%04x", UChL);
+        else {
+            // escape
+            EAssertR(UCh <= 0x10FFFF, "Unable to JSON encode character U+" +
+                TStr(UCh));
+            if (UCh <= 0xFFFF) {
+                ChA += "\\u";
+                ChA += TStr::Fmt("%04x", UCh);
+            }
+            else {
+                // U+10000 .. U+10FFFF
+                int UChH = 0xD800 + ((UCh - 0x010000) >> 10);
+                int UChL = 0xDC00 + ((UCh - 0x010000) & 0x3FF);
+                ChA += "\\u";
+                ChA += TStr::Fmt("%04x", UChH);
+                ChA += "\\u";
+                ChA += TStr::Fmt("%04x", UChL);
+            }
         }
-      }
     }
-  } else {
-    // escape the string
-    for (int ChN = 0; ChN < Str.Len(); ChN++) {
-      const char Ch = Str[ChN];
-      if ((Ch & 0x80) == 0) {
-        // 7-bit ascii
-        switch (Ch) {
-          case '"' : ChA.AddCh('\\'); ChA.AddCh('"'); break;
-          case '\\' : ChA.AddCh('\\'); ChA.AddCh('\\'); break;
-          case '/' : ChA.AddCh('\\'); ChA.AddCh('/'); break;
-          case '\b' : ChA.AddCh('\\'); ChA.AddCh('b'); break;
-          case '\f' : ChA.AddCh('\\'); ChA.AddCh('f'); break;
-          case '\n' : ChA.AddCh('\\'); ChA.AddCh('n'); break;
-          case '\r' : ChA.AddCh('\\'); ChA.AddCh('r'); break;
-          case '\t' : ChA.AddCh('\\'); ChA.AddCh('t'); break;
-          default : ChA.AddCh(Ch);
-        }
-      } else {
-                printf("Warning: no TUnicodeDef, possible errors when escaping unicode characters!");
-        // escape
-        ChA += "\\u";
-        ChA += TStr::Fmt("%02x", (int)Ch);
-      }
-    }
-  }
 }
 
 void TJsonVal::AddQChAFromStr(const TStr& Str, TChA& ChA){

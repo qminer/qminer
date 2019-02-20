@@ -1093,8 +1093,8 @@ uint64 TTm::GetCurUniMSecs(){
   return TSysTm::GetCurUniMSecs();
 }
 
-uint64 TTm::GetCurLocMSecs(){
-  return TSysTm::GetCurLocMSecs();
+int64 TTm::GetCurUniUnixMSecs(){
+  return TTm::GetUnixMSecsFromWinMSecs(TTm::GetCurUniMSecs());
 }
 
 uint64 TTm::GetMSecsFromTm(const TTm& Tm){
