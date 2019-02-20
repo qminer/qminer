@@ -19,7 +19,7 @@ env:
 
 matrix:
   include:
-    - node_js: 4
+    - node_js: 10
       env: LLVM_VERSION=3.6.0 CXXFLAGS=-std=c++0x CXX=clang++ CC=clang NPMOPT=--clang=1 QMDEBUG=--debug
 
 cache:
