@@ -2574,8 +2574,8 @@ private:
     TUInt64V WordIdV;
     /// Comparison between field and value (for gix query)
     TQueryCmpType CmpType;
-    /// Max difference between words (for text position query)
-    TInt MaxPosDiff;
+    /// Max difference between individual words in WordIdV (for text position query)
+    TIntV MaxPosDiffV;
 
     /// Geographic coordinates (for location query)
     TFltPr Loc;
@@ -2621,7 +2621,7 @@ private:
     TUInt StoreId;
 
     /// Parse Value for leaf nodes (result stored in WordIdV)
-    void ParseWordStr(const TStr& WordStr, const TWPt<TIndexVoc>& IndexVoc);
+    void ParseWordStr(const TStr& WordStr, const TWPt<TIndexVoc>& IndexVoc, const int& MaxPosDiff = 1);
 
     /// Parse join query from json (can be one or an array of joins)
     TWPt<TStore> ParseJoins(const TWPt<TBase>& Base, const PJsonVal& JsonVal);
@@ -2634,6 +2634,7 @@ private:
     /// Parse conditions keys
     void ParseKeys(const TWPt<TBase>& Base, const TWPt<TStore>& Store,
         const PJsonVal& JsonVal, const bool& IgnoreOrP);
+    void InitMaxPosDiff(const int& MaxPosDiff);
     /// Constructor for parsing query from json
     TQueryItem(const TWPt<TBase>& Base, const PJsonVal& JsonVal);
     /// Construct for parsing query from json, where store is specified in advanced
@@ -2672,6 +2673,9 @@ public:
     /// Create new inverted index leaf query using positional index
     TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& KeyNm,
         const TStr& WordStr, const int& MaxPosDiff);
+    /// Create new inverted index leaf query using positional index and specific max position differences
+    TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& KeyNm,
+        const TUInt64V& WordIdV, const TIntV& _MaxPosDiffV);
     /// New leaf location query (limit always required, range used when positive)
     TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
         const TFltPr& _Loc, const int& _LocLimit, const double& _LocRadius);
@@ -2779,7 +2783,7 @@ public:
     bool IsWildChar() const { return (CmpType == oqctWildChar); }
 
     /// Get max difference between words in position search
-    int GetMaxPosDiff() const { return MaxPosDiff; }
+    const TIntV& GetMaxPosDiff() const { return MaxPosDiffV; }
 
     /// Get location (for location queries)
     const TFltPr& GetLoc() const { return Loc; }
@@ -3296,7 +3300,7 @@ private:
     void DoJoinQueryTiny(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntKdV& RecIdFqV) const;
 
     /// Execute Position query. Result is vector of record ids and frequency of phrase occurences.
-    void DoQueryPos(const int& KeyId, const TUInt64V& WordIdV, const int& MaxDiff, TUInt64IntKdV& RecIdFqV) const;
+    void DoQueryPos(const int& KeyId, const TUInt64V& WordIdV, const TIntV& MaxDiffV, TUInt64IntKdV& RecIdFqV) const;
 
     /// method that computes the GixItemPos items for the provided list of words
     void ComputeWordItemPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId, TVec<TPair<TUInt64, TQmGixItemPos>>& WordIdPosPrV);
@@ -3425,7 +3429,7 @@ public:
 
     /// Search text position inverted index where given words are MaxDiff appart.
     PRecSet SearchTextPos(const TWPt<TBase>& Base, const int& KeyId,
-        const TUInt64V& WordIdV, const int& MaxDiff) const;
+        const TUInt64V& WordIdV, const TIntV& MaxDiffV) const;
 
     /// Do geo-location range (in meters) search
     PRecSet SearchGeoRange(const TWPt<TBase>& Base, const int& KeyId,

@@ -4597,7 +4597,13 @@ void TIndexVoc::SaveTxt(const TWPt<TBase>& Base, const TStr& FNm) const {
 
 ///////////////////////////////
 // QMiner-Query-Item
-void TQueryItem::ParseWordStr(const TStr& WordStr, const TWPt<TIndexVoc>& IndexVoc) {
+void TQueryItem::InitMaxPosDiff(const int& MaxPosDiff)
+{
+    MaxPosDiffV.Gen(MAX(0, WordIdV.Len() - 1));
+    MaxPosDiffV.PutAll(MaxPosDiff);
+}
+
+void TQueryItem::ParseWordStr(const TStr& WordStr, const TWPt<TIndexVoc>& IndexVoc, const int& MaxPosDiff) {
     // if text key, tokenize the word string
     if (IndexVoc->GetKey(KeyId).IsText() || IndexVoc->GetKey(KeyId).IsTextPos()) {
         // if normal text query, make sure equal sign is correct
@@ -4605,6 +4611,7 @@ void TQueryItem::ParseWordStr(const TStr& WordStr, const TWPt<TIndexVoc>& IndexV
             throw TQmExcept::New("Wrong sort type for text Key!");
         }
         IndexVoc->GetWordIdV(KeyId, WordStr, WordIdV);
+        InitMaxPosDiff(MaxPosDiff);
         // we are done
         return;
     }
@@ -4632,6 +4639,7 @@ void TQueryItem::ParseWordStr(const TStr& WordStr, const TWPt<TIndexVoc>& IndexV
             throw TQmExcept::New(TStr::Fmt("Unknown query string %d:'%s'!", KeyId.Val, WordStr.CStr()));
         }
     }
+    InitMaxPosDiff(MaxPosDiff);
 }
 
 TWPt<TStore> TQueryItem::ParseJoins(const TWPt<TBase>& Base, const PJsonVal& JsonVal) {
@@ -4913,16 +4921,14 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const
         CmpType = oqctEqual;
         // check how it is phrased
         if (KeyVal->IsStr()) {
-            // plain string, we are looking for contiguous phrase
-            MaxPosDiff = 1;
             // get target word id(s)
             ParseWordStr(KeyVal->GetStr(), IndexVoc);
         } else if (KeyVal->IsObj() && KeyVal->IsObjKey("$str")) {
             // locality query, get max diff between words
-            MaxPosDiff = KeyVal->GetObjInt("$diff", 1);
+            const int& MaxPosDiff = KeyVal->GetObjInt("$diff", 1);
             QmAssertR(MaxPosDiff > 0, "Query: $diff parameter must be a positive integer");
             // get string
-            ParseWordStr(KeyVal->GetObjStr("$str"), IndexVoc);
+            ParseWordStr(KeyVal->GetObjStr("$str"), IndexVoc, MaxPosDiff);
         } else {
             throw TQmExcept::New("Query: Invalid key definition: '" + TJsonVal::GetStrFromVal(KeyVal) + "'");
         }
@@ -5089,26 +5095,26 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr&
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
-    const TStr& WordStr, const int& _MaxPosDiff) : Type(oqitTextPos), KeyId(_KeyId), MaxPosDiff(_MaxPosDiff) {
+    const TStr& WordStr, const int& _MaxPosDiff) : Type(oqitTextPos), KeyId(_KeyId) {
 
     CmpType = oqctEqual;
     // get target word id(s)
-    ParseWordStr(WordStr, Base->GetIndexVoc());
+    ParseWordStr(WordStr, Base->GetIndexVoc(), _MaxPosDiff);
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const uint& StoreId, const TStr& KeyNm,
-    const TStr& WordStr, const int& _MaxPosDiff) : Type(oqitTextPos), MaxPosDiff(_MaxPosDiff) {
+    const TStr& WordStr, const int& _MaxPosDiff) : Type(oqitTextPos) {
 
     CmpType = oqctEqual;
     // get the key
     QmAssertR(Base->GetIndexVoc()->IsKeyNm(StoreId, KeyNm), "Unknown Key Name: " + KeyNm);
     KeyId = Base->GetIndexVoc()->GetKeyId(StoreId, KeyNm);
     // get target word id(s)
-    ParseWordStr(WordStr, Base->GetIndexVoc());
+    ParseWordStr(WordStr, Base->GetIndexVoc(), _MaxPosDiff);
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& KeyNm,
-    const TStr& WordStr, const int& _MaxPosDiff) : Type(oqitTextPos), MaxPosDiff(_MaxPosDiff) {
+    const TStr& WordStr, const int& _MaxPosDiff) : Type(oqitTextPos) {
 
     CmpType = oqctEqual;
     // get the key
@@ -5116,7 +5122,23 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr&
     QmAssertR(Base->GetIndexVoc()->IsKeyNm(StoreId, KeyNm), "Unknown Key Name: " + KeyNm);
     KeyId = Base->GetIndexVoc()->GetKeyId(StoreId, KeyNm);
     // get target word id(s)
-    ParseWordStr(WordStr, Base->GetIndexVoc());
+    ParseWordStr(WordStr, Base->GetIndexVoc(), _MaxPosDiff);
+}
+
+TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TStr& StoreNm, const TStr& KeyNm,
+    const TUInt64V& _WordIdV, const TIntV& _MaxPosDiffV) : Type(oqitTextPos) {
+
+    CmpType = oqctEqual;
+    // get the key
+    const uint StoreId = Base->GetStoreByStoreNm(StoreNm)->GetStoreId();
+    QmAssertR(Base->GetIndexVoc()->IsKeyNm(StoreId, KeyNm), "Unknown Key Name: " + KeyNm);
+    KeyId = Base->GetIndexVoc()->GetKeyId(StoreId, KeyNm);
+    // make sure all the specified word ids are valid
+    for (const uint64& WordId : WordIdV) {
+        QmAssertR(Base->GetIndexVoc()->IsWordId(KeyId, WordId), "Unknown word id");
+    }
+    WordIdV = _WordIdV;
+    MaxPosDiffV = _MaxPosDiffV;
 }
 
 TQueryItem::TQueryItem(const TWPt<TBase>& Base, const int& _KeyId,
@@ -5686,10 +5708,10 @@ void TIndex::DoJoinQueryTiny(const int& KeyId, const TUInt64V& RecIdV, TUInt64In
 }
 
 void TIndex::DoQueryPos(const int& KeyId, const TUInt64V& WordIdV,
-        const int& MaxDiff, TUInt64IntKdV& RecIdFqV) const {
+        const TIntV& MaxDiffV, TUInt64IntKdV& RecIdFqV) const {
 
-    // make sure all parameters are ok
-    QmAssert(MaxDiff > 0);
+    // max diff values represent maximum distances between individual words in WordIdV therefore we should have one less value
+    QmAssert(MaxDiffV.Len() + 1 == WordIdV.Len());
     // prepare empty return vector
     RecIdFqV.Clr();
     // if no words, no results!
@@ -5703,6 +5725,8 @@ void TIndex::DoQueryPos(const int& KeyId, const TUInt64V& WordIdV,
     for (int WordN = 1; WordN < WordIdV.Len(); WordN++) {
         // stop in case we are out of candidates
         if (CurrentItemV.Empty()) { break; }
+        // get the max diff value to be used
+        const int& MaxDiff = MaxDiffV[WordN - 1];
         // get new word items
         TVec<TQmGixItemPos> WordItemV;
         GixPos->GetItemV(TQmGixKey(KeyId, WordIdV[WordN]), WordItemV);
@@ -6368,10 +6392,10 @@ void TIndex::SearchGixJoin(const int& KeyId, const TUInt64V& RecIdV, TUInt64IntK
 }
 
 PRecSet TIndex::SearchTextPos(const TWPt<TBase>& Base, const int& KeyId,
-        const TUInt64V& WordIdV, const int& MaxDiff) const {
+        const TUInt64V& WordIdV, const TIntV& MaxDiffV) const {
 
     // execute query
-    TUInt64IntKdV RecIdFqV; DoQueryPos(KeyId, WordIdV, MaxDiff, RecIdFqV);
+    TUInt64IntKdV RecIdFqV; DoQueryPos(KeyId, WordIdV, MaxDiffV, RecIdFqV);
     // wrap as record set and return
     const uint StoreId = IndexVoc->GetKey(KeyId).GetStoreId();
     return TRecSet::New(Base->GetStoreByStoreId(StoreId), RecIdFqV);
