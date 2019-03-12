@@ -3187,6 +3187,9 @@ private:
         /// Add new position to the item and return true if the item became full
         /// the positions are always added in increasing order - every added position should be higher than the last
         bool Add(const int& Pos);
+        // is the value Pos already in the array of PosV values? If value is not used yet, it has value 0
+        // which is a reserved value and we can simply check all values in the PosV
+        bool IsIn(const int& Pos) { return Pos == PosV.Pos1 || Pos == PosV.Pos2 || Pos == PosV.Pos3; }
         /// Intersect keeping bigger positions that are within MaxDiff difference:
         /// Assumes that this is before Item and we only keep position when Item
         /// position is <= MaxDiff ahead of this. This contains only positions that

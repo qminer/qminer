@@ -5592,6 +5592,10 @@ TIndex::TQmGixItemPos TIndex::TQmGixItemPos::Intersect(const TQmGixItemPos& Item
         const int Pos1 = GetPos(PosN1);
         for (int PosN2 = 0; PosN2 < PosLen2; PosN2++) {
             const int Pos2 = Item.GetPos(PosN2);
+            // if the value Pos2 is already in _Item skip it - each value should only appear once
+            if (_Item.IsIn(Pos2)) {
+                continue;
+            }
             // check if we are within the intersection, first simple case
             if (Pos1 < Pos2 && Pos2 <= (Pos1 + MaxDiff)) {
                 _Item.Add(Pos2); break;

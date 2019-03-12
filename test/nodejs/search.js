@@ -1548,6 +1548,7 @@ describe('Gix Position Tests', function () {
         "Kraft clinches ski jump title with final-event win",
         "Kraft wins final Planica event and ski-jumping World Cup",
         "Germany, Norway neck-and-neck after the first series in Planica",
+        "a a a b",
         "aa aa aa aa aa bb aa aa aa aa aa cc aa dd",
         "kk " + Array(1022).join("xx ") + "kk mm mm nn",
         "oo pp " + Array(1022).join("rr ") + "ss tt uu"
@@ -1645,6 +1646,8 @@ describe('Gix Position Tests', function () {
 
             assert.equal(base.search({ $from: "TestStore", Value: "xx" }).length, 1);
             assert.equal(base.search({ $from: "TestStore", Value: "xx" })[0].$fq, 1021);
+
+            assert.equal(base.search({ $from: "TestStore", Value: { $str: "a b", $diff: 4 } })[0].$fq, 1);
 
             // false positives (due to modulo positions)
             assert.equal(base.search({ $from: "TestStore", Value: "oo tt" }).length, 1);
