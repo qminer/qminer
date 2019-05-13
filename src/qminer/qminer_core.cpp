@@ -4926,7 +4926,6 @@ TQueryItem::TQueryItem(const TWPt<TBase>& Base, const TWPt<TStore>& Store, const
         } else if (KeyVal->IsObj() && KeyVal->IsObjKey("$str")) {
             // locality query, get max diff between words
             const int& MaxPosDiff = KeyVal->GetObjInt("$diff", 1);
-            QmAssertR(MaxPosDiff > 0, "Query: $diff parameter must be a positive integer");
             // get string
             ParseWordStr(KeyVal->GetObjStr("$str"), IndexVoc, MaxPosDiff);
         } else {
@@ -5581,6 +5580,9 @@ bool TIndex::TQmGixItemPos::Add(const int& Pos) {
     }
 }
 
+// compute the intersection of the current item (this) and Item, where the maximum allowed difference in
+// positions is MaxDiff. If MaxDiff value is negative we have a match if Item pos is on the left or right of 
+// a position in this
 TIndex::TQmGixItemPos TIndex::TQmGixItemPos::Intersect(const TQmGixItemPos& Item, const int& MaxDiff) const {
     // first remember the length of boths items
     const int PosLen1 = GetPosLen();
@@ -5597,12 +5599,18 @@ TIndex::TQmGixItemPos TIndex::TQmGixItemPos::Intersect(const TQmGixItemPos& Item
                 continue;
             }
             // check if we are within the intersection, first simple case
-            if (Pos1 < Pos2 && Pos2 <= (Pos1 + MaxDiff)) {
+            if (MaxDiff > 0 && Pos1 < Pos2 && Pos2 <= (Pos1 + MaxDiff)) {
+                _Item.Add(Pos2); break;
+            }
+            // if MaxDiff is negative we have a match if Pos2 appears on the left OR right side of Pos1
+            if (MaxDiff < 0 && abs(Pos2-Pos1) <= -MaxDiff) {
                 _Item.Add(Pos2); break;
             }
             // check for special case when Pos2 is after the break (% 0xFF).
             // in such case Pos2 is near 0 and we just offset it for 0xFF
-            if (Pos1 < (Pos2 + Modulo) && (Pos2 + Modulo) <= (Pos1 + MaxDiff)) {
+            if ((MaxDiff > 0 && Pos1 < (Pos2 + Modulo) && (Pos2 + Modulo) <= (Pos1 + MaxDiff)) ||
+                (MaxDiff < 0 && Modulo - abs(Pos1 - Pos1) <= -MaxDiff))
+            {
                 // if we have the case where Pos2 goes over the modulo we likely have a case
                 // where the values in _Item have higher values than Pos2. This would break the
                 // conditions so we have to create a new _Item where the values will be properly sorted
@@ -5937,6 +5945,21 @@ void TIndex::IndexText(const int& KeyId, const TStr& TextStr, const uint64& RecI
     }
 }
 
+void TIndex::IndexText(const int& KeyId, const TStrV& TokenV, const uint64& RecId) {
+    // tokenize string
+    TUInt64V WordIdV; IndexVoc->AddWordIdV(KeyId, TokenV, WordIdV);
+    // aggregate by word
+    TUInt64H WordIdFqH;
+    for (int WordIdN = 0; WordIdN < WordIdV.Len(); WordIdN++) {
+        WordIdFqH.AddDat(WordIdV[WordIdN])++;
+    }
+    // index words
+    int WordKeyId = WordIdFqH.FFirstKeyId();
+    while (WordIdFqH.FNextKeyId(WordKeyId)) {
+        IndexGix(KeyId, WordIdFqH.GetKey(WordKeyId), RecId, WordIdFqH[WordKeyId]);
+    }
+}
+
 void TIndex::IndexJoin(const TWPt<TStore>& Store, const int& JoinId,
     const uint64& RecId, const uint64& JoinRecId, const int& JoinFq) {
 
@@ -6085,6 +6108,13 @@ void TIndex::ComputeWordItemPos(const int& KeyId, const TUInt64V& WordIdV, const
 void TIndex::IndexTextPos(const int& KeyId, const TStr& TextStr, const uint64& RecId) {
     // tokenize string
     TUInt64V WordIdV; IndexVoc->AddWordIdV(KeyId, TextStr, WordIdV);
+    // index tokens
+    IndexTextPos(KeyId, WordIdV, RecId);
+}
+
+void TIndex::IndexTextPos(const int& KeyId, const TStrV& WordV, const uint64& RecId) {
+    // tokenize string
+    TUInt64V WordIdV; IndexVoc->AddWordIdV(KeyId, WordV, WordIdV);
     // index tokens
     IndexTextPos(KeyId, WordIdV, RecId);
 }

@@ -3341,6 +3341,8 @@ public:
     void IndexValue(const int& KeyId, const TStrV& WordStrV, const uint64& RecId);
     /// Index RecId under given Key. Tokenize and clean given free text to derive words.
     void IndexText(const int& KeyId, const TStr& TextStr, const uint64& RecId);
+    /// Index RecId under given Key. Use the tokens already provided
+    void IndexText(const int& KeyId, const TStrV& TokenV, const uint64& RecId);
     /// Index a join between RecId and JoinRecId
     void IndexJoin(const TWPt<TStore>& Store, const int& JoinId,
         const uint64& RecId, const uint64& JoinRecId, const int& JoinFq = 1);
@@ -3362,6 +3364,8 @@ public:
 
     /// Index RecId using given keys and words. Words are extracted by tokenizing the given string.
     void IndexTextPos(const int& KeyId, const TStr& TextStr, const uint64& RecId);
+    /// Index RecId using given keys and tokenized words. Words were already extracted using the tokenizer
+    void IndexTextPos(const int& KeyId, const TStrV& WordV, const uint64& RecId);
     /// Index RecId using given keys and words. Words are extracted by tokenizing the given string.
     void IndexTextPos(const int& KeyId, const TUInt64V& WordIdV, const uint64& RecId);
 

@@ -2355,7 +2355,7 @@ TStr TRecIndexer::TFieldIndexKey::GetKeyType() const {
 }
 
 void TRecIndexer::IndexKey(const TFieldIndexKey& Key, const TMemBase& RecMem,
-        const uint64& RecId, TRecSerializator& Serializator) {
+        const uint64& RecId, TRecSerializator& Serializator, const PJsonVal& RecJson) {
 
     // check the type of field and value to select indexing procedure
     if (Key.FieldType == oftStr && Key.IsValue()){
@@ -2364,12 +2364,26 @@ void TRecIndexer::IndexKey(const TFieldIndexKey& Key, const TMemBase& RecMem,
         Index->IndexValue(Key.KeyId, Str, RecId);
     } else if (Key.FieldType == oftStr && Key.IsText()) {
         // inverted index over tokenized strings
-        TStr Str = Serializator.GetFieldStr(RecMem, Key.FieldId);
-        Index->IndexText(Key.KeyId, Str, RecId);
+        if (!RecJson.Empty() && RecJson->IsObjKey("$" + Key.FieldNm + "Tokens")) {
+            TStrV TokenV; RecJson->GetObjStrV("$" + Key.FieldNm + "Tokens", TokenV);
+            Index->IndexText(Key.KeyId, TokenV, RecId);
+        }
+        else {
+            TStr Str = Serializator.GetFieldStr(RecMem, Key.FieldId);
+            Index->IndexText(Key.KeyId, Str, RecId);
+        }
     } else if (Key.FieldType == oftStr && Key.IsTextPos()) {
         // inverted index over tokenized strings with position information
-        TStr Str = Serializator.GetFieldStr(RecMem, Key.FieldId);
-        Index->IndexTextPos(Key.KeyId, Str, RecId);
+        // if we already have the tokenized text in the RecJson, then use that
+        if (!RecJson.Empty() && RecJson->IsObjKey("$" + Key.FieldNm + "Tokens")) {
+            TStrV TokenV; RecJson->GetObjStrV("$" + Key.FieldNm + "Tokens", TokenV);
+            Index->IndexTextPos(Key.KeyId, TokenV, RecId);
+        }
+        // otherwise perform tokenization first
+        else {
+            TStr Str = Serializator.GetFieldStr(RecMem, Key.FieldId);
+            Index->IndexTextPos(Key.KeyId, Str, RecId);
+        }
     } else if (Key.FieldType == oftStrV && Key.IsValue()) {
         // inverted index over string array
         TStrV StrV; Serializator.GetFieldStrV(RecMem, Key.FieldId, StrV);
@@ -2667,7 +2681,7 @@ TRecIndexer::TRecIndexer(const TWPt<TIndex>& _Index, const TWPt<TStore>& Store):
     }
 }
 
-void TRecIndexer::IndexRec(const TMemBase& RecMem, const uint64& RecId, TRecSerializator& Serializator) {
+void TRecIndexer::IndexRec(const TMemBase& RecMem, const uint64& RecId, TRecSerializator& Serializator, const PJsonVal RecJson) {
     // go over all keys associated with the store and its fields
     for (int FieldIndexKeyN = 0; FieldIndexKeyN < FieldIndexKeyV.Len(); FieldIndexKeyN++) {
         const TFieldIndexKey& Key = FieldIndexKeyV[FieldIndexKeyN];
@@ -2676,7 +2690,7 @@ void TRecIndexer::IndexRec(const TMemBase& RecMem, const uint64& RecId, TRecSeri
         // check if field is not NULL (e.g. there is something to index)
         if (Serializator.IsFieldNull(RecMem, Key.FieldId)) { continue; }
         // index the key
-        IndexKey(Key, RecMem, RecId, Serializator);
+        IndexKey(Key, RecMem, RecId, Serializator, RecJson);
     }
 }
 
@@ -3200,7 +3214,7 @@ uint64 TStoreImpl::AddRec(const PJsonVal& RecVal, const bool& TriggerEvents) {
         CacheRecId = DataCache.AddVal(CacheRecMem);
         RecId = CacheRecId;
         // index new record
-        RecIndexer.IndexRec(CacheRecMem, RecId, *SerializatorCache);
+        RecIndexer.IndexRec(CacheRecMem, RecId, *SerializatorCache, RecVal);
     }
     // store to in-memory storage
     if (DataMemP) {
@@ -3209,7 +3223,7 @@ uint64 TStoreImpl::AddRec(const PJsonVal& RecVal, const bool& TriggerEvents) {
         MemRecId = DataMem.AddVal(MemRecMem);
         RecId = MemRecId;
         // index new record
-        RecIndexer.IndexRec(MemRecMem, RecId, *SerializatorMem);
+        RecIndexer.IndexRec(MemRecMem, RecId, *SerializatorMem, RecVal);
     }
     // make sure we are consistent with respect to Ids!
     if (DataCacheP && DataMemP) {
@@ -3982,7 +3996,7 @@ uint64 TStorePbBlob::AddRec(const PJsonVal& RecVal, const bool& TriggerEvents) {
         CacheRecId = Pt;
         RecIdBlobPtH.AddDat(RecId) = Pt;
         // index new record
-        RecIndexer.IndexRec(CacheRecMem, RecId, *SerializatorCache);
+        RecIndexer.IndexRec(CacheRecMem, RecId, *SerializatorCache, RecVal);
     }
     // store to in-memory storage
     if (DataMemP) {
@@ -3991,7 +4005,7 @@ uint64 TStorePbBlob::AddRec(const PJsonVal& RecVal, const bool& TriggerEvents) {
         TPgBlobPt Pt = DataMem->Put(MemRecMem.GetBf(), MemRecMem.Len());
         MemRecId = Pt;
         RecIdBlobPtHMem.AddDat(RecId) = Pt;
-        RecIndexer.IndexRec(MemRecMem, RecId, *SerializatorMem);
+        RecIndexer.IndexRec(MemRecMem, RecId, *SerializatorMem, RecVal);
     }
     // make sure we are consistent with respect to Ids!
     if (DataBlobP && DataMemP) {

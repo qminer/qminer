@@ -40,7 +40,7 @@ public:
     static PTokenizer Load(TSIn& SIn);
 
 	virtual void GetTokens(const PSIn& SIn, TStrV& TokenV) const = 0;
-	void GetTokens(const TStr& Text, TStrV& TokenV) const;
+    virtual void GetTokens(const TStr& Text, TStrV& TokenV) const;
 	void GetTokens(const TStrV& TextV, TVec<TStrV>& TokenVV) const;
 };
 

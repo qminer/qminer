@@ -344,7 +344,7 @@ private:
 public:
   TWebPg(): UrlStrV(), IpNumV(), HttpResp(){}
   TWebPg(const TStrV& _UrlStrV, const TStrV& _IpNumV, const PHttpResp& _HttpResp):
-    UrlStrV(_UrlStrV), IpNumV(_IpNumV), HttpResp(_HttpResp){}
+    UrlStrV(_UrlStrV), IpNumV(_IpNumV), HttpResp(_HttpResp), FetchMSecs(0){}
   static PWebPg New(const TStrV& UrlStrV, const TStrV& IpNumV, const PHttpResp& HttpResp){
     return new TWebPg(UrlStrV, IpNumV, HttpResp);}
   static PWebPg New(const TStrV& UrlStrV, const PHttpResp& HttpResp){

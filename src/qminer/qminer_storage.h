@@ -766,7 +766,7 @@ private:
 
     /// Index a record using the given key
     void IndexKey(const TFieldIndexKey& Key, const TMemBase& RecMem,
-        const uint64& RecId, TRecSerializator& Serializator);
+        const uint64& RecId, TRecSerializator& Serializator, const PJsonVal& RecJson = nullptr);
     /// Delete existing index of a record based on a given key
     void DeindexKey(const TFieldIndexKey& Key, const TMemBase& RecMem,
         const uint64& RecId, TRecSerializator& Serializator);
@@ -784,7 +784,7 @@ public:
     /// Check if given field is used for indexing
     bool IsFieldIndexKey(const int& FieldId) const;
     /// Index new record
-    void IndexRec(const TMemBase& RecMem, const uint64& RecId, TRecSerializator& Serializator);
+    void IndexRec(const TMemBase& RecMem, const uint64& RecId, TRecSerializator& Serializator, const PJsonVal RecJson = nullptr);
     /// Deindex existing record
     void DeindexRec(const TMemBase& RecMem, const uint64& RecId, TRecSerializator& Serializator);
     /// Update index for existing record

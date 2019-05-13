@@ -1549,6 +1549,7 @@ describe('Gix Position Tests', function () {
         "Kraft wins final Planica event and ski-jumping World Cup",
         "Germany, Norway neck-and-neck after the first series in Planica",
         "a a a b",
+        "a b c d e f g",
         "aa aa aa aa aa bb aa aa aa aa aa cc aa dd",
         "kk " + Array(1022).join("xx ") + "kk mm mm nn",
         "oo pp " + Array(1022).join("rr ") + "ss tt uu"
@@ -1657,6 +1658,13 @@ describe('Gix Position Tests', function () {
             assert.equal(base.search({ $from: "TestStore", Value: "ss rr" }).length, 0);
             assert.equal(base.search({ $from: "TestStore", Value: { $str: "ss rr", $diff: 2 } }).length, 1);
             assert.equal(base.search({ $from: "TestStore", Value: { $str: "ss rr", $diff: 3 } }).length, 1);
+
+            // there should be no matches if we reverse the order of query string and use positive $diff value
+            assert.equal(base.search({ $from: "TestStore", Value: { $str: "a c", $diff: 2 } }).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: { $str: "c a", $diff: 2 } }).length, 0);
+            // if we have a negative $diff value then we get a match if the next word is behind or ahead the previous word
+            assert.equal(base.search({ $from: "TestStore", Value: { $str: "a c", $diff: -2 } }).length, 1);
+            assert.equal(base.search({ $from: "TestStore", Value: { $str: "c a", $diff: -2 } }).length, 1);
             // overlapping indices
             assert.equal(base.search({ $from: "TestStore", Value: "oo ss" }).length, 0);
             assert.equal(base.search({ $from: "TestStore", Value: "pp tt" }).length, 0);
