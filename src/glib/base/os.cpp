@@ -623,7 +623,7 @@ TTm TSysTm::GetCurLocTm(){
 }
 
 uint64 TSysTm::GetCurUniMSecs(){
-  return TSysTm::GetMSecsFromTm(GetCurLocTm());
+  return TSysTm::GetMSecsFromTm(GetCurUniTm());
 }
 
 uint64 TSysTm::GetMSecsFromTm(const TTm& Tm){

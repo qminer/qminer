@@ -58,7 +58,7 @@ public:
     TInt ElemCnt(SIn);  const int Start=clock();
     if (ElemCnt < LoadN || LoadN == -1) { LoadN = ElemCnt; }
     printf("Loading %s: %d elements ... ", SIn.GetSNm().CStr(), LoadN);  DatV.Gen(LoadN, 0);
-    for (int i = 0; i < LoadN; i++) { TKey(SIn);  DatV.Add(TDat(SIn)); }
+    for (int i = 0; i < LoadN; i++) { TKey Key(SIn);  DatV.Add(TDat(SIn)); }
     printf(" [%ds]\n", int((clock()-Start)/CLOCKS_PER_SEC));
   }
 };
