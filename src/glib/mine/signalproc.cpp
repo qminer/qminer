@@ -909,6 +909,21 @@ TAggrResampler::TAggrResampler(const PJsonVal& ParamVal) {
     DefaultVal = ParamVal->GetObjNum("defaultValue", 0);
 }
 
+TAggrResampler::TAggrResampler(const uint64& Interval, const TStr& AggType,
+    const double& DefaultValue, const TStr& RoundStart, const TTm& Start)
+    : IntervalMSecs(Interval), Type(GetType(AggType)), DefaultVal(DefaultValue) {
+
+    EAssertR(RoundStart == "" || RoundStart == "h" || RoundStart == "m" ||
+        RoundStart == "s", "TAggrResampler: roundStart should be 'h', 'm' or 's'");
+
+    if (Start.IsDef()) {
+        uint64 StartTm = TTm::GetMSecsFromTm(Start);
+        EAssertR(StartTm >= IntervalMSecs, "Start point too early");
+        LastResampPointMSecs = StartTm - IntervalMSecs;
+        InitP = true;
+    }
+}
+
 PJsonVal TAggrResampler::GetParams() const {
     PJsonVal Result = TJsonVal::NewObj();
     Result->AddToObj("interval", IntervalMSecs);
