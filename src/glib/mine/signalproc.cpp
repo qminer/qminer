@@ -914,9 +914,10 @@ TAggrResampler::TAggrResampler(const PJsonVal& ParamVal) {
 }
 
 TAggrResampler::TAggrResampler(const uint64& Interval, const TStr& AggType,
-    const double& DefaultValue, const TStr& RoundStart, const TTm& Start,
-    const TStr& Closed, const TStr& Label)
-    : IntervalMSecs(Interval), Type(GetType(AggType)), DefaultVal(DefaultValue) {
+    const double& DefaultValue, const TStr& RoundStart, const TStr& Closed,
+    const TStr& Label, const TTm& Start)
+    : IntervalMSecs(Interval), Type(GetType(AggType)), DefaultVal(DefaultValue),
+      Closed(Closed), Label(Label) {
 
     EAssertR(RoundStart == "" || RoundStart == "h" || RoundStart == "m" ||
         RoundStart == "s", "TAggrResampler: roundStart should be 'h', 'm' or 's'");
@@ -937,6 +938,8 @@ PJsonVal TAggrResampler::GetParams() const {
     Result->AddToObj("aggType", GetTypeStr(Type));
     Result->AddToObj("roundStart", RoundStart);
     Result->AddToObj("defaultValue", DefaultVal);
+    Result->AddToObj("closed", Closed);
+    Result->AddToObj("label", Label);
     return Result;
 }
 

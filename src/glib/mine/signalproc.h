@@ -795,8 +795,8 @@ public:
     TAggrResampler(const PJsonVal& ParamVal);
     /// Json constructor (sets interval, type and start time)
     TAggrResampler(const uint64& Interval, const TStr& AggType, const double& DefaultValue = 0,
-        const TStr& RoundStart = "", const TTm& Start = TTm(), const TStr& Closed = "left",
-        const TStr& Label = "left");
+        const TStr& RoundStart = "", const TStr& Closed = "left", const TStr& Label = "left",
+        const TTm& Start = TTm());
     /// Returns the parameters
     PJsonVal GetParams() const;
     /// Resets the state
