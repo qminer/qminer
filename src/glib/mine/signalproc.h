@@ -773,6 +773,10 @@ private:
     TStr RoundStart;
     /// Default value when the buffer is empty
     TFlt DefaultVal;
+    /// Which side of bin interval is closed. The default is ‘left’.
+    TStr Closed;
+    /// Which bin edge label to label bucket with. The default is ‘left’.
+    TStr Label;
 
     // STATE
     /// Timestamp of the current time
@@ -791,7 +795,8 @@ public:
     TAggrResampler(const PJsonVal& ParamVal);
     /// Json constructor (sets interval, type and start time)
     TAggrResampler(const uint64& Interval, const TStr& AggType, const double& DefaultValue = 0,
-        const TStr& RoundStart = "", const TTm& Start = TTm());
+        const TStr& RoundStart = "", const TTm& Start = TTm(), const TStr& Closed = "left",
+        const TStr& Label = "left");
     /// Returns the parameters
     PJsonVal GetParams() const;
     /// Resets the state
@@ -1144,7 +1149,7 @@ public:
     /// Add a value to the t-digest.
     /// Argument *v* is the value to add.
     /// Argument *count* is the integer number of occurrences to add.
-    /// If not provided, *count* defaults to 1.    
+    /// If not provided, *count* defaults to 1.
     void Update(const double& V, const double& Count = 1);
     /// Is the model initialized?
     bool IsInit() const { return Updates >= MinPointsInit; }
