@@ -910,7 +910,7 @@ TAggrResampler::TAggrResampler(const PJsonVal& ParamVal) {
     Closed = ParamVal->GetObjStr("closed", "left");
     EAssertR(Closed == "left" || Closed == "right", "TAggrResampler: closed should be 'left' or 'right'");
     Label = ParamVal->GetObjStr("label", "left");
-    EAssertR(Closed == "left" || Closed == "right", "TAggrResampler: label should be 'left' or 'right'");
+    EAssertR(Label == "left" || Label == "right", "TAggrResampler: label should be 'left' or 'right'");
 }
 
 TAggrResampler::TAggrResampler(const uint64& Interval, const TStr& AggType,
@@ -1014,20 +1014,20 @@ bool TAggrResampler::TryResampleOnce(double& Val, uint64& Tm, bool& FoundEmptyP)
         }
         int Vals = 0;
         // keep adding to Val and removing from buffer all the values that fall in the
-        // interval [LastResampPointMSecs + IntervalMSecs , LastResampPointMSecs + 2 * IntervalMSecs)
+        // interval [LastResampPointMSecs + IntervalMSecs , LastResampPointMSecs + 2 * IntervalMSecs]
+        // parameter 'Closed' defined if left or right edge is closed
         // assert that we have not found a point older than the current window
         uint64 Start = LastResampPointMSecs + IntervalMSecs;
         uint64 End = LastResampPointMSecs + 2 * IntervalMSecs;
-        int Edge = (Closed == "right") ? 0 : 1;
         while (!Buff.Empty()) {
             const TUInt64FltPr& Point = Buff.Top();
-            if (Point.Val1 < Start) {
+            if (Point.Val1 < Start + ((Closed == "right") ? 1 : 0)) {
                 // ignore point but notify that its badly configured
                 printf("TAggrResampler: stale point found. A point in the buffer should have been aggregated already but it wasn't\n");
                 Buff.Pop();
                 continue;
             }
-            if (Point.Val1 > End - Edge) { break; }
+            if (Point.Val1 > End - ((Closed == "right") ? 0 : 1)) { break; }
             if (Type == TAggrResamplerType::artMax) {
                 Val = MAX(Val, Point.Val2.Val);
             } else if (Type == TAggrResamplerType::artMin) {
