@@ -758,7 +758,10 @@ typedef enum { artSum, artAvg, artMin, artMax } TAggrResamplerType;
 ///        - init (true if at least one resampling happened)
 /// Parameters: - interval size
 ///             - type of aggregation (sum or avg)
+///             - default value (by default it is 0)
 ///             - RoundStart ('h', 'm', 's') - strips away (m,s,msec) if set to h, strips (s,msec) if set to m, ...
+///             - Closed - 'left' or 'right' closed interval. The default is 'left'
+///             - Label - resampled time points timestamps correspond to 'left' or 'right' edge (default is 'left')
 /// Main logic: TryResampleOnce
 ///               Resampling is possible if there exists an interval (of predefined width)
 ///               that ends before current time and starts at last resample time point.
@@ -773,9 +776,11 @@ private:
     TStr RoundStart;
     /// Default value when the buffer is empty
     TFlt DefaultVal;
-    /// Which side of bin interval is closed. The default is ‘left’.
+    /// Interval are half closed. This parameter defines which side is closed.
+    /// Either 'left' or 'right'. The default is ‘left’.
     TStr Closed;
-    /// Which bin edge label to label bucket with. The default is ‘left’.
+    /// Either 'left' or 'right'. Resampled time-series time points can correspond to
+    /// bucket start points (left) or bucket end points (right). The default is ‘left’.
     TStr Label;
 
     // STATE
