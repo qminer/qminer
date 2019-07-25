@@ -5,23 +5,22 @@
 #include "microtest.h"
 
 TEST(TStrFmt) {
-    // default buffer too small
-    TChA Input;
-    for (int ElN = 0; ElN < 20000; ElN++) {
-        Input.AddCh(' ');
-    }
-    TStr TestStr = "test %s";
-    TStr Out = TStr::Fmt(TestStr.CStr(), Input.CStr());
-    ASSERT_EQ(Out.Len(), 20005);
+    // test correctnes for inputs of size: 10*1024 -5 ... 10*1024 +5
+    // (different logic at  1024 - 2 characters)
+    for (int Offset = -5; Offset <= 5; Offset++) {
+        TChA Input;
+        for (int ElN = 0; ElN < 10*1024 + Offset; ElN++) {
+            Input.AddCh(' ');
+        }
 
-    // fits default buffer
-    TChA Input2;
-    for (int ElN = 0; ElN < 200; ElN++) {
-        Input2.AddCh(' ');
+        TStr TestStr = "x%sy";
+        TStr Out = TStr::Fmt(TestStr.CStr(), Input.CStr());
+        ASSERT_EQ(Out.Len(), 10 * 1024 + Offset + 2);
+        ASSERT_EQ(Out[0], 'x');
+        ASSERT_EQ(Out[1], ' ');
+        ASSERT_EQ(Out[10 * 1024 + Offset], ' ');
+        ASSERT_EQ(Out[10 * 1024 + Offset + 1], 'y');
     }
-    TStr TestStr2 = "test %s";
-    TStr Out2 = TStr::Fmt(TestStr2.CStr(), Input2.CStr());
-    ASSERT_EQ(Out2.Len(), 205);
 
     // error
     TChA Input3;
