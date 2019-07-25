@@ -5,9 +5,10 @@
 #include "microtest.h"
 
 TEST(TStrFmt) {
-    // test correctnes for inputs of size: 10*1024 -5 ... 10*1024 +5
-    // (different logic at  1024 - 2 characters)
-    for (int Offset = -5; Offset <= 5; Offset++) {
+    // test correctnes for inputs of size: 10*1024 -10 ... 10*1024 +10
+    // which corresponds to outputs of size 10*1024 -8  .... 10*1024 + 12
+    // (different logic at output size: 1024 - 2 characters)
+    for (int Offset = -10; Offset <= 10; Offset++) {
         TChA Input;
         for (int ElN = 0; ElN < 10*1024 + Offset; ElN++) {
             Input.AddCh(' ');
