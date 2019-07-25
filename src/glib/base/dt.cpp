@@ -2208,16 +2208,17 @@ TStr TStr::GetStr(const TStrV& StrV, const TStr& DelimiterStr){
 }
 
 TStr TStr::Fmt(const char *FmtStr, ...) {
-    char Bf[10 * 1024];
+    const int BfLen = 10 * 1024;
+    char Bf[BfLen];
     va_list valist;
     va_start(valist, FmtStr);
-    const int RequiredLen = vsnprintf(Bf, 10 * 1024 - 2, FmtStr, valist);
+    const int RequiredLen = vsnprintf(Bf, BfLen - 2, FmtStr, valist);
     va_end(valist);
     if (RequiredLen < 0) {
         // error
         return TStr();
     }
-    else if (RequiredLen < 10 * 1024 - 2) {
+    else if (RequiredLen < BfLen - 2) {
         // fits in buffer
         return TStr(Bf);
     }
