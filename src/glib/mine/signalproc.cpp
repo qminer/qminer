@@ -907,14 +907,22 @@ TAggrResampler::TAggrResampler(const PJsonVal& ParamVal) {
     }
     // XXX decide if we should use NaN for default (max,min,avg are not defined for empty buffers)?
     DefaultVal = ParamVal->GetObjNum("defaultValue", 0);
+    Closed = ParamVal->GetObjStr("closed", "left");
+    EAssertR(Closed == "left" || Closed == "right", "TAggrResampler: closed should be 'left' or 'right'");
+    Label = ParamVal->GetObjStr("label", "left");
+    EAssertR(Label == "left" || Label == "right", "TAggrResampler: label should be 'left' or 'right'");
 }
 
 TAggrResampler::TAggrResampler(const uint64& Interval, const TStr& AggType,
-    const double& DefaultValue, const TStr& RoundStart, const TTm& Start)
-    : IntervalMSecs(Interval), Type(GetType(AggType)), DefaultVal(DefaultValue) {
+    const double& DefaultValue, const TStr& RoundStart, const TStr& Closed,
+    const TStr& Label, const TTm& Start)
+    : IntervalMSecs(Interval), Type(GetType(AggType)), DefaultVal(DefaultValue),
+      Closed(Closed), Label(Label) {
 
     EAssertR(RoundStart == "" || RoundStart == "h" || RoundStart == "m" ||
         RoundStart == "s", "TAggrResampler: roundStart should be 'h', 'm' or 's'");
+    EAssertR(Closed == "left" || Closed == "right", "TAggrResampler: closed should be 'left' or 'right'");
+    EAssertR(Label == "left" || Label == "right", "TAggrResampler: label should be 'left' or 'right'");
 
     if (Start.IsDef()) {
         uint64 StartTm = TTm::GetMSecsFromTm(Start);
@@ -930,6 +938,8 @@ PJsonVal TAggrResampler::GetParams() const {
     Result->AddToObj("aggType", GetTypeStr(Type));
     Result->AddToObj("roundStart", RoundStart);
     Result->AddToObj("defaultValue", DefaultVal);
+    Result->AddToObj("closed", Closed);
+    Result->AddToObj("label", Label);
     return Result;
 }
 
@@ -1004,19 +1014,20 @@ bool TAggrResampler::TryResampleOnce(double& Val, uint64& Tm, bool& FoundEmptyP)
         }
         int Vals = 0;
         // keep adding to Val and removing from buffer all the values that fall in the
-        // interval [LastResampPointMSecs + IntervalMSecs , LastResampPointMSecs + 2 * IntervalMSecs)
+        // interval [LastResampPointMSecs + IntervalMSecs , LastResampPointMSecs + 2 * IntervalMSecs]
+        // parameter 'Closed' defined if left or right edge is closed
         // assert that we have not found a point older than the current window
         uint64 Start = LastResampPointMSecs + IntervalMSecs;
-        uint64 End = LastResampPointMSecs + 2 * IntervalMSecs - 1;
+        uint64 End = LastResampPointMSecs + 2 * IntervalMSecs;
         while (!Buff.Empty()) {
             const TUInt64FltPr& Point = Buff.Top();
-            if (Point.Val1 < Start) {
+            if (Point.Val1 < Start + ((Closed == "right") ? 1 : 0)) {
                 // ignore point but notify that its badly configured
                 printf("TAggrResampler: stale point found. A point in the buffer should have been aggregated already but it wasn't\n");
                 Buff.Pop();
                 continue;
             }
-            if (Point.Val1 > End) { break; }
+            if (Point.Val1 > End - ((Closed == "right") ? 0 : 1)) { break; }
             if (Type == TAggrResamplerType::artMax) {
                 Val = MAX(Val, Point.Val2.Val);
             } else if (Type == TAggrResamplerType::artMin) {
@@ -1037,11 +1048,11 @@ bool TAggrResampler::TryResampleOnce(double& Val, uint64& Tm, bool& FoundEmptyP)
             Val = DefaultVal;
             // printf("TAggrResampler:Nan generated while resampling and using average aggrgator (no data in the interval)\n");
         }
-        // new left point of the last successfully aggregated interval
-        Tm = LastResampPointMSecs + IntervalMSecs;
+        // new point of the last successfully aggregated interval
+        Tm = (Label == "right") ? End : Start;
         // save state
         LastResampPointVal = Val;
-        LastResampPointMSecs = Tm;
+        LastResampPointMSecs = Start;
     }
     return ResampleP;
 }
