@@ -2213,12 +2213,12 @@ TStr TStr::Fmt(const char *FmtStr, ...) {
     va_start(valist, FmtStr);
     const int RequiredLen = vsnprintf(Bf, 10 * 1024 - 2, FmtStr, valist);
     va_end(valist);
-    const int Len = strlen(Bf);
     if (RequiredLen < 0) {
         // error
         return TStr();
     }
-    else if (Len == RequiredLen) {
+    else if (RequiredLen < 10 * 1024 - 2) {
+        // fits in buffer
         return TStr(Bf);
     }
     else {
