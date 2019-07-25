@@ -4,6 +4,35 @@
 
 #include "microtest.h"
 
+TEST(TStrFmt) {
+    // default buffer too small
+    TChA Input;
+    for (int ElN = 0; ElN < 20000; ElN++) {
+        Input.AddCh(' ');
+    }
+    TStr TestStr = "test %s";
+    TStr Out = TStr::Fmt(TestStr.CStr(), Input.CStr());
+    ASSERT_EQ(Out.Len(), 20005);
+
+    // fits default buffer
+    TChA Input2;
+    for (int ElN = 0; ElN < 200; ElN++) {
+        Input2.AddCh(' ');
+    }
+    TStr TestStr2 = "test %s";
+    TStr Out2 = TStr::Fmt(TestStr2.CStr(), Input2.CStr());
+    ASSERT_EQ(Out2.Len(), 205);
+
+    // error
+    TChA Input3;
+    for (int ElN = 0; ElN < 20000; ElN++) {
+        Input3.AddCh(' ');
+    }
+    TStr TestStr3 = "%";
+    TStr Out3 = TStr::Fmt(TestStr3.CStr(), Input3.CStr());
+    ASSERT_EQ(Out3.Len(), 0);
+}
+
 TEST(TStrGetUc) {
     TStr Mixedcase = "AbCd";
     TStr Uppercase = "ABCD";
