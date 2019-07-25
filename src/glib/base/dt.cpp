@@ -2217,12 +2217,10 @@ TStr TStr::Fmt(const char *FmtStr, ...) {
     if (RequiredLen < 0) {
         // error
         return TStr();
-    }
-    else if (RequiredLen < BfLen - 2) {
+    } else if (RequiredLen < BfLen - 2) {
         // fits in buffer
         return TStr(Bf);
-    }
-    else {
+    } else {
         // buffer was too short
         char* NewBf = new char[RequiredLen + 1];
         va_list valist;
