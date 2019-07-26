@@ -784,7 +784,7 @@ private:
     /// Buffer holding the time series to be aggregated
     TQQueue<TPair<TUInt64, TFlt>> Buff;
 
-    /// Has resampling succeeed once?
+    /// Has resampling succeeded once?
     TBool InitP;
 public:
     /// Json constructor (sets interval, type and start time)
