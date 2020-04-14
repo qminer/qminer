@@ -330,11 +330,11 @@ public:
 	  int& Hours, int& Mins, int& Secs, int& MSecs);
   static uint64 GetDiffMSecs(const TTm& Tm1, const TTm& Tm2);
   static uint64 GetDiffSecs(const TTm& Tm1, const TTm& Tm2){
-	return GetDiffMSecs(Tm1, Tm2)/uint64(1000);}
+    return GetDiffMSecs(Tm1, Tm2)/uint64(1000);}
   static uint64 GetDiffMins(const TTm& Tm1, const TTm& Tm2){
-	return GetDiffMSecs(Tm1, Tm2)/uint64(1000*60);}
+    return GetDiffMSecs(Tm1, Tm2)/uint64(1000*60);}
   static uint64 GetDiffHrs(const TTm& Tm1, const TTm& Tm2){
-	return GetDiffMSecs(Tm1, Tm2)/uint64(1000*60*60);}
+    return GetDiffMSecs(Tm1, Tm2)/uint64(1000*60*60);}
   static uint64 GetDiffDays(const TTm& Tm1, const TTm& Tm2){
     return GetDiffMSecs(Tm1, Tm2)/uint64(1000*60*60*24);}
   static TTm GetLocTmFromUniTm(const TTm& Tm);
