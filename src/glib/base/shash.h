@@ -1037,7 +1037,9 @@ public:
     return KeyI==SetKeyI.KeyI; }
   bool operator<(const THashSetKeyI& SetKeyI) const {
     return KeyI<SetKeyI.KeyI; }
+  THashSetKeyI& operator++() { KeyI++; while (KeyI < EndI && KeyI->HashCd==-1) { KeyI++; } return *this; }
   THashSetKeyI& operator++(int) { KeyI++; while (KeyI < EndI && KeyI->HashCd==-1) { KeyI++; } return *this; }
+  THashSetKeyI& operator--() { do { KeyI--; } while (KeyI->HashCd==-1); return *this; }
   THashSetKeyI& operator--(int) { do { KeyI--; } while (KeyI->HashCd==-1); return *this; }
 
   const TKey& operator*() const { return KeyI->Key; }
@@ -1121,7 +1123,9 @@ public:
       return TIter(KeyV.BegI()+FKeyId, KeyV.EndI()); }
     return TIter(KeyV.EndI(), KeyV.EndI());
   }
+  TIter begin() const { return BegI(); } // required by C++11 for each
   TIter EndI() const {return TIter(KeyV.EndI(), KeyV.EndI()); }
+  TIter end() const { return EndI(); } // required by C++11 for each
   TIter GetI(const TKey& Key) const {return TIter(&KeyV[GetKeyId(Key)], KeyV.EndI()); }
 
   void Gen(const int& ExpectVals) {

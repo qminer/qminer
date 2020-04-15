@@ -758,7 +758,10 @@ typedef enum { artSum, artAvg, artMin, artMax } TAggrResamplerType;
 ///        - init (true if at least one resampling happened)
 /// Parameters: - interval size
 ///             - type of aggregation (sum or avg)
+///             - default value (by default it is 0)
 ///             - RoundStart ('h', 'm', 's') - strips away (m,s,msec) if set to h, strips (s,msec) if set to m, ...
+///             - Closed - 'left' or 'right' closed interval. The default is 'left'
+///             - Label - resampled time points timestamps correspond to 'left' or 'right' edge (default is 'left')
 /// Main logic: TryResampleOnce
 ///               Resampling is possible if there exists an interval (of predefined width)
 ///               that ends before current time and starts at last resample time point.
@@ -773,6 +776,12 @@ private:
     TStr RoundStart;
     /// Default value when the buffer is empty
     TFlt DefaultVal;
+    /// Interval are half closed. This parameter defines which side is closed.
+    /// Either 'left' or 'right'. The default is ‘left’.
+    TStr Closed;
+    /// Either 'left' or 'right'. Resampled time-series time points can correspond to
+    /// bucket start points (left) or bucket end points (right). The default is ‘left’.
+    TStr Label;
 
     // STATE
     /// Timestamp of the current time
@@ -789,6 +798,10 @@ private:
 public:
     /// Json constructor (sets interval, type and start time)
     TAggrResampler(const PJsonVal& ParamVal);
+    /// Json constructor (sets interval, type and start time)
+    TAggrResampler(const uint64& Interval, const TStr& AggType, const double& DefaultValue = 0,
+        const TStr& RoundStart = "", const TStr& Closed = "left", const TStr& Label = "left",
+        const TTm& Start = TTm());
     /// Returns the parameters
     PJsonVal GetParams() const;
     /// Resets the state
@@ -1141,7 +1154,7 @@ public:
     /// Add a value to the t-digest.
     /// Argument *v* is the value to add.
     /// Argument *count* is the integer number of occurrences to add.
-    /// If not provided, *count* defaults to 1.    
+    /// If not provided, *count* defaults to 1.
     void Update(const double& V, const double& Count = 1);
     /// Is the model initialized?
     bool IsInit() const { return Updates >= MinPointsInit; }
