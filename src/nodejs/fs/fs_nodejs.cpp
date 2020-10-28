@@ -76,7 +76,7 @@ void TNodeJsFs::openRead(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::HandleScope HandleScope(Isolate);
 
     EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected file path.");
-    TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
+    TStr FNm(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
     // file exist check is done by TFIn
 
     Args.GetReturnValue().Set(
@@ -88,7 +88,7 @@ void TNodeJsFs::openWrite(const v8::FunctionCallbackInfo<v8::Value>& Args) { // 
     v8::HandleScope HandleScope(Isolate);
 
     EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected file path.");
-    TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
+    TStr FNm(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
 
     Args.GetReturnValue().Set(
         TNodeJsUtil::NewInstance<TNodeJsFOut>(new TNodeJsFOut(FNm, false)));
@@ -99,7 +99,7 @@ void TNodeJsFs::openAppend(const v8::FunctionCallbackInfo<v8::Value>& Args) { //
     v8::HandleScope HandleScope(Isolate);
 
     EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected file path.");
-    TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
+    TStr FNm(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
 
     Args.GetReturnValue().Set(
         TNodeJsUtil::NewInstance<TNodeJsFOut>(new TNodeJsFOut(FNm, true)));
@@ -110,7 +110,7 @@ void TNodeJsFs::exists(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::HandleScope HandleScope(Isolate);
 
     EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected file path.");
-    TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
+    TStr FNm(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
     Args.GetReturnValue().Set(v8::Boolean::New(Isolate, TFile::Exists(FNm)));
 }
 
@@ -120,9 +120,9 @@ void TNodeJsFs::copy(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     EAssertR(Args.Length() == 2 && Args[0]->IsString() && Args[1]->IsString(),
         "Expected 2 arguments: source and destination file paths.");
-    TStr SrcFNm(*v8::String::Utf8Value(Args[0]->ToString()));
+    TStr SrcFNm(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
     EAssertR(TFile::Exists(SrcFNm), "File '" + SrcFNm + "' does not exist");
-    TStr DstFNm(*v8::String::Utf8Value(Args[1]->ToString()));
+    TStr DstFNm(*Nan::Utf8String (Nan::To<v8::String>(Args[1]).ToLocalChecked()));
     TFile::Copy(SrcFNm, DstFNm);
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -133,9 +133,9 @@ void TNodeJsFs::move(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     EAssertR(Args.Length() == 2 && Args[0]->IsString() && Args[1]->IsString(),
         "Expected 2 arguments: source and destination file paths.");
-    TStr SrcFNm(*v8::String::Utf8Value(Args[0]->ToString()));
+    TStr SrcFNm(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
     EAssertR(TFile::Exists(SrcFNm), TStr("File '" + SrcFNm + "' does not exist").CStr());
-    TStr DstFNm(*v8::String::Utf8Value(Args[1]->ToString()));
+    TStr DstFNm(*Nan::Utf8String (Nan::To<v8::String>(Args[1]).ToLocalChecked()));
     TFile::Copy(SrcFNm, DstFNm);
     TFile::Del(SrcFNm, false); // ThrowExceptP = false
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
@@ -147,7 +147,7 @@ void TNodeJsFs::del(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     EAssertR(Args.Length() == 1 && Args[0]->IsString(),
         "Expected a file path as the only argument.");
-    TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
+    TStr FNm(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
     EAssertR(TFile::Exists(FNm), TStr("File '" + FNm + "' does not exist").CStr());
     Args.GetReturnValue().Set(v8::Boolean::New(Isolate, TFile::Del(FNm, false))); // ThrowExceptP = false
 }
@@ -158,9 +158,9 @@ void TNodeJsFs::rename(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     EAssertR(Args.Length() == 2 && Args[0]->IsString() && Args[1]->IsString(),
         "Expected 2 arguments: source and destination file paths.");
-    TStr SrcFNm(*v8::String::Utf8Value(Args[0]->ToString()));
+    TStr SrcFNm(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
     EAssertR(TFile::Exists(SrcFNm), TStr("File '" + SrcFNm + "' does not exist").CStr());
-    TStr DstFNm(*v8::String::Utf8Value(Args[1]->ToString()));
+    TStr DstFNm(*Nan::Utf8String (Nan::To<v8::String>(Args[1]).ToLocalChecked()));
     TFile::Rename(SrcFNm, DstFNm);
     Args.GetReturnValue().Set(v8::Undefined(Isolate));
 }
@@ -171,7 +171,7 @@ void TNodeJsFs::fileInfo(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     EAssertR(Args.Length() == 1 && Args[0]->IsString(),
         "Expected a file path as the only argument.");
-    TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
+    TStr FNm(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
     EAssertR(TFile::Exists(FNm), TStr("File '" + FNm + "' does not exist").CStr());
     const uint64 CreateTm = TFile::GetCreateTm(FNm);
     const uint64 LastAccessTm = TFile::GetLastAccessTm(FNm);
@@ -195,7 +195,7 @@ void TNodeJsFs::mkdir(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     EAssertR(Args.Length() == 1 && Args[0]->IsString(),
         "Expected directory name as the only argument.");
-    TStr FPath(*v8::String::Utf8Value(Args[0]->ToString()));
+    TStr FPath(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
     const bool GenDirP = TDir::GenDir(FPath);
     Args.GetReturnValue().Set(v8::Boolean::New(Isolate, GenDirP));
 }
@@ -206,7 +206,7 @@ void TNodeJsFs::rmdir(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     EAssertR(Args.Length() == 1 && Args[0]->IsString(),
         "Expected directory name as the only argument.");
-    TStr FPath(*v8::String::Utf8Value(Args[0]->ToString()));
+    TStr FPath(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
     const bool DelDirP = TDir::DelDir(FPath);
     Args.GetReturnValue().Set(v8::Boolean::New(Isolate, DelDirP));
 }
@@ -218,12 +218,12 @@ void TNodeJsFs::listFile(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(Args.Length() >= 1 && Args[0]->IsString(),
         "Expected directory path as the first argument.");
     // Read parameters
-    TStr FPath(*v8::String::Utf8Value(Args[0]->ToString()));
+    TStr FPath(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
     TStrV FExtV;
     if (Args.Length() >= 2 && Args[1]->IsString()) {
-        FExtV.Add(TStr(*v8::String::Utf8Value(Args[1]->ToString())));
+        FExtV.Add(TStr(*Nan::Utf8String (Nan::To<v8::String>(Args[1]).ToLocalChecked())));
     }
-    const bool RecurseP = Args.Length() >= 3 && Args[2]->IsBoolean() && Args[2]->BooleanValue();
+    const bool RecurseP = Args.Length() >= 3 && Args[2]->IsBoolean() && Args[2]->BooleanValue(Nan::GetCurrentContext()).FromJust();
     // Get file list
     TStrV FNmV;
     TFFile::GetFNmV(FPath, FExtV, RecurseP, FNmV);
@@ -254,7 +254,7 @@ void TNodeJsFs::readLines(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     } else {
         // Read from Node.js Buffer
         EAssertR(TNodeJsUtil::IsArgBuffer(Args, 0), "TNodeJsFs::readLines: argument not a buffer");
-        v8::Local<v8::Object> BuffObj = Args[0]->ToObject();
+        v8::Local<v8::Object> BuffObj = Nan::To<v8::Object>(Args[0]).ToLocalChecked();
         char* Buff = node::Buffer::Data(BuffObj);
         size_t BuffLen = node::Buffer::Length(BuffObj);
         SIn = new TThinMIn(Buff, (int)BuffLen);
@@ -282,6 +282,8 @@ v8::Persistent<v8::Function> TNodeJsFIn::Constructor;
 void TNodeJsFIn::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
+
     // template for creating function from javascript using "new", uses _NewJs callback
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsFIn>);
     // child will have the same properties and methods, but a different callback: _NewCpp
@@ -311,16 +313,16 @@ void TNodeJsFIn::Init(v8::Local<v8::Object> exports) {
 
     // This has to be last, otherwise the properties won't show up on the object in JavaScript
     // Constructor is used when creating the object from C++
-    Constructor.Reset(Isolate, child->GetFunction());
+    Constructor.Reset(Isolate, child->GetFunction(context).ToLocalChecked());
     // we need to export the class for calling using "new FIn(...)"
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
-        tpl->GetFunction());
+        tpl->GetFunction(context).ToLocalChecked());
 }
 
 TNodeJsFIn* TNodeJsFIn::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     // parse arguments
     EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected a file path.");
-    return new TNodeJsFIn(*v8::String::Utf8Value(Args[0]->ToString()));
+    return new TNodeJsFIn(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
 }
 
 
@@ -420,6 +422,8 @@ v8::Persistent<v8::Function> TNodeJsFOut::Constructor;
 void TNodeJsFOut::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
+
     // template for creating function from javascript using "new", uses _NewJs callback
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsFOut>);
     // child will have the same properties and methods, but a different callback: _NewCpp
@@ -443,18 +447,18 @@ void TNodeJsFOut::Init(v8::Local<v8::Object> exports) {
 
     // This has to be last, otherwise the properties won't show up on the object in JavaScript
     // Constructor is used when creating the object from C++
-    Constructor.Reset(Isolate, child->GetFunction());
+    Constructor.Reset(Isolate, child->GetFunction(context).ToLocalChecked());
     // we need to export the class for calling using "new FIn(...)"
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
-        tpl->GetFunction());
+        tpl->GetFunction(context).ToLocalChecked());
 }
 
 TNodeJsFOut* TNodeJsFOut::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     // parse arguments
     EAssertR(Args.Length() >= 1 && Args[0]->IsString(),
         "Expected file path.");
-    TStr FNm(*v8::String::Utf8Value(Args[0]->ToString()));
-    bool AppendP = Args.Length() >= 2 && Args[1]->IsBoolean() && Args[1]->BooleanValue();
+    TStr FNm(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
+    bool AppendP = Args.Length() >= 2 && Args[1]->IsBoolean() && Args[1]->BooleanValue(Nan::GetCurrentContext()).FromJust();
 
     return new TNodeJsFOut(FNm, AppendP);
 }
@@ -466,11 +470,11 @@ void TNodeJsFOut::write(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args.This());
     EAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
     if (Args[0]->IsString()) {
-        JsFOut->SOut->PutStr(*v8::String::Utf8Value(Args[0]->ToString()));
+        JsFOut->SOut->PutStr(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
     } else if (Args[0]->IsInt32()) {
-        JsFOut->SOut->PutStr(TInt::GetStr(Args[0]->Int32Value()));
+        JsFOut->SOut->PutStr(TInt::GetStr(Args[0]->Int32Value(Nan::GetCurrentContext()).FromJust()));
     } else if (Args[0]->IsNumber()) {
-        JsFOut->SOut->PutStr(TFlt::GetStr(Args[0]->NumberValue()));
+        JsFOut->SOut->PutStr(TFlt::GetStr(Args[0]->NumberValue(Nan::GetCurrentContext()).FromJust()));
     } else if (TNodeJsUtil::IsArgJson(Args, 0)) {
         JsFOut->SOut->PutStr(TJsonVal::GetStrFromVal(TNodeJsUtil::GetArgJson(Args, 0)));
     } else {
@@ -490,7 +494,7 @@ void TNodeJsFOut::writeBinary(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TStr Str = TNodeJsUtil::GetArgStr(Args, 0);
         Str.Save(*JsFOut->SOut);
     } else if (Args[0]->IsNumber()) {
-        JsFOut->SOut->Save(Args[0]->NumberValue());
+        JsFOut->SOut->Save(Args[0]->NumberValue(Nan::GetCurrentContext()).FromJust());
     } else if (TNodeJsUtil::IsArgJson(Args, 0)) {
         PJsonVal JsonVal = TNodeJsUtil::GetArgJson(Args, 0);
         JsonVal->Save(*JsFOut->SOut);

@@ -8,7 +8,7 @@
 
 // console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js');     //adds assert.run function
-var qm = require('qminer');
+var qm = require('../../index.js');
 var fs = qm.fs;
 
 describe('Partial-flush tests', function () {
@@ -113,7 +113,7 @@ describe('Partial-flush tests', function () {
         base2.close();
         done();
     });
-    it('should reproduce error from production 26.02.2016', function (done) { 
+    it('should reproduce error from production 26.02.2016', function (done) {
         this.timeout(300 * 1000);
 
         var rec_cnt = 10 * 1000;
@@ -158,11 +158,11 @@ describe('Partial-flush tests', function () {
                 }
             }
         ]);
-        
+
         var now = new Date();
         for (var i = 0; i < rec_cnt; i++) {
-            var rec = { 
-                procid: (i * 57398) % 882191, 
+            var rec = {
+                procid: (i * 57398) % 882191,
                 ts: now.getTime(),
                 threadid: i % 42,
                 type: (i % 4 == 0 ? "ERROR" : "WARN"),
@@ -187,24 +187,24 @@ describe('Partial-flush tests', function () {
         }
         //console.log("Closing base");
         base.close();
-        
+
         //console.log("Opening base");
         var base2 = new qm.Base({ mode: 'open' });
         var store2 = base2.store(tab2_name);
         var recs2 = store2.allRecords;
         assert.equal(recs2.length, rec_cnt);
-        
+
         //console.log("Checking records");
         for (var i = 0; i < rec_cnt; i++) {
             var rec2 = recs2[i];
             assert.equal(rec2.server, (i % 2 == 0 ? "s1" : "s2"));
         }
-        
+
         //console.log("Adding new data");
         now = new Date();
         for (var i = rec_cnt; i < 2 * rec_cnt; i++) {
-            var rec2 = { 
-                procid: (i * 57398) % 882191, 
+            var rec2 = {
+                procid: (i * 57398) % 882191,
                 ts: now.getTime(),
                 threadid: i % 42,
                 type: (i % 4 == 0 ? "ERROR" : "WARN"),
@@ -228,5 +228,5 @@ describe('Partial-flush tests', function () {
         }
         base2.close();
         done();
-    });    
+    });
 })

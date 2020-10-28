@@ -349,6 +349,7 @@ void TNodeJsSvmModel::ClrModel() {
 void TNodeJsSVC::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsSvmModel>);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "SVC"));
@@ -367,7 +368,7 @@ void TNodeJsSVC::Init(v8::Local<v8::Object> exports) {
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "bias"), _bias);
 
-    exports->Set(v8::String::NewFromUtf8(Isolate, "SVC"), tpl->GetFunction());
+    exports->Set(v8::String::NewFromUtf8(Isolate, "SVC"), tpl->GetFunction(context).ToLocalChecked());
 }
 
 void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -384,7 +385,7 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TFltV& ClsV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltV>(Args, 1)->Vec;
 
         if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
-            TVec<TIntFltKdV>& VecV = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject())->Mat;
+            TVec<TIntFltKdV>& VecV = ObjectWrap::Unwrap<TNodeJsSpMat>(Nan::To<v8::Object>(Args[0]).ToLocalChecked())->Mat;
             if (JsModel->Algorithm == "SGD" || JsModel->Algorithm == "LIBSVM") {
                 JsModel->Model->FitClassification(VecV, TLinAlgSearch::GetMaxDimIdx(VecV) + 1,
                     VecV.Len(), ClsV, TQm::TEnv::Debug, TQm::TEnv::Error);
@@ -394,7 +395,7 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             }
         }
         else if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
-            TFltVV& VecV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject())->Mat;
+            TFltVV& VecV = ObjectWrap::Unwrap<TNodeJsFltVV>(Nan::To<v8::Object>(Args[0]).ToLocalChecked())->Mat;
             if (JsModel->Algorithm == "SGD" || JsModel->Algorithm == "LIBSVM") {
                 JsModel->Model->FitClassification(VecV, VecV.GetRows(),
                     VecV.GetCols(), ClsV, TQm::TEnv::Debug, TQm::TEnv::Error);
@@ -419,6 +420,7 @@ void TNodeJsSVC::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsSVR::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsSvmModel>);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "SVR"));
@@ -437,7 +439,7 @@ void TNodeJsSVR::Init(v8::Local<v8::Object> exports) {
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "bias"), _bias);
 
-    exports->Set(v8::String::NewFromUtf8(Isolate, "SVR"), tpl->GetFunction());
+    exports->Set(v8::String::NewFromUtf8(Isolate, "SVR"), tpl->GetFunction(context).ToLocalChecked());
 }
 
 void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -455,7 +457,7 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 
         if (TNodeJsUtil::IsArgWrapObj<TNodeJsSpMat>(Args, 0)) {
-            TVec<TIntFltKdV>& VecV = ObjectWrap::Unwrap<TNodeJsSpMat>(Args[0]->ToObject())->Mat;
+            TVec<TIntFltKdV>& VecV = ObjectWrap::Unwrap<TNodeJsSpMat>(Nan::To<v8::Object>(Args[0]).ToLocalChecked())->Mat;
             if (JsModel->Algorithm == "SGD" || JsModel->Algorithm == "LIBSVM") {
                 JsModel->Model->FitRegression(VecV, TLinAlgSearch::GetMaxDimIdx(VecV) + 1,
                     VecV.Len(), ClsV, TQm::TEnv::Debug, TQm::TEnv::Error);
@@ -465,7 +467,7 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             }
         }
         else if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
-            TFltVV& VecV = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject())->Mat;
+            TFltVV& VecV = ObjectWrap::Unwrap<TNodeJsFltVV>(Nan::To<v8::Object>(Args[0]).ToLocalChecked())->Mat;
             if (JsModel->Algorithm == "SGD" || JsModel->Algorithm == "LIBSVM") {
                 JsModel->Model->FitRegression(VecV, VecV.GetRows(),
                     VecV.GetCols(), ClsV, TQm::TEnv::Debug, TQm::TEnv::Error);
@@ -489,6 +491,7 @@ void TNodeJsSVR::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsRidgeReg::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsRidgeReg>);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
@@ -505,7 +508,7 @@ void TNodeJsRidgeReg::Init(v8::Local<v8::Object> exports) {
 
     // properties
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
-    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction(context).ToLocalChecked());
 }
 
 TNodeJsRidgeReg* TNodeJsRidgeReg::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -578,8 +581,8 @@ void TNodeJsRidgeReg::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Args.Holder());
 
     // get the arguments
-    TNodeJsFltVV* InstanceMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
-    TNodeJsFltV* ResponseJsV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject());
+    TNodeJsFltVV* InstanceMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
+    TNodeJsFltV* ResponseJsV = ObjectWrap::Unwrap<TNodeJsFltV>(Nan::To<v8::Object>(Args[1]).ToLocalChecked());
     // fit model
     JsModel->Model.Fit(InstanceMat->Mat, ResponseJsV->Vec);
     // return self
@@ -595,7 +598,7 @@ void TNodeJsRidgeReg::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Args.Holder());
 
     // get the arguments
-    TNodeJsFltV* JsFtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
+    TNodeJsFltV* JsFtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
     const double Result = JsModel->Model.Predict(JsFtrV->Vec);
 
     Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
@@ -618,7 +621,7 @@ void TNodeJsRidgeReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         "RidgeReg.save: expects 1 argument of type qminer.fs.FOut!");
 
     TNodeJsRidgeReg* JsModel = ObjectWrap::Unwrap<TNodeJsRidgeReg>(Args.Holder());
-    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
     EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     JsModel->Model.Save(*JsFOut->SOut);
 
@@ -631,6 +634,7 @@ void TNodeJsRidgeReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsSigmoid::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsSigmoid>);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
@@ -647,7 +651,7 @@ void TNodeJsSigmoid::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // properties
-    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction(context).ToLocalChecked());
 }
 
 TNodeJsSigmoid* TNodeJsSigmoid::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -656,7 +660,7 @@ TNodeJsSigmoid* TNodeJsSigmoid::NewFromArgs(const v8::FunctionCallbackInfo<v8::V
 
     if (Args.Length() > 0 && TNodeJsUtil::IsArgWrapObj<TNodeJsFIn>(Args, 0)) {
         // load the model from the input stream
-        TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+        TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
         return new TNodeJsSigmoid(*JsFIn->SIn);
     }
     else {
@@ -717,8 +721,8 @@ void TNodeJsSigmoid::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         EAssertR(TNodeJsUtil::IsArgWrapObj<TNodeJsFltV>(Args, 1),
             "Sigmoid.fit: Both parameters need to be of same type (e.g., vector).");
         // get the arguments
-        const TFltV& PredV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject())->Vec;
-        const TFltV& TrueV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject())->Vec;
+        const TFltV& PredV = ObjectWrap::Unwrap<TNodeJsFltV>(Nan::To<v8::Object>(Args[0]).ToLocalChecked())->Vec;
+        const TFltV& TrueV = ObjectWrap::Unwrap<TNodeJsFltV>(Nan::To<v8::Object>(Args[1]).ToLocalChecked())->Vec;
         EAssertR(PredV.Len() == TrueV.Len(), "Sigmoid.fit: true and predicted labels have different length.");
         // load into input for sigmoid
         TFltIntKdV PredTrueV(PredV.Len(), 0);
@@ -743,7 +747,7 @@ void TNodeJsSigmoid::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     // get the arguments
     if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltV>(Args, 0)) {
-        const TFltV& PredV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject())->Vec;
+        const TFltV& PredV = ObjectWrap::Unwrap<TNodeJsFltV>(Nan::To<v8::Object>(Args[0]).ToLocalChecked())->Vec;
         TFltV ResV(PredV.Len(), 0);
         for (int EltN = 0; EltN < PredV.Len(); EltN++) {
             ResV.Add(Sigmoid.GetVal(PredV[EltN]));
@@ -768,7 +772,7 @@ void TNodeJsSigmoid::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         "Sigmoid.save: expects 1 argument of type qminer.fs.FOut!");
 
     TNodeJsSigmoid* JsModel = ObjectWrap::Unwrap<TNodeJsSigmoid>(Args.Holder());
-    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
     EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     JsModel->Sigmoid.Save(*JsFOut->SOut);
 
@@ -781,6 +785,7 @@ void TNodeJsSigmoid::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsNNAnomalies::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsNNAnomalies>);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
@@ -800,7 +805,7 @@ void TNodeJsNNAnomalies::Init(v8::Local<v8::Object> exports) {
 
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "init"), _init);
 
-    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction(context).ToLocalChecked());
 }
 
 TNodeJsNNAnomalies::TNodeJsNNAnomalies(const PJsonVal& ParamVal) {
@@ -1019,6 +1024,7 @@ TNodeJsRecLinReg::TNodeJsRecLinReg(const TSignalProc::POnlineLinReg& _Model):
 void TNodeJsRecLinReg::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsRecLinReg>);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
@@ -1038,7 +1044,7 @@ void TNodeJsRecLinReg::Init(v8::Local<v8::Object> exports) {
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "dim"), _dim);
 
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
-        tpl->GetFunction());
+        tpl->GetFunction(context).ToLocalChecked());
 }
 
 TNodeJsRecLinReg* TNodeJsRecLinReg::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1048,7 +1054,7 @@ TNodeJsRecLinReg* TNodeJsRecLinReg::NewFromArgs(const v8::FunctionCallbackInfo<v
     EAssertR(Args.Length() == 1, "Constructor expects 1 argument!");
 
     if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFIn::GetClassId())) {
-        TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+        TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
         return new TNodeJsRecLinReg(TSignalProc::TOnlineLinReg::Load(*JsFIn->SIn));
     }
     else {
@@ -1072,8 +1078,8 @@ void TNodeJsRecLinReg::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(TNodeJsUtil::IsArgWrapObj(Args, 1, TNodeJsFltV::GetClassId()), "Argument 1 should be a full vector!");
 
     TNodeJsRecLinReg* Model = ObjectWrap::Unwrap<TNodeJsRecLinReg>(Args.Holder());
-    TNodeJsFltVV* JsFeatMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
-    TNodeJsFltV* TargetVec = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject());
+    TNodeJsFltVV* JsFeatMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
+    TNodeJsFltV* TargetVec = ObjectWrap::Unwrap<TNodeJsFltV>(Nan::To<v8::Object>(Args[1]).ToLocalChecked());
 
     // make sure dimensions of matrix and vector math
     EAssertR(JsFeatMat->Mat.GetCols() == TargetVec->Vec.Len(),
@@ -1105,7 +1111,7 @@ void TNodeJsRecLinReg::partialFit(const v8::FunctionCallbackInfo<v8::Value>& Arg
     EAssertR(TNodeJsUtil::IsArgFlt(Args, 1), "Argument 1 should be float!");
 
     TNodeJsRecLinReg* Model = ObjectWrap::Unwrap<TNodeJsRecLinReg>(Args.Holder());
-    TNodeJsFltV* JsFeatVec = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
+    TNodeJsFltV* JsFeatVec = ObjectWrap::Unwrap<TNodeJsFltV>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
     const double Target = TNodeJsUtil::GetArgFlt(Args, 1);
 
     // make sure dimensions match
@@ -1128,7 +1134,7 @@ void TNodeJsRecLinReg::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) 
         "RecLinRegModel.learn: The first argument must be a JsTFltV (js linalg full vector)");
 
     TNodeJsRecLinReg* Model = ObjectWrap::Unwrap<TNodeJsRecLinReg>(Args.Holder());
-    TNodeJsFltV* JsFeatVec = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
+    TNodeJsFltV* JsFeatVec = ObjectWrap::Unwrap<TNodeJsFltV>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
 
     EAssertR(Model->Model->GetDim() == JsFeatVec->Vec.Len(),
         "RecLinRegModel.learn: model dimension != sample dimension");
@@ -1198,7 +1204,7 @@ void TNodeJsRecLinReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         SOut = TFOut::New(TNodeJsUtil::GetArgStr(Args, 0), false);
     }
     else {
-        TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+        TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
         EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
         SOut = JsFOut->SOut;
     }
@@ -1234,6 +1240,7 @@ PJsonVal TNodeJsRecLinReg::GetParams() const {
 void TNodeJsLogReg::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsLogReg>);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
@@ -1250,7 +1257,7 @@ void TNodeJsLogReg::Init(v8::Local<v8::Object> exports) {
     // properties
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
-        tpl->GetFunction());
+        tpl->GetFunction(context).ToLocalChecked());
 }
 
 TNodeJsLogReg* TNodeJsLogReg::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1262,7 +1269,7 @@ TNodeJsLogReg* TNodeJsLogReg::NewFromArgs(const v8::FunctionCallbackInfo<v8::Val
     try {
         if (Args.Length() > 0 && TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFIn::GetClassId())) {
             // load the model from the input stream
-            TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+            TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
             return new TNodeJsLogReg(*JsFIn->SIn);
         }
         else if ((Args.Length() == 1 && TNodeJsUtil::IsArgObj(Args, 0)) || Args.Length() == 0)  {
@@ -1323,8 +1330,8 @@ void TNodeJsLogReg::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TNodeJsLogReg* JsModel = ObjectWrap::Unwrap<TNodeJsLogReg>(Args.Holder());
 
     // get the arguments
-    TNodeJsFltVV* InstanceMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
-    TNodeJsFltV* ResponseJsV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject());
+    TNodeJsFltVV* InstanceMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
+    TNodeJsFltV* ResponseJsV = ObjectWrap::Unwrap<TNodeJsFltV>(Nan::To<v8::Object>(Args[1]).ToLocalChecked());
 
     if (Args.Length() > 2) {
         const double ConvergEps = TNodeJsUtil::GetArgFlt(Args, 2);
@@ -1344,7 +1351,7 @@ void TNodeJsLogReg::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(Args.Length() == 1, "logreg.predict: expects 1 argument!");
 
     TNodeJsLogReg* JsModel = ObjectWrap::Unwrap<TNodeJsLogReg>(Args.Holder());
-    TNodeJsFltV* JsFtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
+    TNodeJsFltV* JsFtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
 
     const double Result = JsModel->LogReg.Predict(JsFtrV->Vec);
 
@@ -1375,7 +1382,7 @@ void TNodeJsLogReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(Args.Length() == 1, "logreg.save: expects 1 argument!");
 
     TNodeJsLogReg* JsModel = ObjectWrap::Unwrap<TNodeJsLogReg>(Args.Holder());
-    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
     EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     JsModel->LogReg.Save(*JsFOut->SOut);
 
@@ -1387,6 +1394,7 @@ void TNodeJsLogReg::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsPropHaz::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsPropHaz>);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
@@ -1403,7 +1411,7 @@ void TNodeJsPropHaz::Init(v8::Local<v8::Object> exports) {
     // properties
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "weights"), _weights);
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
-        tpl->GetFunction());
+        tpl->GetFunction(context).ToLocalChecked());
 }
 
 TNodeJsPropHaz* TNodeJsPropHaz::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1412,7 +1420,7 @@ TNodeJsPropHaz* TNodeJsPropHaz::NewFromArgs(const v8::FunctionCallbackInfo<v8::V
 
     if (Args.Length() > 0 && TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFIn::GetClassId())) {
         // load the model from the input stream
-        TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+        TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
         return new TNodeJsPropHaz(TRegression::TPropHazards(*JsFIn->SIn));
     }
     else if (Args.Length() == 0 || TNodeJsUtil::IsArgObj(Args, 0)) {
@@ -1462,8 +1470,8 @@ void TNodeJsPropHaz::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TNodeJsPropHaz* JsModel = ObjectWrap::Unwrap<TNodeJsPropHaz>(Args.Holder());
 
     // get the arguments
-    TNodeJsFltVV* InstanceMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
-    TNodeJsFltV* ResponseJsV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject());
+    TNodeJsFltVV* InstanceMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
+    TNodeJsFltV* ResponseJsV = ObjectWrap::Unwrap<TNodeJsFltV>(Nan::To<v8::Object>(Args[1]).ToLocalChecked());
 
     if (Args.Length() > 2) {
         const double ConvergEps = TNodeJsUtil::GetArgFlt(Args, 2);
@@ -1485,7 +1493,7 @@ void TNodeJsPropHaz::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TNodeJsPropHaz* JsModel = ObjectWrap::Unwrap<TNodeJsPropHaz>(Args.Holder());
 
     // get the arguments
-    TNodeJsFltV* JsFtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
+    TNodeJsFltV* JsFtrV = ObjectWrap::Unwrap<TNodeJsFltV>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
 
     const double Result = JsModel->Model.Predict(JsFtrV->Vec);
 
@@ -1516,7 +1524,7 @@ void TNodeJsPropHaz::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(Args.Length() == 1, "expreg.save: expects 1 argument!");
 
     TNodeJsPropHaz* JsModel = ObjectWrap::Unwrap<TNodeJsPropHaz>(Args.Holder());
-    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
     EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     JsModel->Model.Save(*JsFOut->SOut);
 
@@ -1568,6 +1576,8 @@ TNodeJsNNet::TNodeJsNNet(TSIn& SIn) {
 void TNodeJsNNet::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
+
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsNNet>);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "NNet"));
     // ObjectWrap uses the first internal field to store the wrapped pointer.
@@ -1586,7 +1596,7 @@ void TNodeJsNNet::Init(v8::Local<v8::Object> exports) {
 
 #ifndef MODULE_INCLUDE_ANALYTICS
     exports->Set(v8::String::NewFromUtf8(Isolate, "NNet"),
-        tpl->GetFunction());
+        tpl->GetFunction(context).ToLocalChecked());
 #endif
 
 }
@@ -1600,7 +1610,7 @@ TNodeJsNNet* TNodeJsNNet::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>&
     if (Args.Length() == 1 && TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFIn::GetClassId())) {
         // load the model from an input stream
         // currently not used, will be implemented
-        TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+        TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
         return new TNodeJsNNet(*JsFIn->SIn);
     }
     else if (Args.Length() == 0 || TNodeJsUtil::IsArgObj(Args, 0)) { // got JSON
@@ -1622,8 +1632,8 @@ void TNodeJsNNet::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TNodeJsNNet* Model = ObjectWrap::Unwrap<TNodeJsNNet>(Args.Holder());
         if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId())) {
 
-            TNodeJsFltV* JsVecIn = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
-            TNodeJsFltV* JsVecTarget = ObjectWrap::Unwrap<TNodeJsFltV>(Args[1]->ToObject());
+            TNodeJsFltV* JsVecIn = ObjectWrap::Unwrap<TNodeJsFltV>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
+            TNodeJsFltV* JsVecTarget = ObjectWrap::Unwrap<TNodeJsFltV>(Nan::To<v8::Object>(Args[1]).ToLocalChecked());
 
             // first get output values
             Model->Model->FeedFwd(JsVecIn->Vec);
@@ -1632,8 +1642,8 @@ void TNodeJsNNet::fit(const v8::FunctionCallbackInfo<v8::Value>& Args) {
             Model->Model->BackProp(JsVecTarget->Vec);
         }
         else if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltVV::GetClassId())){
-            TNodeJsFltVV* JsVVecIn = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
-            TNodeJsFltVV* JsVVecTarget = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[1]->ToObject());
+            TNodeJsFltVV* JsVVecIn = ObjectWrap::Unwrap<TNodeJsFltVV>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
+            TNodeJsFltVV* JsVVecTarget = ObjectWrap::Unwrap<TNodeJsFltVV>(Nan::To<v8::Object>(Args[1]).ToLocalChecked());
 
             EAssertR(JsVVecIn->Mat.GetCols() == JsVVecTarget->Mat.GetCols(), "NNet.fit: Column dimension not equal!");
 
@@ -1674,7 +1684,7 @@ void TNodeJsNNet::predict(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
         EAssertR(TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId()),
             "NNet.predict: The first argument must be a JsTFltV (js linalg full vector)");
-        TNodeJsFltV* JsVec = ObjectWrap::Unwrap<TNodeJsFltV>(Args[0]->ToObject());
+        TNodeJsFltV* JsVec = ObjectWrap::Unwrap<TNodeJsFltV>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
 
         Model->Model->FeedFwd(JsVec->Vec);
 
@@ -1757,7 +1767,7 @@ void TNodeJsNNet::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TNodeJsNNet* Model = ObjectWrap::Unwrap<TNodeJsNNet>(Args.Holder());
 
         EAssertR(Args.Length() == 1, "Should have 1 argument!");
-        TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+        TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
         EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
         PSOut SOut = JsFOut->SOut;
 
@@ -1805,6 +1815,7 @@ TSignalProc::TTFunc TNodeJsNNet::ExtractFuncFromString(const TStr& FuncString) {
 void TNodeJsTokenizer::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsTokenizer>);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
@@ -1814,7 +1825,7 @@ void TNodeJsTokenizer::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "getSentences", _getSentences);
     NODE_SET_PROTOTYPE_METHOD(tpl, "getParagraphs", _getParagraphs);
 
-    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction(context).ToLocalChecked());
 }
 
 TNodeJsTokenizer* TNodeJsTokenizer::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1936,6 +1947,7 @@ void TNodeJsMDS::Save(TSOut& SOut) const {
 void TNodeJsMDS::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsMDS>);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
@@ -1950,7 +1962,7 @@ void TNodeJsMDS::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // properties
-    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction(context).ToLocalChecked());
 }
 
 TNodeJsMDS* TNodeJsMDS::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -2272,6 +2284,7 @@ void TNodeJsKMeans::CleanUp() {
 void TNodeJsKMeans::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsKMeans>);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
@@ -2294,7 +2307,7 @@ void TNodeJsKMeans::Init(v8::Local<v8::Object> exports) {
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "relMeanCentroidDist"), _relMeanCentroidDist);
 
     // properties
-    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction(context).ToLocalChecked());
 }
 
 TNodeJsKMeans* TNodeJsKMeans::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -2311,9 +2324,9 @@ TNodeJsKMeans* TNodeJsKMeans::NewFromArgs(const v8::FunctionCallbackInfo<v8::Val
     }
     else if (Args.Length() == 1 && TNodeJsUtil::IsArgObj(Args, 0)) {
         // create new model from given parameters
-        if (TNodeJsUtil::IsObjFld(Args[0]->ToObject(), "fitStart")) {
+        if (TNodeJsUtil::IsObjFld(Nan::To<v8::Object>(Args[0]).ToLocalChecked(), "fitStart")) {
             PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0, true, true);
-            v8::Local<v8::Object> FitStart = TNodeJsUtil::GetFldObj(Args[0]->ToObject(), "fitStart");
+            v8::Local<v8::Object> FitStart = TNodeJsUtil::GetFldObj(Nan::To<v8::Object>(Args[0]).ToLocalChecked(), "fitStart");
             if (TNodeJsUtil::IsObjFld(FitStart, "C")) {
                 if (TNodeJsUtil::IsFldClass<TNodeJsFltVV>(FitStart, "C")) {
                     TFltVV JsMat = TNodeJsUtil::GetUnwrapFld<TNodeJsFltVV>(FitStart, "C")->Mat;
@@ -2415,10 +2428,10 @@ void TNodeJsKMeans::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TNodeJsKMeans* JsKMeans = ObjectWrap::Unwrap<TNodeJsKMeans>(Args.Holder());
 
         // create new model from given parameters
-        if (TNodeJsUtil::IsObjFld(Args[0]->ToObject(), "fitStart")) {
+        if (TNodeJsUtil::IsObjFld(Nan::To<v8::Object>(Args[0]).ToLocalChecked(), "fitStart")) {
             PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0, true, true);
 
-            v8::Local<v8::Object> FitStart = TNodeJsUtil::GetFldObj(Args[0]->ToObject(), "fitStart");
+            v8::Local<v8::Object> FitStart = TNodeJsUtil::GetFldObj(Nan::To<v8::Object>(Args[0]).ToLocalChecked(), "fitStart");
             if (TNodeJsUtil::IsObjFld(FitStart, "C")) {
                 if (TNodeJsUtil::IsFldClass<TNodeJsFltVV>(FitStart, "C")) {
                     JsKMeans->SparseFitMatrix.Clr();
@@ -3139,6 +3152,7 @@ void TNodeJsDpMeans::CleanUp() {
 void TNodeJsDpMeans::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsDpMeans>);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
@@ -3161,7 +3175,7 @@ void TNodeJsDpMeans::Init(v8::Local<v8::Object> exports) {
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "relMeanCentroidDist"), _relMeanCentroidDist);
 
     // properties
-    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction(context).ToLocalChecked());
 }
 
 TNodeJsDpMeans* TNodeJsDpMeans::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -3178,9 +3192,9 @@ TNodeJsDpMeans* TNodeJsDpMeans::NewFromArgs(const v8::FunctionCallbackInfo<v8::V
     }
     else if (Args.Length() == 1 && TNodeJsUtil::IsArgObj(Args, 0)) {
         // create new model from given parameters
-        if (TNodeJsUtil::IsObjFld(Args[0]->ToObject(), "fitStart")) {
+        if (TNodeJsUtil::IsObjFld(Nan::To<v8::Object>(Args[0]).ToLocalChecked(), "fitStart")) {
             PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0, true, true);
-            v8::Local<v8::Object> FitStart = TNodeJsUtil::GetFldObj(Args[0]->ToObject(), "fitStart");
+            v8::Local<v8::Object> FitStart = TNodeJsUtil::GetFldObj(Nan::To<v8::Object>(Args[0]).ToLocalChecked(), "fitStart");
             if (TNodeJsUtil::IsObjFld(FitStart, "C")) {
                 if (TNodeJsUtil::IsFldClass<TNodeJsFltVV>(FitStart, "C")) {
                     TFltVV JsMat = TNodeJsUtil::GetUnwrapFld<TNodeJsFltVV>(FitStart, "C")->Mat;
@@ -3286,10 +3300,10 @@ void TNodeJsDpMeans::setParams(const v8::FunctionCallbackInfo<v8::Value>& Args) 
         TNodeJsDpMeans* JsDpMeans = ObjectWrap::Unwrap<TNodeJsDpMeans>(Args.Holder());
 
         // create new model from given parameters
-        if (TNodeJsUtil::IsObjFld(Args[0]->ToObject(), "fitStart")) {
+        if (TNodeJsUtil::IsObjFld(Nan::To<v8::Object>(Args[0]).ToLocalChecked(), "fitStart")) {
             PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0, true, true);
 
-            v8::Local<v8::Object> FitStart = TNodeJsUtil::GetFldObj(Args[0]->ToObject(), "fitStart");
+            v8::Local<v8::Object> FitStart = TNodeJsUtil::GetFldObj(Nan::To<v8::Object>(Args[0]).ToLocalChecked(), "fitStart");
             if (TNodeJsUtil::IsObjFld(FitStart, "C")) {
                 if (TNodeJsUtil::IsFldClass<TNodeJsFltVV>(FitStart, "C")) {
                     JsDpMeans->SparseFitMatrix.Clr();
@@ -3871,6 +3885,7 @@ namespace TNodeJsQuant {
 void TNodeJsTDigest::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsTDigest>);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
@@ -3888,7 +3903,7 @@ void TNodeJsTDigest::Init(v8::Local<v8::Object> exports) {
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "memory"), _memory);
 
     // properties
-    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction(context).ToLocalChecked());
 }
 
 TNodeJsTDigest::TNodeJsTDigest(const PJsonVal& ParamVal):
@@ -3970,7 +3985,7 @@ void TNodeJsTDigest::quantile(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TFltV PValV; TNodeJsUtil::GetArgFltV(Args, 0, PValV);
         TFltV QuantV; TDigest.Query(PValV, QuantV);
 
-        v8::Handle<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
+        v8::Local<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
         for (int QuantN = 0; QuantN < QuantV.Len(); ++QuantN) {
             QuantArr->Set(QuantN, v8::Number::New(Isolate, QuantV[QuantN]));
         }
@@ -4049,9 +4064,10 @@ TStr TNodeJsTDigest::ExtractStr(const TCompressStrategy& Cs) {
 /////////////////////////////////////////////
 // BufferedTDigest
 
-void TNodeJsBuffTDigest::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsBuffTDigest::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsBuffTDigest>);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
@@ -4070,7 +4086,7 @@ void TNodeJsBuffTDigest::Init(v8::Handle<v8::Object> exports) {
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "memory"), _memory);
 
     // properties
-    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction(context).ToLocalChecked());
 }
 
 TNodeJsBuffTDigest::TNodeJsBuffTDigest(const PJsonVal& ParamVal):
@@ -4150,7 +4166,7 @@ void TNodeJsBuffTDigest::quantile(const v8::FunctionCallbackInfo<v8::Value>& Arg
         TFltV PValV; TNodeJsUtil::GetArgFltV(Args, 0, PValV);
         TFltV QuantV; TDigest.Query(PValV, QuantV);
 
-        v8::Handle<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
+        v8::Local<v8::Array> QuantArr = v8::Array::New(Isolate, QuantV.Len());
         for (int QuantN = 0; QuantN < QuantV.Len(); ++QuantN) {
             QuantArr->Set(QuantN, v8::Number::New(Isolate, QuantV[QuantN]));
         }
@@ -4218,6 +4234,7 @@ void TNodeJsBuffTDigest::memory(v8::Local<v8::Name> Name, const v8::PropertyCall
 void TNodeJsGk::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(
             Isolate,
@@ -4243,7 +4260,7 @@ void TNodeJsGk::Init(v8::Local<v8::Object> exports) {
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "samples"), _samples);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "memory"), _memory);
 
-    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction(context).ToLocalChecked());
 }
 
 TNodeJsGk::TNodeJsGk(const PJsonVal& ParamVal):
@@ -4348,7 +4365,7 @@ void TNodeJsGk::cdf(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TFltV ValV; TNodeJsUtil::GetArgFltV(Args, 0, ValV);
         TFltV CdfValV; Gk.GetCdfV(ValV, CdfValV);
 
-        v8::Handle<v8::Array> QuantArr = v8::Array::New(Isolate, CdfValV.Len());
+        v8::Local<v8::Array> QuantArr = v8::Array::New(Isolate, CdfValV.Len());
         for (int QuantN = 0; QuantN < CdfValV.Len(); ++QuantN) {
             QuantArr->Set(QuantN, v8::Number::New(Isolate, CdfValV[QuantN]));
         }
@@ -4458,6 +4475,7 @@ void TNodeJsGk::memory(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<
 void TNodeJsBiasedGk::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(
             Isolate,
@@ -4480,7 +4498,7 @@ void TNodeJsBiasedGk::Init(v8::Local<v8::Object> exports) {
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "samples"), _samples);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "memory"), _memory);
 
-    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction(context).ToLocalChecked());
 }
 
 TNodeJsBiasedGk::TNodeJsBiasedGk(const PJsonVal& ParamVal):
@@ -4717,6 +4735,7 @@ void TNodeJsRecommenderSys::Save(TSOut& SOut) const {
 void TNodeJsRecommenderSys::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsRecommenderSys>);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
@@ -4732,7 +4751,7 @@ void TNodeJsRecommenderSys::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // properties
-    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction(context).ToLocalChecked());
 }
 
 TNodeJsRecommenderSys* TNodeJsRecommenderSys::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -4884,6 +4903,7 @@ void TNodeJsRecommenderSys::save(const v8::FunctionCallbackInfo<v8::Value>& Args
 void TNodeJsGraphCascade::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsGraphCascade>);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
@@ -4897,7 +4917,7 @@ void TNodeJsGraphCascade::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "getGraph", _getGraph);
     NODE_SET_PROTOTYPE_METHOD(tpl, "getOrder", _getOrder);
 
-    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction(context).ToLocalChecked());
 }
 
 TNodeJsGraphCascade* TNodeJsGraphCascade::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {

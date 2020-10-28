@@ -7,7 +7,7 @@
  */
 
 // JavaScript source code
-var qm = require("qminer");
+var qm = require('../../index.js');
 var la = qm.la;
 var analytics = qm.analytics;
 var assert = require("../../src/nodejs/scripts/assert.js");
@@ -1164,9 +1164,9 @@ describe("Kmeans test", function () {
             var KMeans = new analytics.KMeans({ k: 3 });
             var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
             KMeans.fit(X);
-            var fin = require('qminer').fs.openWrite('kmeans_test.bin');
+            var fin = require('../../index.js').fs.openWrite('kmeans_test.bin');
             KMeans.save(fin); fin.close();
-            var KMeans2 = new analytics.KMeans(require('qminer').fs.openRead('kmeans_test.bin'));
+            var KMeans2 = new analytics.KMeans(require('../../index.js').fs.openRead('kmeans_test.bin'));
             var params = KMeans.getParams();
             var params2 = KMeans2.getParams();
             assert.deepEqual(KMeans.getParams(), KMeans2.getParams());
@@ -1327,9 +1327,9 @@ describe("DpMeans test", function () {
             var dpmeans = new analytics.DpMeans({ lambda: 5, minClusters: 3, maxClusters: 5 });
             var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
             dpmeans.fit(X);
-            var fin = require('qminer').fs.openWrite('dpmeans_test.bin');
+            var fin = require('../../index.js').fs.openWrite('dpmeans_test.bin');
             dpmeans.save(fin); fin.close();
-            var dpmeans2 = new analytics.DpMeans(require('qminer').fs.openRead('dpmeans_test.bin'));
+            var dpmeans2 = new analytics.DpMeans(require('../../index.js').fs.openRead('dpmeans_test.bin'));
             var params = dpmeans.getParams();
             var params2 = dpmeans2.getParams();
             assert.deepEqual(dpmeans.getParams(), dpmeans2.getParams());

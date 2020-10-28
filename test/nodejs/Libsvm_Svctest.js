@@ -7,8 +7,8 @@
  */
 
 // JavaScript source code
-var analytics = require("qminer").analytics;
-var la = require('qminer').la;
+var analytics = require('../../index.js').analytics;
+var la = require('../../index.js').la;
 var assert = require("../../src/nodejs/scripts/assert.js");
 
 //Unit test for LIBSVM SVC
@@ -69,7 +69,7 @@ describe("LIBSVM SVC test", function () {
         it("It should return a SVC created by an empty Json", function () {
             var SVC = new analytics.SVC({ algorithm: "LIBSVM" });
             var SVCjSon = SVC.getParams();
-            
+
             assert.equal(SVCjSon.kernel, "LINEAR");
             assert.equal(SVCjSon.svmType, "default");
             assert.equal(SVCjSon.c, 1);
@@ -223,7 +223,7 @@ describe("LIBSVM SVC test", function () {
         })
 
     });
-    
+
     describe("Bias tests", function () {
         it("should return zero", function () {
             var SVC = new analytics.SVC({ algorithm: "LIBSVM" });
@@ -238,7 +238,7 @@ describe("LIBSVM SVC test", function () {
         })
 
     });
-    
+
     describe("GetModel tests", function () {
         it("should return parameters of the model", function () {
             var SVC = new analytics.SVC({ algorithm: "LIBSVM" });
@@ -515,8 +515,8 @@ describe("LIBSVM SVC test", function () {
             var vec = new la.Vector([1, -1]);
             var SVC = new analytics.SVC({ algorithm: "LIBSVM" });
             SVC.fit(matrix, vec);
-            SVC.save(require('qminer').fs.openWrite('svr_test.bin')).close();
-            var SVC2 = new analytics.SVC(require('qminer').fs.openRead('svr_test.bin'));
+            SVC.save(require('../../index.js').fs.openWrite('svr_test.bin')).close();
+            var SVC2 = new analytics.SVC(require('../../index.js').fs.openRead('svr_test.bin'));
             assert.deepEqual(SVC.getParams(), SVC2.getParams());
             assert.eqtol(SVC.weights.minus(SVC2.weights).norm(), 0, 1e-8);
             assert.eqtol(Math.abs(SVC.bias - SVC2.bias), 0, 1e-8);
@@ -526,7 +526,7 @@ describe("LIBSVM SVC test", function () {
         it('should fit a model on iris dataset (dense), class=setosa, features:sepal length, sepal width', function () {
              var X = require('./irisX.json');
              var y = require('./irisY.json');
-             
+
              var matrix = new la.Matrix(X);
              matrix = matrix.transpose();
              var vec = new la.Vector(y);
@@ -546,7 +546,7 @@ describe("LIBSVM SVC test", function () {
          it('should fit a model on iris dataset (sparse), class=setosa, features:sepal length, sepal width', function () {
              var X = require('./irisX.json');
              var y = require('./irisY.json');
-             
+
              var matrix = new la.Matrix(X);
              matrix = matrix.transpose();
              var spMatrix = matrix.sparse();
@@ -567,7 +567,7 @@ describe("LIBSVM SVC test", function () {
          it('should fit a model on high-dimensional (embedded) iris dataset (dense), class=setosa, features:sepal length, sepal width', function () {
              var X = require('./irisX.json');
              var y = require('./irisY.json');
-             
+
              var matrix0 = new la.Matrix(X);
              var zeros = la.zeros(matrix0.rows, 1000);
              matrix = la.cat([[matrix0, zeros]]);
@@ -589,7 +589,7 @@ describe("LIBSVM SVC test", function () {
          it('should fit a model on high-dimensional (embedded) iris dataset (sparse), class=setosa, features:sepal length, sepal width', function () {
              var X = require('./irisX.json');
              var y = require('./irisY.json');
-             
+
              var matrix0 = new la.Matrix(X);
              var zeros = la.zeros(matrix0.rows, 1000);
              matrix = la.cat([[matrix0, zeros]]);
@@ -609,11 +609,11 @@ describe("LIBSVM SVC test", function () {
              assert.eqtol(SVC.weights.subVec([0, 1]).minus(new la.Vector([-8.5680, 7.1408])).norm(), 0, 1e-3);
              assert.eqtol(Math.abs(SVC.bias - 23.1314), 0, 1e-3);
          });
-         
+
          it('should fit a model on high-dimensional (embedded) iris dataset (dense), class=setosa, features:sepal length, sepal width', function () {
              var X = require('./irisX.json');
              var y = require('./irisY.json');
-             
+
              var matrix0 = new la.Matrix(X);
              var seed = 1;
              var nextSeed = (x) => (x * 16807) % 2147483647;
@@ -663,11 +663,11 @@ describe("LIBSVM SVC test", function () {
                   [3, 0],
                   [10, -1]];
              var y = [1, -1, 1, -1, 1, -1];
-             
+
              var matrix = new la.Matrix(X);
              matrix = matrix.transpose();
              var vec = new la.Vector(y);
-             
+
              var SVC = new analytics.SVC({ algorithm: "LIBSVM", c: 1e-3 });
              SVC.fit(matrix, vec);
              assert.eqtol(SVC.predict(matrix).minus(new la.Vector([1, 1, 1, -1, -1, -1])).norm(), 0, 1e-6);
@@ -680,7 +680,7 @@ describe("LIBSVM SVC test", function () {
                   [3, 0],
                   [10, -1]];
              var y = [1, -1, 1, -1, 1, -1];
-             
+
              var matrix = new la.Matrix(X);
              matrix = matrix.transpose();
              var vec = new la.Vector(y);
@@ -697,7 +697,7 @@ describe("LIBSVM SVC test", function () {
                   [3, 0],
                   [10, -1]];
              var y = [1, -1, 1, -1, 1, -1];
-             
+
              var matrix = new la.Matrix(X);
              matrix = matrix.transpose();
              var vec = new la.Vector(y);
@@ -720,12 +720,12 @@ describe("LIBSVM SVC test", function () {
                   [0.5, 1],
                   [2, 5]];
              var y = [1, 1, 1, 1, 1, -1, -1, -1, -1, -1];
-             
+
              var matrix = new la.Matrix(X);
              matrix = matrix.transpose();
              var vec = new la.Vector(y);
              var SVC = new analytics.SVC({ algorithm: "LIBSVM", kernel: "POLY", degree: 2, p:10e-6, eps:10e-6 });
-             SVC.fit(matrix, vec); 
+             SVC.fit(matrix, vec);
              assert.eqtol(SVC.predict(matrix).minus(new la.Vector([1, 1, 1, 1, 1, -1, -1, -1, -1, -1])).norm(), 0, 1e-6);
          });
         it('should find a fit with RBF kernel', function () {
@@ -738,7 +738,7 @@ describe("LIBSVM SVC test", function () {
                   [-2, 0],
                   [0, -2]];
              var y = [1, 1, 1, 1, -1, -1, -1, -1];
-             
+
              var matrix = new la.Matrix(X);
              matrix = matrix.transpose();
              var vec = new la.Vector(y);

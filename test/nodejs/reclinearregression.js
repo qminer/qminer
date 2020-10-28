@@ -8,8 +8,8 @@
 
 
 var assert = require('../../src/nodejs/scripts/assert.js');
-var analytics = require('qminer').analytics;
-var la = require('qminer').la;
+var analytics = require('../../index.js').analytics;
+var la = require('../../index.js').la;
 
 var tol = 1e-8;
 
@@ -352,18 +352,18 @@ describe('RecursiveLinearRegression Tests', function () {
             var X = new la.Matrix([[1, 2], [1, -1]]);
             var y = new la.Vector([3, 3]);
             linreg.fit(X, y);
-            linreg.save(require('qminer').fs.openWrite('reclinreg_test.bin')).close();
-            var linreg2 = new analytics.RecLinReg(require('qminer').fs.openRead('reclinreg_test.bin'));
+            linreg.save(require('../../index.js').fs.openWrite('reclinreg_test.bin')).close();
+            var linreg2 = new analytics.RecLinReg(require('../../index.js').fs.openRead('reclinreg_test.bin'));
             assert.deepEqual(linreg.getParams(), linreg2.getParams());
             assert.eqtol(linreg.weights.minus(linreg2.weights).norm(), 0, 1e-8);
         })
         it('should serialize and deserialize a non-initialized model', function () {
             var linreg = new analytics.RecLinReg({ dim: 2, regFact: 1e-10, forgetFact: 1.0 });
             // assert.doesNotThrow(function () {
-                var fout = require('qminer').fs.openWrite('reclinreg_test-empty.bin');
+                var fout = require('../../index.js').fs.openWrite('reclinreg_test-empty.bin');
                 linreg.save(fout);
                 fout.close();
-                var fin = require('qminer').fs.openRead('reclinreg_test-empty.bin');
+                var fin = require('../../index.js').fs.openRead('reclinreg_test-empty.bin');
                 var loaded = new analytics.RecLinReg(fin);
                 assert.deepEqual(linreg.getParams(), loaded.getParams());
                 assert.eqtol(linreg.weights.minus(loaded.weights).norm(), 0, 1e-8);

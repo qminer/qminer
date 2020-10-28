@@ -91,18 +91,20 @@
   },
   "main": "./index.js",
   "dependencies": {
-    "node-pre-gyp": "0.10.x"
+    "nan": "^2.14.2",
+    "node-gyp": "^7.1.2",
+    "node-pre-gyp": "^0.15.0"
   },
   "bundledDependencies": [
     "node-pre-gyp"
   ],
   "devDependencies": {
-    "async": "^2.0.0-rc.6",
-    "aws-sdk": "~2.0.0-rc.15",
-    "jsdoc": "~3.3.0-beta3",
-    "jsdoc-baseline": "https://github.com/hegemonic/jsdoc-baseline.git#d161c4136e12ca5d5674747d4b115067a6980185",
-    "mocha": "2.1.x",
-    "mustache": "~2.2.0"
+    "async": "^3.2.0",
+    "aws-sdk": "^2.767.0",
+    "jsdoc": "^3.6.6",
+    "jsdoc-baseline": "^0.1.5",
+    "mocha": "^8.1.3",
+    "mustache": "^4.0.1"
   },
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build",

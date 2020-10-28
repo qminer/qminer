@@ -2,7 +2,7 @@
 * Tests for Multidimensional scaling class in qm.analytics.
 */
 
-var qm = require('qminer');
+var qm = require('../../index.js');
 var analytics = qm.analytics;
 var assert = require('../../src/nodejs/scripts/assert.js');
 

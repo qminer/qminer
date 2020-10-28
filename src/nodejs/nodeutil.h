@@ -12,6 +12,7 @@
     #define BUILDING_NODE_EXTENSION
 #endif
 
+#include <nan.h>
 #include <node.h>
 #include <node_object_wrap.h>
 #include <node_buffer.h>
@@ -349,7 +350,7 @@ public:
     static v8::Local<v8::Object> NewInstance(TClass* Obj);
 
     static v8::Local<v8::Value> V8JsonToV8Str(const v8::Local<v8::Value>& Json);
-    static TStr JSONStringify(const v8::Local<v8::Value>& Json) { return GetStr(V8JsonToV8Str(Json)->ToString()); }
+    static TStr JSONStringify(const v8::Local<v8::Value>& Json) { return GetStr(Nan::To<v8::String>(V8JsonToV8Str(Json)).ToLocalChecked()); }
 
     /// TStrV -> v8 string array
     static v8::Local<v8::Value> GetStrArr(const TStrV& StrV);

@@ -7,8 +7,8 @@
  */
 
 // JavaScript source code
-var analytics = require("qminer").analytics;
-var la = require('qminer').la;
+var analytics = require('../../index.js').analytics;
+var la = require('../../index.js').la;
 var assert = require("../../src/nodejs/scripts/assert.js");
 
 //Unit test for SVC
@@ -185,7 +185,7 @@ describe("SVC test", function () {
         })
 
     });
-    
+
     describe("Bias tests", function () {
         it("should return zero", function () {
             var SVC = new analytics.SVC();
@@ -463,8 +463,8 @@ describe("SVC test", function () {
             var vec = new la.Vector([1, -1]);
             var SVC = new analytics.SVC();
             SVC.fit(matrix, vec);
-			SVC.save(require('qminer').fs.openWrite('svc_test.bin')).close();
-            var SVC2 = new analytics.SVC(require('qminer').fs.openRead('svc_test.bin'));
+			SVC.save(require('../../index.js').fs.openWrite('svc_test.bin')).close();
+            var SVC2 = new analytics.SVC(require('../../index.js').fs.openRead('svc_test.bin'));
             assert.deepEqual(SVC.getParams(), SVC2.getParams());
             assert.eqtol(SVC.weights.minus(SVC2.weights).norm(), 0, 1e-8);
         })

@@ -7,7 +7,7 @@
  */
 
 var assert = require('../../src/nodejs/scripts/assert.js');
-var qm = require('qminer');
+var qm = require('../../index.js');
 var async = require('async');
 
 function assertUpdateSequence(recField, recValArr, updatesArr, store, aggr) {
@@ -21,7 +21,7 @@ function assertUpdateSequence(recField, recValArr, updatesArr, store, aggr) {
     for (var i in recJsonArr) {
         store.push(recJsonArr[i]);
         assert.equal(aggr.saveJson().val, updatesArr[i]);
-    }    
+    }
 }
 
 function JsAggr() {
@@ -73,7 +73,7 @@ describe('Stream aggregate filter', function () {
                 this.saveJson = function (limit) {
                     return { val: updates };
                 }
-            });  
+            });
 
             var OKInput = [{ type: "recordFilterAggr", aggr: aggr.name, filters: [{ type: "trivial" }] }];
             OKInput.push({ type: "recordFilterAggr", aggr: aggr.name, filters: [{ type: "field", store: "RecordTest", field: "Int", minValue: 5 }] });
@@ -96,7 +96,7 @@ describe('Stream aggregate filter', function () {
             BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filters: [{ type: "field", store: null, field: "Int", minValue: 5 }] });
             BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filters: [{ type: "field", store: "RecordTest", field: null, minValue: 5 }] });
             BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filters: [{ type: "field", store: "RecordTest", field: "Int", minValue: null }] });
-            
+
             for (key in OKInput) {
                 assert.doesNotThrow(function () {
                     store.addStreamAggr(OKInput[key]);

@@ -152,7 +152,8 @@
                 'src/third_party/Snap/qlib-core',
                 'src/snap_ext',
                 '<(LIN_ALG_INCLUDE)',
-                '<(LIN_EIGEN_INCLUDE)'
+                '<(LIN_EIGEN_INCLUDE)',
+                '<!(node -e \'require("nan")\')'
             ],
             'dependencies': [
                 'glib',
@@ -248,7 +249,9 @@
                 'src/snap_ext',
                 '<(LIN_ALG_INCLUDE)',
                 '<(LIN_EIGEN_INCLUDE)',
+                '<!(node -e \'require("nan")\')',
                 '<@(ADDITIONAL_QMINER_INCLUDE_DIRS)'
+
             ],
             'dependencies': [
                 'glib',
@@ -291,8 +294,10 @@
                 'src/third_party/sole/',
                 '<(LIN_ALG_INCLUDE)',
                 '<(LIN_EIGEN_INCLUDE)',
+                '<!(node -e \'require("nan")\')',
                 # External include dirs
                 '<@(ADDITIONAL_QMINER_INCLUDE_DIRS)'
+
             ],
         },
         {
@@ -310,7 +315,8 @@
                 'src/glib/mine/',
                 'src/glib/misc/',
                 '<(LIN_ALG_INCLUDE)',
-                '<(LIN_EIGEN_INCLUDE)'
+                '<(LIN_EIGEN_INCLUDE)',
+                '<!(node -e \'require("nan")\')'
             ],
         },
         {
@@ -330,7 +336,8 @@
                 'src/glib/mine/',
                 'src/glib/misc/',
                 '<(LIN_ALG_INCLUDE)',
-                '<(LIN_EIGEN_INCLUDE)'
+                '<(LIN_EIGEN_INCLUDE)',
+                '<!(node -e \'require("nan")\')'
             ],
         },
         {
@@ -356,7 +363,8 @@
                 'src/third_party/sole/',
                 'src/third_party/libsvm/',
                 '<(LIN_ALG_INCLUDE)',
-                '<(LIN_EIGEN_INCLUDE)'
+                '<(LIN_EIGEN_INCLUDE)',
+                '<!(node -e \'require("nan")\')'
             ],
         },
         {

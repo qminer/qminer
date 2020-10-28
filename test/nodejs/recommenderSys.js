@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
 // JavaScript source code
-var la = require("qminer").la;
-var analytics = require("qminer").analytics;
+var la = require('../../index.js').la;
+var analytics = require('../../index.js').analytics;
 var assert = require("../../src/nodejs/scripts/assert.js");
 
 // Recommender System Unit Tests
@@ -198,8 +198,8 @@ describe("RecommenderSys tests", function () {
             recSys.fit(matrix);
             var params = recSys.getParams();
             var model = recSys.getModel();
-            recSys.save(require('qminer').fs.openWrite('recommenderSys_test.bin')).close();
-            var recSys2 = new analytics.RecommenderSys(require('qminer').fs.openRead('recommenderSys_test.bin'));
+            recSys.save(require('../../index.js').fs.openWrite('recommenderSys_test.bin')).close();
+            var recSys2 = new analytics.RecommenderSys(require('../../index.js').fs.openRead('recommenderSys_test.bin'));
             var params2 = recSys2.getParams();
             var model2 = recSys2.getModel();
             assert.equal(params.iter, params2.iter);

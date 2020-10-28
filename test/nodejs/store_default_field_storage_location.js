@@ -7,7 +7,7 @@
  */
 
 var assert = require('../../src/nodejs/scripts/assert.js');     //adds assert.run function
-var qm = require('qminer');
+var qm = require('../../index.js');
 var fs = qm.fs;
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -39,7 +39,7 @@ describe('Default field-location tests ', function () {
         var store_desc = store.toJSON();
         // here we don't see the actual storage location (at least not for now), so this code is just used to execute stuff
         // and we inspect correc behavior manually.
-        assert.equal(store_desc.fields.length, 2); 
+        assert.equal(store_desc.fields.length, 2);
         db.close();
     })
 })

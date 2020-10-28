@@ -7,7 +7,7 @@
  */
 
 // JavaScript source code
-var qm = require('qminer');
+var qm = require('../../index.js');
 var quants = qm.analytics.quantiles;
 var fs = qm.fs;
 var assert = require("../../src/nodejs/scripts/assert.js");
@@ -232,7 +232,7 @@ describe('Gk test', function () {
         }
     })
 
-    
+
     describe('CDF test', function () {
         var gk = new quants.Gk({
             eps: 0.01
@@ -240,7 +240,7 @@ describe('Gk test', function () {
         for (var i = 0; i < 100; i++) {
             gk.insert(Math.floor(Math.random()*100));
         }
-        
+
         it('values should be bounded between 0 and 1', function () {
             assert.equal(gk.cdf(100), 1);
             assert.equal(gk.cdf(-1),0);

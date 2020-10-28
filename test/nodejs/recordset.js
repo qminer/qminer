@@ -8,7 +8,7 @@
 
 // console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js');     //adds assert.run function
-var qm = require('qminer');
+var qm = require('../../index.js');
 
 // the database/store, from which we get the record set
 function TStore() {
@@ -476,11 +476,10 @@ describe('Record Set Tests', function () {
             assert.equal(recSet[0].Title, "Every Day");
         });
         it('Throw an exception', function () {
-        	debugger
             assert.throws(function () {
             	//Javascript exception from callback triggered:Uncaught err
                  recSet.filter(function (rec) { throw "err" });
-            }, /Uncaught err/);
+            });
         });
         it('should filter the all with known gender people', function () {
             recSet2.filter(function (rec) { return rec.Gender == 'Male' || rec.Gender == 'Female' });

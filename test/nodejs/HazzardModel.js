@@ -1,5 +1,5 @@
 var assert = require('../../src/nodejs/scripts/assert.js');
-var qm = require('qminer');
+var qm = require('../../index.js');
 var analytics = qm.analytics;
 var la = qm.la;
 
@@ -189,8 +189,8 @@ describe('HazardModel Tests', function () {
                 var mat = new la.Matrix([[1, 1], [1, -1]]);
                 var vec = new la.Vector([3, 3]);
                 hazard.fit(mat, vec);
-                hazard.save(require('qminer').fs.openWrite('hazard_test.bin')).close();
-                var hazard2 = new analytics.PropHazards(require('qminer').fs.openRead('hazard_test.bin'));
+                hazard.save(require('../../index.js').fs.openWrite('hazard_test.bin')).close();
+                var hazard2 = new analytics.PropHazards(require('../../index.js').fs.openRead('hazard_test.bin'));
                 assert.deepEqual(hazard.getParams(), hazard.getParams());
                 assert.eqtol(hazard.weights.minus(hazard2.weights).norm(), 0, 1e-8);
             })

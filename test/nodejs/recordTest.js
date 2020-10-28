@@ -8,7 +8,7 @@
 
 // console.log(__filename)
 var assert = require('assert');
-var qm = require('qminer');
+var qm = require('../../index.js');
 
 var verbose = false;
 

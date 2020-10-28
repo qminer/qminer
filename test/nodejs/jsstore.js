@@ -1,4 +1,4 @@
-var qm = require('qminer');
+var qm = require('../../index.js');
 var assert = require('../../src/nodejs/scripts/assert.js');
 
 describe('Javascript Store Simple Array Tests', function () {

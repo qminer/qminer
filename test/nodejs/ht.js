@@ -8,8 +8,8 @@
 
 // console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js');     //adds assert.run function
-var ht = require('qminer').ht;
-var fs = require('qminer').fs;
+var ht = require('../../index.js').ht;
+var fs = require('../../index.js').fs;
 
 ///////////////////////////////////////////////////////////////////////////////
 // Hash table tests

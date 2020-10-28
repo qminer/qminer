@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -24,26 +24,26 @@ void TNodeJsStat::Init(v8::Local<v8::Object> exports) {
 void TNodeJsStat::mean(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	
+
 	EAssertR(Args.Length() != 0, "Error using stat.mean function. Not enough input arguments.");
-	EAssertR(Args[0]->IsObject() && (TNodeJsUtil::IsClass(Args[0]->ToObject(), TNodeJsFltV::GetClassId().CStr()) || TNodeJsUtil::IsClass(Args[0]->ToObject(), TNodeJsFltVV::GetClassId())), 
+	EAssertR(Args[0]->IsObject() && (TNodeJsUtil::IsClass(Nan::To<v8::Object>(Args[0]).ToLocalChecked(), TNodeJsFltV::GetClassId().CStr()) || TNodeJsUtil::IsClass(Nan::To<v8::Object>(Args[0]).ToLocalChecked(), TNodeJsFltVV::GetClassId())),
 		"Error using stat.std function. First argument should be la.vector or la.matrix.");
-	
+
 	// Dim parameter
 	int Dim = TNodeJsUtil::GetArgInt32(Args, 1, 1); // Default dim is 1
 	EAssertR((Dim == 1 || Dim == 2), "Error using stat.mean function. Dim must be 1 (col mean) or 2 (row mean)");
 
 	if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId())) {
 		// If input argument is vec
-		//TNodeJsVec* Test = ObjectWrap::Unwrap<TNodeJsVec>(Args[0]->ToObject()); 
-		TNodeJsVec<TFlt, TAuxFltV>* JsVec = ObjectWrap::Unwrap< TNodeJsVec< TFlt, TAuxFltV > >(Args[0]->ToObject());
+		//TNodeJsVec* Test = ObjectWrap::Unwrap<TNodeJsVec>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
+		TNodeJsVec<TFlt, TAuxFltV>* JsVec = ObjectWrap::Unwrap< TNodeJsVec< TFlt, TAuxFltV > >(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
 		Args.GetReturnValue().Set(v8::Number::New(Isolate, TLinAlgStat::Mean(JsVec->Vec)));
 		return;
 	}
 	if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltVV::GetClassId())) {
 		//If input argument is matrix
 		TFltV Vec;
-		TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
+		TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
 		TLinAlgStat::Mean(JsMat->Mat, Vec, Dim == 1 ? TMatDim::mdCols : TMatDim::mdRows);
 		Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Vec));
 		return;
@@ -53,9 +53,9 @@ void TNodeJsStat::mean(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsStat::std(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	
+
 	EAssertR(Args.Length() != 0, "Error using stat.std function. Not enough input arguments.");
-	EAssertR(Args[0]->IsObject() && (TNodeJsUtil::IsClass(Args[0]->ToObject(), TNodeJsFltV::GetClassId().CStr()) || TNodeJsUtil::IsClass(Args[0]->ToObject(), TNodeJsFltVV::GetClassId())),
+	EAssertR(Args[0]->IsObject() && (TNodeJsUtil::IsClass(Nan::To<v8::Object>(Args[0]).ToLocalChecked(), TNodeJsFltV::GetClassId().CStr()) || TNodeJsUtil::IsClass(Nan::To<v8::Object>(Args[0]).ToLocalChecked(), TNodeJsFltVV::GetClassId())),
 		"Error using stat.std function. First argument should be la.vector or la.matrix.");
 
 	int Flag = TNodeJsUtil::GetArgInt32(Args, 1, 0); // Default flag is 0
@@ -72,7 +72,7 @@ void TNodeJsStat::std(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	}
 	if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltVV::GetClassId())) {
 		//If input argument is matrix
-		TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
+		TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
 		TFltV Res;
 		const TMatDim CalcDim = Dim == 1 ? TMatDim::mdCols : TMatDim::mdRows;
 		TLinAlgStat::Std(JsMat->Mat, Res, Flag, CalcDim);
@@ -85,7 +85,7 @@ void TNodeJsStat::std(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 void TNodeJsStat::zscore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	
+
 	TNodeJsFltVV* JsMat = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltVV>(Args, 0);
 	int Flag = TNodeJsUtil::GetArgInt32(Args, 1, 0); // Default flag is 0
 	int Dim = TNodeJsUtil::GetArgInt32(Args, 2, 1); // Default dim is 1

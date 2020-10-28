@@ -8,7 +8,7 @@
 
 // console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
-var qm = require('qminer');
+var qm = require('../../index.js');
 
 describe('Simple search with id as filter parameter', function () {
     var base = undefined;
@@ -37,9 +37,9 @@ describe('Simple search with id as filter parameter', function () {
 
     describe('Tests of base.search after initial push', function () {
         it('returns all elements >= 5', function () {
-            
+
 			// TODO this search is not supported
-			
+
 			//var result = base.search({ $from: 'TestStore', $id: { $gt: 5}});
             //assert.equal(result.length, 94);
         })

@@ -8,7 +8,7 @@
 
 // console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
-var qm = require('qminer');
+var qm = require('../../index.js');
 
 describe('Feature Space Tests', function () {
     var base = undefined;
@@ -518,26 +518,26 @@ describe('Feature Space Tests', function () {
         it('should invert a feature for extractor type: categorical', function () {
             var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] });
             var ftrvec = ftr.extractVector(Store[0]);
-            
+
             var inv = ftr.invertFeatureVector(ftrvec);
-            
+
             assert.notNull(inv);
             assert.equal(1, inv.length);	// there is only 1 feature exractor defined
-            
+
             var invFtr = inv[0];
-            
+
             assert.notNull(invFtr);
             assert.deepEqual(invFtr, { a: 1, b: 0, c: 0 });
         })
         it('should invert a feature for extractor type: categorical, hashDimension', function () {
             var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "FtrSpaceTest", field: "Category", hashDimension: 4, value: ["a", "b", "c"] });
-            
+
             var ftrvec = ftr.extractVector(Store[0]);
             var inv = ftr.invertFeatureVector(ftrvec);
             var range = ftr.getFeatureRange(0);
-            
+
             assert.notNull(inv);
-            
+
             // extract the label
             var hashCategory = null;
             for (var i = 0; i < ftrvec.length; i++) {
@@ -545,11 +545,11 @@ describe('Feature Space Tests', function () {
             		hashCategory = range[i];
             	}
             }
-            
+
             assert.notNull(hashCategory);
             assert.equal(1, inv.length);	// there is only 1 feature exractor defined
-            
-            var ftrInv = inv[0];            
+
+            var ftrInv = inv[0];
             for (var key in ftrInv) {
             	if (key == hashCategory) {
             		assert.equal(1, ftrInv[key]);
@@ -566,12 +566,12 @@ describe('Feature Space Tests', function () {
             ]);
 
             var inv = ftr.invertFeatureVector([1, 1, 0, 0]);
-            
+
             assert.equal(2, inv.length);
-            
+
             var numInv = inv[0];
             var catInv = inv[1];
-            
+
             assert.equal(numInv, 1);
             assert.deepEqual(catInv, { a: 1, b: 0, c: 0 });
         })
@@ -592,16 +592,16 @@ describe('Feature Space Tests', function () {
         })
         it('should invert a feature vector for extractor type: categorical', function () {
             var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "FtrSpaceTest", field: "Category", values: ["a", "b", "c"] });
-            
+
             var val = ftr.invertFeature(0, [1, 0, 0]);
             assert.deepEqual(val, { a: 1, b: 0, c: 0 });
         })
         it('should invert a feature vector for extractor type: categorical, hashDimension', function () {
             var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "FtrSpaceTest", field: "Category", hashDimension: 4 });
-            
+
             var inv = ftr.invertFeature(0, [1, 0, 0, 0]);
             var range = ftr.getFeatureRange(0);
-            
+
             assert.equal(inv[range[0]], 1);
             assert.equal(inv[range[1]], 0);
             assert.equal(inv[range[2]], 0);
@@ -617,12 +617,12 @@ describe('Feature Space Tests', function () {
             assert.equal(val, 5);
         })
     })
-    
+
     describe('Range tests', function () {
     	it('Should return [a, b, c]', function () {
     		var origRange = ['a', 'b', 'c'];
     		var ftr = new qm.FeatureSpace(base, { type: "categorical", source: "FtrSpaceTest", field: "Category", values: origRange });
-    		
+
     		var range = ftr.getFeatureRange(0);
     		for (var i = 0; i < origRange.length; i++) {
     			assert.equal(origRange[i], range[i]);

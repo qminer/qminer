@@ -7,8 +7,8 @@
  */
 
 var assert = require('../../src/nodejs/scripts/assert.js');
-var analytics = require('qminer').analytics;
-var la = require('qminer').la;
+var analytics = require('../../index.js').analytics;
+var la = require('../../index.js').la;
 
 describe('Ridge Regression Tests', function () {
 
@@ -261,8 +261,8 @@ describe('Ridge Regression Tests', function () {
             var A = new la.Matrix([[1, 2], [1, -1]]);
             var b = new la.Vector([3, 3]);
             RR.fit(A, b);
-            RR.save(require('qminer').fs.openWrite('ridgereg_test.bin')).close();
-            var RR2 = new analytics.RidgeReg(require('qminer').fs.openRead('ridgereg_test.bin'));
+            RR.save(require('../../index.js').fs.openWrite('ridgereg_test.bin')).close();
+            var RR2 = new analytics.RidgeReg(require('../../index.js').fs.openRead('ridgereg_test.bin'));
             assert.deepEqual(RR.getParams(), RR2.getParams());
             assert.eqtol(RR.weights.minus(RR2.weights).norm(), 0, 1e-8);
         })

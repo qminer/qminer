@@ -15,6 +15,7 @@ const double TNodeJsStreamStory::DEFAULT_DELTA_TM = 1e-6;
 void TNodeJsStreamStory::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsStreamStory>);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
@@ -78,7 +79,7 @@ void TNodeJsStreamStory::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
-        tpl->GetFunction());
+        tpl->GetFunction(context).ToLocalChecked());
 }
 
 TNodeJsStreamStory::TNodeJsStreamStory(TMc::TStreamStory* _StreamStory):
@@ -175,7 +176,7 @@ TNodeJsStreamStory::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>
     EAssertR(Args.Length() > 0, "ss.fitAsync expects at least one argument!");
 
     JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-    v8::Local<v8::Object> ArgObj = Args[0]->ToObject();
+    v8::Local<v8::Object> ArgObj = Nan::To<v8::Object>(Args[0]).ToLocalChecked();
 
     EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "observations", TNodeJsFltVV::GetClassId()), "Missing field observations or invalid class!");
     EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "controls", TNodeJsFltVV::GetClassId()), "Missing field controls or invalid class!");
@@ -932,7 +933,7 @@ void TNodeJsStreamStory::rebuildHistograms(const v8::FunctionCallbackInfo<v8::Va
     EAssertR(Args.Length() == 1, "hmc.rebuildHistograms: expects 1 argument!");
 
     TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-    v8::Local<v8::Object> ArgObj = Args[0]->ToObject();
+    v8::Local<v8::Object> ArgObj = Nan::To<v8::Object>(Args[0]).ToLocalChecked();
 
     EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "observations", TNodeJsFltVV::GetClassId()), "Missing field observations!");
     EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "controls", TNodeJsFltVV::GetClassId()), "Missing field controls!");
@@ -1168,7 +1169,7 @@ void TNodeJsStreamStory::setControlVal(const v8::FunctionCallbackInfo<v8::Value>
     EAssertR(Args.Length() == 1, "TNodeJsStreamStory::setControlVal: expecting 1 argument!");
 
     TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-    v8::Local<v8::Object> ArgsObj = Args[0]->ToObject();
+    v8::Local<v8::Object> ArgsObj = Nan::To<v8::Object>(Args[0]).ToLocalChecked();
 
     const int FtrId = TNodeJsUtil::GetFldInt(ArgsObj, "ftrId");
     const double Val = TNodeJsUtil::GetFldFlt(ArgsObj, "val");
@@ -1190,7 +1191,7 @@ void TNodeJsStreamStory::resetControlVal(const v8::FunctionCallbackInfo<v8::Valu
     EAssertR(Args.Length() == 1, "TNodeJsStreamStory::setControlVal: expecting 1 argument!");
 
     TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-    v8::Local<v8::Object> ArgsObj = Args[0]->ToObject();
+    v8::Local<v8::Object> ArgsObj = Nan::To<v8::Object>(Args[0]).ToLocalChecked();
 
     if (TNodeJsUtil::IsFldInt(ArgsObj, "stateId")) {
         const int StateId = TNodeJsUtil::GetFldInt(ArgsObj, "stateId");
@@ -1301,7 +1302,7 @@ void TNodeJsStreamStory::OnStateChanged(const uint64 Tm, const TIntFltPrV& State
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::HandleScope HandleScope(Isolate);
 
-        v8::Local<v8::Value> JsTm = v8::Date::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(Tm));
+        v8::Local<v8::Date> JsTm = Nan::New<v8::Date>((double) TNodeJsUtil::GetJsTimestamp(Tm)).ToLocalChecked();
         v8::Local<v8::Array> StateArr = v8::Array::New(Isolate, StateIdHeightV.Len());
 
         for (int i = 0; i < StateIdHeightV.Len(); i++) {
@@ -1368,7 +1369,7 @@ void TNodeJsStreamStory::OnPrediction(const uint64& RecTm, const int& CurrStateI
         const int ArgC = 6;
 
         v8::Local<v8::Value> ArgV[ArgC] = {
-            v8::Date::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(RecTm)),
+            Nan::New<v8::Date>((double) TNodeJsUtil::GetJsTimestamp(RecTm)).ToLocalChecked(),
             v8::Integer::New(Isolate, CurrStateId),
             v8::Integer::New(Isolate, TargetStateId),
             v8::Number::New(Isolate, Prob),
@@ -1388,8 +1389,8 @@ void TNodeJsStreamStory::OnActivityDetected(const uint64& StartTm, const uint64&
 
         const int ArgC = 3;
         v8::Local<v8::Value> ArgV[ArgC] = {
-            v8::Date::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(StartTm)),
-            v8::Date::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(EndTm)),
+            Nan::New<v8::Date>((double) TNodeJsUtil::GetJsTimestamp(StartTm)).ToLocalChecked(),
+            Nan::New<v8::Date>((double) TNodeJsUtil::GetJsTimestamp(EndTm)).ToLocalChecked(),
             v8::String::NewFromUtf8(Isolate, ActNm.CStr())
         };
 
@@ -1421,7 +1422,7 @@ void TNodeJsStreamStory::ProcessProgressQ() {
         v8::Local<v8::Integer> JsPerc = v8::Integer::New(Isolate, PercMsgPr.Val1.Val);
         v8::Local<v8::String> JsMsg = v8::String::NewFromUtf8(Isolate, PercMsgPr.Val2.CStr());
 
-        TNodeJsUtil::ExecuteVoid(Callback, JsPerc->ToObject(), JsMsg->ToObject());
+        TNodeJsUtil::ExecuteVoid(Callback, Nan::To<v8::Object>(JsPerc).ToLocalChecked(), Nan::To<v8::Object>(JsMsg).ToLocalChecked());
     }
 }
 

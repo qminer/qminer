@@ -11,7 +11,7 @@
 // Sample unit test using standard assert JS library
 //
 var assert = require("../../src/nodejs/scripts/assert.js")
-var la = require('qminer').la;
+var la = require('../../index.js').la;
 
 
 describe('Import test', function () {
@@ -1780,18 +1780,17 @@ describe('Sparse Vector', function () {
             var vec = new SpVector();
             it('should return a vector of index elements of spV', function () {
                 var vec2 = vec.spV.idxVec();
-                var controlVec = new la.IntVector([0, 1, 3, 8, 9]);
+                var controlVec = new la.Vector([0, 1, 3, 8, 9]);
 
-                assert.deepEqual(vec2, controlVec);
+                assert.deepStrictEqual(controlVec, vec2);
                 for (var i = 0; i < controlVec.length; i++) {
                     assert.eqtol(vec2.at(i), controlVec.at(i));
                 }
             })
             it('should return a vector of index elements of spVdim', function () {
                 var vec2 = vec.spVdim.idxVec();
-                var controlVec = new la.IntVector([0, 1, 3, 8, 9]);
-
-                assert.deepEqual(vec2, controlVec);
+                var controlVec = new la.Vector([0, 1, 3, 8, 9]);
+                assert.deepStrictEqual(vec2, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
                     assert.eqtol(vec2.at(i), controlVec.at(i));
                 }

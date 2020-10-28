@@ -1,7 +1,7 @@
 /**g1.eachEdge(function (E) { console.log("("+E.srcId+","+E.dstId+")"});
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -31,11 +31,11 @@ class TNodeJsSnap : public node::ObjectWrap {
 public:
     static void Init(v8::Local<v8::Object> exports);
         // **Functions and properties:**
-        // 
+        //
         // - `ugraph = new snap.UndirectedGraph` - returns undirected graph.
         // - `dgraph = new snap.DirectedGraph` - returns directed graph.
         // - `dmgraph = new snap.DirectedMultigraph` - returns directed multigraph.
-  
+
 private:
 };
 
@@ -50,13 +50,13 @@ public:
     static v8::Local<v8::Object> New();
     static v8::Local<v8::Object> New(TStr path);
     static v8::Local<v8::Object> New(TPt<T> _graph);
-    
+
 public:
     TNodeJsGraph() { Graph = T::New(); };
     TNodeJsGraph(TStr path) { Graph = TSnap::LoadEdgeList<TPt<T>>(path); };
     TNodeJsGraph(TPt<T> _graph) { Graph = _graph; };
 public:
-    //# 
+    //#
     //# **Functions and properties:**
     JsDeclareFunction(New);
 private:
@@ -256,7 +256,7 @@ private:
     JsDeclareFunction(dump);
         /**
         * Returns connected components of a graph
-        * @returns {module:la.sparseMatrix} SpMat. 
+        * @returns {module:la.sparseMatrix} SpMat.
         * @example
         * // import the snap module
         * var snap = require('qminer').snap;
@@ -270,11 +270,11 @@ private:
         * graph.addEdge(1,3);
         * // returns connected components of a graph in for of sparse matrix
         * ccm = graph.components()
-        */ 
+        */
     JsDeclareFunction(components);
         /**
         * Returns clustering coeficient of a graph
-        * @returns {double} Ccf. 
+        * @returns {double} Ccf.
         * @example
         * // import the snap module
         * var snap = require('qminer').snap;
@@ -295,7 +295,7 @@ private:
         /**
         * Returns degree centrality of a node in graph
         * @param {inr} NodeId
-        * @returns {int} DegCentrality. 
+        * @returns {int} DegCentrality.
         * @example
         * // import the snap module
         * var snap = require('qminer').snap;
@@ -328,12 +328,12 @@ public:
 
     static void Init(v8::Local<v8::Object> exports);
     static v8::Local<v8::Object> New(const typename T::TNodeI Node);
-    
+
 public:
     TNodeJsNode() {}
     TNodeJsNode(typename T::TNodeI node) { Node = node; }
 public:
-    //# 
+    //#
     //# **Functions and properties:**
     JsDeclareFunction(New);
     JsDeclareProperty(id);
@@ -370,9 +370,9 @@ public:
     TNodeJsEdge() {}
       TNodeJsEdge(typename T::TEdgeI edge) { Edge = edge; }
 public:
-    //# 
+    //#
     //# **Functions and properties:**
-    //# 
+    //#
     JsDeclareFunction(New);
     //#- `id = edge.srcId` -- return id of source node
     JsDeclareProperty(srcId);
@@ -646,7 +646,7 @@ void TNodeJsGraph<T>::eachNode(const v8::FunctionCallbackInfo<v8::Value>& Args) 
         v8::Local<v8::Value> ArgV[Argc] = {
             NodeObj, v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count++))
         };
-        Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
+        Nan::Call(Callback, Isolate->GetCurrentContext()->Global(), Argc, ArgV);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         Count++;
     }
@@ -670,7 +670,7 @@ void TNodeJsGraph<T>::eachEdge(const v8::FunctionCallbackInfo<v8::Value>& Args) 
         v8::Local<v8::Value> ArgV[Argc] = {
             EdgeObj, v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count++))
         };
-        Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
+        Nan::Call(Callback, Isolate->GetCurrentContext()->Global(), Argc, ArgV);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         Count++;
     }
@@ -732,7 +732,7 @@ void TNodeJsGraph<T>::dump(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::HandleScope HandleScope(Isolate);
     TNodeJsGraph* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Args.Holder());
 
-    v8::String::Utf8Value str(Args[0]->ToString());
+    Nan::Utf8String str(Nan::To<v8::String>(Args[0]).ToLocalChecked());
     TStr FNm = *str;
 
     if (FNm != "") {
@@ -761,7 +761,7 @@ void TNodeJsGraph<T>::components(const v8::FunctionCallbackInfo<v8::Value>& Args
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     TNodeJsGraph* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Args.Holder());
-    bool IsWeak = Args[0]->BooleanValue();
+    bool IsWeak = Args[0]->BooleanValue(Nan::GetCurrentContext()).FromJust();
 
     TCnComV CnComV;
     if (IsWeak) {
@@ -814,12 +814,12 @@ template <class T>
 void TNodeJsGraph<T>::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    
+
     EAssertR(Args.Length() == 1 && Args[0]->IsObject() && TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFIn::GetClassId()),
         "Expected a FIn object as the argument.");
     TNodeJsGraph* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Args.Holder());
 
-    TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+    TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
     PSIn SIn = JsFIn->SIn;
     JsGraph->Graph = JsGraph->Graph->Load(*SIn);
     Args.GetReturnValue().Set(Args.Holder());
@@ -834,7 +834,7 @@ void TNodeJsGraph<T>::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         "Expected a FOut object as the argument.");
     TNodeJsGraph* JsGraph = ObjectWrap::Unwrap<TNodeJsGraph>(Args.Holder());
 
-    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
     EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     PSOut SOut = JsFOut->SOut;
     JsGraph->Graph->Save(*SOut);
@@ -849,6 +849,7 @@ v8::Persistent<v8::Function> TNodeJsNode<T>::Constructor;
 template <class T>
 void TNodeJsNode<T>::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "Node"));
@@ -866,15 +867,15 @@ void TNodeJsNode<T>::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "eachInEdge", _eachInEdge);
     NODE_SET_PROTOTYPE_METHOD(tpl, "eachOutEdge", _eachOutEdge);
 
-    // Properties 
+    // Properties
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "id"), _id);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "deg"), _deg);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "inDeg"), _inDeg);
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "outDeg"), _outDeg);
 
-    Constructor.Reset(Isolate, tpl->GetFunction());
+    Constructor.Reset(Isolate, tpl->GetFunction(context).ToLocalChecked());
     exports->Set(v8::String::NewFromUtf8(Isolate, "Node"),
-        tpl->GetFunction());
+        tpl->GetFunction(context).ToLocalChecked());
 }
 
 template <class T>
@@ -985,7 +986,7 @@ void TNodeJsNode<T>::eachNbr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         v8::Local<v8::Value> ArgV[Argc] = {
             v8::Integer::New(Isolate, NbrId), v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count++))
         };
-        Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
+        Nan::Call(Callback, Isolate->GetCurrentContext()->Global(), Argc, ArgV);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         Count++;
     }
@@ -1009,7 +1010,7 @@ void TNodeJsNode<T>::eachInNbr(const v8::FunctionCallbackInfo<v8::Value>& Args) 
         v8::Local<v8::Value> ArgV[Argc] = {
             v8::Integer::New(Isolate, NbrId), v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count++))
         };
-        Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
+        Nan::Call(Callback, Isolate->GetCurrentContext()->Global(), Argc, ArgV);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         Count++;
     }
@@ -1033,7 +1034,7 @@ void TNodeJsNode<T>::eachOutNbr(const v8::FunctionCallbackInfo<v8::Value>& Args)
         v8::Local<v8::Value> ArgV[Argc] = {
             v8::Integer::New(Isolate, NbrId), v8::Local<v8::Number>::New(Isolate, v8::Integer::NewFromUnsigned(Isolate, Count++))
         };
-        Callback->Call(Isolate->GetCurrentContext()->Global(), Argc, ArgV);
+        Nan::Call(Callback, Isolate->GetCurrentContext()->Global(), Argc, ArgV);
         TNodeJsUtil::CheckJSExcept(TryCatch);
         Count++;
     }
@@ -1072,6 +1073,7 @@ v8::Persistent<v8::Function> TNodeJsEdge<T>::Constructor;
 template <class T>
 void TNodeJsEdge<T>::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
     tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "Edge"));
@@ -1082,9 +1084,9 @@ void TNodeJsEdge<T>::Init(v8::Local<v8::Object> exports) {
     tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "dstId"), _dstId);
     NODE_SET_PROTOTYPE_METHOD(tpl, "next", _next);
 
-    Constructor.Reset(Isolate, tpl->GetFunction());
+    Constructor.Reset(Isolate, tpl->GetFunction(context).ToLocalChecked());
     exports->Set(v8::String::NewFromUtf8(Isolate, "Edge"),
-        tpl->GetFunction());
+        tpl->GetFunction(context).ToLocalChecked());
 }
 
 

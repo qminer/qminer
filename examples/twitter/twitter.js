@@ -1,5 +1,5 @@
 // This example demonstrates text mining (feature vectors, active learning and classification)
-// as well as record set filtering (based on time and classification results). It also builds 
+// as well as record set filtering (based on time and classification results). It also builds
 // communication graphs based on sets of twitter messages (twitter specific)
 
 // Import libraries
@@ -61,9 +61,9 @@ if (buildFtrSpace) {
     ftrSpace = new qm.FeatureSpace(base, fin);
 }
 
-// Learn a model of relevant tweets 
+// Learn a model of relevant tweets
 if (learnSvmFilter) {
-    // Constructs the active learner    
+    // Constructs the active learner
     var al = new analytics.ActiveLearner(relevantQuery, recSet, undefined, ftrSpace,
         {nPos: nPos, nNeg: nNeg, textField: "Text"}
     );
@@ -81,7 +81,7 @@ var svmFilter = new analytics.SVC(fin);
 // Filter relevant records: records are dropped if svmFilter predicts a v negative value (anonymous function)
 recSet.filter(function (rec) { return svmFilter.predict(ftrSpace.extractSparseVector(rec)) > 0; });
 
-// Learn a sentiment model 
+// Learn a sentiment model
 if (learnSvmSentiment) {
     // Constructs the active learner
     var al = new analytics.ActiveLearner(sentimentQuery, recSet, undefined, ftrSpace,
