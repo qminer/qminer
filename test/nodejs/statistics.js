@@ -1,20 +1,20 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
- 
-// 
-// Sample unit test using standard assert JS library 
-// 
+
+//
+// Sample unit test using standard assert JS library
+//
 
 var assert = require("../../src/nodejs/scripts/assert.js")
 //var la = require("../../../build/Debug/la.node")
 //var stat = require('../../../build/Debug/stat.node');
-var la = require('qminer').la;
-var stat = require('qminer').statistics;
+var la = require('../../index.js').la;
+var stat = require('../../index.js').statistics;
 
 describe('Import test', function(){
     it('if import of qminer.node succeeds, return true', function(){

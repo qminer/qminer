@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-var qm = require('qminer');
+var qm = require('../../index.js');
 var assert = require('../../src/nodejs/scripts/assert.js');
 
 
@@ -4215,7 +4215,7 @@ describe('Nearest Neighbor Anomaly Detection Tests', function () {
             assert(!anomaly.init);
             assert.equal(anomaly.getInteger(), 0);
 
-            var fs = require('qminer').fs;
+            var fs = require('../../index.js').fs;
             var fout = new fs.FOut("./anomaly.bin");
             anomaly.save(fout);
             fout.close();
@@ -4243,7 +4243,7 @@ describe('Nearest Neighbor Anomaly Detection Tests', function () {
 
             assert.equal(anomaly.getInteger(), 3);
 
-            var fs = require('qminer').fs;
+            var fs = require('../../index.js').fs;
             var fout = new fs.FOut("./anomaly.bin");
             anomaly.save(fout);
             fout.close();
@@ -6949,7 +6949,7 @@ describe('HistogramAD Tests', function () {
 
             store.push({ Time: 0, Value: 0.5 });
             store.push({ Time: 1, Value: 1.5 });
-           
+
             var expected_everities = [ 1, 0 ];
             var hv = histAD.val;
             console.log(hv.severities)
@@ -6969,7 +6969,7 @@ describe('HistogramAD Tests', function () {
             });
 
             var thresholds = [0.5, 0.75];
-            
+
             var sigs = [0.01, 0.1, 1, 10, 100, 1000, 10000];
             var histAD = store.addStreamAggr({
                 type: 'histogramAD',

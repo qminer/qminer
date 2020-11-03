@@ -10,7 +10,7 @@ var assert = require('../../src/nodejs/scripts/assert.js');
 
 describe("test histogram, slotted-histogram and histogram_diff aggregates", function () {
     it("histogram", function () {
-        var qm = require('qminer');
+        var qm = require('../../index.js');
 
         // create a base with a simple store
         // the store records results of clustering
@@ -110,7 +110,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
         }
     });
     it("histogram - sfloat", function () {
-        var qm = require('qminer');
+        var qm = require('../../index.js');
 
         // create a base with a simple store
         // the store records results of clustering
@@ -210,7 +210,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
         }
     });
     it("histogram reset", function () {
-        var qm = require('qminer');
+        var qm = require('../../index.js');
 
         // create a base with a simple store
         // the store records results of clustering
@@ -362,7 +362,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
         }
     });
     it("slotted histogram", function () {
-        var qm = require('qminer');
+        var qm = require('../../index.js');
 
         // create a base with a simple store
         // the store records results of clustering
@@ -463,7 +463,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
         }
     });
     it("slotted histogram reset", function () {
-        var qm = require('qminer');
+        var qm = require('../../index.js');
 
         // create a base with a simple store
         // the store records results of clustering
@@ -615,7 +615,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
         }
     });
     it("histogram_diff simple", function () {
-        var qm = require('qminer');
+        var qm = require('../../index.js');
 
         // create a base with a simple store
         // the store records results of clustering
@@ -741,7 +741,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
         }
     });
     it("histogram_diff - complex - reset and reload", function () {
-        var qm = require('qminer');
+        var qm = require('../../index.js');
 
         // create a base with a simple store
         // the store records results of clustering
@@ -935,7 +935,7 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 
 
 describe('Time Series Window Buffer Feature Extractor', function () {
-    var qm = require('qminer');
+    var qm = require('../../index.js');
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1095,7 +1095,7 @@ describe('Time Series Window Buffer Feature Extractor', function () {
 
 
 describe('Time Series  - EMA for sparse vectors', function () {
-    var qm = require('qminer');
+    var qm = require('../../index.js');
     var base = undefined;
     var store = undefined;
     beforeEach(function () {
@@ -1179,7 +1179,7 @@ describe('Time Series  - EMA for sparse vectors', function () {
 
 
 describe('Simple linear regression test', function () {
-    var qm = require('qminer');
+    var qm = require('../../index.js');
 
     var base = undefined;
     var store = undefined;
@@ -1308,7 +1308,7 @@ describe('Simple linear regression test', function () {
 });
 
 describe("test concept drift methods", function() {
-    let qm = require('qminer');
+    let qm = require('../../index.js');
 
     describe("Page-Hinkley", function() {
         let base;

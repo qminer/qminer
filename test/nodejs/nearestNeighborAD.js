@@ -9,8 +9,8 @@
 
 var assert = require("../../src/nodejs/scripts/assert.js");
 
-var analytics = require('qminer').analytics;
-var la = require('qminer').la;
+var analytics = require('../../index.js').analytics;
+var la = require('../../index.js').la;
 
 
 describe('NearestNeighborAD Tests', function () {

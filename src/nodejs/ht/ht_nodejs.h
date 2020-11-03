@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -182,7 +182,7 @@ public:
     }
 
 	/**
-	* <% title %> 
+	* <% title %>
 	* @classdesc Used for storing key/data pairs, wraps an efficient C++ implementation.
 	* @class
 	* @example
@@ -197,7 +197,7 @@ public:
 	* h.get(<% key2 %>); // returns <% val2 %>
 	* h.key(1); // returns <% key2 %>
 	* h.dat(1); // returns <% val2 %>
-	* h.length; // returns 2	
+	* h.length; // returns 2
 	* // Saving and loading:
 	* var fs = require('qminer').fs;
 	* fout = fs.openWrite('map.dat'); // open write stream
@@ -207,8 +207,8 @@ public:
 	* h2.load(fin); // load
 	*/
 	//# exports.<% className %> = function() {}
-	JsDeclareFunction(New);	
-	
+	JsDeclareFunction(New);
+
 	/**
 	* Returns dat given key.
 	* @param {<% keyType %>} key - Hashmap key.
@@ -226,7 +226,7 @@ public:
 	*/
     //# exports.<% className %>.prototype.get = function(key) { return <% defaultVal %>; }
     JsDeclareFunction(get);
-	
+
 	/**
 	* Add/update key-value pair.
 	* @param {<% keyType %>} key - Hashmap key.
@@ -242,11 +242,11 @@ public:
     * h.put(<% key1 %>, <% val1 %>);
 	*/
     //# exports.<% className %>.prototype.put = function(key, data) { return this; }
-    JsDeclareFunction(put);    
-	
+    JsDeclareFunction(put);
+
 	/**
 	* Returns true if the map has a given key.
-	* @param {<% keyType %>} key - Hashmap key.	
+	* @param {<% keyType %>} key - Hashmap key.
 	* @returns {boolean} True if the map contains key. Otherwise, false.
     * @example
     * // import modules
@@ -261,7 +261,7 @@ public:
 	*/
     //# exports.<% className %>.prototype.hasKey = function(key) { return false; }
     JsDeclareFunction(hasKey);
-	
+
 	/**
     * Number of key/dat pairs. Type `number`.
     * @example
@@ -275,10 +275,10 @@ public:
 	*/
 	//# exports.<% className %>.prototype.length = 0;
 	JsDeclareProperty(length);
-    
+
 	/**
 	* Returns n-th key.
-	* @param {number} n - Hashmap key index number. Should be between 0 and length-1.	
+	* @param {number} n - Hashmap key index number. Should be between 0 and length-1.
 	* @returns {<% keyType %>} The n-th key.
     * @example
     * // import modules
@@ -291,7 +291,7 @@ public:
     * // get the first key
     * var key = h.key(0); // returns <% key1 %>
 	*/
-    //# exports.<% className %>.prototype.key = function(n) { return <% defaultKey %>; }	
+    //# exports.<% className %>.prototype.key = function(n) { return <% defaultKey %>; }
     JsDeclareFunction(key);
 
     /**
@@ -306,10 +306,10 @@ public:
     * var h = new ht.<% className %>();
     * // add a key/dat pair
     * h.put(<% key1 %>, <% val1 %>);
-    * // get key id of <% key1 %> 
+    * // get key id of <% key1 %>
     * var key = h.keyId(<% key1 %>); // returns 0
     */
-    //# exports.<% className %>.prototype.keyId = function(n) { return <% defaultKey %>; }	
+    //# exports.<% className %>.prototype.keyId = function(n) { return <% defaultKey %>; }
     JsDeclareFunction(keyId);
 
 	/**
@@ -329,10 +329,10 @@ public:
 	*/
     //# exports.<% className %>.prototype.dat = function(n) { return <% defaultVal %>; }
     JsDeclareFunction(dat);
-    
+
 	/**
 	* Loads the hashtable from input stream.
-	* @param {module:fs.FIn} fin - Input stream.	
+	* @param {module:fs.FIn} fin - Input stream.
 	* @returns {module:ht.<% className %>} Self.
     * @example
     * // import modules
@@ -352,7 +352,7 @@ public:
 
 	/**
 	* Saves the hashtable to output stream.
-	* @param {module:fs.FOut} fout - Output stream.	
+	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} fout.
     * @example
     * // import modules
@@ -438,6 +438,7 @@ v8::Local<v8::Object> TNodeJsHash<TKey, TDat, TAux>::WrapInst(v8::Local<v8::Obje
 template<class TKey, class TDat, class TAux>
 void TNodeJsHash<TKey, TDat, TAux>::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     TStr Name;
     if (GetClassId() == TNodeJsStrStrH::GetClassId()) { Name = "StrStrMap"; }
@@ -470,9 +471,9 @@ void TNodeJsHash<TKey, TDat, TAux>::Init(v8::Local<v8::Object> exports) {
 
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript
-    constructor.Reset(Isolate, tpl->GetFunction());
+    constructor.Reset(Isolate, tpl->GetFunction(context).ToLocalChecked());
     exports->Set(v8::String::NewFromUtf8(Isolate, Name.CStr()),
-        tpl->GetFunction());
+        tpl->GetFunction(context).ToLocalChecked());
 }
 
 template<class TKey, class TDat, class TAux>
@@ -484,7 +485,7 @@ void TNodeJsHash<TKey, TDat, TAux>::New(const v8::FunctionCallbackInfo<v8::Value
 
     if (Args.Length() > 0 && (Args[0]->IsExternal() || Args[0]->IsString())) {
     	PSIn SIn = Args[0]->IsExternal() ?
-    			ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject())->SIn :
+    			ObjectWrap::Unwrap<TNodeJsFIn>(Nan::To<v8::Object>(Args[0]).ToLocalChecked())->SIn :
 				TFIn::New(TNodeJsUtil::GetArgStr(Args, 0));
 
     	Args.GetReturnValue().Set(WrapInst(Args.Holder(), *SIn));
@@ -559,7 +560,7 @@ void TNodeJsHash<TKey, TDat, TAux>::keyId(const v8::FunctionCallbackInfo<v8::Val
     if (JsMap->Map.IsKey(Key)) {
         Idx = JsMap->Map.GetKeyId(Key);
     }
-    Args.GetReturnValue().Set(v8::Integer::New(Isolate, Idx));    
+    Args.GetReturnValue().Set(v8::Integer::New(Isolate, Idx));
 }
 
 template<class TKey, class TDat, class TAux>
@@ -586,7 +587,7 @@ void TNodeJsHash<TKey, TDat, TAux>::load(const v8::FunctionCallbackInfo<v8::Valu
     EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
         "Expected a TFIn object as the argument.");
     TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Args.Holder());
-    TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+    TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
     PSIn SIn = JsFIn->SIn;
     JsMap->Map.Load(*SIn);
     Args.GetReturnValue().Set(Args.Holder());
@@ -600,7 +601,7 @@ void TNodeJsHash<TKey, TDat, TAux>::save(const v8::FunctionCallbackInfo<v8::Valu
     EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
         "Expected a TFOut object as the argument.");
     TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Args.Holder());
-    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
     EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     PSOut SOut = JsFOut->SOut;
     JsMap->Map.Save(*SOut);

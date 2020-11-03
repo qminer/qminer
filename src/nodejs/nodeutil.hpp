@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -25,8 +25,8 @@ bool TNodeJsUtil::IsArgWrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, 
 template <class TClass>
 TClass* TNodeJsUtil::GetArgUnwrapObj(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
     EAssertR(ArgN < Args.Length(), "GetArgUnwrapObj: Not enough arguments!");
-    EAssertR(IsArgWrapObj<TClass>(Args, ArgN), "Invalid argument class `" + GetClass(v8::Handle<v8::Object>::Cast(Args[ArgN])) + "`, when expecting `" + TClass::GetClassId() + "`!");
-    return node::ObjectWrap::Unwrap<TClass>(Args[ArgN]->ToObject());
+    EAssertR(IsArgWrapObj<TClass>(Args, ArgN), "Invalid argument class `" + GetClass(v8::Local<v8::Object>::Cast(Args[ArgN])) + "`, when expecting `" + TClass::GetClassId() + "`!");
+    return node::ObjectWrap::Unwrap<TClass>(Nan::To<v8::Object>(Args[ArgN]).ToLocalChecked());
 }
 
 template <class TClass>
@@ -37,7 +37,7 @@ TClass* TNodeJsUtil::GetArgUnwrapObj(const v8::FunctionCallbackInfo<v8::Value>& 
     EAssertR(ArgN < Args.Length(), "GetArgUnwrapObj: Not enough arguments!");
     EAssertR(Args[ArgN]->IsObject(), "GetArgUnwrapObj: Argument not an object!");
     // unwrap and return
-    return TNodeJsUtil::GetUnwrapFld<TClass>(Args[ArgN]->ToObject(), Property);
+    return TNodeJsUtil::GetUnwrapFld<TClass>(Nan::To<v8::Object>(Args[ArgN]).ToLocalChecked(), Property);
 }
 
 template <class TClass>
@@ -47,7 +47,7 @@ bool TNodeJsUtil::IsFldClass(v8::Local<v8::Object> Obj, const TStr& FldNm) {
     if (!IsObjFld(Obj, FldNm)) { return false; }
     v8::Local<v8::Value> ValFld = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
     if (!ValFld->IsObject()) { return false; }
-    v8::Local<v8::Object> ObjFld = ValFld->ToObject();
+    v8::Local<v8::Object> ObjFld = Nan::To<v8::Object>(ValFld).ToLocalChecked();
     return IsClass(ObjFld, TClass::GetClassId());
 }
 
@@ -60,7 +60,7 @@ TClass* TNodeJsUtil::GetUnwrapFld(v8::Local<v8::Object> Obj, const TStr& FldNm) 
     v8::Local<v8::Value> ValFld = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
     // check field points to an object
     EAssertR(ValFld->IsObject(), "TNodeJsUtil::GetUnwrapFld: Key " + FldNm + " is not an object");
-    v8::Local<v8::Object> ObjFld = ValFld->ToObject();
+    v8::Local<v8::Object> ObjFld = Nan::To<v8::Object>(ValFld).ToLocalChecked();
 
     return Unwrap<TClass>(ObjFld);
 }
@@ -148,7 +148,7 @@ void TNodeJsUtil::ExecuteVoid(const v8::Local<v8::Function>& Fun, const v8::Loca
     v8::TryCatch TryCatch(Isolate);
 
     v8::Local<v8::Value> Argv[1] = { Arg };
-    Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
+    Nan::Call(Fun, Isolate->GetCurrentContext()->Global(), 1, Argv);
     TNodeJsUtil::CheckJSExcept(TryCatch);
 }
 
@@ -159,11 +159,16 @@ bool TNodeJsUtil::ExecuteBool(const v8::Local<v8::Function>& Fun, const v8::Loca
     v8::TryCatch TryCatch(Isolate);
 
     v8::Local<v8::Value> Argv[1] = { Arg };
-    v8::Local<v8::Value> RetVal = Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
+    v8::MaybeLocal<v8::Value> Tmp = Nan::Call(Fun, Isolate->GetCurrentContext()->Global(), 1, Argv);
     TNodeJsUtil::CheckJSExcept(TryCatch);
 
-    EAssertR(RetVal->IsBoolean(), "The return value is not a boolean!");
-    return RetVal->BooleanValue();
+    if (Tmp.IsEmpty()) {
+        Isolate->ThrowException(TryCatch.Exception());
+    } else {
+        v8::Local<v8::Value> RetVal = Tmp.ToLocalChecked();
+        EAssertR(RetVal->IsBoolean(), "The return value is not a boolean!");
+        return RetVal->BooleanValue(Nan::GetCurrentContext()).FromJust();
+    }
 }
 
 template <class TClass>

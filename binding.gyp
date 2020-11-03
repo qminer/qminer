@@ -5,13 +5,15 @@
         'LIN_ALG_EIGEN%': 'NEIGEN',
         'LIN_ALG_INCLUDE%': 'src/glib/base/',
         'LIN_EIGEN_INCLUDE%': 'src/third_party/eigen/',
-        #full path to lapack or openblas libraries
+        # full path to lapack or openblas libraries
         'LIN_ALG_LIB%': '',
-        #64 bit indexing for BLAS
+        # 64 bit indexing for BLAS
         'INDEX_64%': 'NINDEX_64',
         'INTEL%': 'NINTEL',
         'ADDITIONAL_QMINER_INCLUDE_DIRS%': '',
-        'ADDITIONAL_QMINER_SOURCES%': ''
+        'ADDITIONAL_QMINER_SOURCES%': '',
+        # include the path to the Native Abstraction for nodejs
+        'NAN_LIB_PATH%': 'node_modules/nan'
     },
     'target_defaults': {
         'default_configuration': 'Release',
@@ -81,7 +83,7 @@
                         'SubSystem' : 1, # Console
                         'AdditionalOptions': ['<(LIN_ALG_LIB)']
                     },
-                },
+                }
             }],
             ['OS == "mac"', {
                 "default_configuration": "Release",
@@ -152,7 +154,8 @@
                 'src/third_party/Snap/qlib-core',
                 'src/snap_ext',
                 '<(LIN_ALG_INCLUDE)',
-                '<(LIN_EIGEN_INCLUDE)'
+                '<(LIN_EIGEN_INCLUDE)',
+                '<(NAN_LIB_PATH)'
             ],
             'dependencies': [
                 'glib',
@@ -246,9 +249,11 @@
                 'src/third_party/Snap/snap-exp',
                 'src/third_party/Snap/qlib-core',
                 'src/snap_ext',
+                '<(NAN_LIB_PATH)',
                 '<(LIN_ALG_INCLUDE)',
                 '<(LIN_EIGEN_INCLUDE)',
                 '<@(ADDITIONAL_QMINER_INCLUDE_DIRS)'
+
             ],
             'dependencies': [
                 'glib',
@@ -289,10 +294,12 @@
                 'src/glib/concurrent/',
                 'src/third_party/geospatial/',
                 'src/third_party/sole/',
+                '<(NAN_LIB_PATH)',
                 '<(LIN_ALG_INCLUDE)',
                 '<(LIN_EIGEN_INCLUDE)',
                 # External include dirs
                 '<@(ADDITIONAL_QMINER_INCLUDE_DIRS)'
+
             ],
         },
         {
@@ -309,6 +316,7 @@
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',
+                '<(NAN_LIB_PATH)',
                 '<(LIN_ALG_INCLUDE)',
                 '<(LIN_EIGEN_INCLUDE)'
             ],
@@ -329,6 +337,7 @@
                 'src/glib/base/',
                 'src/glib/mine/',
                 'src/glib/misc/',
+                '<(NAN_LIB_PATH)',
                 '<(LIN_ALG_INCLUDE)',
                 '<(LIN_EIGEN_INCLUDE)'
             ],
@@ -355,6 +364,7 @@
                 'src/glib/concurrent/',
                 'src/third_party/sole/',
                 'src/third_party/libsvm/',
+                '<(NAN_LIB_PATH)',
                 '<(LIN_ALG_INCLUDE)',
                 '<(LIN_EIGEN_INCLUDE)'
             ],

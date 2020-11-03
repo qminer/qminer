@@ -8,11 +8,11 @@
 #include "la_nodejs.h"
 
 ///////////////////////////////
-// NodeJs-Qminer-LinAlg 
+// NodeJs-Qminer-LinAlg
 //
-// These functions play the role of TJsLinAlg in QMiner JS API 
+// These functions play the role of TJsLinAlg in QMiner JS API
 // Implement them in Javascript!
-// 
+//
 
 ///////////////////////////////
 // NodeJs-Qminer-LinAlg
@@ -99,7 +99,7 @@ v8::Local<v8::Value> TNodeJsLinAlg::TSVDTask::WrapResult() {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
 
-    v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result 
+    v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result
     JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "U")), TNodeJsUtil::NewInstance(U));
     JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "V")), TNodeJsUtil::NewInstance(V));
     JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "s")), TNodeJsUtil::NewInstance(s));
@@ -109,12 +109,12 @@ v8::Local<v8::Value> TNodeJsLinAlg::TSVDTask::WrapResult() {
 void TNodeJsLinAlg::qr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result 
+    v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result
     TFltVV Q;
     TFltVV R;
     double Tol = TNodeJsUtil::GetArgFlt(Args, 1, 1e-6);
     if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
-        TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
+        TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
         TLinAlg::QR(JsMat->Mat, Q, R, Tol);
     }
     JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "Q")), TNodeJsFltVV::New(Q));

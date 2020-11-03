@@ -7,7 +7,7 @@
  */
 
 // console.log(__filename)
-var qm = require('qminer');
+var qm = require('../../index.js');
 var assert = require('assert')
 var datasets = qm.datasets;
 

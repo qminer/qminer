@@ -1,5 +1,5 @@
 var assert = require('../../src/nodejs/scripts/assert.js');
-var qm = require('qminer');
+var qm = require('../../index.js');
 var analytics = qm.analytics;
 var la = qm.la;
 
@@ -175,8 +175,8 @@ describe('Logistic Regression Tests', function () {
                 var mat = new la.Matrix([[1, 1], [1, -1]]);
                 var vec = new la.Vector([3, 3]);
                 logreg.fit(mat, vec);
-                logreg.save(require('qminer').fs.openWrite('logreg_test.bin')).close();
-                var logreg2 = new analytics.LogReg(require('qminer').fs.openRead('logreg_test.bin'));
+                logreg.save(require('../../index.js').fs.openWrite('logreg_test.bin')).close();
+                var logreg2 = new analytics.LogReg(require('../../index.js').fs.openRead('logreg_test.bin'));
                 assert.deepEqual(logreg.getParams(), logreg2.getParams());
                 assert.eqtol(logreg.weights.minus(logreg2.weights).norm(), 0, 1e-8);
             })

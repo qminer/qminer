@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -10,11 +10,11 @@
 // One vs All Unit Tests
 
 var assert = require('../../src/nodejs/scripts/assert.js');
-var analytics = require('qminer').analytics;
-var la = require('qminer').la;
+var analytics = require('../../index.js').analytics;
+var la = require('../../index.js').la;
 
 describe('OneVsAll Tests', function () {
-    
+
     describe('Constructor Tests', function () {
         it('should not throw an exception', function () {
             var json = { c: 10, maxTime: 12000 };
@@ -259,7 +259,7 @@ describe('OneVsAll Tests', function () {
             });
         })
         it('should throw an exception if there are less rows than in the model, dense matrix', function () {
-            
+
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -273,7 +273,7 @@ describe('OneVsAll Tests', function () {
         })
 
         it('should not throw an exception, sparse matrix', function () {
-            
+
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -286,7 +286,7 @@ describe('OneVsAll Tests', function () {
             });
         })
         it('should return an integer vector containing the cluster indeces, sparse matrix', function () {
-            
+
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -303,7 +303,7 @@ describe('OneVsAll Tests', function () {
 
     describe('DecisionFunction Tests', function () {
         it('should not throw an exception, dense vector', function () {
-            
+
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -316,7 +316,7 @@ describe('OneVsAll Tests', function () {
             });
         })
         it('should throw an exception if the vector is too long, dense vector', function () {
-            
+
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -329,7 +329,7 @@ describe('OneVsAll Tests', function () {
             });
         })
         it('should throw an exception if the vector is too short, dense vector', function () {
-            
+
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -343,7 +343,7 @@ describe('OneVsAll Tests', function () {
         })
 
         it('should not throw an exception, sparse vector', function () {
-            
+
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -357,7 +357,7 @@ describe('OneVsAll Tests', function () {
         })
 
         it('should not throw an exception, dense matrix', function () {
-            
+
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -370,7 +370,7 @@ describe('OneVsAll Tests', function () {
             });
         })
         it('should throw an exception if the number of rows are greater than the models', function () {
-            
+
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -383,7 +383,7 @@ describe('OneVsAll Tests', function () {
             });
         })
         it('should throw an exception if the number of rows are lesser than the models', function () {
-            
+
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
@@ -397,7 +397,7 @@ describe('OneVsAll Tests', function () {
         })
 
         it('should not throw exception, sparse matrix', function () {
-            
+
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 2 });
             var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);

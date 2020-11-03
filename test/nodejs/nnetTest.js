@@ -1,10 +1,10 @@
 var assert = require('../../src/nodejs/scripts/assert.js');
-var qm = require('qminer');
+var qm = require('../../index.js');
 var analytics = qm.analytics;
 var la = qm.la;
 
 describe('NNet Tests', function () {
-    
+
     describe('Constructor Tests', function () {
         it('should not throw an exception, default parameters', function () {
             assert.doesNotThrow(function () {

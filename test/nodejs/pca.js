@@ -7,8 +7,8 @@
  */
 
 // JavaScript source code
-var la = require("qminer").la;
-var analytics = require("qminer").analytics;
+var la = require('../../index.js').la;
+var analytics = require('../../index.js').analytics;
 var assert = require("../../src/nodejs/scripts/assert.js");
 //Unit test for PCA
 
@@ -190,8 +190,8 @@ describe("PCA test", function () {
             pca.fit(matrix);
             var model = pca.getModel();
             var tran = pca.transform(matrix);
-            pca.save(require('qminer').fs.openWrite('pca_test.bin')).close();
-            var pca2 = new analytics.PCA(require('qminer').fs.openRead('pca_test.bin'));
+            pca.save(require('../../index.js').fs.openWrite('pca_test.bin')).close();
+            var pca2 = new analytics.PCA(require('../../index.js').fs.openRead('pca_test.bin'));
             var model2 = pca2.getModel();
             assert.deepEqual(pca.getParams(), pca2.getParams());
             assert.eqtol(model.mu.minus(model2.mu).norm(), 0);

@@ -8,7 +8,7 @@
 
 // console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); // additional JS implementations
-var qm = require('qminer');
+var qm = require('../../index.js');
 
 //describe('Primary field, old', function () {
 //	it('should survive', function () {

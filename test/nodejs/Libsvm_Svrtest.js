@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
 // JavaScript source code
-var la = require("qminer").la;
-var analytics = require("qminer").analytics;
+var la = require('../../index.js').la;
+var analytics = require('../../index.js').analytics;
 var assert = require("../../src/nodejs/scripts/assert.js");
 
 //Unit test for LIBSVM SVR
@@ -217,7 +217,7 @@ describe("LIBSVM SVR test", function () {
         })
 
     });
-    
+
     describe("Bias tests", function () {
         it("should return zero", function () {
             var SVR = new analytics.SVR({ algorithm: "LIBSVM" });
@@ -232,7 +232,7 @@ describe("LIBSVM SVR test", function () {
         })
 
     });
-    
+
     describe("getModel tests", function () {
         it("should return parameters of the model", function () {
             var SVR = new analytics.SVR({ algorithm: "LIBSVM" });
@@ -256,7 +256,7 @@ describe("LIBSVM SVR test", function () {
 
             assert.doesNotThrow(function () {
                 SVR.fit(matrix, vector);
-            });         
+            });
         })
         //degenerated example
         it("should return a fitted model for the degenerated example", function () {
@@ -286,7 +286,7 @@ describe("LIBSVM SVR test", function () {
             var vector = new la.Vector([1, -1]);
             var SVR = new analytics.SVR({ algorithm: "LIBSVM", c: 10 });
             SVR.fit(matrix, vector);
-            
+
             var weights = SVR.weights;
             assert.eqtol(weights[0], 1, 3e-1);
         })
@@ -544,8 +544,8 @@ describe("LIBSVM SVR test", function () {
             var vec = new la.Vector([1, -1]);
             var SVR = new analytics.SVR({ algorithm: "LIBSVM" });
             SVR.fit(matrix, vec);
-            SVR.save(require('qminer').fs.openWrite('svc_test.bin')).close();
-            var SVR2 = new analytics.SVR(require('qminer').fs.openRead('svc_test.bin'));
+            SVR.save(require('../../index.js').fs.openWrite('svc_test.bin')).close();
+            var SVR2 = new analytics.SVR(require('../../index.js').fs.openRead('svc_test.bin'));
             assert.deepEqual(SVR.getParams(), SVR2.getParams());
             assert.eqtol(SVR.weights.minus(SVR2.weights).norm(), 0, 1e-8);
         })
@@ -560,7 +560,7 @@ describe("LIBSVM SVR test", function () {
                   [2],
                   [3]];
              var y = [9, 4, 1, 0, 4, 1, 9];
-             
+
              var matrix = new la.Matrix(X);
              matrix = matrix.transpose();
              var vec = new la.Vector(y);
@@ -579,7 +579,7 @@ describe("LIBSVM SVR test", function () {
                   [-2, 0],
                   [0, -2]];
              var y = [1, 1, 1, 1, 2, 2, 2, 2];
-             
+
              var matrix = new la.Matrix(X);
              matrix = matrix.transpose();
              var vec = new la.Vector(y);

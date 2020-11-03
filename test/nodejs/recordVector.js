@@ -8,7 +8,7 @@
 
 // console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js');     //adds assert.run function
-var qm = require('qminer');
+var qm = require('../../index.js');
 
 describe('Record Vector Tests', function () {
     var base, store;
@@ -74,7 +74,7 @@ describe('Record Vector Tests', function () {
             outRecordVector.push(store.newRecord({ Name: "Immanuel Kant", Era: "18th-century philosophy" }));
             var fout = qm.fs.openWrite('record_vector.bin');
             outRecordVector.save(fout).close();
-            
+
             var fin = qm.fs.openRead('record_vector.bin');
             var inRecordVector = new qm.RecordVector(base, fin);
             assert.equal(inRecordVector.length, 2);
@@ -82,8 +82,8 @@ describe('Record Vector Tests', function () {
             assert.equal(inRecordVector[0].Era, "Ancient philosophy");
             assert.equal(inRecordVector[1].Name, "Immanuel Kant");
             assert.equal(inRecordVector[1].Era, "18th-century philosophy");
-            assert.equal(inRecordVector[2], null);            
+            assert.equal(inRecordVector[2], null);
         })
     });
-    
+
 })

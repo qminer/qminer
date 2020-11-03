@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-var qm = require('qminer');
+var qm = require('../../index.js');
 var assert = require('assert');
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -170,12 +170,12 @@ for (var k = 0; k < 2; k++) {
     var base = CreateBase(rec_id_type, freq_type, sloc);
     FillAndCheck(base, rec_id_type, freq_type);
     console.log("##");
-    
+
     for (var i = 0; i < 5000; i++) {
         base.store('People').push({ name: "Jim" + i })
     }
     console.log("##");
-    
+
     base.close();
 }
 */

@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-var qm = require('qminer');
+var qm = require('../../index.js');
 var assert = require("../../src/nodejs/scripts/assert.js");
 
 var testPrecision = 0.05;
@@ -35,7 +35,7 @@ describe("Graph cascades", function () {
             };
 
             var graphPred = new qm.analytics.GraphCascade(pred);
-            
+
             var obs = pred.observations;
             var obsArr = Object.keys(obs).map(function (x) { return { node: x, date: obs[x] } });
             obsArr = obsArr.filter(function (x) { return x.date > 0 });
@@ -93,7 +93,7 @@ describe("Graph cascades", function () {
             };
 
             var graphPred = new qm.analytics.GraphCascade(pred);
-            
+
             var obs = pred.observations;
             var obsArr = Object.keys(obs).map(function (x) { return { node: x, date: obs[x] } });
             obsArr = obsArr.filter(function (x) { return x.date > 0 });
@@ -223,7 +223,7 @@ describe("Graph cascades", function () {
             var posterior = graphPred.getPosterior({
                     quantiles: [0.01, 0.32, 0.34, 0.99]
             });
-            // since t = 1, b can be s + 1 (p = 1/3) or s + 2 (p = 2/3). 
+            // since t = 1, b can be s + 1 (p = 1/3) or s + 2 (p = 2/3).
             // c is always b + 1
             assert(posterior.c[0] == obs.s + 2);
             assert(posterior.c[1] == obs.s + 2);
