@@ -279,7 +279,7 @@ void TNodeJsQm::flags(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v
 #endif
 
 #ifdef GLib_CLANG
-    Nan::Set(JsObj, TNodeJsUtil::ToLocal(Nan::New("clang")), TNodeJsUtil::ToLocal(Nan::New(__clang_version__));
+    Nan::Set(JsObj, TNodeJsUtil::ToLocal(Nan::New("clang")), TNodeJsUtil::ToLocal(Nan::New(__clang_version__)));
 #else
     Nan::Set(JsObj, TNodeJsUtil::ToLocal(Nan::New("clang")), Nan::New(false));
 #endif
