@@ -21,7 +21,13 @@ env:
 
 jobs:
   include:
+    - node_js: 8
+    env: LLVM_VERSION=9.0.0 CXXFLAGS=-std=c++0x CXX=clang++ CC=clang NPMOPT=--clang=1 QMDEBUG=--debug
     - node_js: 10
+      env: LLVM_VERSION=9.0.0 CXXFLAGS=-std=c++0x CXX=clang++ CC=clang NPMOPT=--clang=1 QMDEBUG=--debug
+    - node_js: 12
+      env: LLVM_VERSION=9.0.0 CXXFLAGS=-std=c++0x CXX=clang++ CC=clang NPMOPT=--clang=1 QMDEBUG=--debug
+    - node_js: 14
       env: LLVM_VERSION=9.0.0 CXXFLAGS=-std=c++0x CXX=clang++ CC=clang NPMOPT=--clang=1 QMDEBUG=--debug
 
 cache:
