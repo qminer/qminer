@@ -5,10 +5,10 @@ git:
 
 language: node_js
 
-addons:
-  apt:
-    sources: [ 'ubuntu-toolchain-r-test' ]
-    packages: [ 'gcc-7', 'g++-7', 'gcc-7-multilib', 'g++-7-multilib', 'libc6-dev-i386', 'linux-libc-dev:i386' ]
+# addons:
+#   apt:
+#     sources: [ 'ubuntu-toolchain-r-test' ]
+#     packages: [ 'gcc-7', 'g++-7', 'gcc-7-multilib', 'g++-7-multilib', 'libc6-dev-i386', 'linux-libc-dev:i386' ]
 
 node_js:
   - 8
@@ -16,48 +16,70 @@ node_js:
   - 12
   - 14
 
-env:
-  - CXXFLAGS=-std=c++0x CC=gcc7 CXX=g++-7
+# env:
+#   - CXXFLAGS=-std=c++0x CC=gcc7 CXX=g++-7
+
 
 jobs:
   include:
-    - node_js: 8
-      env: LLVM_VERSION=9.0.0 CXXFLAGS=-std=c++0x CXX=clang++ CC=clang NPMOPT=--clang=1 QMDEBUG=--debug
-    - node_js: 10
-      env: LLVM_VERSION=9.0.0 CXXFLAGS=-std=c++0x CXX=clang++ CC=clang NPMOPT=--clang=1 QMDEBUG=--debug
-    - node_js: 12
-      env: LLVM_VERSION=9.0.0 CXXFLAGS=-std=c++0x CXX=clang++ CC=clang NPMOPT=--clang=1 QMDEBUG=--debug
-    - node_js: 14
-      env: LLVM_VERSION=9.0.0 CXXFLAGS=-std=c++0x CXX=clang++ CC=clang NPMOPT=--clang=1 QMDEBUG=--debug
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - gcc-7
+            - g++-7
+            - gcc-7-multilib
+            - g++-7-multilib
+            - libc6-dev-i386
+            - linux-libc-dev:i386
+      env:
+        - CXXFLAGS=-std=c++0x CC=gcc7 CXX=g++-7
 
-cache:
-  directories:
-    - llvm-9.0.0
-    - clang
+    - os: osx
+      osx_image: xcode10.1
 
-before_install:
-  - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
-  - mkdir ${DEPS_DIR} && cd ${DEPS_DIR}
-  -
-    if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
-      if [ -z "$(ls -A llvm-${LLVM_VERSION})" ]; then
-        wget -O llvm-${LLVM_VERSION}.tar.xz http://llvm.org/releases/${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-18.04.tar.xz;
-        mkdir llvm-${LLVM_VERSION};
-        xzcat llvm-${LLVM_VERSION}.tar.xz | tar -xvf - --strip 1 -C llvm-${LLVM_VERSION};
-      fi;
-      llvm-${LLVM_VERSION}/bin/llvm-config --version;
-      export LLVM_CONFIG="llvm-${LLVM_VERSION}/bin/llvm-config";
-    fi
-  -
-    if [[ "${LLVM_VERSION}" != "" ]]; then
-      CLANG_URL="http://llvm.org/releases/${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-18.04.tar.xz";
-      mkdir clang && travis_retry wget --quiet -O - ${CLANG_URL} | tar --strip-components=1 -xJ -C clang;
-      export PATH="${DEPS_DIR}/clang/bin:${PATH}";
-    fi
-  - cd ${TRAVIS_BUILD_DIR}
+
+
+
+# jobs:
+#   include:
+#     - node_js: 8
+#       env: LLVM_VERSION=9.0.0 CXXFLAGS=-std=c++0x CXX=clang++ CC=clang NPMOPT=--clang=1 QMDEBUG=--debug
+#     - node_js: 10
+#       env: LLVM_VERSION=9.0.0 CXXFLAGS=-std=c++0x CXX=clang++ CC=clang NPMOPT=--clang=1 QMDEBUG=--debug
+#     - node_js: 12
+#       env: LLVM_VERSION=9.0.0 CXXFLAGS=-std=c++0x CXX=clang++ CC=clang NPMOPT=--clang=1 QMDEBUG=--debug
+#     - node_js: 14
+#       env: LLVM_VERSION=9.0.0 CXXFLAGS=-std=c++0x CXX=clang++ CC=clang NPMOPT=--clang=1 QMDEBUG=--debug
+
+# cache:
+#   directories:
+#     - llvm-9.0.0
+#     - clang
+
+# before_install:
+#   - DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
+#   - mkdir ${DEPS_DIR} && cd ${DEPS_DIR}
+#   - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
+#       if [ -z "$(ls -A llvm-${LLVM_VERSION})" ]; then
+#         wget -O llvm-${LLVM_VERSION}.tar.xz http://llvm.org/releases/${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-18.04.tar.xz;
+#         mkdir llvm-${LLVM_VERSION};
+#         xzcat llvm-${LLVM_VERSION}.tar.xz | tar -xvf - --strip 1 -C llvm-${LLVM_VERSION};
+#       fi;
+#       llvm-${LLVM_VERSION}/bin/llvm-config --version;
+#       export LLVM_CONFIG="llvm-${LLVM_VERSION}/bin/llvm-config";
+#     fi
+#   - if [[ "${LLVM_VERSION}" != "" ]]; then
+#       CLANG_URL="http://llvm.org/releases/${LLVM_VERSION}/clang+llvm-${LLVM_VERSION}-x86_64-linux-gnu-ubuntu-18.04.tar.xz";
+#       mkdir clang && travis_retry wget --quiet -O - ${CLANG_URL} | tar --strip-components=1 -xJ -C clang;
+#       export PATH="${DEPS_DIR}/clang/bin:${PATH}";
+#     fi
+#   - cd ${TRAVIS_BUILD_DIR}
 
 install:
-  - npm install --build-from-source $NPMOPT $QMDEBUG
+  - npm install --build-from-source # $NPMOPT $QMDEBUG
 
 script:
   - npm install -g mocha@6.2.3
