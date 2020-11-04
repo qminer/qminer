@@ -76,7 +76,7 @@ void TNodeJsFs::openRead(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::HandleScope HandleScope(Isolate);
 
     EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected file path.");
-    TStr FNm(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
+    TStr FNm(*Nan::Utf8String (TNodeJsUtil::ToLocal(Nan::To<v8::String>(Args[0]))));
     // file exist check is done by TFIn
 
     Args.GetReturnValue().Set(
@@ -88,7 +88,7 @@ void TNodeJsFs::openWrite(const v8::FunctionCallbackInfo<v8::Value>& Args) { // 
     v8::HandleScope HandleScope(Isolate);
 
     EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected file path.");
-    TStr FNm(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
+    TStr FNm(*Nan::Utf8String (TNodeJsUtil::ToLocal(Nan::To<v8::String>(Args[0]))));
 
     Args.GetReturnValue().Set(
         TNodeJsUtil::NewInstance<TNodeJsFOut>(new TNodeJsFOut(FNm, false)));
@@ -99,7 +99,7 @@ void TNodeJsFs::openAppend(const v8::FunctionCallbackInfo<v8::Value>& Args) { //
     v8::HandleScope HandleScope(Isolate);
 
     EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected file path.");
-    TStr FNm(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
+    TStr FNm(*Nan::Utf8String (TNodeJsUtil::ToLocal(Nan::To<v8::String>(Args[0]))));
 
     Args.GetReturnValue().Set(
         TNodeJsUtil::NewInstance<TNodeJsFOut>(new TNodeJsFOut(FNm, true)));
@@ -110,8 +110,8 @@ void TNodeJsFs::exists(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::HandleScope HandleScope(Isolate);
 
     EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected file path.");
-    TStr FNm(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
-    Args.GetReturnValue().Set(v8::Boolean::New(Isolate, TFile::Exists(FNm)));
+    TStr FNm(*Nan::Utf8String (TNodeJsUtil::ToLocal(Nan::To<v8::String>(Args[0]))));
+    Args.GetReturnValue().Set(Nan::New(TFile::Exists(FNm)));
 }
 
 void TNodeJsFs::copy(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -120,11 +120,11 @@ void TNodeJsFs::copy(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     EAssertR(Args.Length() == 2 && Args[0]->IsString() && Args[1]->IsString(),
         "Expected 2 arguments: source and destination file paths.");
-    TStr SrcFNm(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
+    TStr SrcFNm(*Nan::Utf8String (TNodeJsUtil::ToLocal(Nan::To<v8::String>(Args[0]))));
     EAssertR(TFile::Exists(SrcFNm), "File '" + SrcFNm + "' does not exist");
-    TStr DstFNm(*Nan::Utf8String (Nan::To<v8::String>(Args[1]).ToLocalChecked()));
+    TStr DstFNm(*Nan::Utf8String (TNodeJsUtil::ToLocal(Nan::To<v8::String>(Args[1]))));
     TFile::Copy(SrcFNm, DstFNm);
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Nan::Undefined());
 }
 
 void TNodeJsFs::move(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -133,12 +133,12 @@ void TNodeJsFs::move(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     EAssertR(Args.Length() == 2 && Args[0]->IsString() && Args[1]->IsString(),
         "Expected 2 arguments: source and destination file paths.");
-    TStr SrcFNm(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
+    TStr SrcFNm(*Nan::Utf8String (TNodeJsUtil::ToLocal(Nan::To<v8::String>(Args[0]))));
     EAssertR(TFile::Exists(SrcFNm), TStr("File '" + SrcFNm + "' does not exist").CStr());
-    TStr DstFNm(*Nan::Utf8String (Nan::To<v8::String>(Args[1]).ToLocalChecked()));
+    TStr DstFNm(*Nan::Utf8String (TNodeJsUtil::ToLocal(Nan::To<v8::String>(Args[1]))));
     TFile::Copy(SrcFNm, DstFNm);
     TFile::Del(SrcFNm, false); // ThrowExceptP = false
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Nan::Undefined());
 }
 
 void TNodeJsFs::del(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -147,9 +147,9 @@ void TNodeJsFs::del(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     EAssertR(Args.Length() == 1 && Args[0]->IsString(),
         "Expected a file path as the only argument.");
-    TStr FNm(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
+    TStr FNm(*Nan::Utf8String (TNodeJsUtil::ToLocal(Nan::To<v8::String>(Args[0]))));
     EAssertR(TFile::Exists(FNm), TStr("File '" + FNm + "' does not exist").CStr());
-    Args.GetReturnValue().Set(v8::Boolean::New(Isolate, TFile::Del(FNm, false))); // ThrowExceptP = false
+    Args.GetReturnValue().Set(Nan::New(TFile::Del(FNm, false))); // ThrowExceptP = false
 }
 
 void TNodeJsFs::rename(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -158,11 +158,11 @@ void TNodeJsFs::rename(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     EAssertR(Args.Length() == 2 && Args[0]->IsString() && Args[1]->IsString(),
         "Expected 2 arguments: source and destination file paths.");
-    TStr SrcFNm(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
+    TStr SrcFNm(*Nan::Utf8String (TNodeJsUtil::ToLocal(Nan::To<v8::String>(Args[0]))));
     EAssertR(TFile::Exists(SrcFNm), TStr("File '" + SrcFNm + "' does not exist").CStr());
-    TStr DstFNm(*Nan::Utf8String (Nan::To<v8::String>(Args[1]).ToLocalChecked()));
+    TStr DstFNm(*Nan::Utf8String (TNodeJsUtil::ToLocal(Nan::To<v8::String>(Args[1]))));
     TFile::Rename(SrcFNm, DstFNm);
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Nan::Undefined());
 }
 
 void TNodeJsFs::fileInfo(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -171,21 +171,21 @@ void TNodeJsFs::fileInfo(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     EAssertR(Args.Length() == 1 && Args[0]->IsString(),
         "Expected a file path as the only argument.");
-    TStr FNm(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
+    TStr FNm(*Nan::Utf8String (TNodeJsUtil::ToLocal(Nan::To<v8::String>(Args[0]))));
     EAssertR(TFile::Exists(FNm), TStr("File '" + FNm + "' does not exist").CStr());
     const uint64 CreateTm = TFile::GetCreateTm(FNm);
     const uint64 LastAccessTm = TFile::GetLastAccessTm(FNm);
     const uint64 LastWriteTm = TFile::GetLastWriteTm(FNm);
     const uint64 Size = TFile::GetSize(FNm);
     v8::Local<v8::Object> Obj = v8::Object::New(Isolate);
-    Obj->Set(v8::String::NewFromUtf8(Isolate, "createTime"),
-        v8::String::NewFromUtf8(Isolate, TTm::GetTmFromMSecs(CreateTm).GetWebLogDateTimeStr().CStr()));
-    Obj->Set(v8::String::NewFromUtf8(Isolate, "lastAccessTime"),
-        v8::String::NewFromUtf8(Isolate, TTm::GetTmFromMSecs(LastAccessTm).GetWebLogDateTimeStr().CStr()));
-    Obj->Set(v8::String::NewFromUtf8(Isolate, "lastWriteTime"),
-        v8::String::NewFromUtf8(Isolate, TTm::GetTmFromMSecs(LastWriteTm).GetWebLogDateTimeStr().CStr()));
-    Obj->Set(v8::String::NewFromUtf8(Isolate, "size"),
-        v8::Number::New(Isolate, static_cast<double>(Size)));
+    Nan::Set(Obj, TNodeJsUtil::ToLocal(Nan::New("createTime")),
+        TNodeJsUtil::ToLocal(Nan::New(TTm::GetTmFromMSecs(CreateTm).GetWebLogDateTimeStr().CStr())));
+    Nan::Set(Obj, TNodeJsUtil::ToLocal(Nan::New("lastAccessTime")),
+        TNodeJsUtil::ToLocal(Nan::New(TTm::GetTmFromMSecs(LastAccessTm).GetWebLogDateTimeStr().CStr())));
+    Nan::Set(Obj, TNodeJsUtil::ToLocal(Nan::New("lastWriteTime")),
+        TNodeJsUtil::ToLocal(Nan::New(TTm::GetTmFromMSecs(LastWriteTm).GetWebLogDateTimeStr().CStr())));
+    Nan::Set(Obj, TNodeJsUtil::ToLocal(Nan::New("size")),
+        Nan::New(static_cast<double>(Size)));
     Args.GetReturnValue().Set(Obj);
 }
 
@@ -195,9 +195,9 @@ void TNodeJsFs::mkdir(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     EAssertR(Args.Length() == 1 && Args[0]->IsString(),
         "Expected directory name as the only argument.");
-    TStr FPath(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
+    TStr FPath(*Nan::Utf8String (TNodeJsUtil::ToLocal(Nan::To<v8::String>(Args[0]))));
     const bool GenDirP = TDir::GenDir(FPath);
-    Args.GetReturnValue().Set(v8::Boolean::New(Isolate, GenDirP));
+    Args.GetReturnValue().Set(Nan::New(GenDirP));
 }
 
 void TNodeJsFs::rmdir(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -206,9 +206,9 @@ void TNodeJsFs::rmdir(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     EAssertR(Args.Length() == 1 && Args[0]->IsString(),
         "Expected directory name as the only argument.");
-    TStr FPath(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
+    TStr FPath(*Nan::Utf8String (TNodeJsUtil::ToLocal(Nan::To<v8::String>(Args[0]))));
     const bool DelDirP = TDir::DelDir(FPath);
-    Args.GetReturnValue().Set(v8::Boolean::New(Isolate, DelDirP));
+    Args.GetReturnValue().Set(Nan::New(DelDirP));
 }
 
 void TNodeJsFs::listFile(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -218,19 +218,19 @@ void TNodeJsFs::listFile(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(Args.Length() >= 1 && Args[0]->IsString(),
         "Expected directory path as the first argument.");
     // Read parameters
-    TStr FPath(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
+    TStr FPath(*Nan::Utf8String (TNodeJsUtil::ToLocal(Nan::To<v8::String>(Args[0]))));
     TStrV FExtV;
     if (Args.Length() >= 2 && Args[1]->IsString()) {
-        FExtV.Add(TStr(*Nan::Utf8String (Nan::To<v8::String>(Args[1]).ToLocalChecked())));
+        FExtV.Add(TStr(*Nan::Utf8String (TNodeJsUtil::ToLocal(Nan::To<v8::String>(Args[1])))));
     }
-    const bool RecurseP = Args.Length() >= 3 && Args[2]->IsBoolean() && Args[2]->BooleanValue(Nan::GetCurrentContext()).FromJust();
+    const bool RecurseP = Args.Length() >= 3 && Args[2]->IsBoolean() && Nan::To<bool>(Args[2]).FromJust();
     // Get file list
     TStrV FNmV;
     TFFile::GetFNmV(FPath, FExtV, RecurseP, FNmV);
     FNmV.Sort();
     v8::Local<v8::Array> FNmArr = v8::Array::New(Isolate, FNmV.Len());
     for(int FldN = 0; FldN < FNmV.Len(); ++FldN) {
-        FNmArr->Set(v8::Integer::New(Isolate, FldN), v8::String::NewFromUtf8(Isolate, FNmV.GetVal(FldN).CStr()));
+        Nan::Set(FNmArr, v8::Integer::New(Isolate, FldN), TNodeJsUtil::ToLocal(Nan::New(FNmV.GetVal(FldN).CStr())));
     }
     Args.GetReturnValue().Set(FNmArr);
 }
@@ -254,7 +254,7 @@ void TNodeJsFs::readLines(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     } else {
         // Read from Node.js Buffer
         EAssertR(TNodeJsUtil::IsArgBuffer(Args, 0), "TNodeJsFs::readLines: argument not a buffer");
-        v8::Local<v8::Object> BuffObj = Nan::To<v8::Object>(Args[0]).ToLocalChecked();
+        v8::Local<v8::Object> BuffObj = TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0]));
         char* Buff = node::Buffer::Data(BuffObj);
         size_t BuffLen = node::Buffer::Length(BuffObj);
         SIn = new TThinMIn(Buff, (int)BuffLen);
@@ -266,13 +266,13 @@ void TNodeJsFs::readLines(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TStr LineStr;
     while (SIn->GetNextLn(LineStr)) {
         bool ContinueLoop = true;
-        v8::Local<v8::String> LineV8Str = v8::String::NewFromUtf8(Isolate, LineStr.CStr());
+        v8::Local<v8::String> LineV8Str = TNodeJsUtil::ToLocal(Nan::New(LineStr.CStr()));
         ContinueLoop = TNodeJsUtil::ExecuteBool(LineCallback, LineV8Str);
         if (!ContinueLoop) { break; }
     }
 
     TNodeJsUtil::ExecuteVoid(EndCallback);
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Nan::Undefined());
 }
 
 ///////////////////////////////
@@ -290,11 +290,11 @@ void TNodeJsFIn::Init(v8::Local<v8::Object> exports) {
     v8::Local<v8::FunctionTemplate> child = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewCpp<TNodeJsFIn>);
     child->Inherit(tpl);
 
-    child->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+    child->SetClassName(TNodeJsUtil::ToLocal(Nan::New(GetClassId().CStr())));
     // ObjectWrap uses the first internal field to store the wrapped pointer
     child->InstanceTemplate()->SetInternalFieldCount(1);
 
-    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+    tpl->SetClassName(TNodeJsUtil::ToLocal(Nan::New(GetClassId().CStr())));
     // ObjectWrap uses the first internal field to store the wrapped pointer
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -308,21 +308,21 @@ void TNodeJsFIn::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "isClosed", _isClosed);
 
     // Add properties
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "eof"), _eof);
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
+    tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("eof")), _eof);
+    tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("length")), _length);
 
     // This has to be last, otherwise the properties won't show up on the object in JavaScript
     // Constructor is used when creating the object from C++
-    Constructor.Reset(Isolate, child->GetFunction(context).ToLocalChecked());
+    Constructor.Reset(Isolate, TNodeJsUtil::ToLocal(child->GetFunction(context)));
     // we need to export the class for calling using "new FIn(...)"
-    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
-        tpl->GetFunction(context).ToLocalChecked());
+    Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(GetClassId().CStr())),
+        TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
 }
 
 TNodeJsFIn* TNodeJsFIn::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     // parse arguments
     EAssertR(Args.Length() == 1 && Args[0]->IsString(), "Expected a file path.");
-    return new TNodeJsFIn(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
+    return new TNodeJsFIn(*Nan::Utf8String (TNodeJsUtil::ToLocal(Nan::To<v8::String>(Args[0]))));
 }
 
 
@@ -332,7 +332,7 @@ void TNodeJsFIn::peekCh(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args.This());
 
-    Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, TStr(JsFIn->SIn->PeekCh()).CStr()));
+    Args.GetReturnValue().Set(TNodeJsUtil::ToLocal(Nan::New(TStr(JsFIn->SIn->PeekCh()).CStr())));
 }
 
 void TNodeJsFIn::getCh(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -341,7 +341,7 @@ void TNodeJsFIn::getCh(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args.This());
 
-    Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, TStr(JsFIn->SIn->GetCh()).CStr()));
+    Args.GetReturnValue().Set(TNodeJsUtil::ToLocal(Nan::New(TStr(JsFIn->SIn->GetCh()).CStr())));
 }
 
 void TNodeJsFIn::readLine(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -351,7 +351,7 @@ void TNodeJsFIn::readLine(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args.This());
     TChA LnChA; JsFIn->SIn->GetNextLnBf(LnChA);
 
-    Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, LnChA.CStr()));
+    Args.GetReturnValue().Set(TNodeJsUtil::ToLocal(Nan::New(LnChA.CStr())));
 }
 
 void TNodeJsFIn::readString(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -363,7 +363,7 @@ void TNodeJsFIn::readString(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TStr Str = TStr(*JsFIn->SIn);
 
     Args.GetReturnValue().Set(
-        v8::String::NewFromUtf8(Isolate, Str.CStr()));
+        TNodeJsUtil::ToLocal(Nan::New(Str.CStr())));
 }
 
 void TNodeJsFIn::readAll(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -373,7 +373,7 @@ void TNodeJsFIn::readAll(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args.This());
     TStr Res = TStr::LoadTxt(JsFIn->SIn);
 
-    Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, Res.CStr()));
+    Args.GetReturnValue().Set(TNodeJsUtil::ToLocal(Nan::New(Res.CStr())));
 }
 
 void TNodeJsFIn::close(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -385,7 +385,7 @@ void TNodeJsFIn::close(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         JsFIn->SIn.Clr();
     }
 
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Nan::Undefined());
 }
 
 void TNodeJsFIn::isClosed(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -394,7 +394,7 @@ void TNodeJsFIn::isClosed(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args.This());
 
-    Args.GetReturnValue().Set(v8::Boolean::New(Isolate, JsFIn->SIn.Empty()));
+    Args.GetReturnValue().Set(Nan::New(JsFIn->SIn.Empty()));
 }
 
 void TNodeJsFIn::eof(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
@@ -403,7 +403,7 @@ void TNodeJsFIn::eof(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8
 
     TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Info.Holder());
 
-    Info.GetReturnValue().Set(v8::Boolean::New(Isolate, JsFIn->SIn->Eof()));
+    Info.GetReturnValue().Set(Nan::New(JsFIn->SIn->Eof()));
 }
 
 void TNodeJsFIn::length(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
@@ -430,11 +430,11 @@ void TNodeJsFOut::Init(v8::Local<v8::Object> exports) {
     v8::Local<v8::FunctionTemplate> child = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewCpp<TNodeJsFOut>);
     child->Inherit(tpl);
 
-    child->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+    child->SetClassName(TNodeJsUtil::ToLocal(Nan::New(GetClassId().CStr())));
     // ObjectWrap uses the first internal field to store the wrapped pointer
     child->InstanceTemplate()->SetInternalFieldCount(1);
 
-    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+    tpl->SetClassName(TNodeJsUtil::ToLocal(Nan::New(GetClassId().CStr())));
     // ObjectWrap uses the first internal field to store the wrapped pointer
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -447,18 +447,18 @@ void TNodeJsFOut::Init(v8::Local<v8::Object> exports) {
 
     // This has to be last, otherwise the properties won't show up on the object in JavaScript
     // Constructor is used when creating the object from C++
-    Constructor.Reset(Isolate, child->GetFunction(context).ToLocalChecked());
+    Constructor.Reset(Isolate, TNodeJsUtil::ToLocal(child->GetFunction(context)));
     // we need to export the class for calling using "new FIn(...)"
-    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
-        tpl->GetFunction(context).ToLocalChecked());
+    Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(GetClassId().CStr())),
+        TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
 }
 
 TNodeJsFOut* TNodeJsFOut::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     // parse arguments
     EAssertR(Args.Length() >= 1 && Args[0]->IsString(),
         "Expected file path.");
-    TStr FNm(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
-    bool AppendP = Args.Length() >= 2 && Args[1]->IsBoolean() && Args[1]->BooleanValue(Nan::GetCurrentContext()).FromJust();
+    TStr FNm(*Nan::Utf8String (TNodeJsUtil::ToLocal(Nan::To<v8::String>(Args[0]))));
+    bool AppendP = Args.Length() >= 2 && Args[1]->IsBoolean() && Nan::To<bool>(Args[1]).FromJust();
 
     return new TNodeJsFOut(FNm, AppendP);
 }
@@ -470,11 +470,11 @@ void TNodeJsFOut::write(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args.This());
     EAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
     if (Args[0]->IsString()) {
-        JsFOut->SOut->PutStr(*Nan::Utf8String (Nan::To<v8::String>(Args[0]).ToLocalChecked()));
+        JsFOut->SOut->PutStr(*Nan::Utf8String (TNodeJsUtil::ToLocal(Nan::To<v8::String>(Args[0]))));
     } else if (Args[0]->IsInt32()) {
-        JsFOut->SOut->PutStr(TInt::GetStr(Args[0]->Int32Value(Nan::GetCurrentContext()).FromJust()));
+        JsFOut->SOut->PutStr(TInt::GetStr(Nan::To<int32_t>(Args[0]).FromJust()));
     } else if (Args[0]->IsNumber()) {
-        JsFOut->SOut->PutStr(TFlt::GetStr(Args[0]->NumberValue(Nan::GetCurrentContext()).FromJust()));
+        JsFOut->SOut->PutStr(TFlt::GetStr(Nan::To<double>(Args[0]).FromJust()));
     } else if (TNodeJsUtil::IsArgJson(Args, 0)) {
         JsFOut->SOut->PutStr(TJsonVal::GetStrFromVal(TNodeJsUtil::GetArgJson(Args, 0)));
     } else {
@@ -494,7 +494,7 @@ void TNodeJsFOut::writeBinary(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TStr Str = TNodeJsUtil::GetArgStr(Args, 0);
         Str.Save(*JsFOut->SOut);
     } else if (Args[0]->IsNumber()) {
-        JsFOut->SOut->Save(Args[0]->NumberValue(Nan::GetCurrentContext()).FromJust());
+        JsFOut->SOut->Save(Nan::To<double>(Args[0]).FromJust());
     } else if (TNodeJsUtil::IsArgJson(Args, 0)) {
         PJsonVal JsonVal = TNodeJsUtil::GetArgJson(Args, 0);
         JsonVal->Save(*JsFOut->SOut);

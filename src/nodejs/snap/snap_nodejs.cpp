@@ -29,7 +29,7 @@ void TNodeJsGraph<TUNGraph>::Init(v8::Local<v8::Object> exports) {
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
 
-    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "UndirectedGraph"));
+    tpl->SetClassName(TNodeJsUtil::ToLocal(Nan::New("UndirectedGraph")));
     // ObjectWrap uses the first internal field to store the wrapped pointer.
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -55,13 +55,13 @@ void TNodeJsGraph<TUNGraph>::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // Properties
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "nodes"), _nodes);
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "edges"), _edges);
+    tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("nodes")), _nodes);
+    tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("edges")), _edges);
 
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript.
-    Constructor.Reset(Isolate, tpl->GetFunction(context).ToLocalChecked());
-    exports->Set(v8::String::NewFromUtf8(Isolate, "UndirectedGraph"), tpl->GetFunction(context).ToLocalChecked());
+    Constructor.Reset(Isolate, TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
+    Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New("UndirectedGraph")), TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
 }
 
 template <>
@@ -71,7 +71,7 @@ void TNodeJsGraph<TNGraph>::Init(v8::Local<v8::Object> exports) {
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
 
-    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "DirectedGraph"));
+    tpl->SetClassName(TNodeJsUtil::ToLocal(Nan::New("DirectedGraph")));
     // ObjectWrap uses the first internal field to store the wrapped pointer.
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -97,13 +97,13 @@ void TNodeJsGraph<TNGraph>::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // Properties
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "nodes"), _nodes);
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "edges"), _edges);
+    tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("nodes")), _nodes);
+    tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("edges")), _edges);
 
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript.
-    Constructor.Reset(Isolate, tpl->GetFunction(context).ToLocalChecked());
-    exports->Set(v8::String::NewFromUtf8(Isolate, "DirectedGraph"), tpl->GetFunction(context).ToLocalChecked());
+    Constructor.Reset(Isolate, TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
+    Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New("DirectedGraph")), TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
 }
 
 template <>
@@ -113,7 +113,7 @@ void TNodeJsGraph<TNEGraph>::Init(v8::Local<v8::Object> exports) {
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
 
-    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, "DirectedMultigraph"));
+    tpl->SetClassName(TNodeJsUtil::ToLocal(Nan::New("DirectedMultigraph")));
     // ObjectWrap uses the first internal field to store the wrapped pointer.
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -139,13 +139,13 @@ void TNodeJsGraph<TNEGraph>::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // Properties
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "nodes"), _nodes);
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "edges"), _edges);
+    tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("nodes")), _nodes);
+    tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("edges")), _edges);
 
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript.
-    Constructor.Reset(Isolate, tpl->GetFunction(context).ToLocalChecked());
-    exports->Set(v8::String::NewFromUtf8(Isolate, "DirectedMultigraph"), tpl->GetFunction(context).ToLocalChecked());
+    Constructor.Reset(Isolate, TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
+    Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New("DirectedMultigraph")), TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
 }
 
 

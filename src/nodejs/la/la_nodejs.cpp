@@ -100,9 +100,9 @@ v8::Local<v8::Value> TNodeJsLinAlg::TSVDTask::WrapResult() {
     v8::EscapableHandleScope HandleScope(Isolate);
 
     v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result
-    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "U")), TNodeJsUtil::NewInstance(U));
-    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "V")), TNodeJsUtil::NewInstance(V));
-    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "s")), TNodeJsUtil::NewInstance(s));
+    Nan::Set(JsObj, TNodeJsUtil::ToLocal(Nan::New("U")), TNodeJsUtil::NewInstance(U));
+    Nan::Set(JsObj, TNodeJsUtil::ToLocal(Nan::New("V")), TNodeJsUtil::NewInstance(V));
+    Nan::Set(JsObj, TNodeJsUtil::ToLocal(Nan::New("s")), TNodeJsUtil::NewInstance(s));
     return HandleScope.Escape(JsObj);
 }
 
@@ -114,10 +114,10 @@ void TNodeJsLinAlg::qr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TFltVV R;
     double Tol = TNodeJsUtil::GetArgFlt(Args, 1, 1e-6);
     if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
-        TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
+        TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
         TLinAlg::QR(JsMat->Mat, Q, R, Tol);
     }
-    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "Q")), TNodeJsFltVV::New(Q));
-    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "R")), TNodeJsFltVV::New(R));
+    Nan::Set(JsObj, TNodeJsUtil::ToLocal(Nan::New("Q")), TNodeJsFltVV::New(Q));
+    Nan::Set(JsObj, TNodeJsUtil::ToLocal(Nan::New("R")), TNodeJsFltVV::New(R));
     Args.GetReturnValue().Set(JsObj);
 }

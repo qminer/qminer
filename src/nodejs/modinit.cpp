@@ -9,7 +9,7 @@
 
 using namespace v8;
 
-void InitFs(v8::Local<v8::Object> Exports, const TStr& NsNm) {
+void InitFs(v8::Local<v8::Object> exports, const TStr& NsNm) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -19,10 +19,10 @@ void InitFs(v8::Local<v8::Object> Exports, const TStr& NsNm) {
     TNodeJsFIn::Init(NsObj);
     TNodeJsFOut::Init(NsObj);
 
-    Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
+    Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(NsNm.CStr())), NsObj);
 }
 
-void InitLa(v8::Local<v8::Object> Exports, const TStr& NsNm) {
+void InitLa(v8::Local<v8::Object> exports, const TStr& NsNm) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -39,10 +39,10 @@ void InitLa(v8::Local<v8::Object> Exports, const TStr& NsNm) {
     TNodeJsSpVec::Init(NsObj);
     TNodeJsSpMat::Init(NsObj);
 
-    Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
+    Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(NsNm.CStr())), NsObj);
 }
 
-void InitHt(v8::Local<v8::Object> Exports, const TStr& NsNm) {
+void InitHt(v8::Local<v8::Object> exports, const TStr& NsNm) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -56,10 +56,10 @@ void InitHt(v8::Local<v8::Object> Exports, const TStr& NsNm) {
     TNodeJsIntIntH::Init(NsObj);
     TNodeJsIntFltH::Init(NsObj);
 
-    Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
+    Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(NsNm.CStr())), NsObj);
 }
 
-void InitQuantiles(v8::Local<v8::Object> Exports, const TStr& NsNm) {
+void InitQuantiles(v8::Local<v8::Object> exports, const TStr& NsNm) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -70,10 +70,10 @@ void InitQuantiles(v8::Local<v8::Object> Exports, const TStr& NsNm) {
     TNodeJsQuant::TNodeJsGk::Init(NsObj);
     TNodeJsQuant::TNodeJsBiasedGk::Init(NsObj);
 
-    Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
+    Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(NsNm.CStr())), NsObj);
 }
 
-void InitAnalytics(v8::Local<v8::Object> Exports, const TStr& NsNm) {
+void InitAnalytics(v8::Local<v8::Object> exports, const TStr& NsNm) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -99,10 +99,10 @@ void InitAnalytics(v8::Local<v8::Object> Exports, const TStr& NsNm) {
 
     InitQuantiles(NsObj, "quantiles");
 
-    Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
+    Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(NsNm.CStr())), NsObj);
 }
 
-void InitStat(v8::Local<v8::Object> Exports, const TStr& NsNm) {
+void InitStat(v8::Local<v8::Object> exports, const TStr& NsNm) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -110,10 +110,10 @@ void InitStat(v8::Local<v8::Object> Exports, const TStr& NsNm) {
 
     TNodeJsStat::Init(NsObj);
 
-    Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
+    Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(NsNm.CStr())), NsObj);
 }
 
-void InitSnap(v8::Local<v8::Object> Exports, const TStr& NsNm) {
+void InitSnap(v8::Local<v8::Object> exports, const TStr& NsNm) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -130,10 +130,10 @@ void InitSnap(v8::Local<v8::Object> Exports, const TStr& NsNm) {
     TNodeJsEdge<TNGraph>::Init(NsObj);
     TNodeJsEdge<TNEGraph>::Init(NsObj);
 
-    Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
+    Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(NsNm.CStr())), NsObj);
 }
 
-void InitDeprecated(v8::Local<v8::Object> Exports, const TStr& NsNm) {
+void InitDeprecated(v8::Local<v8::Object> exports, const TStr& NsNm) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -141,10 +141,10 @@ void InitDeprecated(v8::Local<v8::Object> Exports, const TStr& NsNm) {
 
     // init methods go here
 
-    Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
+    Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(NsNm.CStr())), NsObj);
 }
 
-void InitStreamStory(v8::Local<v8::Object> Exports, const TStr& NsNm) {
+void InitStreamStory(v8::Local<v8::Object> exports, const TStr& NsNm) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -153,51 +153,51 @@ void InitStreamStory(v8::Local<v8::Object> Exports, const TStr& NsNm) {
     // init methods go here
     TNodeJsStreamStory::Init(NsObj);
 
-    Exports->Set(String::NewFromUtf8(Isolate, NsNm.CStr()), NsObj);
+    Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(NsNm.CStr())), NsObj);
 }
 
-void InitQm(v8::Local<v8::Object> Exports) {
+void InitQm(v8::Local<v8::Object> exports) {
     #ifdef WIN32
     _setmaxstdio(2048);
     #endif
 
     // QMiner package
-    TNodeJsQm::Init(Exports);
-    TNodeJsBase::Init(Exports);
-    TNodeJsStreamAggr::Init(Exports);
-    TNodeJsStore::Init(Exports);
+    TNodeJsQm::Init(exports);
+    TNodeJsBase::Init(exports);
+    TNodeJsStreamAggr::Init(exports);
+    TNodeJsStore::Init(exports);
     // the record templates are initiated elsewhere: qm.open, qm.create, base.createStore
-    TNodeJsRecByValV::Init(Exports);
-    TNodeJsRecSet::Init(Exports);
-    TNodeJsStoreIter::Init(Exports);
-    TNodeJsIndexKey::Init(Exports);
+    TNodeJsRecByValV::Init(exports);
+    TNodeJsRecSet::Init(exports);
+    TNodeJsStoreIter::Init(exports);
+    TNodeJsIndexKey::Init(exports);
 
     // feature space
-    TNodeJsFtrSpace::Init(Exports);
+    TNodeJsFtrSpace::Init(exports);
 }
 
-void InitExternalQmAddons(v8::Local<v8::Object> Exports) {
+void InitExternalQmAddons(v8::Local<v8::Object> exports) {
     TFunRouter<TExportsVoidF>& Router = TExternalQmAddon::CreateOnce();
     TStrV TypeNmV;
     Router.GetTypeNmV(TypeNmV);
     int Len = TypeNmV.Len();
     for (int TypeN = 0; TypeN < Len; TypeN++) {
-        Router.Fun(TypeNmV[TypeN])(Exports);
+        Router.Fun(TypeNmV[TypeN])(exports);
     }
 }
 
-void Init(v8::Local<v8::Object> Exports) {
-    InitFs(Exports, "fs");
-    InitLa(Exports, "la");
-    InitHt(Exports, "ht");
-    InitAnalytics(Exports, "analytics");
-    InitStat(Exports, "statistics");
-    InitSnap(Exports, "snap");
-    InitDeprecated(Exports, "deprecated");
-    InitStreamStory(Exports, "streamstory");
-    InitQm(Exports);
+void Init(v8::Local<v8::Object> exports) {
+    InitFs(exports, "fs");
+    InitLa(exports, "la");
+    InitHt(exports, "ht");
+    InitAnalytics(exports, "analytics");
+    InitStat(exports, "statistics");
+    InitSnap(exports, "snap");
+    InitDeprecated(exports, "deprecated");
+    InitStreamStory(exports, "streamstory");
+    InitQm(exports);
     // Initializes all external objects
-    InitExternalQmAddons(Exports);
+    InitExternalQmAddons(exports);
 }
 
 NODE_MODULE(qm, Init);

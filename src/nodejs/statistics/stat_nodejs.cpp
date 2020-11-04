@@ -26,7 +26,7 @@ void TNodeJsStat::mean(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::HandleScope HandleScope(Isolate);
 
 	EAssertR(Args.Length() != 0, "Error using stat.mean function. Not enough input arguments.");
-	EAssertR(Args[0]->IsObject() && (TNodeJsUtil::IsClass(Nan::To<v8::Object>(Args[0]).ToLocalChecked(), TNodeJsFltV::GetClassId().CStr()) || TNodeJsUtil::IsClass(Nan::To<v8::Object>(Args[0]).ToLocalChecked(), TNodeJsFltVV::GetClassId())),
+	EAssertR(Args[0]->IsObject() && (TNodeJsUtil::IsClass(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])), TNodeJsFltV::GetClassId().CStr()) || TNodeJsUtil::IsClass(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])), TNodeJsFltVV::GetClassId())),
 		"Error using stat.std function. First argument should be la.vector or la.matrix.");
 
 	// Dim parameter
@@ -35,15 +35,15 @@ void TNodeJsStat::mean(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
 	if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltV::GetClassId())) {
 		// If input argument is vec
-		//TNodeJsVec* Test = ObjectWrap::Unwrap<TNodeJsVec>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
-		TNodeJsVec<TFlt, TAuxFltV>* JsVec = ObjectWrap::Unwrap< TNodeJsVec< TFlt, TAuxFltV > >(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
-		Args.GetReturnValue().Set(v8::Number::New(Isolate, TLinAlgStat::Mean(JsVec->Vec)));
+		//TNodeJsVec* Test = ObjectWrap::Unwrap<TNodeJsVec>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
+		TNodeJsVec<TFlt, TAuxFltV>* JsVec = ObjectWrap::Unwrap< TNodeJsVec< TFlt, TAuxFltV > >(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
+		Args.GetReturnValue().Set(Nan::New(TLinAlgStat::Mean(JsVec->Vec)));
 		return;
 	}
 	if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltVV::GetClassId())) {
 		//If input argument is matrix
 		TFltV Vec;
-		TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
+		TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
 		TLinAlgStat::Mean(JsMat->Mat, Vec, Dim == 1 ? TMatDim::mdCols : TMatDim::mdRows);
 		Args.GetReturnValue().Set(TNodeJsVec<TFlt, TAuxFltV>::New(Vec));
 		return;
@@ -55,7 +55,7 @@ void TNodeJsStat::std(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::HandleScope HandleScope(Isolate);
 
 	EAssertR(Args.Length() != 0, "Error using stat.std function. Not enough input arguments.");
-	EAssertR(Args[0]->IsObject() && (TNodeJsUtil::IsClass(Nan::To<v8::Object>(Args[0]).ToLocalChecked(), TNodeJsFltV::GetClassId().CStr()) || TNodeJsUtil::IsClass(Nan::To<v8::Object>(Args[0]).ToLocalChecked(), TNodeJsFltVV::GetClassId())),
+	EAssertR(Args[0]->IsObject() && (TNodeJsUtil::IsClass(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])), TNodeJsFltV::GetClassId().CStr()) || TNodeJsUtil::IsClass(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])), TNodeJsFltVV::GetClassId())),
 		"Error using stat.std function. First argument should be la.vector or la.matrix.");
 
 	int Flag = TNodeJsUtil::GetArgInt32(Args, 1, 0); // Default flag is 0
@@ -67,12 +67,12 @@ void TNodeJsStat::std(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         TNodeJsFltV* JsVec = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltV>(Args, 0);
         const double Result = TLinAlgStat::Std(JsVec->Vec, Flag);
 
-        Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
+        Args.GetReturnValue().Set(Nan::New(Result));
         return;
 	}
 	if (TNodeJsUtil::IsArgWrapObj(Args, 0, TNodeJsFltVV::GetClassId())) {
 		//If input argument is matrix
-		TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
+		TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
 		TFltV Res;
 		const TMatDim CalcDim = Dim == 1 ? TMatDim::mdCols : TMatDim::mdRows;
 		TLinAlgStat::Std(JsMat->Mat, Res, Flag, CalcDim);
@@ -102,9 +102,9 @@ void TNodeJsStat::zscore(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	TLinAlgStat::Mean(JsMat->Mat, mu, CalcDim);
 	TLinAlgStat::Std(JsMat->Mat, sigma, Flag, CalcDim);
 
-	JsObj->Set(v8::String::NewFromUtf8(Isolate, "Z"), TNodeJsFltVV::New(Z));
-	JsObj->Set(v8::String::NewFromUtf8(Isolate, "mu"), TNodeJsVec< TFlt, TAuxFltV >::New(mu));
-	JsObj->Set(v8::String::NewFromUtf8(Isolate, "sigma"), TNodeJsVec< TFlt, TAuxFltV >::New(sigma));
+	Nan::Set(JsObj, TNodeJsUtil::ToLocal(Nan::New("Z")), TNodeJsFltVV::New(Z));
+	Nan::Set(JsObj, TNodeJsUtil::ToLocal(Nan::New("mu")), TNodeJsVec< TFlt, TAuxFltV >::New(mu));
+	Nan::Set(JsObj, TNodeJsUtil::ToLocal(Nan::New("sigma")), TNodeJsVec< TFlt, TAuxFltV >::New(sigma));
 	Args.GetReturnValue().Set(JsObj);
 }
 
@@ -118,7 +118,7 @@ void TNodeJsStat::studentCdf(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		const double TVal = TNodeJsUtil::GetArgFlt(Args, 0);
 		const int Df = TNodeJsUtil::GetArgInt32(Args, 1);
 
-		Args.GetReturnValue().Set(v8::Number::New(Isolate, TSpecFunc::StudentCdf(TVal, Df)));
+		Args.GetReturnValue().Set(Nan::New(TSpecFunc::StudentCdf(TVal, Df)));
 	}
 	else {
 		const double Val = TNodeJsUtil::GetArgFlt(Args, 0);
@@ -126,6 +126,6 @@ void TNodeJsStat::studentCdf(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 		const double Std = TNodeJsUtil::GetArgFlt(Args, 2);
 		const int Df = TNodeJsUtil::GetArgInt32(Args, 3);
 
-		Args.GetReturnValue().Set(v8::Number::New(Isolate, TSpecFunc::StudentCdf(Val, Mean, Std, Df)));
+		Args.GetReturnValue().Set(Nan::New(TSpecFunc::StudentCdf(Val, Mean, Std, Df)));
 	}
 }
