@@ -16,7 +16,6 @@ shallow_clone: true
 
 install:
   # Set paths
-  - SET PATH=C:\Program Files (x86)\MSBuild\14.0\bin\;%PATH%
   - if "%PLATFORM%" == "x64" set PATH=C:\Python27-x64;%PATH%
   - if "%PLATFORM%" == "x86" SET PATH=C:\python27;%PATH%
   # Check if we're publishing. Only publish commits including [publish binary] at qminer/qminer (ignore pull requests)
@@ -27,7 +26,7 @@ install:
 
 build_script:
   - npm install -g npm@5.3.0
-  - npm install -g mocha@6.2.3
+  - npm install -g mocha
   - npm install -g mustache
   - npm install --build-from-source --verbose --msvs_version=2019 --%CONFIGURATION%
   - cd tools
