@@ -63,12 +63,12 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
             store.push({ Time: '2015-06-10T00:18:30.0', ClusterId: 0 });
 
             var tmp1 = hist1.saveJson();
-            assert.equal(tmp1.counts.length, 5);
-            assert.equal(tmp1.counts[0], 5);
-            assert.equal(tmp1.counts[1], 1);
-            assert.equal(tmp1.counts[2], 0);
-            assert.equal(tmp1.counts[3], 0);
-            assert.equal(tmp1.counts[4], 0);
+            assert.strictEqual(tmp1.counts.length, 5);
+            assert.strictEqual(tmp1.counts[0], 5);
+            assert.strictEqual(tmp1.counts[1], 1);
+            assert.strictEqual(tmp1.counts[2], 0);
+            assert.strictEqual(tmp1.counts[3], 0);
+            assert.strictEqual(tmp1.counts[4], 0);
             //console.log(JSON.stringify(tmp1));
 
             store.push({ Time: '2015-06-10T01:13:30.0', ClusterId: 0 });
@@ -80,11 +80,11 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 
             // just the last three
             var tmp2 = hist1.saveJson();
-            assert.equal(tmp2.counts[0], 0);
-            assert.equal(tmp2.counts[1], 0);
-            assert.equal(tmp2.counts[2], 2);
-            assert.equal(tmp2.counts[3], 0);
-            assert.equal(tmp2.counts[4], 0);
+            assert.strictEqual(tmp2.counts[0], 0);
+            assert.strictEqual(tmp2.counts[1], 0);
+            assert.strictEqual(tmp2.counts[2], 2);
+            assert.strictEqual(tmp2.counts[3], 0);
+            assert.strictEqual(tmp2.counts[4], 0);
             //console.log(JSON.stringify(tmp2));
 
             store.push({ Time: '2015-06-17T00:13:30.0', ClusterId: 2 });
@@ -96,11 +96,11 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 
             // this week
             var tmp3 = hist1.saveJson();
-            assert.equal(tmp3.counts[0], 0);
-            assert.equal(tmp3.counts[1], 0);
-            assert.equal(tmp3.counts[2], 2);
-            assert.equal(tmp3.counts[3], 2);
-            assert.equal(tmp3.counts[4], 2);
+            assert.strictEqual(tmp3.counts[0], 0);
+            assert.strictEqual(tmp3.counts[1], 0);
+            assert.strictEqual(tmp3.counts[2], 2);
+            assert.strictEqual(tmp3.counts[3], 2);
+            assert.strictEqual(tmp3.counts[4], 2);
             //console.log(JSON.stringify(tmp3));
 
             // show distribution for expected values
@@ -163,12 +163,12 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
             store.push({ Time: '2015-06-10T00:18:30.0', ClusterId: 0 });
 
             var tmp1 = hist1.saveJson();
-            assert.equal(tmp1.counts.length, 5);
-            assert.equal(tmp1.counts[0], 5);
-            assert.equal(tmp1.counts[1], 1);
-            assert.equal(tmp1.counts[2], 0);
-            assert.equal(tmp1.counts[3], 0);
-            assert.equal(tmp1.counts[4], 0);
+            assert.strictEqual(tmp1.counts.length, 5);
+            assert.strictEqual(tmp1.counts[0], 5);
+            assert.strictEqual(tmp1.counts[1], 1);
+            assert.strictEqual(tmp1.counts[2], 0);
+            assert.strictEqual(tmp1.counts[3], 0);
+            assert.strictEqual(tmp1.counts[4], 0);
             //console.log(JSON.stringify(tmp1));
 
             store.push({ Time: '2015-06-10T01:13:30.0', ClusterId: 0 });
@@ -180,11 +180,11 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 
             // just the last three
             var tmp2 = hist1.saveJson();
-            assert.equal(tmp2.counts[0], 0);
-            assert.equal(tmp2.counts[1], 0);
-            assert.equal(tmp2.counts[2], 2);
-            assert.equal(tmp2.counts[3], 0);
-            assert.equal(tmp2.counts[4], 0);
+            assert.strictEqual(tmp2.counts[0], 0);
+            assert.strictEqual(tmp2.counts[1], 0);
+            assert.strictEqual(tmp2.counts[2], 2);
+            assert.strictEqual(tmp2.counts[3], 0);
+            assert.strictEqual(tmp2.counts[4], 0);
             //console.log(JSON.stringify(tmp2));
 
             store.push({ Time: '2015-06-17T00:13:30.0', ClusterId: 2 });
@@ -196,11 +196,11 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 
             // this week
             var tmp3 = hist1.saveJson();
-            assert.equal(tmp3.counts[0], 0);
-            assert.equal(tmp3.counts[1], 0);
-            assert.equal(tmp3.counts[2], 2);
-            assert.equal(tmp3.counts[3], 2);
-            assert.equal(tmp3.counts[4], 2);
+            assert.strictEqual(tmp3.counts[0], 0);
+            assert.strictEqual(tmp3.counts[1], 0);
+            assert.strictEqual(tmp3.counts[2], 2);
+            assert.strictEqual(tmp3.counts[3], 2);
+            assert.strictEqual(tmp3.counts[4], 2);
             //console.log(JSON.stringify(tmp3));
 
             // show distribution for expected values
@@ -263,12 +263,12 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
             store.push({ Time: '2015-06-10T00:18:30.0', ClusterId: 0 });
 
             var tmp1 = hist1.saveJson();
-            assert.equal(tmp1.counts.length, 5);
-            assert.equal(tmp1.counts[0], 5);
-            assert.equal(tmp1.counts[1], 1);
-            assert.equal(tmp1.counts[2], 0);
-            assert.equal(tmp1.counts[3], 0);
-            assert.equal(tmp1.counts[4], 0);
+            assert.strictEqual(tmp1.counts.length, 5);
+            assert.strictEqual(tmp1.counts[0], 5);
+            assert.strictEqual(tmp1.counts[1], 1);
+            assert.strictEqual(tmp1.counts[2], 0);
+            assert.strictEqual(tmp1.counts[3], 0);
+            assert.strictEqual(tmp1.counts[4], 0);
             //console.log(JSON.stringify(tmp1));
 
             store.push({ Time: '2015-06-10T01:13:30.0', ClusterId: 0 });
@@ -280,11 +280,11 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 
             // just the last three
             var tmp2 = hist1.saveJson();
-            assert.equal(tmp2.counts[0], 0);
-            assert.equal(tmp2.counts[1], 0);
-            assert.equal(tmp2.counts[2], 2);
-            assert.equal(tmp2.counts[3], 0);
-            assert.equal(tmp2.counts[4], 0);
+            assert.strictEqual(tmp2.counts[0], 0);
+            assert.strictEqual(tmp2.counts[1], 0);
+            assert.strictEqual(tmp2.counts[2], 2);
+            assert.strictEqual(tmp2.counts[3], 0);
+            assert.strictEqual(tmp2.counts[4], 0);
             //console.log(JSON.stringify(tmp2));
 
             store.push({ Time: '2015-06-17T00:13:30.0', ClusterId: 2 });
@@ -296,11 +296,11 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 
             // this week
             var tmp3 = hist1.saveJson();
-            assert.equal(tmp3.counts[0], 0);
-            assert.equal(tmp3.counts[1], 0);
-            assert.equal(tmp3.counts[2], 2);
-            assert.equal(tmp3.counts[3], 2);
-            assert.equal(tmp3.counts[4], 2);
+            assert.strictEqual(tmp3.counts[0], 0);
+            assert.strictEqual(tmp3.counts[1], 0);
+            assert.strictEqual(tmp3.counts[2], 2);
+            assert.strictEqual(tmp3.counts[3], 2);
+            assert.strictEqual(tmp3.counts[4], 2);
             //console.log(JSON.stringify(tmp3));
 
             // RESET
@@ -315,12 +315,12 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
             store.push({ Time: '2015-06-10T00:18:30.0', ClusterId: 0 });
 
             var tmp1 = hist1.saveJson();
-            assert.equal(tmp1.counts.length, 5);
-            assert.equal(tmp1.counts[0], 5);
-            assert.equal(tmp1.counts[1], 1);
-            assert.equal(tmp1.counts[2], 0);
-            assert.equal(tmp1.counts[3], 0);
-            assert.equal(tmp1.counts[4], 0);
+            assert.strictEqual(tmp1.counts.length, 5);
+            assert.strictEqual(tmp1.counts[0], 5);
+            assert.strictEqual(tmp1.counts[1], 1);
+            assert.strictEqual(tmp1.counts[2], 0);
+            assert.strictEqual(tmp1.counts[3], 0);
+            assert.strictEqual(tmp1.counts[4], 0);
             //console.log(JSON.stringify(tmp1));
 
             store.push({ Time: '2015-06-10T01:13:30.0', ClusterId: 0 });
@@ -332,11 +332,11 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 
             // just the last three
             var tmp2 = hist1.saveJson();
-            assert.equal(tmp2.counts[0], 0);
-            assert.equal(tmp2.counts[1], 0);
-            assert.equal(tmp2.counts[2], 2);
-            assert.equal(tmp2.counts[3], 0);
-            assert.equal(tmp2.counts[4], 0);
+            assert.strictEqual(tmp2.counts[0], 0);
+            assert.strictEqual(tmp2.counts[1], 0);
+            assert.strictEqual(tmp2.counts[2], 2);
+            assert.strictEqual(tmp2.counts[3], 0);
+            assert.strictEqual(tmp2.counts[4], 0);
             //console.log(JSON.stringify(tmp2));
 
             store.push({ Time: '2015-06-17T00:13:30.0', ClusterId: 2 });
@@ -348,11 +348,11 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 
             // this week
             var tmp3 = hist1.saveJson();
-            assert.equal(tmp3.counts[0], 0);
-            assert.equal(tmp3.counts[1], 0);
-            assert.equal(tmp3.counts[2], 2);
-            assert.equal(tmp3.counts[3], 2);
-            assert.equal(tmp3.counts[4], 2);
+            assert.strictEqual(tmp3.counts[0], 0);
+            assert.strictEqual(tmp3.counts[1], 0);
+            assert.strictEqual(tmp3.counts[2], 2);
+            assert.strictEqual(tmp3.counts[3], 2);
+            assert.strictEqual(tmp3.counts[4], 2);
 
 
             // show distribution for expected values
@@ -415,12 +415,12 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
             store.push({ Time: '2015-06-10T00:18:30.0', ClusterId: 0 });
 
             var tmp1 = hist1.saveJson();
-            assert.equal(tmp1.counts.length, 5);
-            assert.equal(tmp1.counts[0], 5);
-            assert.equal(tmp1.counts[1], 1);
-            assert.equal(tmp1.counts[2], 0);
-            assert.equal(tmp1.counts[3], 0);
-            assert.equal(tmp1.counts[4], 0);
+            assert.strictEqual(tmp1.counts.length, 5);
+            assert.strictEqual(tmp1.counts[0], 5);
+            assert.strictEqual(tmp1.counts[1], 1);
+            assert.strictEqual(tmp1.counts[2], 0);
+            assert.strictEqual(tmp1.counts[3], 0);
+            assert.strictEqual(tmp1.counts[4], 0);
             //console.log(JSON.stringify(tmp1));
 
             store.push({ Time: '2015-06-10T01:13:30.0', ClusterId: 0 });
@@ -432,11 +432,11 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 
             // just the last three
             var tmp2 = hist1.saveJson();
-            assert.equal(tmp2.counts[0], 1);
-            assert.equal(tmp2.counts[1], 0);
-            assert.equal(tmp2.counts[2], 2);
-            assert.equal(tmp2.counts[3], 0);
-            assert.equal(tmp2.counts[4], 0);
+            assert.strictEqual(tmp2.counts[0], 1);
+            assert.strictEqual(tmp2.counts[1], 0);
+            assert.strictEqual(tmp2.counts[2], 2);
+            assert.strictEqual(tmp2.counts[3], 0);
+            assert.strictEqual(tmp2.counts[4], 0);
             //console.log(JSON.stringify(tmp2));
 
             store.push({ Time: '2015-06-17T00:13:30.0', ClusterId: 2 });
@@ -448,11 +448,11 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 
             // this and previous week
             var tmp3 = hist1.saveJson();
-            assert.equal(tmp3.counts[0], 5);
-            assert.equal(tmp3.counts[1], 1);
-            assert.equal(tmp3.counts[2], 2);
-            assert.equal(tmp3.counts[3], 2);
-            assert.equal(tmp3.counts[4], 2);
+            assert.strictEqual(tmp3.counts[0], 5);
+            assert.strictEqual(tmp3.counts[1], 1);
+            assert.strictEqual(tmp3.counts[2], 2);
+            assert.strictEqual(tmp3.counts[3], 2);
+            assert.strictEqual(tmp3.counts[4], 2);
             //console.log(JSON.stringify(tmp3));
 
             // show distribution for expected values
@@ -516,12 +516,12 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
             store.push({ Time: '2015-06-10T00:18:30.0', ClusterId: 0 });
 
             var tmp1 = hist1.saveJson();
-            assert.equal(tmp1.counts.length, 5);
-            assert.equal(tmp1.counts[0], 5);
-            assert.equal(tmp1.counts[1], 1);
-            assert.equal(tmp1.counts[2], 0);
-            assert.equal(tmp1.counts[3], 0);
-            assert.equal(tmp1.counts[4], 0);
+            assert.strictEqual(tmp1.counts.length, 5);
+            assert.strictEqual(tmp1.counts[0], 5);
+            assert.strictEqual(tmp1.counts[1], 1);
+            assert.strictEqual(tmp1.counts[2], 0);
+            assert.strictEqual(tmp1.counts[3], 0);
+            assert.strictEqual(tmp1.counts[4], 0);
             //console.log(JSON.stringify(tmp1));
 
             store.push({ Time: '2015-06-10T01:13:30.0', ClusterId: 0 });
@@ -533,11 +533,11 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 
             // just the last three
             var tmp2 = hist1.saveJson();
-            assert.equal(tmp2.counts[0], 1);
-            assert.equal(tmp2.counts[1], 0);
-            assert.equal(tmp2.counts[2], 2);
-            assert.equal(tmp2.counts[3], 0);
-            assert.equal(tmp2.counts[4], 0);
+            assert.strictEqual(tmp2.counts[0], 1);
+            assert.strictEqual(tmp2.counts[1], 0);
+            assert.strictEqual(tmp2.counts[2], 2);
+            assert.strictEqual(tmp2.counts[3], 0);
+            assert.strictEqual(tmp2.counts[4], 0);
             //console.log(JSON.stringify(tmp2));
 
             store.push({ Time: '2015-06-17T00:13:30.0', ClusterId: 2 });
@@ -549,11 +549,11 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 
             // this and previous week
             var tmp3 = hist1.saveJson();
-            assert.equal(tmp3.counts[0], 5);
-            assert.equal(tmp3.counts[1], 1);
-            assert.equal(tmp3.counts[2], 2);
-            assert.equal(tmp3.counts[3], 2);
-            assert.equal(tmp3.counts[4], 2);
+            assert.strictEqual(tmp3.counts[0], 5);
+            assert.strictEqual(tmp3.counts[1], 1);
+            assert.strictEqual(tmp3.counts[2], 2);
+            assert.strictEqual(tmp3.counts[3], 2);
+            assert.strictEqual(tmp3.counts[4], 2);
             //console.log(JSON.stringify(tmp3));
 
             store.resetStreamAggregates();
@@ -567,12 +567,12 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
             store.push({ Time: '2015-06-10T00:18:30.0', ClusterId: 0 });
 
             var tmp1 = hist1.saveJson();
-            assert.equal(tmp1.counts.length, 5);
-            assert.equal(tmp1.counts[0], 5);
-            assert.equal(tmp1.counts[1], 1);
-            assert.equal(tmp1.counts[2], 0);
-            assert.equal(tmp1.counts[3], 0);
-            assert.equal(tmp1.counts[4], 0);
+            assert.strictEqual(tmp1.counts.length, 5);
+            assert.strictEqual(tmp1.counts[0], 5);
+            assert.strictEqual(tmp1.counts[1], 1);
+            assert.strictEqual(tmp1.counts[2], 0);
+            assert.strictEqual(tmp1.counts[3], 0);
+            assert.strictEqual(tmp1.counts[4], 0);
             //console.log(JSON.stringify(tmp1));
 
             store.push({ Time: '2015-06-10T01:13:30.0', ClusterId: 0 });
@@ -584,11 +584,11 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 
             // just the last three
             var tmp2 = hist1.saveJson();
-            assert.equal(tmp2.counts[0], 1);
-            assert.equal(tmp2.counts[1], 0);
-            assert.equal(tmp2.counts[2], 2);
-            assert.equal(tmp2.counts[3], 0);
-            assert.equal(tmp2.counts[4], 0);
+            assert.strictEqual(tmp2.counts[0], 1);
+            assert.strictEqual(tmp2.counts[1], 0);
+            assert.strictEqual(tmp2.counts[2], 2);
+            assert.strictEqual(tmp2.counts[3], 0);
+            assert.strictEqual(tmp2.counts[4], 0);
             //console.log(JSON.stringify(tmp2));
 
             store.push({ Time: '2015-06-17T00:13:30.0', ClusterId: 2 });
@@ -600,11 +600,11 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 
             // this and previous week
             var tmp3 = hist1.saveJson();
-            assert.equal(tmp3.counts[0], 5);
-            assert.equal(tmp3.counts[1], 1);
-            assert.equal(tmp3.counts[2], 2);
-            assert.equal(tmp3.counts[3], 2);
-            assert.equal(tmp3.counts[4], 2);
+            assert.strictEqual(tmp3.counts[0], 5);
+            assert.strictEqual(tmp3.counts[1], 1);
+            assert.strictEqual(tmp3.counts[2], 2);
+            assert.strictEqual(tmp3.counts[3], 2);
+            assert.strictEqual(tmp3.counts[4], 2);
 
 
             // show distribution for expected values
@@ -708,30 +708,30 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 
             var tmp1 = hist1.saveJson();
             //console.log(JSON.stringify(tmp1));
-            assert.equal(tmp1.counts.length, 5);
-            assert.equal(tmp1.counts[0], 1);
-            assert.equal(tmp1.counts[1], 0);
-            assert.equal(tmp1.counts[2], 1);
-            assert.equal(tmp1.counts[3], 0);
-            assert.equal(tmp1.counts[4], 0);
+            assert.strictEqual(tmp1.counts.length, 5);
+            assert.strictEqual(tmp1.counts[0], 1);
+            assert.strictEqual(tmp1.counts[1], 0);
+            assert.strictEqual(tmp1.counts[2], 1);
+            assert.strictEqual(tmp1.counts[3], 0);
+            assert.strictEqual(tmp1.counts[4], 0);
 
             // just the last three
             var tmp2 = hist2.saveJson();
             //console.log(JSON.stringify(tmp2));
-            assert.equal(tmp2.counts[0], 3);
-            assert.equal(tmp2.counts[1], 1);
-            assert.equal(tmp2.counts[2], 2);
-            assert.equal(tmp2.counts[3], 0);
-            assert.equal(tmp2.counts[4], 0);
+            assert.strictEqual(tmp2.counts[0], 3);
+            assert.strictEqual(tmp2.counts[1], 1);
+            assert.strictEqual(tmp2.counts[2], 2);
+            assert.strictEqual(tmp2.counts[3], 0);
+            assert.strictEqual(tmp2.counts[4], 0);
 
             // difference
             var tmp3 = diff.saveJson();
             //console.log(JSON.stringify(tmp3));
-            assert.equal(tmp3.diff[0], 2);
-            assert.equal(tmp3.diff[1], 1);
-            assert.equal(tmp3.diff[2], 1);
-            assert.equal(tmp3.diff[3], 0);
-            assert.equal(tmp3.diff[4], 0);
+            assert.strictEqual(tmp3.diff[0], 2);
+            assert.strictEqual(tmp3.diff[1], 1);
+            assert.strictEqual(tmp3.diff[2], 1);
+            assert.strictEqual(tmp3.diff[3], 0);
+            assert.strictEqual(tmp3.diff[4], 0);
 
             // show distribution for expected values
             //console.log(diff);
@@ -834,30 +834,30 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 
             var tmp1 = hist1.saveJson();
             //console.log(JSON.stringify(tmp1));
-            assert.equal(tmp1.counts.length, 5);
-            assert.equal(tmp1.counts[0], 1);
-            assert.equal(tmp1.counts[1], 0);
-            assert.equal(tmp1.counts[2], 1);
-            assert.equal(tmp1.counts[3], 0);
-            assert.equal(tmp1.counts[4], 0);
+            assert.strictEqual(tmp1.counts.length, 5);
+            assert.strictEqual(tmp1.counts[0], 1);
+            assert.strictEqual(tmp1.counts[1], 0);
+            assert.strictEqual(tmp1.counts[2], 1);
+            assert.strictEqual(tmp1.counts[3], 0);
+            assert.strictEqual(tmp1.counts[4], 0);
 
             // just the last three
             var tmp2 = hist2.saveJson();
             //console.log(JSON.stringify(tmp2));
-            assert.equal(tmp2.counts[0], 3);
-            assert.equal(tmp2.counts[1], 1);
-            assert.equal(tmp2.counts[2], 2);
-            assert.equal(tmp2.counts[3], 0);
-            assert.equal(tmp2.counts[4], 0);
+            assert.strictEqual(tmp2.counts[0], 3);
+            assert.strictEqual(tmp2.counts[1], 1);
+            assert.strictEqual(tmp2.counts[2], 2);
+            assert.strictEqual(tmp2.counts[3], 0);
+            assert.strictEqual(tmp2.counts[4], 0);
 
             // difference
             var tmp3 = diff.saveJson();
             //console.log(JSON.stringify(tmp3));
-            assert.equal(tmp3.diff[0], 2);
-            assert.equal(tmp3.diff[1], 1);
-            assert.equal(tmp3.diff[2], 1);
-            assert.equal(tmp3.diff[3], 0);
-            assert.equal(tmp3.diff[4], 0);
+            assert.strictEqual(tmp3.diff[0], 2);
+            assert.strictEqual(tmp3.diff[1], 1);
+            assert.strictEqual(tmp3.diff[2], 1);
+            assert.strictEqual(tmp3.diff[3], 0);
+            assert.strictEqual(tmp3.diff[4], 0);
 
             store.resetStreamAggregates();
 
@@ -871,30 +871,30 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
 
             var tmp1 = hist1.saveJson();
             //console.log(JSON.stringify(tmp1));
-            assert.equal(tmp1.counts.length, 5);
-            assert.equal(tmp1.counts[0], 1);
-            assert.equal(tmp1.counts[1], 0);
-            assert.equal(tmp1.counts[2], 1);
-            assert.equal(tmp1.counts[3], 0);
-            assert.equal(tmp1.counts[4], 0);
+            assert.strictEqual(tmp1.counts.length, 5);
+            assert.strictEqual(tmp1.counts[0], 1);
+            assert.strictEqual(tmp1.counts[1], 0);
+            assert.strictEqual(tmp1.counts[2], 1);
+            assert.strictEqual(tmp1.counts[3], 0);
+            assert.strictEqual(tmp1.counts[4], 0);
 
             // just the last three
             var tmp2 = hist2.saveJson();
             //console.log(JSON.stringify(tmp2));
-            assert.equal(tmp2.counts[0], 3);
-            assert.equal(tmp2.counts[1], 1);
-            assert.equal(tmp2.counts[2], 2);
-            assert.equal(tmp2.counts[3], 0);
-            assert.equal(tmp2.counts[4], 0);
+            assert.strictEqual(tmp2.counts[0], 3);
+            assert.strictEqual(tmp2.counts[1], 1);
+            assert.strictEqual(tmp2.counts[2], 2);
+            assert.strictEqual(tmp2.counts[3], 0);
+            assert.strictEqual(tmp2.counts[4], 0);
 
             // difference
             var tmp3 = diff.saveJson();
             //console.log(JSON.stringify(tmp3));
-            assert.equal(tmp3.diff[0], 2);
-            assert.equal(tmp3.diff[1], 1);
-            assert.equal(tmp3.diff[2], 1);
-            assert.equal(tmp3.diff[3], 0);
-            assert.equal(tmp3.diff[4], 0);
+            assert.strictEqual(tmp3.diff[0], 2);
+            assert.strictEqual(tmp3.diff[1], 1);
+            assert.strictEqual(tmp3.diff[2], 1);
+            assert.strictEqual(tmp3.diff[3], 0);
+            assert.strictEqual(tmp3.diff[4], 0);
 
             // show distribution for expected values
             //console.log(diff);
@@ -922,9 +922,9 @@ describe("test histogram, slotted-histogram and histogram_diff aggregates", func
             var tmp2x = hist2.saveJson();
             var tmp3x = diff.saveJson();
 
-            assert.equal(JSON.stringify(tmp1), JSON.stringify(tmp1x));
-            assert.equal(JSON.stringify(tmp2), JSON.stringify(tmp2x));
-            assert.equal(JSON.stringify(tmp3), JSON.stringify(tmp3x));
+            assert.strictEqual(JSON.stringify(tmp1), JSON.stringify(tmp1x));
+            assert.strictEqual(JSON.stringify(tmp2), JSON.stringify(tmp2x));
+            assert.strictEqual(JSON.stringify(tmp3), JSON.stringify(tmp3x));
         } finally {
             base.close();
         }
@@ -978,14 +978,14 @@ describe('Time Series Window Buffer Feature Extractor', function () {
             store.push({ Time: '2015-06-10T14:15:37.0', Text: 'f' }); // 5
             // 6 dim,  vals indices {4,5}, in {5}, out {3}
             var inValVec = sa.getInValueVector();
-            assert.equal(inValVec.cols, 1);
-            assert.equal(inValVec.full().minus(new qm.la.Matrix([[0], [0], [0], [0], [0], [1]])).frob(), 0);
+            assert.strictEqual(inValVec.cols, 1);
+            assert.strictEqual(inValVec.full().minus(new qm.la.Matrix([[0], [0], [0], [0], [0], [1]])).frob(), 0);
             var outValVec = sa.getOutValueVector();
-            assert.equal(outValVec.cols, 1);
-            assert.equal(outValVec.full().minus(new qm.la.Matrix([[0], [0], [0], [1]])).frob(), 0);
+            assert.strictEqual(outValVec.cols, 1);
+            assert.strictEqual(outValVec.full().minus(new qm.la.Matrix([[0], [0], [0], [1]])).frob(), 0);
             var valVec = sa.getValueVector();
-            assert.equal(valVec.cols, 2);
-            assert.equal(valVec.full().minus(new qm.la.Matrix([[0,0], [0,0], [0,0], [0,0], [1,0], [0,1]])).frob(), 0);
+            assert.strictEqual(valVec.cols, 2);
+            assert.strictEqual(valVec.full().minus(new qm.la.Matrix([[0,0], [0,0], [0,0], [0,0], [1,0], [0,1]])).frob(), 0);
         });
     });
 
@@ -1011,7 +1011,7 @@ describe('Time Series Window Buffer Feature Extractor', function () {
             store.push({ Time: '2015-06-10T14:15:36.0', Text: 'e' }); // 4
             store.push({ Time: '2015-06-10T14:15:37.0', Text: 'f' }); // 5
             var featureSpace = sa.getFeatureSpace();
-            assert.equal(featureSpace.dim, 6);
+            assert.strictEqual(featureSpace.dim, 6);
         });
     });
 
@@ -1042,7 +1042,7 @@ describe('Time Series Window Buffer Feature Extractor', function () {
             var fin = qm.fs.openRead('fsWinBuf.bin');
             sa.load(fin);
             var featureSpace = sa.getFeatureSpace();
-            assert.equal(featureSpace.dim, 6);
+            assert.strictEqual(featureSpace.dim, 6);
         });
     });
 
@@ -1077,17 +1077,17 @@ describe('Time Series Window Buffer Feature Extractor', function () {
 
             // 6 dim,  vals indices {4,5}, in {5}, out {3}
             var inValVec = sa.getInValueVector();
-            assert.equal(inValVec.cols, 1);
-            assert.equal(inValVec.full().minus(new qm.la.Matrix([[0], [0], [0], [0], [0], [1]])).frob(), 0);
+            assert.strictEqual(inValVec.cols, 1);
+            assert.strictEqual(inValVec.full().minus(new qm.la.Matrix([[0], [0], [0], [0], [0], [1]])).frob(), 0);
             var outValVec = sa.getOutValueVector();
-            assert.equal(outValVec.cols, 1);
-            assert.equal(outValVec.full().minus(new qm.la.Matrix([[0], [0], [0], [1]])).frob(), 0);
+            assert.strictEqual(outValVec.cols, 1);
+            assert.strictEqual(outValVec.full().minus(new qm.la.Matrix([[0], [0], [0], [1]])).frob(), 0);
             var valVec = sa.getValueVector();
-            assert.equal(valVec.cols, 2);
-            assert.equal(valVec.full().minus(new qm.la.Matrix([[0,0], [0,0], [0,0], [0,0], [1,0], [0,1]])).frob(), 0);
+            assert.strictEqual(valVec.cols, 2);
+            assert.strictEqual(valVec.full().minus(new qm.la.Matrix([[0,0], [0,0], [0,0], [0,0], [1,0], [0,1]])).frob(), 0);
 
             var valVec2 = sa2.getValueVector();
-            assert.equal(valVec2.full().minus(new qm.la.Vector([0, 0, 0, 0, 1, 1])).norm(), 0);
+            assert.strictEqual(valVec2.full().minus(new qm.la.Vector([0, 0, 0, 0, 1, 1])).norm(), 0);
         });
     });
 });
@@ -1161,7 +1161,7 @@ describe('Time Series  - EMA for sparse vectors', function () {
 
         var valVec2 = sa2.getValueVector();
         //valVec2.print();
-        assert.equal(valVec2.full().minus(new qm.la.Vector([0, 0, 0, 0, 0, 1])).norm(), 0);
+        assert.strictEqual(valVec2.full().minus(new qm.la.Vector([0, 0, 0, 0, 0, 1])).norm(), 0);
 
         var valVec3 = sa3.getValueVector();
         //valVec3.print();
@@ -1301,7 +1301,7 @@ describe('Simple linear regression test', function () {
         linReg.load(fin);
         fin.close();
         var res2 = linReg.saveJson();
-        assert.equal(JSON.stringify(res), JSON.stringify(res2));
+        assert.strictEqual(JSON.stringify(res), JSON.stringify(res2));
 
         })
     });
@@ -1426,9 +1426,9 @@ describe("test concept drift methods", function() {
                 }
             }
             // checking that drift has not been detected
-            assert.equal(changes, 0);
+            assert.strictEqual(changes, 0);
             driftOffset = pht.saveJson().driftOffset;
-            assert.equal(driftOffset, -1);
+            assert.strictEqual(driftOffset, -1);
         });
 
         it('should detect concept drift in proximity of simulated change', function() {
@@ -1454,9 +1454,9 @@ describe("test concept drift methods", function() {
                 }
             }
             // checking if drift has been correctly detected
-            assert.equal(changes, 1);
+            assert.strictEqual(changes, 1);
             driftOffset = pht.saveJson().driftOffset;
-            assert.equal((driftOffset < 1000) && (driftOffset > 900), true);
+            assert.strictEqual((driftOffset < 1000) && (driftOffset > 900), true);
         })
 
         it('should save, then properly reset and then load the aggregate properly', function() {
@@ -1476,10 +1476,10 @@ describe("test concept drift methods", function() {
         })
 
         it('should return value of the newest value for drift and drift offset', function() {
-            assert.equal(pht.getInteger("driftOffset"), pht.saveJson().driftOffset);
-            assert.equal(pht.getInteger("drift"), 0);
-            assert.equal(pht.getInteger(), 0);
-            assert.equal(pht.getInteger("doesnotexist"), null);
+            assert.strictEqual(pht.getInteger("driftOffset"), pht.saveJson().driftOffset);
+            assert.strictEqual(pht.getInteger("drift"), 0);
+            assert.strictEqual(pht.getInteger(), 0);
+            assert.strictEqual(pht.getInteger("doesnotexist"), null);
         })
 
         it('should reset Page-Hinkley stream aggregate', function() {
@@ -1495,7 +1495,7 @@ describe("test concept drift methods", function() {
         })
 
         it('should return the name of the aggregator', function() {
-            assert.equal(pht.name, 'PageHinkley');
+            assert.strictEqual(pht.name, 'PageHinkley');
         })
 
         it('should return parameters of the aggregator', function() {

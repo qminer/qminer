@@ -24,12 +24,12 @@ describe('NearestNeighborAD Tests', function () {
         it('should construct a default NearestNeighborAD object', function () {
             var neighbour = new analytics.NearestNeighborAD();
             var params = neighbour.getParams();
-            assert.equal(params.rate[0], 0.05);
+            assert.strictEqual(params.rate[0], 0.05);
         })
         it('should construct a NearestNeighborAD object out of the params', function () {
             var neighbour = new analytics.NearestNeighborAD({ rate: [0.5] });
             var params = neighbour.getParams();
-            assert.equal(params.rate[0], 0.5);
+            assert.strictEqual(params.rate[0], 0.5);
         })
         it('should throw an exception if the parameter.rate is greater than 1', function () {
             assert.throws(function () {
@@ -54,13 +54,13 @@ describe('NearestNeighborAD Tests', function () {
             var neighbor = new analytics.NearestNeighborAD();
             neighbor.setParams({ rate: [0.1] });
             var params = neighbor.getParams();
-            assert.equal(params.rate[0], 0.1);
+            assert.strictEqual(params.rate[0], 0.1);
         })
         it('should set the parameters of the object', function () {
             var neighbor = new analytics.NearestNeighborAD({ rate: [0.25] });
             neighbor.setParams({ rate: [0.1] });
             var params = neighbor.getParams();
-            assert.equal(params.rate[0], 0.1);
+            assert.strictEqual(params.rate[0], 0.1);
         })
         it('should throw an exception if the given rate is bigger than 1', function () {
             var neighbor = new analytics.NearestNeighborAD({ rate: [0.25] });
@@ -86,12 +86,12 @@ describe('NearestNeighborAD Tests', function () {
         it('should get the parameters of the default object', function () {
             var neighbor = new analytics.NearestNeighborAD();
             var params = neighbor.getParams();
-            assert.equal(params.rate[0], [0.05]);
+            assert.strictEqual(params.rate[0], 0.05);
         })
         it('should get the parameters of the object', function () {
             var neighbor = new analytics.NearestNeighborAD({ rate: [0.1] });
             var params = neighbor.getParams();
-            assert.equal(params.rate[0], 0.1);
+            assert.strictEqual(params.rate[0], 0.1);
         })
     });
 
@@ -131,12 +131,12 @@ describe('NearestNeighborAD Tests', function () {
         it('should return the default parameters of the model', function () {
             var neighbor = new analytics.NearestNeighborAD();
             var model = neighbor.getModel();
-            assert.equal(model.threshold, 0);
+            assert.strictEqual(model.threshold, 0);
         })
         it('should return the parameters of the model', function () {
             var neighbor = new analytics.NearestNeighborAD({ rate: [0.1] });
             var model = neighbor.getModel();
-            assert.equal(model.threshold, 0);
+            assert.strictEqual(model.threshold, 0);
         })
         it('should return the parameters of the model, after fit', function () {
             var neighbor = new analytics.NearestNeighborAD({ windowSize: 3 });
@@ -166,7 +166,7 @@ describe('NearestNeighborAD Tests', function () {
 
             var vector = new la.SparseVector([[0, 1], [1, 2]]);
             var prediction = neighbor.predict(vector);
-            assert.equal(prediction, 0);
+            assert.strictEqual(prediction, 0);
         })
         it('should return 1 for the given vector', function () {
             var neighbor = new analytics.NearestNeighborAD({ windowSize: 3 });
@@ -175,7 +175,7 @@ describe('NearestNeighborAD Tests', function () {
 
             var vector = new la.SparseVector([[0, 4], [1, 0]]);
             var prediction = neighbor.predict(vector);
-            assert.equal(prediction, 1);
+            assert.strictEqual(prediction, 1);
         })
         it('should explain differences for the given vector', function () {
             var neighbor = new analytics.NearestNeighborAD({ windowSize: 3 });
@@ -185,16 +185,16 @@ describe('NearestNeighborAD Tests', function () {
 
             var vector = new la.SparseVector([[1, 4]]);
             var explain = neighbor.explain(vector);
-            assert.equal(explain.nearestDat, 1);
-            assert.equal(explain.distance, 5);
-            assert.equal(explain.features[0].id, 0);
-            assert.equal(explain.features[0].val, 0);
-            assert.equal(explain.features[0].nearVal, 1);
-            assert.equal(explain.features[0].contribution, 0.2);
-            assert.equal(explain.features[1].id, 1);
-            assert.equal(explain.features[1].val, 4);
-            assert.equal(explain.features[1].nearVal, 2);
-            assert.equal(explain.features[1].contribution, 0.8);
+            assert.strictEqual(explain.nearestDat, 1);
+            assert.strictEqual(explain.distance, 5);
+            assert.strictEqual(explain.features[0].id, 0);
+            assert.strictEqual(explain.features[0].val, 0);
+            assert.strictEqual(explain.features[0].nearVal, 1);
+            assert.strictEqual(explain.features[0].contribution, 0.2);
+            assert.strictEqual(explain.features[1].id, 1);
+            assert.strictEqual(explain.features[1].val, 4);
+            assert.strictEqual(explain.features[1].nearVal, 2);
+            assert.strictEqual(explain.features[1].contribution, 0.8);
         })
     });
 

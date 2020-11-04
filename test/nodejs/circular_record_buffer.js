@@ -79,8 +79,8 @@ describe('Circular Record Buffer Tests', function () {
                 onDelete: function () { countDel++; }
             });
             for (var i = 0; i < 10; i++) { circularRecordBuffer.push(store[i]); }
-            assert.equal(countAdd, 10);
-            assert.equal(countDel, 0);
+            assert.strictEqual(countAdd, 10);
+            assert.strictEqual(countDel, 0);
         })
         it('should call add 100 times and delete 90 times', function () {
             var countAdd = 0, countDel = 0;
@@ -90,25 +90,25 @@ describe('Circular Record Buffer Tests', function () {
                 onDelete: function () { countDel++; }
             });
             store.each(function (rec) { circularRecordBuffer.push(rec); });
-            assert.equal(countAdd, 100);
-            assert.equal(countDel, 90);
+            assert.strictEqual(countAdd, 100);
+            assert.strictEqual(countDel, 90);
         })
         it('should return records in correct sequence', function () {
             var countAdd = 0, countDel = 0;
             var circularRecordBuffer = new qm.CircularRecordBuffer({
                 store: store, size: 10,
                 onAdd: function (rec) {
-                    assert.equal(rec.$id, countAdd);
+                    assert.strictEqual(rec.$id, countAdd);
                     countAdd++;
                 },
                 onDelete: function (rec) {
-                    assert.equal(rec.$id, countDel);
+                    assert.strictEqual(rec.$id, countDel);
                     countDel++;
                 }
             });
             store.each(function (rec) { circularRecordBuffer.push(rec); });
-            assert.equal(countAdd, 100);
-            assert.equal(countDel, 90);
+            assert.strictEqual(countAdd, 100);
+            assert.strictEqual(countDel, 90);
         })
     });
 

@@ -34,7 +34,7 @@ describe('Record Vector Tests', function () {
     describe('Constructor tests', function () {
         it('should create empty record vector', function () {
             var recordVector = new qm.RecordVector(base);
-            assert.equal(recordVector.length, 0);
+            assert.strictEqual(recordVector.length, 0);
         })
         it('should throw exception', function () {
             assert.throws(function () { new qm.RecordVector(); });
@@ -45,19 +45,19 @@ describe('Record Vector Tests', function () {
     describe('Managing records', function () {
         it('should create record vector with two records', function () {
             var recordVector = new qm.RecordVector(base);
-            assert.equal(recordVector[0], null);
-            assert.equal(recordVector.length, 0);
+            assert.strictEqual(recordVector[0], null);
+            assert.strictEqual(recordVector.length, 0);
             recordVector.push(store.newRecord({ Name: "Plato", Era: "Ancient philosophy" }));
-            assert.equal(recordVector.length, 1);
-            assert.equal(recordVector[0].Name, "Plato");
-            assert.equal(recordVector[0].Era, "Ancient philosophy");
-            assert.equal(recordVector[1], null);
+            assert.strictEqual(recordVector.length, 1);
+            assert.strictEqual(recordVector[0].Name, "Plato");
+            assert.strictEqual(recordVector[0].Era, "Ancient philosophy");
+            assert.strictEqual(recordVector[1], null);
             var record = store.newRecord({ Name: "Immanuel Kant", Era: "18th-century philosophy" });
             recordVector.push(record);
-            assert.equal(recordVector.length, 2);
-            assert.equal(recordVector[1].Name, "Immanuel Kant");
-            assert.equal(recordVector[1].Era, "18th-century philosophy");
-            assert.equal(recordVector[2], null);
+            assert.strictEqual(recordVector.length, 2);
+            assert.strictEqual(recordVector[1].Name, "Immanuel Kant");
+            assert.strictEqual(recordVector[1].Era, "18th-century philosophy");
+            assert.strictEqual(recordVector[2], null);
         })
     });
     describe('Serialization tests', function () {
@@ -77,12 +77,12 @@ describe('Record Vector Tests', function () {
 
             var fin = qm.fs.openRead('record_vector.bin');
             var inRecordVector = new qm.RecordVector(base, fin);
-            assert.equal(inRecordVector.length, 2);
-            assert.equal(inRecordVector[0].Name, "Plato");
-            assert.equal(inRecordVector[0].Era, "Ancient philosophy");
-            assert.equal(inRecordVector[1].Name, "Immanuel Kant");
-            assert.equal(inRecordVector[1].Era, "18th-century philosophy");
-            assert.equal(inRecordVector[2], null);
+            assert.strictEqual(inRecordVector.length, 2);
+            assert.strictEqual(inRecordVector[0].Name, "Plato");
+            assert.strictEqual(inRecordVector[0].Era, "Ancient philosophy");
+            assert.strictEqual(inRecordVector[1].Name, "Immanuel Kant");
+            assert.strictEqual(inRecordVector[1].Era, "18th-century philosophy");
+            assert.strictEqual(inRecordVector[2], null);
         })
     });
 

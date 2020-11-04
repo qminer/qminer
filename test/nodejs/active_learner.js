@@ -17,10 +17,10 @@ describe("Active learning tests", function () {
         it("should return a default constructor", function () {
             var al = new AL();
             assert(al._X == null);
-            assert.equal(al._y.size, 0);
-            assert.equal(al._settings.SVC.c, 1);
-            assert.equal(al._settings.SVC.j, 1);
-            assert.equal(al._settings.SVC.algorithm, "LIBSVM");
+            assert.strictEqual(al._y.size, 0);
+            assert.strictEqual(al._settings.SVC.c, 1);
+            assert.strictEqual(al._settings.SVC.j, 1);
+            assert.strictEqual(al._settings.SVC.algorithm, "LIBSVM");
         });
 
     });
@@ -101,10 +101,10 @@ describe("Active learning tests", function () {
             al.save("active_learner.bin");
             var al2 = new AL("active_learner.bin");
             assert(al2._X == null);
-            assert.equal(al2._y.size, 0);
-            assert.equal(al2._settings.SVC.c, 1);
-            assert.equal(al2._settings.SVC.j, 1);
-            assert.equal(al2._settings.SVC.algorithm, "LIBSVM");
+            assert.strictEqual(al2._y.size, 0);
+            assert.strictEqual(al2._settings.SVC.c, 1);
+            assert.strictEqual(al2._settings.SVC.j, 1);
+            assert.strictEqual(al2._settings.SVC.algorithm, "LIBSVM");
             done();
         });
         it("should save and load a model after some data was processed", function (done) {

@@ -39,7 +39,7 @@ describe('Default field-location tests ', function () {
         var store_desc = store.toJSON();
         // here we don't see the actual storage location (at least not for now), so this code is just used to execute stuff
         // and we inspect correc behavior manually.
-        assert.equal(store_desc.fields.length, 2);
+        assert.strictEqual(store_desc.fields.length, 2);
         db.close();
     })
 })

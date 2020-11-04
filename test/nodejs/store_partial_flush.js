@@ -89,12 +89,12 @@ describe('Partial-flush tests', function () {
         var base2 = new qm.Base({ mode: 'open' });
         var store2 = base2.store(tab2_name);
         var recs2 = store2.allRecords;
-        assert.equal(recs2.length, rec_cnt);
+        assert.strictEqual(recs2.length, rec_cnt);
 
         //console.log("Checking records");
         for (var i = 0; i < rec_cnt; i++) {
             var rec2 = recs2[i];
-            assert.equal(rec2.Name, "Another name " + i);
+            assert.strictEqual(rec2.Name, "Another name " + i);
         }
         for (var i = rec_cnt; i < 2 * rec_cnt; i++) {
             var director2 = { Name: "Name " + i };
@@ -192,12 +192,12 @@ describe('Partial-flush tests', function () {
         var base2 = new qm.Base({ mode: 'open' });
         var store2 = base2.store(tab2_name);
         var recs2 = store2.allRecords;
-        assert.equal(recs2.length, rec_cnt);
+        assert.strictEqual(recs2.length, rec_cnt);
 
         //console.log("Checking records");
         for (var i = 0; i < rec_cnt; i++) {
             var rec2 = recs2[i];
-            assert.equal(rec2.server, (i % 2 == 0 ? "s1" : "s2"));
+            assert.strictEqual(rec2.server, (i % 2 == 0 ? "s1" : "s2"));
         }
 
         //console.log("Adding new data");

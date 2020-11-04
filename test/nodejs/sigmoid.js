@@ -21,14 +21,14 @@ describe('Sigmoid Tests', function () {
         it('should create the default Sigmoid model', function () {
             var s = new analytics.Sigmoid();
             var model = s.getModel();
-            assert.equal(model.A, 0);
-            assert.equal(model.B, 0);
+            assert.strictEqual(model.A, 0);
+            assert.strictEqual(model.B, 0);
         })
         it('should create the default Sigmoid model if any parameter is given', function () {
             var s = new analytics.Sigmoid({ A: 5, B: 30 });
             var model = s.getModel();
-            assert.equal(model.A, 0);
-            assert.equal(model.B, 0);
+            assert.strictEqual(model.A, 0);
+            assert.strictEqual(model.B, 0);
         })
     });
 
@@ -57,8 +57,8 @@ describe('Sigmoid Tests', function () {
             var s = new analytics.Sigmoid();
             s.setParams({});
             var model = s.getModel();
-            assert.equal(model.A, 0);
-            assert.equal(model.B, 0);
+            assert.strictEqual(model.A, 0);
+            assert.strictEqual(model.B, 0);
         })
     });
 
@@ -72,8 +72,8 @@ describe('Sigmoid Tests', function () {
         it('should return the default model parameters', function () {
             var s = new analytics.Sigmoid();
             var model = s.getModel();
-            assert.equal(model.A, 0);
-            assert.equal(model.B, 0);
+            assert.strictEqual(model.A, 0);
+            assert.strictEqual(model.B, 0);
         })
         it('should return the model parameters', function () {
             var s = new analytics.Sigmoid();
@@ -82,7 +82,7 @@ describe('Sigmoid Tests', function () {
             s.fit(X, y);
             var model = s.getModel();
             assert(model.A > 0);
-            assert.equal(model.B, 0);
+            assert.strictEqual(model.B, 0);
         })
     });
 
@@ -102,7 +102,7 @@ describe('Sigmoid Tests', function () {
             s.fit(X, y);
             var model = s.getModel();
             assert(model.A > 0);
-            assert.equal(model.B, 0);
+            assert.strictEqual(model.B, 0);
         })
         it('should fit the model with the values, not symmetric', function () {
             var s = new analytics.Sigmoid();
@@ -119,7 +119,7 @@ describe('Sigmoid Tests', function () {
             s.fit(X, y);
             var model = s.getModel();
             assert(model.A < 0);
-            assert.equal(model.B, 0);
+            assert.strictEqual(model.B, 0);
         })
     });
 

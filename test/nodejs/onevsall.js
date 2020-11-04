@@ -31,10 +31,10 @@ describe('OneVsAll Tests', function () {
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 10 });
             var params = onevsall.getParams();
-            assert.equal(params.cats, 10);
-            assert.equal(params.modelParam.c, 10);
-            assert.equal(params.modelParam.maxTime, 12000);
-            assert.equal(params.models.length, 0);
+            assert.strictEqual(params.cats, 10);
+            assert.strictEqual(params.modelParam.c, 10);
+            assert.strictEqual(params.modelParam.maxTime, 12000);
+            assert.strictEqual(params.models.length, 0);
         })
     });
 
@@ -50,11 +50,11 @@ describe('OneVsAll Tests', function () {
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 10 });
             var params = onevsall.getParams();
-            assert.equal(params.cats, 10);
-            assert.equal(params.modelParam.c, 10);
-            assert.equal(params.modelParam.maxTime, 12000);
-            assert.equal(params.models.length, 0);
-            assert.equal((new params.model(params.modelParam)).getParams().c, 10);
+            assert.strictEqual(params.cats, 10);
+            assert.strictEqual(params.modelParam.c, 10);
+            assert.strictEqual(params.modelParam.maxTime, 12000);
+            assert.strictEqual(params.models.length, 0);
+            assert.strictEqual((new params.model(params.modelParam)).getParams().c, 10);
         })
     });
 
@@ -70,19 +70,19 @@ describe('OneVsAll Tests', function () {
             var json = { c: 10, maxTime: 12000 };
             var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: json, cats: 10 });
             var params = onevsall.getParams();
-            assert.equal(params.cats, 10);
-            assert.equal(params.modelParam.c, 10);
-            assert.equal(params.modelParam.maxTime, 12000);
-            assert.equal(params.models.length, 0);
-            assert.equal((new params.model(params.modelParam)).getParams().c, 10);
+            assert.strictEqual(params.cats, 10);
+            assert.strictEqual(params.modelParam.c, 10);
+            assert.strictEqual(params.modelParam.maxTime, 12000);
+            assert.strictEqual(params.models.length, 0);
+            assert.strictEqual((new params.model(params.modelParam)).getParams().c, 10);
 
             onevsall.setParams({ model: analytics.SVR, cats: 5 });
             var params = onevsall.getParams();
-            assert.equal(params.cats, 5);
-            assert.equal(params.modelParam.c, 10);
-            assert.equal(params.modelParam.maxTime, 12000);
-            assert.equal(params.models.length, 0);
-            assert.equal((new params.model(params.modelParam)).getParams().c, 10);
+            assert.strictEqual(params.cats, 5);
+            assert.strictEqual(params.modelParam.c, 10);
+            assert.strictEqual(params.modelParam.maxTime, 12000);
+            assert.strictEqual(params.models.length, 0);
+            assert.strictEqual((new params.model(params.modelParam)).getParams().c, 10);
         })
         it('should throw an exception if no parameters are given', function () {
             var json = { c: 10, maxTime: 12000 };
@@ -113,7 +113,7 @@ describe('OneVsAll Tests', function () {
             onevsall.fit(matrix, vector);
 
             var param = onevsall.getParams();
-            assert.equal(param.models.length, 2);
+            assert.strictEqual(param.models.length, 2);
         })
         it('should set the models, sparse matrix', function () {
             var json = { c: 10, maxTime: 12000 };
@@ -125,7 +125,7 @@ describe('OneVsAll Tests', function () {
             onevsall.fit(matrix, vector);
 
             var param = onevsall.getParams();
-            assert.equal(param.models.length, 2);
+            assert.strictEqual(param.models.length, 2);
         })
         it('should throw an exception if there are no parameters given', function () {
             var json = { c: 10, maxTime: 12000 };
@@ -169,7 +169,7 @@ describe('OneVsAll Tests', function () {
             var test = new la.Vector([1, 2]);
             var prediction = onevsall.predict(test);
 
-            assert.equal(prediction, 0);
+            assert.strictEqual(prediction, 0);
         })
         it('should throw an exception if the dense vector is too long', function () {
             var json = { c: 10, maxTime: 12000 };
@@ -218,7 +218,7 @@ describe('OneVsAll Tests', function () {
             var test = new la.SparseVector([[0, 1], [1, 2]]);
             var prediction = onevsall.predict(test);
 
-            assert.equal(prediction, 0);
+            assert.strictEqual(prediction, 0);
         })
 
         it('should not throw an exception, dense matrix', function () {
@@ -243,8 +243,8 @@ describe('OneVsAll Tests', function () {
             var test = new la.Matrix([[1, 1], [2, -3]]);
             var prediction = onevsall.predict(test);
 
-            assert.equal(prediction.at(0), 0);
-            assert.equal(prediction.at(1), 1);
+            assert.strictEqual(prediction.at(0), 0);
+            assert.strictEqual(prediction.at(1), 1);
         })
         it('should throw an exception if there are more rows than in the model, dense matrix', function () {
             var json = { c: 10, maxTime: 12000 };
@@ -296,8 +296,8 @@ describe('OneVsAll Tests', function () {
             var test = new la.SparseMatrix([[[0, 1], [1, 2]], [[0, 1], [1, -3]]]);
             var prediction = onevsall.predict(test);
 
-            assert.equal(prediction.at(0), 0);
-            assert.equal(prediction.at(1), 1);
+            assert.strictEqual(prediction.at(0), 0);
+            assert.strictEqual(prediction.at(1), 1);
         })
     });
 

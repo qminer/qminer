@@ -63,34 +63,34 @@ describe('Query-aggregates tests ', function () {
         //console.log(JSON.stringify(aggr.aggr_src.values));
         {
             var aggr0 = aggrs[0];
-            assert.equal(aggr0.type, "count");
-            assert.equal(aggr0.values.length, 3);
+            assert.strictEqual(aggr0.type, "count");
+            assert.strictEqual(aggr0.values.length, 3);
 
-            assert.equal(aggr0.values[0].value, "src1");
-            assert.equal(aggr0.values[1].value, "src2");
-            assert.equal(aggr0.values[2].value, "src3");
+            assert.strictEqual(aggr0.values[0].value, "src1");
+            assert.strictEqual(aggr0.values[1].value, "src2");
+            assert.strictEqual(aggr0.values[2].value, "src3");
 
-            assert.equal(aggr0.values[0].frequency, 2);
-            assert.equal(aggr0.values[1].frequency, 1);
-            assert.equal(aggr0.values[2].frequency, 1);
+            assert.strictEqual(aggr0.values[0].frequency, 2);
+            assert.strictEqual(aggr0.values[1].frequency, 1);
+            assert.strictEqual(aggr0.values[2].frequency, 1);
         }
         {
             var aggr1 = aggrs[1];
-            assert.equal(aggr1.type, "timeline");
-            //assert.equal(aggr1.slots.length, 3);
+            assert.strictEqual(aggr1.type, "timeline");
+            //assert.strictEqual(aggr1.slots.length, 3);
         }
         {
             var aggr2 = aggrs[2];
-            assert.equal(aggr2.type, "timespan");
-            assert.equal(aggr2.slots.length, 3);
+            assert.strictEqual(aggr2.type, "timespan");
+            assert.strictEqual(aggr2.slots.length, 3);
 
-            assert.equal(aggr2.slots[0].count, 2);
-            assert.equal(aggr2.slots[1].count, 1);
-            assert.equal(aggr2.slots[2].count, 1);
+            assert.strictEqual(aggr2.slots[0].count, 2);
+            assert.strictEqual(aggr2.slots[1].count, 1);
+            assert.strictEqual(aggr2.slots[2].count, 1);
 
-            assert.equal(aggr2.slots[0].slot, slot0);
-            assert.equal(aggr2.slots[1].slot, slot1);
-            assert.equal(aggr2.slots[2].slot, slot2);
+            assert.strictEqual(aggr2.slots[0].slot, slot0);
+            assert.strictEqual(aggr2.slots[1].slot, slot1);
+            assert.strictEqual(aggr2.slots[2].slot, slot2);
         }
     })
 })

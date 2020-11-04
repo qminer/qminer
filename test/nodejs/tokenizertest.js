@@ -48,48 +48,48 @@ describe("Tokenizer tests", function () {
             var tokenizer = new analytics.Tokenizer({ type: "simple" });
             var string = "It is alright!";
             var tokens = tokenizer.getTokens(string)
-            assert.equal(tokens[0], "IT");
-            assert.equal(tokens[1], "IS");
-            assert.equal(tokens[2], "ALRIGHT");
+            assert.strictEqual(tokens[0], "IT");
+            assert.strictEqual(tokens[1], "IS");
+            assert.strictEqual(tokens[2], "ALRIGHT");
         });
         it("should return tokens of a string using type Html", function () {
             var tokenizer = new analytics.Tokenizer({ type: "html" });
             var string = "It is alright!";
             var tokens = tokenizer.getTokens(string)
-            assert.equal(tokens[0], "it");
-            assert.equal(tokens[1], "is");
-            assert.equal(tokens[2], "alright");
+            assert.strictEqual(tokens[0], "it");
+            assert.strictEqual(tokens[1], "is");
+            assert.strictEqual(tokens[2], "alright");
         });
         it("should return tokens using contractions", function () {
             var tokenizer = new analytics.Tokenizer({ type: "simple" });
             var string = "It's alright!";
             var tokens = tokenizer.getTokens(string)
-            assert.equal(tokens[0], "IT'S");
-            assert.equal(tokens[1], "ALRIGHT");
+            assert.strictEqual(tokens[0], "IT'S");
+            assert.strictEqual(tokens[1], "ALRIGHT");
         });
         it("should return tokens using contractions with type Html", function () {
             var tokenizer = new analytics.Tokenizer({ type: "html" });
             var string = "It's alright.";
             var tokens = tokenizer.getTokens(string)
-            assert.equal(tokens[0], "it");
-            assert.equal(tokens[1], "s");
-            assert.equal(tokens[2], "alright");
+            assert.strictEqual(tokens[0], "it");
+            assert.strictEqual(tokens[1], "s");
+            assert.strictEqual(tokens[2], "alright");
         });
         it("should return tokens ignoring extra punctuation", function () {
             var tokenizer = new analytics.Tokenizer({ type: "simple" });
             var string = "It, ./ is,) alright!!";
             var tokens = tokenizer.getTokens(string)
-            assert.equal(tokens[0], "IT");
-            assert.equal(tokens[1], "IS");
-            assert.equal(tokens[2], "ALRIGHT");
+            assert.strictEqual(tokens[0], "IT");
+            assert.strictEqual(tokens[1], "IS");
+            assert.strictEqual(tokens[2], "ALRIGHT");
         });
         it("should return tokens ignoring extra punctuation using type Html", function () {
             var tokenizer = new analytics.Tokenizer({ type: "html" });
             var string = "It, ./ is,) alright!!";
             var tokens = tokenizer.getTokens(string)
-            assert.equal(tokens[0], "it");
-            assert.equal(tokens[1], "is");
-            assert.equal(tokens[2], "alright");
+            assert.strictEqual(tokens[0], "it");
+            assert.strictEqual(tokens[1], "is");
+            assert.strictEqual(tokens[2], "alright");
         });
         it("should throw an exception if input is not a string", function () {
             var tokenizer = new analytics.Tokenizer({ type: "simple" });
@@ -102,7 +102,7 @@ describe("Tokenizer tests", function () {
             var tokenizer = new analytics.Tokenizer({ type: "simple" });
             var emptyString = "";
             var tokens = tokenizer.getTokens(emptyString);
-            assert.equal(tokens[0], undefined);
+            assert.strictEqual(tokens[0], undefined);
         });
     });
     describe("getSentences test", function () {
@@ -117,22 +117,22 @@ describe("Tokenizer tests", function () {
             var tokenizer = new analytics.Tokenizer({ type: "simple" });
             var text = "It is alright. Do not worry!";
             var sentences = tokenizer.getSentences(text);
-            assert.equal(sentences[0], "It is alright");
-            assert.equal(sentences[1], " Do not worry");
+            assert.strictEqual(sentences[0], "It is alright");
+            assert.strictEqual(sentences[1], " Do not worry");
         });
         it("should return sentences of text using contractions", function () {
             var tokenizer = new analytics.Tokenizer({ type: "simple" });
             var text = "It's alright. Don't worry!";
             var sentences = tokenizer.getSentences(text);
-            assert.equal(sentences[0], "It's alright");
-            assert.equal(sentences[1], " Don't worry");
+            assert.strictEqual(sentences[0], "It's alright");
+            assert.strictEqual(sentences[1], " Don't worry");
         });
         it("should return sentences of text using extra contractions", function () {
             var tokenizer = new analytics.Tokenizer({ type: "simple" });
             var text = "Listen, my idea was better. Please, don't take this personally...";
             var sentences = tokenizer.getSentences(text);
-            assert.equal(sentences[0], "Listen, my idea was better");
-            assert.equal(sentences[1], " Please, don't take this personally");
+            assert.strictEqual(sentences[0], "Listen, my idea was better");
+            assert.strictEqual(sentences[1], " Please, don't take this personally");
         });
         it("should throw an exception if input is not a string", function () {
             var tokenizer = new analytics.Tokenizer({ type: "simple" });
@@ -161,9 +161,9 @@ describe("Tokenizer tests", function () {
             var tokenizer = new analytics.Tokenizer({ type: "simple" });
             var text = "Yes!\t No?\n Maybe...";
             var paragraphs = tokenizer.getParagraphs(text);
-            assert.equal(paragraphs[0], "Yes");
-            assert.equal(paragraphs[1], " No");
-            assert.equal(paragraphs[2], " Maybe");
+            assert.strictEqual(paragraphs[0], "Yes");
+            assert.strictEqual(paragraphs[1], " No");
+            assert.strictEqual(paragraphs[2], " Maybe");
         });
         it("should not throw an exception if the string is empty", function () {
             var tokenizer = new analytics.Tokenizer({ type: "simple" });

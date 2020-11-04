@@ -74,9 +74,9 @@ describe("SPD aggregate system running aggr tests", function () {
     describe("Borderline usage (and arguments) tests", function () {
         it("should return empty array when no records pushed in", function () {
             result = spdAggr.saveJson(1);
-            assert.equal(result.length, 0);
+            assert.strictEqual(result.length, 0);
             result = spdAggr.saveJson(0);
-            assert.equal(result.length, 0);
+            assert.strictEqual(result.length, 0);
         });//it
 
         it("should reject older or same age records that were already provided",
@@ -110,9 +110,9 @@ describe("SPD aggregate system running aggr tests", function () {
                 spdAggr.onAdd(qrec);
             }
             result = spdAggr.saveJson(1);
-            assert.equal(result.length,1);
-            assert.equal(result[0].locations.length, 1);
-            assert.equal(result[0].locationsNum, 1);
+            assert.strictEqual(result.length,1);
+            assert.strictEqual(result[0].locations.length, 1);
+            assert.strictEqual(result[0].locationsNum, 1);
         });//it
     });//describe borderline testsi
 
@@ -166,21 +166,21 @@ describe("SPD aggregate system running aggr tests", function () {
                 spdAggr.onAdd(qrec);
             }
             state = spdAggr.saveStateJson();
-            assert.equal(state.locations[0].time, points[0].time);
-            assert.equal(state.locations[1].time, points[1].time);
-            assert.equal(state.locations[2].time, points[2].time);
-            assert.equal(state.locations[0].latitude, points[0].latitude);
-            assert.equal(state.locations[1].latitude, points[1].latitude);
-            assert.equal(state.locations[2].latitude, points[2].latitude);
-            assert.equal(state.locations[0].longitude, points[0].longitude);
-            assert.equal(state.locations[1].longitude, points[1].longitude);
-            assert.equal(state.locations[2].longitude, points[2].longitude);
-            assert.equal(state.locations[0].accuracy, points[0].accuracy);
-            assert.equal(state.locations[1].accuracy, points[1].accuracy);
-            assert.equal(state.locations[2].accuracy, points[2].accuracy);
-            assert.equal(state.locations[0].speed, points[0].speed);
-            assert.equal(state.locations[1].speed, points[1].speed);
-            assert.equal(state.locations[2].speed, points[2].speed);
+            assert.strictEqual(state.locations[0].time, points[0].time);
+            assert.strictEqual(state.locations[1].time, points[1].time);
+            assert.strictEqual(state.locations[2].time, points[2].time);
+            assert.strictEqual(state.locations[0].latitude, points[0].latitude);
+            assert.strictEqual(state.locations[1].latitude, points[1].latitude);
+            assert.strictEqual(state.locations[2].latitude, points[2].latitude);
+            assert.strictEqual(state.locations[0].longitude, points[0].longitude);
+            assert.strictEqual(state.locations[1].longitude, points[1].longitude);
+            assert.strictEqual(state.locations[2].longitude, points[2].longitude);
+            assert.strictEqual(state.locations[0].accuracy, points[0].accuracy);
+            assert.strictEqual(state.locations[1].accuracy, points[1].accuracy);
+            assert.strictEqual(state.locations[2].accuracy, points[2].accuracy);
+            assert.strictEqual(state.locations[0].speed, points[0].speed);
+            assert.strictEqual(state.locations[1].speed, points[1].speed);
+            assert.strictEqual(state.locations[2].speed, points[2].speed);
             assert.deepEqual(state.locations[0].activities,
                 points[0].activities);
             assert.deepEqual(state.locations[1].activities,

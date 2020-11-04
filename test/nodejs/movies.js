@@ -72,23 +72,23 @@ describe('Movies Tests', function () {
 
         // test empty stores
         var People = base.store("People");
-        assert.equal(People.name, "People", "People.name");
+        assert.strictEqual(People.name, "People", "People.name");
         assert(People.empty, "People.empty");
-        assert.equal(People.length, 0, "People.length");
-        assert.equal(People.allRecords.length, 0, "People.allRecords.length");
-        assert.equal(People.fields.length, 2, "People.fields.length");
-        assert.equal(People.joins.length, 2, "People.joins.length");
-        assert.equal(People.keys.length, 2, "People.keys.length");
-        assert.equal(People.forwardIter.next(), false, "People.forwardIter.next()");
+        assert.strictEqual(People.length, 0, "People.length");
+        assert.strictEqual(People.allRecords.length, 0, "People.allRecords.length");
+        assert.strictEqual(People.fields.length, 2, "People.fields.length");
+        assert.strictEqual(People.joins.length, 2, "People.joins.length");
+        assert.strictEqual(People.keys.length, 2, "People.keys.length");
+        assert.strictEqual(People.forwardIter.next(), false, "People.forwardIter.next()");
         var Movies = base.store("Movies");
-        assert.equal(Movies.name, "Movies", "Movies.name");
+        assert.strictEqual(Movies.name, "Movies", "Movies.name");
         assert(Movies.empty, "Movies.empty");
-        assert.equal(Movies.length, 0, "Movies.length");
-        assert.equal(Movies.allRecords.length, 0, "Movies.allRecords.length");
-        assert.equal(Movies.fields.length, 5 + 2, "Movies.fields.length");
-        assert.equal(Movies.joins.length, 2, "Movies.joins.length");
-        assert.equal(Movies.keys.length, 4, "Movies.keys.length");
-        assert.equal(Movies.forwardIter.next(), false, "Movies.forwardIter.next()");
+        assert.strictEqual(Movies.length, 0, "Movies.length");
+        assert.strictEqual(Movies.allRecords.length, 0, "Movies.allRecords.length");
+        assert.strictEqual(Movies.fields.length, 5 + 2, "Movies.fields.length");
+        assert.strictEqual(Movies.joins.length, 2, "Movies.joins.length");
+        assert.strictEqual(Movies.keys.length, 4, "Movies.keys.length");
+        assert.strictEqual(Movies.forwardIter.next(), false, "Movies.forwardIter.next()");
 
         // insert triggers
         var PeopleAdd = 0, PeopleUpdate = 0;
@@ -129,58 +129,58 @@ describe('Movies Tests', function () {
         });
 
         // insert a person
-        assert.equal(People.push({ "Name": "Carolina Fortuna", "Gender": "Female" }), 0, "Person.add");
-        assert.equal(People.length, 1, "People.length");
+        assert.strictEqual(People.push({ "Name": "Carolina Fortuna", "Gender": "Female" }), 0, "Person.add");
+        assert.strictEqual(People.length, 1, "People.length");
         assert(null != People[0], "People[0]");
-        assert.equal(People[0].Name, "Carolina Fortuna", "People[0].Name");
-        assert.equal(People[0].Gender, "Female", "People[0].Gender");
+        assert.strictEqual(People[0].Name, "Carolina Fortuna", "People[0].Name");
+        assert.strictEqual(People[0].Gender, "Female", "People[0].Gender");
         // insert a person
-        assert.equal(People.push({ "Name": "Blaz Fortuna", "Gender": "Male" }), 1, "Person.add");
-        assert.equal(People.length, 2, "People.length");
+        assert.strictEqual(People.push({ "Name": "Blaz Fortuna", "Gender": "Male" }), 1, "Person.add");
+        assert.strictEqual(People.length, 2, "People.length");
         assert(null != People[1], "People[1]");
-        assert.equal(People[1].Name, "Blaz Fortuna", "People[1].Name");
-        assert.equal(People[1].Gender, "Male", "People[1].Gender");
+        assert.strictEqual(People[1].Name, "Blaz Fortuna", "People[1].Name");
+        assert.strictEqual(People[1].Gender, "Male", "People[1].Gender");
         // insert existing person
-        assert.equal(People.push({ "Name": "Blaz Fortuna", "Gender": "Male" }), 1, "Person.add");
-        assert.equal(People.length, 2, "People.length");
+        assert.strictEqual(People.push({ "Name": "Blaz Fortuna", "Gender": "Male" }), 1, "Person.add");
+        assert.strictEqual(People.length, 2, "People.length");
 
         var PeopleIter = People.forwardIter;
-        assert.equal(PeopleIter.next(), true, "People.forwardIter.next()");
-        assert.equal(PeopleIter.record.$id, 0, "People.forwardIter.record.$id");
-        assert.equal(PeopleIter.next(), true, "People.forwardIter.next()");
-        assert.equal(PeopleIter.record.$id, 1, "People.forwardIter.record.$id");
-        assert.equal(PeopleIter.next(), false, "People.forwardIter.next()");
+        assert.strictEqual(PeopleIter.next(), true, "People.forwardIter.next()");
+        assert.strictEqual(PeopleIter.record.$id, 0, "People.forwardIter.record.$id");
+        assert.strictEqual(PeopleIter.next(), true, "People.forwardIter.next()");
+        assert.strictEqual(PeopleIter.record.$id, 1, "People.forwardIter.record.$id");
+        assert.strictEqual(PeopleIter.next(), false, "People.forwardIter.next()");
 
         // insert a movie
         var movie1 = { "Title": "Every Day", "Plot": "This day really isn't all that different than every other day. Except today, Ned's gay son Jonah wants to go to a college party, his wife is bringing home their elderly father to live with them, and his outrageous boss seems to have become even more crazy and demanding than would even seem possible. As his wife tries to take care of her father reconnect with him, Ned tries to reconnect with Jonah, and then without trying, he seems to have formed a connection with his co-worker. If he can get through days like these, he should be able to get through anything else life throws at him. Ned and Jeannie: married 19 years. Ned has trouble with Garrett, his boss at the cable show he writes, and he's ill-at-ease with his older son Jonah's coming out and wanting to go to a high-school gay student society prom. Jeannie puts work on hold while she attends to Ernie, her sour and mean-spirited father whose ill health forces him to move in with them. While Jeannie taxis the boys, goes to one son's recital, sees to her father's needs, and fixes meals, Garrett assigns Ned to rewrite a script with Robin, an uninhibited, unattached colleague who offers no-strings fun. Can this family hold together while a chicken hawk circles Jonah, Robin inveigles Ned, and death hunts Ernie?", "Year": 2010, "Rating": 5.6, "Genres": ["Comedy", "Drama"], "Director": { "Name": "Levine Richard (III)", "Gender": "Unknown" }, "Actor": [{ "Name": "Beetem Chris", "Gender": "Male" }, { "Name": "Carp Stan", "Gender": "Male" }, { "Name": "Chan Albert M.", "Gender": "Male" }, { "Name": "Dennehy Brian", "Gender": "Male" }, { "Name": "Durell Jesse", "Gender": "Male" }, { "Name": "Farcher Daniel", "Gender": "Male" }, { "Name": "Fortgang Skyler", "Gender": "Male" }, { "Name": "Harbour David (I)", "Gender": "Male" }, { "Name": "Ingram Michael H.", "Gender": "Male" }, { "Name": "Izzard Eddie", "Gender": "Male" }, { "Name": "James Kahan", "Gender": "Male" }, { "Name": "Jones Tilky", "Gender": "Male" }, { "Name": "Kempner Matt", "Gender": "Male" }, { "Name": "Miller Ezra", "Gender": "Male" }, { "Name": "Orchestra Black Diamond", "Gender": "Male" }, { "Name": "Riddle George", "Gender": "Male" }, { "Name": "Routman Steve", "Gender": "Male" }, { "Name": "Schreiber Liev", "Gender": "Male" }, { "Name": "Yelsky Daniel", "Gender": "Male" }, { "Name": "Gard Cassidy", "Gender": "Female" }, { "Name": "Giancoli Bianca", "Gender": "Female" }, { "Name": "Gugino Carla", "Gender": "Female" }, { "Name": "Hahn Sabrina", "Gender": "Female" }, { "Name": "Hunt Helen (I)", "Gender": "Female" }, { "Name": "Miller June (I)", "Gender": "Female" }, { "Name": "Robledo Benita", "Gender": "Female" }] };
-        assert.equal(Movies.push(movie1), 0, "Movies.add");
-        assert.equal(Movies.length, 1, "Movies.length");
-        assert.equal(People.length, 29, "People.length");
+        assert.strictEqual(Movies.push(movie1), 0, "Movies.add");
+        assert.strictEqual(Movies.length, 1, "Movies.length");
+        assert.strictEqual(People.length, 29, "People.length");
         // check correctly asserted
         assert(null != Movies[0], "Movies[0]");
-        assert.equal(Movies[0].Title, movie1.Title, "Movies[0].Title");
-        assert.equal(Movies[0].Plot, movie1.Plot, "Movies[0].Plot");
-        assert.equal(Movies[0].Year, movie1.Year, "Movies[0].Year");
-        assert.equal(Movies[0].Genres.length, movie1.Genres.length, "Movies[0].Genres");
-        assert.equal(Movies[0].Director.Name, "Levine Richard (III)", "Movies[0].Director.Name");
+        assert.strictEqual(Movies[0].Title, movie1.Title, "Movies[0].Title");
+        assert.strictEqual(Movies[0].Plot, movie1.Plot, "Movies[0].Plot");
+        assert.strictEqual(Movies[0].Year, movie1.Year, "Movies[0].Year");
+        assert.strictEqual(Movies[0].Genres.length, movie1.Genres.length, "Movies[0].Genres");
+        assert.strictEqual(Movies[0].Director.Name, "Levine Richard (III)", "Movies[0].Director.Name");
 
         var MoviesIter = Movies.forwardIter;
-        assert.equal(MoviesIter.next(), true, "Movies.forwardIter.next()");
-        assert.equal(MoviesIter.record.$id, 0, "Movies.forwardIter.record.$id");
-        assert.equal(MoviesIter.next(), false, "Movies.forwardIter.next()");
+        assert.strictEqual(MoviesIter.next(), true, "Movies.forwardIter.next()");
+        assert.strictEqual(MoviesIter.record.$id, 0, "Movies.forwardIter.record.$id");
+        assert.strictEqual(MoviesIter.next(), false, "Movies.forwardIter.next()");
 
         // insert a movie
         var movie2 = { "Title": "Enteng Kabisote 3: Okay ka fairy ko... The legend goes on and on and on", "Plot": "no plot available", "Year": 2006, "Rating": 5.8, "Genres": ["Action", "Comedy", "Family", "Fantasy"], "Director": { "Name": "Reyes Tony Y.", "Gender": "Unknown" }, "Actor": [{ "Name": "Aquitania Antonio", "Gender": "Male" }, { "Name": "Ballesteros Paolo", "Gender": "Male" }, { "Name": "Bayola Wally", "Gender": "Male" }, { "Name": "Casimiro Jr. Bayani", "Gender": "Male" }, { "Name": "de Leon Joey", "Gender": "Male" }, { "Name": "Forbes BJ", "Gender": "Male" }, { "Name": "Ignacio Levi", "Gender": "Male" }, { "Name": "K. Allan", "Gender": "Male" }, { "Name": "Lapid Jr. Jess", "Gender": "Male" }, { "Name": "Manalo Jose", "Gender": "Male" }, { "Name": "Salas Paul", "Gender": "Male" }, { "Name": "Santos Jimmy (I)", "Gender": "Male" }, { "Name": "Sotto Gian", "Gender": "Male" }, { "Name": "Sotto Oyo Boy", "Gender": "Male" }, { "Name": "Sotto Tito", "Gender": "Male" }, { "Name": "Sotto Vic", "Gender": "Male" }, { "Name": "V. Michael (I)", "Gender": "Male" }, { "Name": "Zamora Ramon", "Gender": "Male" }, { "Name": "Alano Alyssa", "Gender": "Female" }, { "Name": "Guanio Pia", "Gender": "Female" }, { "Name": "Hermosa Kristine", "Gender": "Female" }, { "Name": "Jones Angelica", "Gender": "Female" }, { "Name": "Loyzaga Bing", "Gender": "Female" }, { "Name": "Madrigal Ehra", "Gender": "Female" }, { "Name": "Parker J.C.", "Gender": "Female" }, { "Name": "Ponti Cassandra", "Gender": "Female" }, { "Name": "Ramirez Mikylla", "Gender": "Female" }, { "Name": "Rodriguez Ruby (I)", "Gender": "Female" }, { "Name": "Seguerra Aiza", "Gender": "Female" }, { "Name": "Sotto Ciara", "Gender": "Female" }, { "Name": "Toengi Giselle", "Gender": "Female" }, { "Name": "V. Ella", "Gender": "Female" }] };
-        assert.equal(Movies.push(movie2), 1, "Movies.add");
-        assert.equal(Movies.length, 2, "Movies.length");
-        assert.equal(People.length, 62, "People.length");
+        assert.strictEqual(Movies.push(movie2), 1, "Movies.add");
+        assert.strictEqual(Movies.length, 2, "Movies.length");
+        assert.strictEqual(People.length, 62, "People.length");
         // check correctly inserted
         assert(null != Movies[1], "Movies[1]");
-        assert.equal(Movies[1].Title, movie2.Title, "Movies[1].Title");
-        assert.equal(Movies[1].Plot, movie2.Plot, "Movies[1].Plot");
-        assert.equal(Movies[1].Year, movie2.Year, "Movies[1].Year");
-        assert.equal(Movies[1].Genres.length, movie2.Genres.length, "Movies[1].Genres");
-        assert.equal(Movies[1].Director.Name, "Reyes Tony Y.", "Movies[1].Director.Name");
+        assert.strictEqual(Movies[1].Title, movie2.Title, "Movies[1].Title");
+        assert.strictEqual(Movies[1].Plot, movie2.Plot, "Movies[1].Plot");
+        assert.strictEqual(Movies[1].Year, movie2.Year, "Movies[1].Year");
+        assert.strictEqual(Movies[1].Genres.length, movie2.Genres.length, "Movies[1].Genres");
+        assert.strictEqual(Movies[1].Director.Name, "Reyes Tony Y.", "Movies[1].Director.Name");
 
         // stringify of test for record and record set
         function testStringify(obj, name) {
@@ -200,22 +200,22 @@ describe('Movies Tests', function () {
         testStringify(Movies.allRecords, "Movies.allRecords");
 
         // sample
-        assert.equal(People.sample(0).length, 0, "People.sample(0).length");
-        assert.equal(People.sample(10).length, 10, "People.sample(10).length");
-        assert.equal(People.sample(20).length, 20, "People.sample(20).length");
-        assert.equal(People.sample(62).length, 62, "People.sample(62).length");
-        assert.equal(People.sample(63).length, 62, "People.sample(63).length");
-        assert.equal(People.sample(100000).length, 62, "People.sample(100000).length");
+        assert.strictEqual(People.sample(0).length, 0, "People.sample(0).length");
+        assert.strictEqual(People.sample(10).length, 10, "People.sample(10).length");
+        assert.strictEqual(People.sample(20).length, 20, "People.sample(20).length");
+        assert.strictEqual(People.sample(62).length, 62, "People.sample(62).length");
+        assert.strictEqual(People.sample(63).length, 62, "People.sample(63).length");
+        assert.strictEqual(People.sample(100000).length, 62, "People.sample(100000).length");
 
         // loading in larger dataset
         var filename = "./sandbox/movies/movies_data.txt"
-        assert.equal(Movies.loadJson(filename), 167, "Movies.loadJson(Movies, filename)");
+        assert.strictEqual(Movies.loadJson(filename), 167, "Movies.loadJson(Movies, filename)");
 
         // check update and add counts
-        assert.equal(PeopleAdd, 3138, "PeopleAdd");
-        assert.equal(PeopleUpdate, 87, "PeopleUpdate");
-        assert.equal(MoviesAdd, 167, "MoviesAdd");
-        assert.equal(MoviesUpdate, 2, "MoviesUpdate");
+        assert.strictEqual(PeopleAdd, 3138, "PeopleAdd");
+        assert.strictEqual(PeopleUpdate, 87, "PeopleUpdate");
+        assert.strictEqual(MoviesAdd, 167, "MoviesAdd");
+        assert.strictEqual(MoviesUpdate, 2, "MoviesUpdate");
 
         // search
         var queries = [
@@ -239,7 +239,7 @@ describe('Movies Tests', function () {
         for (var i = 0; i < queries.length; i++) {
             var res = base.search(queries[i].query);
             assert(null != res, "base.search(queries[" + i + "].query)");
-            assert.equal(res.length, queries[i].records, JSON.stringify(queries[i].query));
+            assert.strictEqual(res.length, queries[i].records, JSON.stringify(queries[i].query));
             // check all records exist
             for (var j = 0; j < res.length; j++) {
                 assert(null != res[j], "base.search(queries[" + i + "].query)[" + j + "]");
@@ -253,14 +253,14 @@ describe('Movies Tests', function () {
                 assert(null != res.join("Director"), "res.join('Director')");
             }
             // sample
-            assert.equal(res.sample(100).length, queries[i].records, "res.sample(100)");
-            assert.equal(res.sample(1).length, 1, "res.sample(1)");
-            assert.equal(res.sample(0).length, 0, "res.sample(0)");
+            assert.strictEqual(res.sample(100).length, queries[i].records, "res.sample(100)");
+            assert.strictEqual(res.sample(1).length, 1, "res.sample(1)");
+            assert.strictEqual(res.sample(0).length, 0, "res.sample(0)");
             // trunc
             var truncres = res.clone();
-            truncres.trunc(100); assert.equal(truncres.length, queries[i].records, "truncres.trunc(100)");
-            truncres.trunc(1); assert.equal(truncres.length, 1, "truncres.trunc(1)");
-            truncres.trunc(0); assert.equal(truncres.length, 0, "truncres.trunc(0)");
+            truncres.trunc(100); assert.strictEqual(truncres.length, queries[i].records, "truncres.trunc(100)");
+            truncres.trunc(1); assert.strictEqual(truncres.length, 1, "truncres.trunc(1)");
+            truncres.trunc(0); assert.strictEqual(truncres.length, 0, "truncres.trunc(0)");
             // reverse and shuffle
             assert.run(res.shuffle(), "res.shuffle()");
             assert.run(res.reverse(), "res.reverse()");
@@ -380,21 +380,21 @@ describe('Movies Tests', function () {
         var moviesIter = Movies.forwardIter;
         var moviesCount = 0;
         while (moviesIter.next()) {
-            assert.equal(moviesCount, moviesIter.record.$id, "moviesCount == moviesIter.record.$id");
+            assert.strictEqual(moviesCount, moviesIter.record.$id, "moviesCount == moviesIter.record.$id");
             moviesCount++;
         }
-        assert.equal(moviesCount, Movies.length, "moviesCount = Movies.length");
+        assert.strictEqual(moviesCount, Movies.length, "moviesCount = Movies.length");
         // test backward iterator
         var moviesIter = Movies.backwardIter;
         while (moviesIter.next()) {
             moviesCount--;
-            assert.equal(moviesCount, moviesIter.record.$id, "moviesCount == moviesIter.record.$id");
+            assert.strictEqual(moviesCount, moviesIter.record.$id, "moviesCount == moviesIter.record.$id");
         }
-        assert.equal(moviesCount, 0, "moviesCount = 0");
+        assert.strictEqual(moviesCount, 0, "moviesCount = 0");
         // test first record
-        assert.equal(Movies.first.$id, 0, "Movies.first.$id");
+        assert.strictEqual(Movies.first.$id, 0, "Movies.first.$id");
         // test last record
-        assert.equal(Movies.last.$id, Movies.length - 1, "Movies.last.$id");
+        assert.strictEqual(Movies.last.$id, Movies.length - 1, "Movies.last.$id");
 
         base.close();
 

@@ -83,9 +83,9 @@ describe('RecursiveLinearRegression Tests', function () {
         it('should create an object with mostly default params', function () {
             var linreg = new analytics.RecLinReg({ dim: 10 });
             var param = linreg.getParams();
-            assert.equal(param.dim, 10);
-            assert.equal(param.regFact, 1.0);
-            assert.equal(param.forgetFact, 1.0);
+            assert.strictEqual(param.dim, 10);
+            assert.strictEqual(param.regFact, 1.0);
+            assert.strictEqual(param.forgetFact, 1.0);
         })
         it('should throw exception because of invalid forget factor', function () {
             assert.throws(function () {
@@ -95,16 +95,16 @@ describe('RecursiveLinearRegression Tests', function () {
         it('should create an object out of the parameters', function () {
             var linreg = new analytics.RecLinReg({ dim: 10, regFact: 2.0, forgetFact: 0.8 });
             var param = linreg.getParams();
-            assert.equal(param.dim, 10);
-            assert.equal(param.regFact, 2.0);
-            assert.equal(param.forgetFact, 0.8);
+            assert.strictEqual(param.dim, 10);
+            assert.strictEqual(param.regFact, 2.0);
+            assert.strictEqual(param.forgetFact, 0.8);
         })
         it('should cast the float value of dim to int', function () {
             var linreg = new analytics.RecLinReg({ dim: 12.5 });
             var param = linreg.getParams();
-            assert.equal(param.dim, 13);
-            assert.equal(param.regFact, 1.0);
-            assert.equal(param.forgetFact, 1.0);
+            assert.strictEqual(param.dim, 13);
+            assert.strictEqual(param.regFact, 1.0);
+            assert.strictEqual(param.forgetFact, 1.0);
         })
     });
 
@@ -118,9 +118,9 @@ describe('RecursiveLinearRegression Tests', function () {
         it('should return the parameters', function () {
             var linreg = new analytics.RecLinReg({ dim: 10, regFact: 1.0, forgetFact: 1.0 });
             var param = linreg.getParams();
-            assert.equal(param.dim, 10);
-            assert.equal(param.regFact, 1.0);
-            assert.equal(param.forgetFact, 1.0);
+            assert.strictEqual(param.dim, 10);
+            assert.strictEqual(param.regFact, 1.0);
+            assert.strictEqual(param.forgetFact, 1.0);
         })
         it('should throw exception because of invalid forget factor', function () {
             assert.throws(function () {
@@ -133,9 +133,9 @@ describe('RecursiveLinearRegression Tests', function () {
             var second = new analytics.RecLinReg(param);
             var param2 = second.getParams();
 
-            assert.equal(param.dim, param2.dim);
-            assert.equal(param.regFact, param2.regFact);
-            assert.equal(param.forgetFact, param.forgetFact);
+            assert.strictEqual(param.dim, param2.dim);
+            assert.strictEqual(param.regFact, param2.regFact);
+            assert.strictEqual(param.forgetFact, param.forgetFact);
         })
     });
 
@@ -150,7 +150,7 @@ describe('RecursiveLinearRegression Tests', function () {
             var linreg = new analytics.RecLinReg({ dim: 10, regFact: 2.0, forgetFact: 0.76 });
             linreg.setParams({ dim: 2, regFact: 1e-10 });
             var param = linreg.getParams();
-            assert.equal(param.dim, 2);
+            assert.strictEqual(param.dim, 2);
             assert.eqtol(param.regFact, 1e-10);
             assert.eqtol(param.forgetFact, 0.76);
         })
@@ -172,7 +172,7 @@ describe('RecursiveLinearRegression Tests', function () {
         it('should return the dimensionality', function () {
             var linreg = new analytics.RecLinReg({ dim: 10, regFact: 2.0, forgetFact: 0.76 });
             var dim = linreg.dim;
-            assert.equal(dim, 10);
+            assert.strictEqual(dim, 10);
         })
     });
 
@@ -297,9 +297,9 @@ describe('RecursiveLinearRegression Tests', function () {
         it('should return the default values of the model', function () {
             var linreg = new analytics.RecLinReg({ dim: 2, regFact: 1e-10, forgetFact: 1.0 });
             var model = linreg.getModel();
-            assert.equal(model.weights.length, 2);
-            assert.equal(model.weights[0], 0);
-            assert.equal(model.weights[1], 0);
+            assert.strictEqual(model.weights.length, 2);
+            assert.strictEqual(model.weights[0], 0);
+            assert.strictEqual(model.weights[1], 0);
         })
         it('should return the model', function () {
             var linreg = new analytics.RecLinReg({ dim: 2, regFact: 1e-10, forgetFact: 1.0 });
