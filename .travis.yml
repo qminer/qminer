@@ -11,8 +11,10 @@ addons:
     packages: [ 'gcc-4.8', 'g++-4.8', 'gcc-4.8-multilib', 'g++-4.8-multilib', 'libc6-dev-i386', 'linux-libc-dev:i386' ]
 
 node_js:
-  - 6
   - 8
+  - 10
+  - 12
+  - 14
 
 env:
   - CXXFLAGS=-std=c++0x CC=gcc-4.8 CXX=g++-4.8
@@ -53,7 +55,7 @@ install:
   - npm install --build-from-source $NPMOPT $QMDEBUG
 
 script:
-  - npm install -g mocha
+  - npm install -g mocha@6.2.3
   - npm install -g mustache
   - ./tools/genExampleTests.sh
   - npm test
@@ -61,6 +63,7 @@ script:
 os: linux
 notifications:
   email:
+  - erik.novak@ijs.si
   - blaz.fortuna@ijs.si
   - jan.rupnik@ijs.si
   - viktor@carvic.si
