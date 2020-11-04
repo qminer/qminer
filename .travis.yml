@@ -8,7 +8,7 @@ language: node_js
 addons:
   apt:
     sources: [ 'ubuntu-toolchain-r-test' ]
-    packages: [ 'gcc-9.3', 'g++-9.3', 'gcc-9.3-multilib', 'g++-9.3-multilib', 'libc6-dev-i386', 'linux-libc-dev:i386' ]
+    packages: [ 'gcc-7', 'g++-7', 'gcc-7-multilib', 'g++-7-multilib', 'libc6-dev-i386', 'linux-libc-dev:i386' ]
 
 node_js:
   - 8
@@ -17,7 +17,7 @@ node_js:
   - 14
 
 env:
-  - CXXFLAGS=-std=c++0x CC=gcc-9.3 CXX=g++-9.3
+  - CXXFLAGS=-std=c++0x CC=gcc7 CXX=g++-7
 
 matrix:
   include:
