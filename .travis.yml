@@ -1,42 +1,33 @@
-dist: bionic
+dist: precise
 
 git:
   depth: 10
 
 language: node_js
-
-# addons:
-#   apt:
-#     sources: [ 'ubuntu-toolchain-r-test' ]
-#     packages: [ 'gcc-7', 'g++-7', 'gcc-7-multilib', 'g++-7-multilib', 'libc6-dev-i386', 'linux-libc-dev:i386' ]
-
 node_js:
   - 8
   - 10
   - 12
   - 14
 
-# env:
-#   - CXXFLAGS=-std=c++0x CC=gcc7 CXX=g++-7
+env:
+  - CXXFLAGS=-std=c++0x CC=gcc7 CXX=g++-7
 
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - gcc-7
+      - g++-7
+      - gcc-7-multilib
+      - g++-7-multilib
+      - libc6-dev-i386
+      - linux-libc-dev:i386
 
 jobs:
   include:
     - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - gcc-7
-            - g++-7
-            - gcc-7-multilib
-            - g++-7-multilib
-            - libc6-dev-i386
-            - linux-libc-dev:i386
-      env:
-        - CXXFLAGS=-std=c++0x CC=gcc7 CXX=g++-7
-
     - os: osx
       osx_image: xcode10.1
 
