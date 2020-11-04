@@ -1,4 +1,4 @@
-sudo: false
+dist: bionic
 
 git:
   depth: 10
@@ -19,7 +19,7 @@ node_js:
 env:
   - CXXFLAGS=-std=c++0x CC=gcc7 CXX=g++-7
 
-matrix:
+jobs:
   include:
     - node_js: 10
       env: LLVM_VERSION=9.0.0 CXXFLAGS=-std=c++0x CXX=clang++ CC=clang NPMOPT=--clang=1 QMDEBUG=--debug
