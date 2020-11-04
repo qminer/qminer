@@ -23,11 +23,32 @@ jobs:
         - CXXFLAGS=-std=c++0x
         - CC=gcc-7
         - CXX=g++-7
-      node_js:
-        - 8
-        - 10
-        - 12
-        - 14
+      node_js: 8
+
+    - os: linux
+      dist: trusty
+      env:
+        - CXXFLAGS=-std=c++0x
+        - CC=gcc-7
+        - CXX=g++-7
+      node_js: 10
+
+    - os: linux
+      dist: trusty
+      env:
+        - CXXFLAGS=-std=c++0x
+        - CC=gcc-7
+        - CXX=g++-7
+      node_js: 12
+
+    - os: linux
+      dist: trusty
+      env:
+        - CXXFLAGS=-std=c++0x
+        - CC=gcc-7
+        - CXX=g++-7
+      node_js: 14
+
     - os: osx
       osx_image: xcode10.1
       env:
@@ -37,11 +58,41 @@ jobs:
         - CC=clang
         - NPMOPT=--clang=1
         - QMDEBUG=--debug
-      node_js:
-        - 8
-        - 10
-        - 12
-        - 14
+      node_js: 8
+
+    - os: osx
+      osx_image: xcode10.1
+      env:
+        - LLVM_VERSION=10.0.0
+        - CXXFLAGS=-std=c++0x
+        - CXX=clang++
+        - CC=clang
+        - NPMOPT=--clang=1
+        - QMDEBUG=--debug
+      node_js: 10
+
+    - os: osx
+      osx_image: xcode10.1
+      env:
+        - LLVM_VERSION=10.0.0
+        - CXXFLAGS=-std=c++0x
+        - CXX=clang++
+        - CC=clang
+        - NPMOPT=--clang=1
+        - QMDEBUG=--debug
+      node_js: 12
+
+    - os: osx
+      osx_image: xcode10.1
+      env:
+        - LLVM_VERSION=10.0.0
+        - CXXFLAGS=-std=c++0x
+        - CXX=clang++
+        - CC=clang
+        - NPMOPT=--clang=1
+        - QMDEBUG=--debug
+      node_js: 14
+
 
 
 # jobs:
