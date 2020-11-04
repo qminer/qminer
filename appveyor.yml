@@ -1,6 +1,7 @@
+image: Visual Studio 2019
+
 environment:
   matrix:
-  - nodejs_version: "8"
   - nodejs_version: "10"
   - nodejs_version: "12"
   - nodejs_version: "14"
@@ -18,7 +19,7 @@ install:
   - SET PATH=C:\Program Files (x86)\MSBuild\14.0\bin\;%PATH%
   - if "%PLATFORM%" == "x64" set PATH=C:\Python27-x64;%PATH%
   - if "%PLATFORM%" == "x86" SET PATH=C:\python27;%PATH%
-  # Check if we're publishing. Only punlish commits including [publish binary] at qminer/qminer (ignore pull requests)
+  # Check if we're publishing. Only publish commits including [publish binary] at qminer/qminer (ignore pull requests)
   - SET CM=%APPVEYOR_REPO_COMMIT_MESSAGE%
   - ECHO commit message %CM%
   - ECHO %APPVEYOR_REPO_NAME%
