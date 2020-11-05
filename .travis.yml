@@ -65,9 +65,11 @@ script:
   - npm install -g mocha@6.2.3
   - npm install -g mustache
   - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
-      ./tools/genExampleTests.sh
+      ./tools/genExampleTests.sh;
+      npm test;
+    else
+      npm run test:nodejs;
     fi
-  - npm test
 
 notifications:
   email:
