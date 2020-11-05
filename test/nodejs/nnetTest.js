@@ -14,13 +14,13 @@ describe('NNet Tests', function () {
         it('should create a default constructor', function () {
             var nnet = new analytics.NNet();
             var params = nnet.getParams();
-            assert.equal(params.layout[0], 1);
-            assert.equal(params.layout[1], 2);
-            assert.equal(params.layout[2], 1);
-            assert.equal(params.learnRate, 0.1);
-            assert.equal(params.momentum, 0.5);
-            assert.equal(params.tFuncHidden, "tanHyper");
-            assert.equal(params.tFuncOut, "tanHyper");
+            assert.strictEqual(params.layout[0], 1);
+            assert.strictEqual(params.layout[1], 2);
+            assert.strictEqual(params.layout[2], 1);
+            assert.strictEqual(params.learnRate, 0.1);
+            assert.strictEqual(params.momentum, 0.5);
+            assert.strictEqual(params.tFuncHidden, "tanHyper");
+            assert.strictEqual(params.tFuncOut, "tanHyper");
         })
         it('should not throw an exception, custom parameters', function () {
             assert.doesNotThrow(function () {
@@ -30,13 +30,13 @@ describe('NNet Tests', function () {
         it('should create a custom constructor', function () {
             var nnet = new analytics.NNet({ layout: [3, 2, 1], learnRate: 1, momentum: 10, tFuncHidden: "sigmoid" });
             var params = nnet.getParams();
-            assert.equal(params.layout[0], 3);
-            assert.equal(params.layout[1], 2);
-            assert.equal(params.layout[2], 1);
-            assert.equal(params.learnRate, 1);
-            assert.equal(params.momentum, 10);
-            assert.equal(params.tFuncHidden, "sigmoid");
-            assert.equal(params.tFuncOut, "tanHyper");
+            assert.strictEqual(params.layout[0], 3);
+            assert.strictEqual(params.layout[1], 2);
+            assert.strictEqual(params.layout[2], 1);
+            assert.strictEqual(params.learnRate, 1);
+            assert.strictEqual(params.momentum, 10);
+            assert.strictEqual(params.tFuncHidden, "sigmoid");
+            assert.strictEqual(params.tFuncOut, "tanHyper");
         })
         it('should throw an exception if no json is given as the parameter', function () {
             assert.throws(function () {
@@ -55,13 +55,13 @@ describe('NNet Tests', function () {
         it('should give the parameters, default constructor', function () {
             var nnet = new analytics.NNet();
             var params = nnet.getParams();
-            assert.equal(params.layout[0], 1);
-            assert.equal(params.layout[1], 2);
-            assert.equal(params.layout[2], 1);
-            assert.equal(params.learnRate, 0.1);
-            assert.equal(params.momentum, 0.5);
-            assert.equal(params.tFuncHidden, "tanHyper");
-            assert.equal(params.tFuncOut, "tanHyper");
+            assert.strictEqual(params.layout[0], 1);
+            assert.strictEqual(params.layout[1], 2);
+            assert.strictEqual(params.layout[2], 1);
+            assert.strictEqual(params.learnRate, 0.1);
+            assert.strictEqual(params.momentum, 0.5);
+            assert.strictEqual(params.tFuncHidden, "tanHyper");
+            assert.strictEqual(params.tFuncOut, "tanHyper");
         })
         it('should not throw an exception, custom constructor', function () {
             var nnet = new analytics.NNet({ layout: [3, 2, 1], learnRate: 1, momentum: 10, tFuncHidden: "sigmoid" });
@@ -72,13 +72,13 @@ describe('NNet Tests', function () {
         it('should give the parameters, custom constructor', function () {
             var nnet = new analytics.NNet({ layout: [3, 2, 1], learnRate: 1, momentum: 10, tFuncHidden: "sigmoid" });
             var params = nnet.getParams();
-            assert.equal(params.layout[0], 3);
-            assert.equal(params.layout[1], 2);
-            assert.equal(params.layout[2], 1);
-            assert.equal(params.learnRate, 1);
-            assert.equal(params.momentum, 10);
-            assert.equal(params.tFuncHidden, "sigmoid");
-            assert.equal(params.tFuncOut, "tanHyper");
+            assert.strictEqual(params.layout[0], 3);
+            assert.strictEqual(params.layout[1], 2);
+            assert.strictEqual(params.layout[2], 1);
+            assert.strictEqual(params.learnRate, 1);
+            assert.strictEqual(params.momentum, 10);
+            assert.strictEqual(params.tFuncHidden, "sigmoid");
+            assert.strictEqual(params.tFuncOut, "tanHyper");
         })
     });
 
@@ -93,13 +93,13 @@ describe('NNet Tests', function () {
             var nnet = new analytics.NNet();
             nnet.setParams({ layout: [3, 2, 1], learnRate: 1, momentum: 10, tFuncHidden: "sigmoid" });
             var params = nnet.getParams();
-            assert.equal(params.layout[0], 3);
-            assert.equal(params.layout[1], 2);
-            assert.equal(params.layout[2], 1);
-            assert.equal(params.learnRate, 1);
-            assert.equal(params.momentum, 10);
-            assert.equal(params.tFuncHidden, "sigmoid");
-            assert.equal(params.tFuncOut, "tanHyper");
+            assert.strictEqual(params.layout[0], 3);
+            assert.strictEqual(params.layout[1], 2);
+            assert.strictEqual(params.layout[2], 1);
+            assert.strictEqual(params.learnRate, 1);
+            assert.strictEqual(params.momentum, 10);
+            assert.strictEqual(params.tFuncHidden, "sigmoid");
+            assert.strictEqual(params.tFuncOut, "tanHyper");
         })
         it('should throw an exception if no parameter is given', function () {
             var nnet = new analytics.NNet();

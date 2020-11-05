@@ -108,19 +108,19 @@ describe('Javascript Store Simple Array Tests', function () {
                 var intV = new qm.la.IntVector(ids);
                 return store.newRecordSet(intV);
             });
-            assert.equal(store.length, 3);
+            assert.strictEqual(store.length, 3);
 
-            assert.equal(store[0].Int, arr[0].Int);
-            assert.equal(store[0].IntV[0], arr[0].IntV[0]);
-            assert.equal(store[0].IntV[1], arr[0].IntV[1]);
+            assert.strictEqual(store[0].Int, arr[0].Int);
+            assert.strictEqual(store[0].IntV[0], arr[0].IntV[0]);
+            assert.strictEqual(store[0].IntV[1], arr[0].IntV[1]);
 
-            assert.equal(store[0].UInt64, arr[0].UInt64);
+            assert.strictEqual(store[0].UInt64, arr[0].UInt64);
 
-            assert.equal(store[0].Str, arr[0].Str);
-            assert.equal(store[0].StrV[0], arr[0].StrV[0]);
-            assert.equal(store[0].StrV[1], arr[0].StrV[1]);
+            assert.strictEqual(store[0].Str, arr[0].Str);
+            assert.strictEqual(store[0].StrV[0], arr[0].StrV[0]);
+            assert.strictEqual(store[0].StrV[1], arr[0].StrV[1]);
 
-            assert.equal(store[0].Bool, arr[0].Bool);
+            assert.strictEqual(store[0].Bool, arr[0].Bool);
 
             assert.eqtol(store[0].Flt, arr[0].Flt);
             assert.eqtol(store[0].FltPr[0], arr[0].FltPr[0]);
@@ -128,7 +128,7 @@ describe('Javascript Store Simple Array Tests', function () {
             assert.eqtol(store[0].FltV[0], arr[0].FltV[0]);
             assert.eqtol(store[0].FltV[1], arr[0].FltV[1]);
 
-            assert.equal(store[0].Tm.getTime(), arr[0].Tm);
+            assert.strictEqual(store[0].Tm.getTime(), arr[0].Tm);
 
             var temp = store[0].SpV.full().toArray();
             assert.eqtol(temp[0], 1.1);

@@ -16,7 +16,7 @@ var la = require('../../index.js').la;
 
 describe('Import test', function () {
     it('if import of qminer.node succeeds, return true', function () {
-        assert.equal(1, 1);
+        assert.strictEqual(1, 1);
     })
 })
 
@@ -38,7 +38,7 @@ describe('Vector Tests', function () {
             var v = new FVector();
             it('should return 0 for vector v', function () {
 
-                assert.equal(v.vec.length, 3);
+                assert.strictEqual(v.vec.length, 3);
             })
         })
     });
@@ -51,15 +51,15 @@ describe('Vector Tests', function () {
             it('pushing 3.1 and 4 into a vector v, v.length should return 2', function () {
                 v.vec.push(3.2);
                 v.vec.push(4);
-                assert.equal(v.vec.length, 5);
+                assert.strictEqual(v.vec.length, 5);
             })
         });
 
         describe('At Test', function () {
             var v = new FVector();
             it('returns element in with indexes 0 (3.2) and 1 (4)', function () {
-                assert.equal(1, v.vec.at(0));
-                assert.equal(2, v.vec.at(1));
+                assert.strictEqual(1, v.vec.at(0));
+                assert.strictEqual(2, v.vec.at(1));
             })
         });
 
@@ -80,9 +80,9 @@ describe('Vector Tests', function () {
         describe('Constructor "Array" Test', function () {
             it('takes an array [1, 2, 3] and it should create a vector', function () {
                 var vec = new la.Vector([1, 2, 3]);
-                assert.equal(vec.length, 3);
+                assert.strictEqual(vec.length, 3);
                 for (var i = 0; i < vec.length; i++) {
-                    assert.equal(vec.at(i), i + 1);
+                    assert.strictEqual(vec.at(i), i + 1);
                 }
             })
         });
@@ -93,11 +93,11 @@ describe('Vector Tests', function () {
                 assert.throws(function () {
                     var vec = new la.Vector(["a", "b", "c"]);
 
-                    assert.equal(vec.length, 3);
+                    assert.strictEqual(vec.length, 3);
 
-                    assert.equal(vec.at(0), "a");
-                    assert.equal(vec.at(1), "b");
-                    assert.equal(vec.at(2), "c");
+                    assert.strictEqual(vec.at(0), "a");
+                    assert.strictEqual(vec.at(1), "b");
+                    assert.strictEqual(vec.at(2), "c");
                 })
             })
         });
@@ -105,7 +105,7 @@ describe('Vector Tests', function () {
         describe('Contructor "Empty Array" Test', function () {
             it('takes an empty array [] and it should create an empty vector', function () {
                 var vec = new la.Vector([]);
-                assert.equal(vec.length, 0);
+                assert.strictEqual(vec.length, 0);
 
                 assert.throws(function () {
                     var n = vec.at(0);
@@ -116,9 +116,9 @@ describe('Vector Tests', function () {
         describe('Constructor "Dictionary" Test', function () {
             it('takes {"vals":5, "mxvals": 5} and creates a vector with 5 zeros', function () {
                 var vec = new la.Vector({ "vals": 5, "mxvals": 5 });
-                assert.equal(vec.length, 5);
+                assert.strictEqual(vec.length, 5);
                 for (var i = 0; i < vec.length; i++) {
-                    assert.equal(vec.at(i), 0);
+                    assert.strictEqual(vec.at(i), 0);
                 }
             })
         });
@@ -135,9 +135,9 @@ describe('Vector Tests', function () {
             var v = new FVector();
             it('should copy the vector v and save it in vec', function () {
                 var vec = new la.Vector(v.vec);
-                assert.equal(vec.length, v.vec.length);
+                assert.strictEqual(vec.length, v.vec.length);
                 for (var i = 0; i < v.length; i++) {
-                    assert.equal(vec.at(i), v.at(i));
+                    assert.strictEqual(vec.at(i), v.at(i));
                 }
             })
             it('should copy vector v and while changed it doesn\'t change v', function () {
@@ -150,21 +150,21 @@ describe('Vector Tests', function () {
         describe('Sum Test', function () {
             var v = new FVector();
             it('should return a sum 1 + 2 + 3', function () {
-                assert.equal(6, v.vec.sum());
+                assert.strictEqual(6, v.vec.sum());
             })
         });
 
         describe('Sum "Zero" Test', function () {
             it('the sum returned should be zero', function () {
                 var vec = la.Vector([3.14 * 0.0001, 3.14 * -0.0001]);
-                assert.equal(vec.sum(), 0);
+                assert.strictEqual(vec.sum(), 0);
             })
         });
 
         describe('getMaxIdx Test', function () {
             var v = new FVector();
             it('should return index of last element in vector, 1.', function () {
-                assert.equal(v.vec.length - 1, v.vec.getMaxIdx());
+                assert.strictEqual(v.vec.length - 1, v.vec.getMaxIdx());
             })
         });
 
@@ -172,7 +172,7 @@ describe('Vector Tests', function () {
             var v = new FVector();
             it('if all elements are the same, it should return the first max index', function () {
                 var vec = new la.Vector([1, 1, 1, 1]);
-                assert.equal(vec.getMaxIdx(), 0);
+                assert.strictEqual(vec.getMaxIdx(), 0);
             })
         });
 
@@ -182,7 +182,7 @@ describe('Vector Tests', function () {
                 var w = la.ones(n);
 
                 for (var i = 0; i < w.length; i++) {
-                    assert.equal(w.at(i), 1);
+                    assert.strictEqual(w.at(i), 1);
                 }
             })
         });
@@ -191,7 +191,7 @@ describe('Vector Tests', function () {
             it('should return an empty vector for parameter zero', function () {
                 var w = la.ones(0);
 
-                assert.equal(w.length, 0);
+                assert.strictEqual(w.length, 0);
             })
 
             it('should throw an exception for parameters less than 0', function () {
@@ -213,7 +213,7 @@ describe('Vector Tests', function () {
         //        var array = [1, 2, 3, 4];
         //        var w = new la.Vector(array); la.square(w);
         //        for (var i = 0; i < w.length; i++) {
-        //            assert.equal(w.at(i), array[i] * array[i]);
+        //            assert.strictEqual(w.at(i), array[i] * array[i]);
         //        }
         //    })
         //});
@@ -226,7 +226,7 @@ describe('Vector Tests', function () {
                 var vec = vec.sort();
 
                 for (var i = 0; i < vec.length; i++) {
-                    assert.equal(vec.at(i), array[i]);
+                    assert.strictEqual(vec.at(i), array[i]);
                 }
             })
 
@@ -237,7 +237,7 @@ describe('Vector Tests', function () {
                 var vec = vec.sort(false);
 
                 for (var i = 0; i < vec.length; i++) {
-                    assert.equal(vec.at(i), array[i]);
+                    assert.strictEqual(vec.at(i), array[i]);
                 }
             })
         });
@@ -251,7 +251,7 @@ describe('Vector Tests', function () {
 
                 assert.deepEqual(vec, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
-                    assert.equal(vec.at(i), controlVec.at(i));
+                    assert.strictEqual(vec.at(i), controlVec.at(i));
                 }
             })
         });
@@ -276,7 +276,7 @@ describe('Vector Tests', function () {
 
                 assert.deepEqual(vec, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
-                    assert.equal(vec.at(i), controlVec.at(i));
+                    assert.strictEqual(vec.at(i), controlVec.at(i));
                 }
             })
         });
@@ -316,7 +316,7 @@ describe('Vector Tests', function () {
 
                 assert.deepEqual(vec, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
-                    assert.equal(vec.at(i), controlVec.at(i));
+                    assert.strictEqual(vec.at(i), controlVec.at(i));
                 }
             })
         });
@@ -335,12 +335,12 @@ describe('Vector Tests', function () {
         describe('At [] Tests', function () {
             var v = new FVector();
             it('should return elements with indices 0 (3.2) and 1 (4)', function () {
-                assert.equal(1, v.vec[0]);
-                assert.equal(2, v.vec[1]);
+                assert.strictEqual(1, v.vec[0]);
+                assert.strictEqual(2, v.vec[1]);
             })
             it('should save new value at index 0 (12)', function () {
                 v.vec[0] = 12;
-                assert.equal(12, v.vec[0]);
+                assert.strictEqual(12, v.vec[0]);
             })
         });
 
@@ -357,7 +357,7 @@ describe('Vector Tests', function () {
             var v = new FVector();
             it('should put the value -21 at index 1', function () {
                 v.vec.put(1, -21);
-                assert.equal(-21, v.vec[1]);
+                assert.strictEqual(-21, v.vec[1]);
             })
         });
 
@@ -382,8 +382,8 @@ describe('Vector Tests', function () {
                 var mat = v.vec.diag();
                 for (var i = 0; i < mat.rows; i++) {
                     for (var j = 0; j < mat.cols; j++) {
-                        if (i == j) { assert.equal(mat.at(i, j), v.vec[i]); }
-                        else { assert.equal(mat.at(i, j), 0); }
+                        if (i == j) { assert.strictEqual(mat.at(i, j), v.vec[i]); }
+                        else { assert.strictEqual(mat.at(i, j), 0); }
                     }
                 }
             })
@@ -394,12 +394,12 @@ describe('Vector Tests', function () {
             it('should return v with appended vector [1, 2, 3]', function () {
                 var w = new la.Vector([1, 2, 3]);
                 v.vec.pushV(w);
-                assert.equal(v.vec.length, 6);
+                assert.strictEqual(v.vec.length, 6);
                 var controlVec = new la.Vector([1, 2, 3, 1, 2, 3]);
 
                 assert.deepEqual(v.vec, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
-                    assert.equal(v.vec.at(i), controlVec.at(i));
+                    assert.strictEqual(v.vec.at(i), controlVec.at(i));
                 }
             })
         });
@@ -416,7 +416,7 @@ describe('Vector Tests', function () {
             it('should throw exception for an empty vector', function () {
                 var vec = new la.Vector();
                 var n = vec.norm();
-                assert.equal(n, 0);
+                assert.strictEqual(n, 0);
             })
         });
 
@@ -441,7 +441,7 @@ describe('Vector Tests', function () {
 
                 assert.deepEqual(vec, controlVec);
                 for (var i = 0; i < vec.length; i++) {
-                    assert.equal(vec.at(i), controlVec.at(i));
+                    assert.strictEqual(vec.at(i), controlVec.at(i));
                 }
             })
         });
@@ -460,7 +460,7 @@ describe('Vector Tests', function () {
             it('should return matrix with a single column that equals vec', function () {
                 var mat = v.vec.toMat();
                 for (var i = 0; i < v.vec.length; i++) {
-                    assert.equal(mat.at(i, 0), v.vec.at(i));
+                    assert.strictEqual(mat.at(i, 0), v.vec.at(i));
                 }
             })
         });
@@ -470,7 +470,7 @@ describe('Vector Tests', function () {
                 var vec = new la.Vector();
                 var mat = vec.toMat();
 
-                assert.equal(mat.rows, 0);
+                assert.strictEqual(mat.rows, 0);
             })
         });
 
@@ -490,7 +490,7 @@ describe('Vector Tests', function () {
             var v = new FVector();
             it('should insert the value 10 at the beginning of vector v', function () {
                 v.vec.unshift(10);
-                assert.equal(v.vec[0], 10);
+                assert.strictEqual(v.vec[0], 10);
             })
         });
 
@@ -498,7 +498,7 @@ describe('Vector Tests', function () {
             var v = new FVector();
             it('should cut off the last 1 values in vector v', function () {
                 v.vec.trunc(2);
-                assert.equal(v.vec.length, 2);
+                assert.strictEqual(v.vec.length, 2);
             })
         });
 
@@ -506,7 +506,7 @@ describe('Vector Tests', function () {
             var v = new FVector();
             it('should return the same vector for parameter 3', function () {
                 v.vec.trunc(4);
-                assert.equal(v.vec.length, 3);
+                assert.strictEqual(v.vec.length, 3);
             })
             it('should throw an exception for parameter < 0', function () {
                 assert.throws(function () {
@@ -534,7 +534,7 @@ describe('Vector Tests', function () {
             var v = new FVector();
             it('should return the scalar product of v and [1, 2, 3]', function () {
                 var n = v.vec.inner(new la.Vector([1, 2, 3]));
-                assert.equal(n, 1 + 4 + 9);
+                assert.strictEqual(n, 1 + 4 + 9);
             })
         });
 
@@ -555,8 +555,8 @@ describe('Vector Tests', function () {
 
                 for (var i = 0; i < 3; i++) {
                     for (var j = 0; j < 3; j++) {
-                        if (i == j) { assert.equal(spMat.at(i, j), controlspMat.at(i, j)) }
-                        else { assert.equal(spMat.at(i, j), 0) }
+                        if (i == j) { assert.strictEqual(spMat.at(i, j), controlspMat.at(i, j)) }
+                        else { assert.strictEqual(spMat.at(i, j), 0) }
                     }
                 }
             })
@@ -578,7 +578,7 @@ describe('IntVector Test', function () {
         var vec = new IVector();
         describe('Length Test', function () {
             it('should return 0 as the length of intV', function () {
-                assert.equal(vec.intV.length, 2);
+                assert.strictEqual(vec.intV.length, 2);
             })
         });
     });
@@ -589,15 +589,15 @@ describe('IntVector Test', function () {
             it('pushing values -1 and 6 into intV, length should return 2', function () {
                 vec.intV.push(-1);
                 vec.intV.push(6);
-                assert.equal(vec.intV.length, 4);
+                assert.strictEqual(vec.intV.length, 4);
             })
         });
 
         describe('At Test', function () {
             var vec = new IVector();
             it('should return the values at position 0 (-1) and at position 1 (6)', function () {
-                assert.equal(vec.intV.at(0), -1);
-                assert.equal(vec.intV.at(1), 6);
+                assert.strictEqual(vec.intV.at(0), -1);
+                assert.strictEqual(vec.intV.at(1), 6);
             })
         });
 
@@ -613,9 +613,9 @@ describe('IntVector Test', function () {
         describe('Constructor "Array" Test', function () {
             it('takes an array [1, 2, 3] and creates a vector with same values', function () {
                 var vec = new la.IntVector([1, 2, 3]);
-                assert.equal(vec.length, 3);
+                assert.strictEqual(vec.length, 3);
                 for (var i = 0; i < vec.length; i++) {
-                    assert.equal(vec.at(i), i + 1);
+                    assert.strictEqual(vec.at(i), i + 1);
                 }
             })
         });
@@ -623,7 +623,7 @@ describe('IntVector Test', function () {
         describe('Constructor "Empty Array" Test', function () {
             it('should take an empty array and creates an empty vector', function () {
                 var vec = new la.IntVector([]);
-                assert.equal(vec.length, 0);
+                assert.strictEqual(vec.length, 0);
 
                 assert.throws(function () {
                     var n = vec.at(-1);
@@ -634,9 +634,9 @@ describe('IntVector Test', function () {
         describe('Constructor "Dictionary" Test', function () {
             it('takes {"vals":5, "mxvals": 5} and creates a vector with 5 zeros', function () {
                 var vec = new la.IntVector({ "vals": 5, "mxvals": 5 });
-                assert.equal(vec.length, 5);
+                assert.strictEqual(vec.length, 5);
                 for (var i = 0; i < vec.length; i++) {
-                    assert.equal(vec.at(i), 0);
+                    assert.strictEqual(vec.at(i), 0);
                 }
             })
         });
@@ -645,9 +645,9 @@ describe('IntVector Test', function () {
             var vec = new IVector();
             it('should copy the vector v and save it in vec', function () {
                 var vec2 = new la.IntVector(vec.intV);
-                assert.equal(vec2.length, vec.intV.length);
+                assert.strictEqual(vec2.length, vec.intV.length);
                 for (var i = 0; i < vec.intV.length; i++) {
-                    assert.equal(vec2.at(i), vec.intV.at(i));
+                    assert.strictEqual(vec2.at(i), vec.intV.at(i));
                 }
             })
         });
@@ -655,7 +655,7 @@ describe('IntVector Test', function () {
         describe('Sum Test', function () {
             var vec = new IVector();
             it('should return a sum of -1 and 6', function () {
-                assert.equal(vec.intV.sum(), 5);
+                assert.strictEqual(vec.intV.sum(), 5);
             })
         });
 
@@ -671,14 +671,14 @@ describe('IntVector Test', function () {
         describe('getMaxIdx Test', function () {
             var vec = new IVector();
             it('should return index of last element in vector, 1.', function () {
-                assert.equal(vec.intV.getMaxIdx(), 1);
+                assert.strictEqual(vec.intV.getMaxIdx(), 1);
             })
         });
 
         describe('getMaxIdx "All Elements Same" Test', function () {
             it('if all elements are the same, it should return the first max index', function () {
                 var vec = new la.IntVector([1, 1, 1, 1]);
-                assert.equal(vec.getMaxIdx(), 0);
+                assert.strictEqual(vec.getMaxIdx(), 0);
             })
         });
 
@@ -692,7 +692,7 @@ describe('IntVector Test', function () {
 
                 assert.deepEqual(vec, sortedVec);
                 for (var i = 0; i < vec.length; i++) {
-                    assert.equal(vec.at(i), sortedVec.at(i));
+                    assert.strictEqual(vec.at(i), sortedVec.at(i));
                 }
             })
             it('should sort vector in descending order [15, 2, 0, -3]', function () {
@@ -702,7 +702,7 @@ describe('IntVector Test', function () {
                 var vec = vec.sort(false);
 
                 for (var i = 0; i < vec.length; i++) {
-                    assert.equal(vec.at(i), array[i]);
+                    assert.strictEqual(vec.at(i), array[i]);
                 }
             })
         });
@@ -717,7 +717,7 @@ describe('IntVector Test', function () {
 
         //        assert.deepEqual(vec, controlVec);
         //        for (var i = 0; i < controlVec.length; i++) {
-        //            assert.equal(vec.at(i), controlVec.at(i));
+        //            assert.strictEqual(vec.at(i), controlVec.at(i));
         //        }
         //    })
         //});
@@ -732,7 +732,7 @@ describe('IntVector Test', function () {
 
         //        assert.deepEqual(vec, controlVec);
         //        for (var i = 0; i < controlVec.length; i++) {
-        //            assert.equal(vec.at(i), controlVec.at(i));
+        //            assert.strictEqual(vec.at(i), controlVec.at(i));
         //        }
         //    })
         //});
@@ -761,7 +761,7 @@ describe('IntVector Test', function () {
 
                 assert.deepEqual(vec, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
-                    assert.equal(vec.at(i), controlVec.at(i));
+                    assert.strictEqual(vec.at(i), controlVec.at(i));
                 }
             })
         });
@@ -780,12 +780,12 @@ describe('IntVector Test', function () {
         describe('At [] Test', function () {
             var vec = new IVector();
             it('should return elements with indexes 0 (-1) and 1 (6)', function () {
-                assert.equal(vec.intV[0], -1);
-                assert.equal(vec.intV[1], 6);
+                assert.strictEqual(vec.intV[0], -1);
+                assert.strictEqual(vec.intV[1], 6);
             })
             it('should save new value at index 0 (12)', function () {
                 vec.intV[0] = 12;
-                assert.equal(vec.intV[0], 12);
+                assert.strictEqual(vec.intV[0], 12);
             })
         });
 
@@ -802,7 +802,7 @@ describe('IntVector Test', function () {
             var vec = new IVector();
             it('should put the value -21 at index 1', function () {
                 vec.intV.put(1, -21);
-                assert.equal(vec.intV[1], -21);
+                assert.strictEqual(vec.intV[1], -21);
             })
         });
 
@@ -813,8 +813,8 @@ describe('IntVector Test', function () {
         //        var mat = vec.intV.diag();
         //        for (var i = 0; i < mat.rows; i++) {
         //            for (var j = 0; j < mat.cols; j++) {
-        //                if (i == j) { assert.equal(mat.at(i, j), vec.intV[i]); }
-        //                else { assert.equal(mat.at(i, j), 0); }
+        //                if (i == j) { assert.strictEqual(mat.at(i, j), vec.intV[i]); }
+        //                else { assert.strictEqual(mat.at(i, j), 0); }
         //            }
         //        }
         //    })
@@ -825,12 +825,12 @@ describe('IntVector Test', function () {
             it('should return v with appended vector [1, 2, 3]', function () {
                 var intW = new la.IntVector([1, 2, 3]);
                 vec.intV.pushV(intW);
-                assert.equal(vec.intV.length, 5);
+                assert.strictEqual(vec.intV.length, 5);
                 var controlVec = new la.IntVector([-1, 6, 1, 2, 3]);
 
                 assert.deepEqual(vec.intV, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
-                    assert.equal(vec.intV.at(i), controlVec.at(i));
+                    assert.strictEqual(vec.intV.at(i), controlVec.at(i));
                 }
             })
         });
@@ -867,7 +867,7 @@ describe('IntVector Test', function () {
 
         //        assert.deepEqual(vec, controlVec);
         //        for (var i = 0; i < vec.length; i++) {
-        //            assert.equal(vec.at(i), controlVec.at(i));
+        //            assert.strictEqual(vec.at(i), controlVec.at(i));
         //        }
         //    })
         //});
@@ -878,7 +878,7 @@ describe('IntVector Test', function () {
         //    it('should return matrix with a single column that equals intV', function () {
         //        var mat = vec.intV.toMat();
         //        for (var i = 0; i < vec.intV.length; i++) {
-        //            assert.equal(mat.at(i, 0), vec.intV.at(i));
+        //            assert.strictEqual(mat.at(i, 0), vec.intV.at(i));
         //        }
         //    })
         //});
@@ -901,7 +901,7 @@ describe('IntVector Test', function () {
             var vec = new IVector();
             it('should insert the value 10 at the beginning of vector intV', function () {
                 vec.intV.unshift(10);
-                assert.equal(vec.intV[0], 10);
+                assert.strictEqual(vec.intV[0], 10);
             })
         });
 
@@ -909,10 +909,10 @@ describe('IntVector Test', function () {
         //describe('RangeVec Test', function () {
         //    it('should return a integer vector with elements from 3 to 8', function () {
         //        var intV2 = la.rangeVec(3, 8);
-        //        assert.equal(intV2.length, 6);
+        //        assert.strictEqual(intV2.length, 6);
 
         //        for (var i = 0; i < intV2.length; i++) {
-        //            assert.equal(intV2.at(i), i + 3);
+        //            assert.strictEqual(intV2.at(i), i + 3);
         //        }
         //    })
         //});
@@ -938,14 +938,14 @@ describe('Matrix Test', function () {
         describe('Row Test', function () {
             var mat = new DMatrix();
             it('should return 0 for matrix mat', function () {
-                assert.equal(mat.dMat.rows, 2);
+                assert.strictEqual(mat.dMat.rows, 2);
             })
         });
 
         describe('Col Test', function () {
             var mat = new DMatrix();
             it('should return 0 for matrix mat', function () {
-                assert.equal(mat.dMat.cols, 2);
+                assert.strictEqual(mat.dMat.cols, 2);
             })
         });
     });
@@ -966,7 +966,7 @@ describe('Matrix Test', function () {
         describe('At Test', function () {
             var mat = new DMatrix();
             it('should return the element at (0, 1): 2', function () {
-                assert.equal(mat.dMat.at(0, 1), 2);
+                assert.strictEqual(mat.dMat.at(0, 1), 2);
             })
         });
 
@@ -974,12 +974,12 @@ describe('Matrix Test', function () {
             it('takes a nested array and it should return a dense matrix object', function () {
                 var array = [[1, 2], [3, 4]];
                 var dMat = new la.Matrix(array);
-                assert.equal(dMat.rows, 2);
-                assert.equal(dMat.cols, 2);
+                assert.strictEqual(dMat.rows, 2);
+                assert.strictEqual(dMat.cols, 2);
 
                 for (var i = 0; i < dMat.rows; i++) {
                     for (var j = 0; j < dMat.cols; j++) {
-                        assert.equal(dMat.at(i, j), array[i][j]);
+                        assert.strictEqual(dMat.at(i, j), array[i][j]);
                     }
                 }
             })
@@ -989,8 +989,8 @@ describe('Matrix Test', function () {
             it('takes an empty array and it should return an empty matrix', function () {
                 var dMat = new la.Matrix([]);
 
-                assert.equal(dMat.rows, 0);
-                assert.equal(dMat.cols, 0);
+                assert.strictEqual(dMat.rows, 0);
+                assert.strictEqual(dMat.cols, 0);
             })
         });
 
@@ -998,12 +998,12 @@ describe('Matrix Test', function () {
             it('takes a dictionary of rows, columns and random and return a matrix', function () {
                 var dMat = new la.Matrix({ "rows": 3, "cols": 3, "random": false });
 
-                assert.equal(dMat.rows, 3);
-                assert.equal(dMat.cols, 3);
+                assert.strictEqual(dMat.rows, 3);
+                assert.strictEqual(dMat.cols, 3);
 
                 for (var i = 0; i < dMat.rows; i++) {
                     for (var j = 0; j < dMat.cols; j++) {
-                        assert.equal(dMat.at(i, j), 0);
+                        assert.strictEqual(dMat.at(i, j), 0);
                     }
                 }
             })
@@ -1027,7 +1027,7 @@ describe('Matrix Test', function () {
             var mat = new DMatrix();
             it('should put value 10 at (1, 1)', function () {
                 mat.dMat.put(1, 1, 10);
-                assert.equal(mat.dMat.at(1, 1), 10);
+                assert.strictEqual(mat.dMat.at(1, 1), 10);
             })
         });
 
@@ -1046,7 +1046,7 @@ describe('Matrix Test', function () {
                 var mat3 = mat.dMat.multiply(10);
                 for (var i = 0; i < mat.rows; i++) {
                     for (var j = 0; j < mat.cols; j++) {
-                        assert.equal(mat3.at(i, j), 10 * mat.at(i, j));
+                        assert.strictEqual(mat3.at(i, j), 10 * mat.at(i, j));
                     }
                 }
             })
@@ -1060,7 +1060,7 @@ describe('Matrix Test', function () {
 
                 assert.deepEqual(vec, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
-                    assert.equal(vec.at(i), controlVec.at(i));
+                    assert.strictEqual(vec.at(i), controlVec.at(i));
                 }
             })
         });
@@ -1082,7 +1082,7 @@ describe('Matrix Test', function () {
 
                 assert.deepEqual(vec, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
-                    assert.equal(vec.at(i), controlVec.at(i));
+                    assert.strictEqual(vec.at(i), controlVec.at(i));
                 }
             })
         });
@@ -1104,7 +1104,7 @@ describe('Matrix Test', function () {
 
                 for (var i = 0; i < controlMat.rows; i++) {
                     for (var j = 0; j < controlMat.cols; j++) {
-                        assert.equal(mat3.at(i, j), controlMat.at(i, j));
+                        assert.strictEqual(mat3.at(i, j), controlMat.at(i, j));
                     }
                 }
             })
@@ -1118,7 +1118,7 @@ describe('Matrix Test', function () {
 
                 for (var i = 0; i < controlMat.rows; i++) {
                     for (var j = 0; j < controlMat.cols; j++) {
-                        assert.equal(mat3.at(i, j), controlMat.at(i, j));
+                        assert.strictEqual(mat3.at(i, j), controlMat.at(i, j));
                     }
                 }
             })
@@ -1130,7 +1130,7 @@ describe('Matrix Test', function () {
                 var mat3 = mat.dMat.multiplyT(10);
                 for (var i = 0; i < mat.rows; i++) {
                     for (var j = 0; j < mat.cols; j++) {
-                        assert.equal(mat3.at(j, i), 10 * mat.at(i, j));
+                        assert.strictEqual(mat3.at(j, i), 10 * mat.at(i, j));
                     }
                 }
             })
@@ -1144,7 +1144,7 @@ describe('Matrix Test', function () {
 
                 assert.deepEqual(vec, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
-                    assert.equal(vec.at(i), controlVec.at(i));
+                    assert.strictEqual(vec.at(i), controlVec.at(i));
                 }
             })
         });
@@ -1157,7 +1157,7 @@ describe('Matrix Test', function () {
 
                 assert.deepEqual(vec, controlVec);
                 for (var i = 0; i < controlVec.length; i++) {
-                    assert.equal(vec.at(i), controlVec.at(i));
+                    assert.strictEqual(vec.at(i), controlVec.at(i));
                 }
             })
         });
@@ -1170,7 +1170,7 @@ describe('Matrix Test', function () {
 
                 for (var i = 0; i < controlMat.rows; i++) {
                     for (var j = 0; j < controlMat.cols; j++) {
-                        assert.equal(mat3.at(i, j), controlMat.at(i, j));
+                        assert.strictEqual(mat3.at(i, j), controlMat.at(i, j));
                     }
                 }
             })
@@ -1184,7 +1184,7 @@ describe('Matrix Test', function () {
 
                 for (var i = 0; i < controlMat.rows; i++) {
                     for (var j = 0; j < controlMat.cols; j++) {
-                        assert.equal(mat3.at(i, j), controlMat.at(i, j));
+                        assert.strictEqual(mat3.at(i, j), controlMat.at(i, j));
                     }
                 }
             })
@@ -1198,7 +1198,7 @@ describe('Matrix Test', function () {
                 assert.deepEqual(mat3, mat.dMat);
                 for (var i = 0; i < mat.dMat.rows; i++) {
                     for (var j = 0; j < mat.dMat.cols; j++) {
-                        assert.equal(mat3.at(i, j), mat.dMat.at(i, j) + mat2.at(i, j));
+                        assert.strictEqual(mat3.at(i, j), mat.dMat.at(i, j) + mat2.at(i, j));
                     }
                 }
             })
@@ -1226,7 +1226,7 @@ describe('Matrix Test', function () {
                 assert.deepEqual(mat3, mat.dMat);
                 for (var i = 0; i < mat.dMat.rows; i++) {
                     for (var j = 0; j < mat.dMat.cols; j++) {
-                        assert.equal(mat3.at(i, j), mat.dMat.at(i, j) - mat2.at(i, j));
+                        assert.strictEqual(mat3.at(i, j), mat.dMat.at(i, j) - mat2.at(i, j));
                     }
                 }
             })
@@ -1239,7 +1239,7 @@ describe('Matrix Test', function () {
                 assert.deepEqual(mat3, mat.dMat);
                 for (var i = 0; i < mat.dMat.rows; i++) {
                     for (var j = 0; j < mat.dMat.cols; j++) {
-                        assert.equal(mat3.at(j, i), mat.dMat.at(i, j));
+                        assert.strictEqual(mat3.at(j, i), mat.dMat.at(i, j));
                     }
                 }
             })
@@ -1253,7 +1253,7 @@ describe('Matrix Test', function () {
 
                 assert.deepEqual(vec, solution);
                 for (var i = 0; i < solution.length; i++) {
-                    assert.equal(vec.at(i), solution.at(i));
+                    assert.strictEqual(vec.at(i), solution.at(i));
                 }
             })
         });
@@ -1314,8 +1314,8 @@ describe('Matrix Test', function () {
         describe('RowMaxIdx Test', function () {
             var mat = new DMatrix();
             it('should return value 1 for 1st and 2nd row', function () {
-                assert.equal(mat.dMat.rowMaxIdx(0), 1);
-                assert.equal(mat.dMat.rowMaxIdx(1), 1);
+                assert.strictEqual(mat.dMat.rowMaxIdx(0), 1);
+                assert.strictEqual(mat.dMat.rowMaxIdx(1), 1);
             })
         });
 
@@ -1336,8 +1336,8 @@ describe('Matrix Test', function () {
         describe('ColMaxIdx Test', function () {
             var mat = new DMatrix();
             it('should return value 1 for 1st and 2nd column', function () {
-                assert.equal(mat.dMat.colMaxIdx(0), 1);
-                assert.equal(mat.dMat.colMaxIdx(1), 1);
+                assert.strictEqual(mat.dMat.colMaxIdx(0), 1);
+                assert.strictEqual(mat.dMat.colMaxIdx(1), 1);
             })
         });
 
@@ -1490,8 +1490,8 @@ describe('Matrix Test', function () {
                 var mat3 = la.eye(dim);
                 for (var i = 0; i < mat3.rows; i++) {
                     for (var j = 0; j < mat3.cols; j++) {
-                        if (i == j) { assert.equal(mat3.at(i, j), 1); }
-                        else { assert.equal(mat3.at(i, j), 0); }
+                        if (i == j) { assert.strictEqual(mat3.at(i, j), 1); }
+                        else { assert.strictEqual(mat3.at(i, j), 0); }
                     }
                 }
             })
@@ -1512,7 +1512,7 @@ describe('Matrix Test', function () {
                 var mat3 = la.zeros(nRows, nCols);
                 for (var i = 0; i < mat3.rows; i++) {
                     for (var j = 0; j < mat3.cols; j++) {
-                        assert.equal(mat3.at(i, j), 0);
+                        assert.strictEqual(mat3.at(i, j), 0);
                     }
                 }
             })
@@ -1531,8 +1531,8 @@ describe('Matrix Test', function () {
                 var distMat = la.pdist2(new la.Matrix([[1,0],[0,1]]), new la.Matrix([[1,-1,1],[-1,1,-1]]));
                 var controlMat = new la.Matrix([[1, 5, 1], [5, 1, 5]]);
 
-                assert.equal(distMat.cols, 3);
-                assert.equal(distMat.rows, 2);
+                assert.strictEqual(distMat.cols, 3);
+                assert.strictEqual(distMat.rows, 2);
 
                 for (var i = 0; i < controlMat.rows; i++) {
                     for (var j = 0; j < controlMat.cols; j++) {
@@ -1562,20 +1562,20 @@ describe('Sparse Vector', function () {
         describe('Nnz Test', function () {
             var vec = new SpVector();
             it('should return the number of non-zero values, spV', function () {
-                assert.equal(vec.spV.nnz, 5);
+                assert.strictEqual(vec.spV.nnz, 5);
             })
             it('should return the number of non-zero values, spVdim', function () {
-                assert.equal(vec.spVdim.nnz, 5);
+                assert.strictEqual(vec.spVdim.nnz, 5);
             })
         });
 
         describe('Dim Test', function () {
             var vec = new SpVector();
             it('should return the dimension of sparse vector, spV', function () {
-                assert.equal(vec.spV.dim, -1);
+                assert.strictEqual(vec.spV.dim, -1);
             })
             it('should return the dimension of sparse vector, spVdim', function () {
-                assert.equal(vec.spVdim.dim, 10);
+                assert.strictEqual(vec.spVdim.dim, 10);
             })
         });
     });
@@ -1587,20 +1587,20 @@ describe('Sparse Vector', function () {
         describe('At Test', function () {
             var vec = new SpVector();
             it('should return the value with index 1, 3, 8, 9, 2, spV', function () {
-                assert.equal(vec.spV.at(1), 10);
-                assert.equal(vec.spV.at(3), 0.0001);
-                assert.equal(vec.spV.at(8), 0);
-                assert.equal(vec.spV.at(9), -12);
+                assert.strictEqual(vec.spV.at(1), 10);
+                assert.strictEqual(vec.spV.at(3), 0.0001);
+                assert.strictEqual(vec.spV.at(8), 0);
+                assert.strictEqual(vec.spV.at(9), -12);
 
-                assert.equal(vec.spV.at(2), 0);
+                assert.strictEqual(vec.spV.at(2), 0);
             })
             it('should return the value with index 1, 3, 8, 9, 2, spVdim', function () {
-                assert.equal(vec.spVdim.at(1), 10);
-                assert.equal(vec.spVdim.at(3), 0.0001);
-                assert.equal(vec.spVdim.at(8), 0);
-                assert.equal(vec.spVdim.at(9), -12);
+                assert.strictEqual(vec.spVdim.at(1), 10);
+                assert.strictEqual(vec.spVdim.at(3), 0.0001);
+                assert.strictEqual(vec.spVdim.at(8), 0);
+                assert.strictEqual(vec.spVdim.at(9), -12);
 
-                assert.equal(vec.spVdim.at(2), 0);
+                assert.strictEqual(vec.spVdim.at(2), 0);
             })
         });
 
@@ -1608,11 +1608,11 @@ describe('Sparse Vector', function () {
             var vec = new SpVector();
             it('should put a new value in sparse vector spV', function () {
                 vec.spV.put(2, -1);
-                assert.equal(vec.spV.at(2), -1);
+                assert.strictEqual(vec.spV.at(2), -1);
             })
             it('should put a new value in sparse vector spVdim', function () {
                 vec.spVdim.put(2, -1);
-                assert.equal(vec.spVdim.at(2), -1);
+                assert.strictEqual(vec.spVdim.at(2), -1);
             })
         });
 
@@ -1629,12 +1629,12 @@ describe('Sparse Vector', function () {
         describe('Constructor for sparse vector', function () {
             it('should create a vector of length 2', function () {
                 var v = new la.SparseVector([[0, 1], [1, 3]]);
-                assert.equal(v.at(0), 1);
-                assert.equal(v.at(1), 3);
+                assert.strictEqual(v.at(0), 1);
+                assert.strictEqual(v.at(1), 3);
             })
             it('should create a vector with specified dim: 3', function () {
                 var v = new la.SparseVector([[0, 1], [1, 3]], 3);
-                assert.equal(v.dim, 3);
+                assert.strictEqual(v.dim, 3);
             })
             it('should throw an exception if specified dim is less than max index', function () {
                 assert.throws(function () {
@@ -1646,8 +1646,8 @@ describe('Sparse Vector', function () {
                 var m = new la.SparseVector(v);
 
                 //assert.deepEqual(m, v);
-                assert.equal(m.at(0), v.at(0));
-                assert.equal(m.at(1), v.at(1));
+                assert.strictEqual(m.at(0), v.at(0));
+                assert.strictEqual(m.at(1), v.at(1));
 
             })
         })
@@ -1683,7 +1683,7 @@ describe('Sparse Vector', function () {
         //    it('should return the sum of two vectors', function () {
         //        var spVec = new la.SparseVector([[6, 10]]);
         //        spV.plus(spVec);
-        //        assert.equal(spV.at(6), 10);
+        //        assert.strictEqual(spV.at(6), 10);
         //    })
         //});
 
@@ -1772,7 +1772,7 @@ describe('Sparse Vector', function () {
                 var v = new la.SparseVector();
                 var vec = v.valVec();
 
-                assert.equal(vec.length, 0);
+                assert.strictEqual(vec.length, 0);
             })
         });
 
@@ -1802,7 +1802,7 @@ describe('Sparse Vector', function () {
                 var v = new la.SparseVector();
                 var vec = v.idxVec();
 
-                assert.equal(vec.length, 0);
+                assert.strictEqual(vec.length, 0);
             })
         });
 
@@ -1835,30 +1835,30 @@ describe('Sparse Matrix Tests', function () {
         describe('Rows Test', function () {
             var mat = new SSparseMatrix();
             it('should return the number of rows in spMat, 4', function () {
-                assert.equal(mat.spMat.rows, -1);
+                assert.strictEqual(mat.spMat.rows, -1);
             })
             it('should return the number of rows in spMatD, 4', function () {
-                assert.equal(mat.spMatD.rows, 4);
+                assert.strictEqual(mat.spMatD.rows, 4);
             })
         });
 
         describe('Cols Test', function () {
             var mat = new SSparseMatrix();
             it('should return the number of columns in spMat, 4', function () {
-                assert.equal(mat.spMat.cols, 4);
+                assert.strictEqual(mat.spMat.cols, 4);
             })
             it('should return the number of columns in spMatD, 4', function () {
-                assert.equal(mat.spMatD.cols, 4);
+                assert.strictEqual(mat.spMatD.cols, 4);
             })
         });
 
         describe('Nnz Test', function () {
             var mat = new SSparseMatrix();
             it('should return the nomber of non-zero elements of matrix spMat, 6', function () {
-                assert.equal(mat.spMat.nnz(), 6);
+                assert.strictEqual(mat.spMat.nnz(), 6);
             })
             it('should return the nomber of non-zero elements of matrix spMatD, 6', function () {
-                assert.equal(mat.spMatD.nnz(), 6);
+                assert.strictEqual(mat.spMatD.nnz(), 6);
             })
         });
 
@@ -1872,10 +1872,10 @@ describe('Sparse Matrix Tests', function () {
         describe('At Test', function () {
             var mat = new SSparseMatrix();
             it('should return the value of spMat at (0, 1)', function () {
-                assert.equal(mat.spMat.at(1, 0), 3);
+                assert.strictEqual(mat.spMat.at(1, 0), 3);
             })
             it('should return the value of spMatD at (0, 1)', function () {
-                assert.equal(mat.spMatD.at(1, 0), 3);
+                assert.strictEqual(mat.spMatD.at(1, 0), 3);
             })
         });
 
@@ -1883,11 +1883,11 @@ describe('Sparse Matrix Tests', function () {
             var mat = new SSparseMatrix();
             it('should put value -3 at spMat(1, 1)', function () {
                 mat.spMat.put(1, 1, -3);
-                assert.equal(mat.spMat.at(1, 1), -3);
+                assert.strictEqual(mat.spMat.at(1, 1), -3);
             })
             it('should put value -3 at spMatD(1, 1)', function () {
                 mat.spMatD.put(1, 1, -3);
-                assert.equal(mat.spMatD.at(1, 1), -3);
+                assert.strictEqual(mat.spMatD.at(1, 1), -3);
             })
         });
 
@@ -1924,7 +1924,7 @@ describe('Sparse Matrix Tests', function () {
 
                 for (var i = 0; i < 4; i++) {
                     for (var j = 0; j < 4; j++) {
-                        assert.equal(spVMat.at(i, j), mat.spMat.at(i, j));
+                        assert.strictEqual(spVMat.at(i, j), mat.spMat.at(i, j));
                     }
                 }
             })
@@ -1933,23 +1933,23 @@ describe('Sparse Matrix Tests', function () {
         describe('Constructor "Double Nested Array & Rows" Test', function () {
             it('should construct a sparse matrix out of the double nested array', function () {
                 var mat = new la.SparseMatrix([[[1, 2]], [[0, 5]]]);
-                assert.equal(mat.cols, 2);
-                assert.equal(mat.rows, -1);
+                assert.strictEqual(mat.cols, 2);
+                assert.strictEqual(mat.rows, -1);
 
-                assert.equal(mat.at(0, 0), 0);
-                assert.equal(mat.at(1, 0), 2);
-                assert.equal(mat.at(0, 1), 5);
-                assert.equal(mat.at(1, 1), 0);
+                assert.strictEqual(mat.at(0, 0), 0);
+                assert.strictEqual(mat.at(1, 0), 2);
+                assert.strictEqual(mat.at(0, 1), 5);
+                assert.strictEqual(mat.at(1, 1), 0);
             })
             it('should construct a sparse matrix out of the double nested array and dictionary with key "rows"', function () {
                 var mat = new la.SparseMatrix([[[1, 2]], [[0, 5]]], 2);
-                assert.equal(mat.cols, 2);
-                assert.equal(mat.rows, 2);
+                assert.strictEqual(mat.cols, 2);
+                assert.strictEqual(mat.rows, 2);
 
-                assert.equal(mat.at(0, 0), 0);
-                assert.equal(mat.at(1, 0), 2);
-                assert.equal(mat.at(0, 1), 5);
-                assert.equal(mat.at(1, 1), 0);
+                assert.strictEqual(mat.at(0, 0), 0);
+                assert.strictEqual(mat.at(1, 0), 2);
+                assert.strictEqual(mat.at(0, 1), 5);
+                assert.strictEqual(mat.at(1, 1), 0);
             })
             it('should throw an exception if row parameter is lesser than greatest index', function () {
                 assert.throws(function () {
@@ -1961,8 +1961,8 @@ describe('Sparse Matrix Tests', function () {
         describe('Constructor "Rows and Columns" Test', function () {
             it('takes {"rows": 3, "cols": 3} and creates a sparse matrix', function () {
                 var mat = new la.SparseMatrix({ "rows": 3, "cols": 3 });
-                assert.equal(mat.rows, 3, "Rows: " + mat.rows + " not equal 3!");
-                assert.equal(mat.cols, 3, "Columns: " + mat.cols + " not equal 3!");
+                assert.strictEqual(mat.rows, 3, "Rows: " + mat.rows + " not equal 3!");
+                assert.strictEqual(mat.cols, 3, "Columns: " + mat.cols + " not equal 3!");
             })
         });
 
@@ -1975,7 +1975,7 @@ describe('Sparse Matrix Tests', function () {
 
                 for (var i = 0; i < 4; i++) {
                     for (var j = 0; j < 5; j++) {
-                        assert.equal(mat.spMat.at(i, j), controlMat.at(i, j));
+                        assert.strictEqual(mat.spMat.at(i, j), controlMat.at(i, j));
                     }
                 }
             })
@@ -1986,7 +1986,7 @@ describe('Sparse Matrix Tests', function () {
 
                 for (var i = 0; i < 4; i++) {
                     for (var j = 0; j < 5; j++) {
-                        assert.equal(mat.spMatD.at(i, j), controlMat.at(i, j));
+                        assert.strictEqual(mat.spMatD.at(i, j), controlMat.at(i, j));
                     }
                 }
             })
@@ -2405,13 +2405,13 @@ describe('Sparse Matrix Tests', function () {
             var mat = new SSparseMatrix();
             it('should generate a 4 times 0 sparse matrix, spMat', function () {
                 var mat2 = mat.spMat.multiply(new la.SparseMatrix());
-                assert.equal(mat2.rows, 4);
-                assert.equal(mat2.cols, 0);
+                assert.strictEqual(mat2.rows, 4);
+                assert.strictEqual(mat2.cols, 0);
             })
             it('should generate a 4 times 0 sparse matrix, spMatD', function () {
                 var mat2 = mat.spMatD.multiply(new la.SparseMatrix());
-                assert.equal(mat2.rows, 4);
-                assert.equal(mat2.cols, 0);
+                assert.strictEqual(mat2.rows, 4);
+                assert.strictEqual(mat2.cols, 0);
             })
         })
 
@@ -2841,14 +2841,14 @@ describe('Sparse Matrix Tests', function () {
             it('should return an empty matrix with 0 columns and spMat.rows', function () {
                 var mat2 = mat.spMat.multiplyT(new la.SparseMatrix());
 
-                assert.equal(mat2.rows, 4);
-                assert.equal(mat2.cols, 0);
+                assert.strictEqual(mat2.rows, 4);
+                assert.strictEqual(mat2.cols, 0);
             })
             it('should return an empty matrix with 0 columns and spMatD.rows', function () {
                 var mat2 = mat.spMatD.multiplyT(new la.SparseMatrix());
 
-                assert.equal(mat2.rows, 4);
-                assert.equal(mat2.cols, 0);
+                assert.strictEqual(mat2.rows, 4);
+                assert.strictEqual(mat2.cols, 0);
             })
         });
 
@@ -3054,8 +3054,8 @@ describe('Sparse Matrix Tests', function () {
 
                 for (var i = 0; i < 3; i++) {
                     for (var j = 0; j < 3; j++) {
-                        if (i == j) { assert.equal(mat.at(i, j), 1); }
-                        else { assert.equal(mat.at(i, j), 0); }
+                        if (i == j) { assert.strictEqual(mat.at(i, j), 1); }
+                        else { assert.strictEqual(mat.at(i, j), 0); }
                     }
                 }
             })
@@ -3064,11 +3064,11 @@ describe('Sparse Matrix Tests', function () {
         describe('Sparse Test', function () {
             it('should return a 3-by-3 zero sparse matrix', function () {
                 var mat = la.sparse(3, 3);
-                assert.equal(mat.rows, 3);
-                assert.equal(mat.cols, 3);
+                assert.strictEqual(mat.rows, 3);
+                assert.strictEqual(mat.cols, 3);
                 for (var i = 0; i < mat.rows; i++) {
                     for (var j = 0; j < mat.cols; j++) {
-                        assert.equal(mat.at(i, j), 0);
+                        assert.strictEqual(mat.at(i, j), 0);
                     }
                 }
             })
@@ -3091,12 +3091,12 @@ describe('Sparse Matrix Tests', function () {
         //    it('should return a sparse matrix with 1 or -1 as values', function () {
         //        var spMat2 = spMat.sign();
 
-        //        assert.equal(spMat2.at(0, 0), 1);
-        //        assert.equal(spMat2.at(1, 0), 1);
-        //        assert.equal(spMat2.at(3, 0), -1);
-        //        assert.equal(spMat2.at(1, 1), -1);
-        //        assert.equal(spMat2.at(2, 1), 1);
-        //        assert.equal(spMat2.at(3, 2), 1);
+        //        assert.strictEqual(spMat2.at(0, 0), 1);
+        //        assert.strictEqual(spMat2.at(1, 0), 1);
+        //        assert.strictEqual(spMat2.at(3, 0), -1);
+        //        assert.strictEqual(spMat2.at(1, 1), -1);
+        //        assert.strictEqual(spMat2.at(2, 1), 1);
+        //        assert.strictEqual(spMat2.at(3, 2), 1);
         //    })
         //})
     });
@@ -3122,33 +3122,33 @@ describe('Rectangle Sparse Matrix Tests', function () {
         describe('Rows Test', function () {
             it('should return the number of rows in spMat, -1', function () {
                 var mat = new RSparseMatrix();
-                assert.equal(mat.spMat.rows, -1);
+                assert.strictEqual(mat.spMat.rows, -1);
             })
             it('should return the number of rows in spMatD, 4', function () {
                 var mat = new RSparseMatrix();
-                assert.equal(mat.spMatD.rows, 4);
+                assert.strictEqual(mat.spMatD.rows, 4);
             })
         })
 
         describe('Cols Test', function () {
             it('should return the number of columns in spMat, 2', function () {
                 var mat = new RSparseMatrix();
-                assert.equal(mat.spMat.cols, 2);
+                assert.strictEqual(mat.spMat.cols, 2);
             })
             it('should return the number of columns in spMatD, 2', function () {
                 var mat = new RSparseMatrix();
-                assert.equal(mat.spMatD.cols, 2);
+                assert.strictEqual(mat.spMatD.cols, 2);
             })
         })
 
         describe('Nnz Test', function () {
             it('should return the nomber of non-zero elements of matrix spMat, 3', function () {
                 var mat = new RSparseMatrix();
-                assert.equal(mat.spMat.nnz(), 3);
+                assert.strictEqual(mat.spMat.nnz(), 3);
             })
             it('should return the nomber of non-zero elements of matrix spMatD, 3', function () {
                 var mat = new RSparseMatrix();
-                assert.equal(mat.spMatD.nnz(), 3);
+                assert.strictEqual(mat.spMatD.nnz(), 3);
             })
         })
     });
@@ -3160,10 +3160,10 @@ describe('Rectangle Sparse Matrix Tests', function () {
         describe('At Test', function () {
             var mat = new RSparseMatrix();
             it('should return the value at spMat(2, 0), 2', function () {
-                assert.equal(mat.spMat.at(2, 0), 2);
+                assert.strictEqual(mat.spMat.at(2, 0), 2);
             })
             it('should return the value at spMatD(2, 0), 2', function () {
-                assert.equal(mat.spMatD.at(2, 0), 2);
+                assert.strictEqual(mat.spMatD.at(2, 0), 2);
             })
         })
 
@@ -3171,11 +3171,11 @@ describe('Rectangle Sparse Matrix Tests', function () {
             var mat = new RSparseMatrix();
             it('should put value -3 at spMat(1, 1)', function () {
                 mat.spMat.put(1, 1, -3);
-                assert.equal(mat.spMat.at(1, 1), -3);
+                assert.strictEqual(mat.spMat.at(1, 1), -3);
             })
             it('should put value -3 at spMatD(1, 1)', function () {
                 mat.spMatD.put(1, 1, -3);
-                assert.equal(mat.spMatD.at(1, 1), -3);
+                assert.strictEqual(mat.spMatD.at(1, 1), -3);
             })
         })
 
@@ -3212,7 +3212,7 @@ describe('Rectangle Sparse Matrix Tests', function () {
                 assert.deepEqual(mat.spMat, controlMat);
                 for (var i = 0; i < 4; i++) {
                     for (var j = 0; j < 2; j++) {
-                        assert.equal(mat.spMat.at(i, j), controlMat.at(i, j));
+                        assert.strictEqual(mat.spMat.at(i, j), controlMat.at(i, j));
                     }
                 }
             })
@@ -3224,7 +3224,7 @@ describe('Rectangle Sparse Matrix Tests', function () {
                 assert.deepEqual(mat.spMatD, controlMat);
                 for (var i = 0; i < 4; i++) {
                     for (var j = 0; j < 2; j++) {
-                        assert.equal(mat.spMat.at(i, j), controlMat.at(i, j));
+                        assert.strictEqual(mat.spMat.at(i, j), controlMat.at(i, j));
                     }
                 }
             })
@@ -3671,13 +3671,13 @@ describe('Rectangle Sparse Matrix Tests', function () {
             var m = new la.SparseMatrix();
             it('should generate a 4 times 0 sparse matrix, spMat', function () {
                 var mat2 = mat.spMat.multiply(m);
-                assert.equal(mat2.rows, 4);
-                assert.equal(mat2.cols, 0);
+                assert.strictEqual(mat2.rows, 4);
+                assert.strictEqual(mat2.cols, 0);
             })
             it('should generate a 4 times 0 sparse matrix, spMatD', function () {
                 var mat2 = mat.spMatD.multiply(m);
-                assert.equal(mat2.rows, 4);
-                assert.equal(mat2.cols, 0);
+                assert.strictEqual(mat2.rows, 4);
+                assert.strictEqual(mat2.cols, 0);
             })
         })
 
@@ -4139,14 +4139,14 @@ describe('Rectangle Sparse Matrix Tests', function () {
             it('should return an empty matrix with 0 columns and spMat.rows', function () {
                 var mat2 = mat.spMat.multiplyT(new la.SparseMatrix());
 
-                assert.equal(mat2.rows, 2);
-                assert.equal(mat2.cols, 0);
+                assert.strictEqual(mat2.rows, 2);
+                assert.strictEqual(mat2.cols, 0);
             })
             it('should return an empty matrix with 0 columns and spMatD.rows', function () {
                 var mat2 = mat.spMatD.multiplyT(new la.SparseMatrix());
 
-                assert.equal(mat2.rows, 2);
-                assert.equal(mat2.cols, 0);
+                assert.strictEqual(mat2.rows, 2);
+                assert.strictEqual(mat2.cols, 0);
             })
         });
 
@@ -4272,8 +4272,8 @@ describe('Rectangle Sparse Matrix Tests', function () {
                 var fullMat = new la.SparseMatrix([[[0, 1]], [[1, 2]], [[2, 3]], [[3, 4]]]);
                 var subMat = fullMat.getColSubmatrix(new la.IntVector([1, 2]));
 
-                assert.equal(subMat.cols, 2);
-                assert.equal(subMat.rows, -1);
+                assert.strictEqual(subMat.cols, 2);
+                assert.strictEqual(subMat.rows, -1);
 
                 assert.eqtol(subMat.at(1, 0), 2);
                 assert.eqtol(subMat.at(2, 1), 3);
@@ -4291,14 +4291,14 @@ describe('Rectangle Sparse Matrix Tests', function () {
             it('should get empty matrix', function () {
                 var fullMat1 = new la.SparseMatrix([[[0, 1]], [[1, 2]], [[2, 3]], [[3, 4]]]);
                 fullMat1.clear();
-                assert.equal(fullMat1.cols, 0);
-                assert.equal(fullMat1.rows, -1);
+                assert.strictEqual(fullMat1.cols, 0);
+                assert.strictEqual(fullMat1.rows, -1);
 
                 var fullMat2 = new la.SparseMatrix([[[0, 1]], [[1, 2]], [[2, 3]], [[3, 4]]]);
                 fullMat2.setRowDim(4);
                 fullMat2.clear();
-                assert.equal(fullMat2.cols, 0);
-                assert.equal(fullMat2.rows, -1);
+                assert.strictEqual(fullMat2.cols, 0);
+                assert.strictEqual(fullMat2.rows, -1);
             })
         })
 
@@ -4382,8 +4382,8 @@ describe('Rectangle Sparse Matrix Tests', function () {
 
         //                for (var i = 0; i < 3; i++) {
         //                    for (var j = 0; j < 3; j++) {
-        //                        if (i == j) { assert.equal(mat.at(i, j), 1); }
-        //                        else { assert.equal(mat.at(i, j), 0); }
+        //                        if (i == j) { assert.strictEqual(mat.at(i, j), 1); }
+        //                        else { assert.strictEqual(mat.at(i, j), 0); }
         //                    }
         //                }
         //            })
@@ -4392,11 +4392,11 @@ describe('Rectangle Sparse Matrix Tests', function () {
         //        describe('Sparse Test', function () {
         //            it('should return a 3-by-3 zero sparse matrix', function () {
         //                var mat = la.sparse(3, 3);
-        //                assert.equal(mat.rows, 3);
-        //                assert.equal(mat.cols, 3);
+        //                assert.strictEqual(mat.rows, 3);
+        //                assert.strictEqual(mat.cols, 3);
         //                for (var i = 0; i < mat.rows; i++) {
         //                    for (var j = 0; j < mat.cols; j++) {
-        //                        assert.equal(mat.at(i, j), 0);
+        //                        assert.strictEqual(mat.at(i, j), 0);
         //                    }
         //                }
         //            })

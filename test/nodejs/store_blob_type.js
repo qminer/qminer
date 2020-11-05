@@ -58,11 +58,11 @@ describe('JSON field-type tests ', function () {
                 var val = min + i * diff;
                 var data_to_store = { name: "name" + val };
                 if (i % 2 == 0) {
-                    data_to_store.val = new Buffer(1);
+                    data_to_store.val = new Buffer.alloc(1);
                     data_to_store.val[0] = src_string.charCodeAt(i % src_string.length);
                     vals.push(data_to_store.val[0]);
                 } else {
-                    data_to_store.val = new Buffer(2);
+                    data_to_store.val = new Buffer.alloc(2);
                     data_to_store.val[0] = src_string.charCodeAt(i % 18);
                     data_to_store.val[1] = src_string.charCodeAt((3 * i) % 17);
                     vals.push(data_to_store.val[0]);
@@ -73,7 +73,7 @@ describe('JSON field-type tests ', function () {
                 db.base.store(store_name).push(data_to_store);
             }
             var rs = db.base.store(store_name).allRecords;
-            assert.equal(rs.length, records);
+            assert.strictEqual(rs.length, records);
             //console.log(vals);
 
             var cnt = 0;
@@ -82,10 +82,10 @@ describe('JSON field-type tests ', function () {
                 //console.log(rec.val.length);
                 //console.log(rec.val[0]);
                 if (i % 2 == 0) {
-                    assert.equal(rec.val[0], vals[cnt++]);
+                    assert.strictEqual(rec.val[0], vals[cnt++]);
                 } else {
-                    assert.equal(rec.val[0], vals[cnt++]);
-                    assert.equal(rec.val[1], vals[cnt++]);
+                    assert.strictEqual(rec.val[0], vals[cnt++]);
+                    assert.strictEqual(rec.val[1], vals[cnt++]);
                 }
             }
         } finally {

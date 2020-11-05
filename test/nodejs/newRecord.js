@@ -24,22 +24,22 @@ describe("newRecord test", function () {
     });
     it("should create a record using the index join", function () {
         var newPerson1 = base.store("People").newRecord({ name: "Peter Jackson" })
-        assert.equal(newPerson1.directed.length, 0);
+        assert.strictEqual(newPerson1.directed.length, 0);
 
         base.store("Movies").push({title: "Hobbit"});
         var newPerson2 = base.store("People").newRecord({ name: "Peter Jackson", directed: [{ $name: "Hobbit" }] });
-        assert.equal(newPerson2.directed.length, 1);
+        assert.strictEqual(newPerson2.directed.length, 1);
 
         base.store("Movies").push({title: "The Lord of the Rings"});
         var newPerson3 = base.store("People").newRecord({ name: "Peter Jackson", directed: [{ $name: "Hobbit" }, { $name: "The Lord of the Rings" }] });
-        assert.equal(newPerson3.directed.length, 2);
+        assert.strictEqual(newPerson3.directed.length, 2);
     });
 
     it.skip("should create a record using the field join", function () {
         var newMovie = base.store("Movies").newRecord({ "director": { name: "Peter Jackson" } });
         console.log(newMovie.director);
 
-        assert.equal(newMovie.director.name, "Peter Jackson");
+        assert.strictEqual(newMovie.director.name, "Peter Jackson");
     });
     it("should create a record when store has a field of type 'json'", function () {
         var basePlanets = new qm.Base({

@@ -56,7 +56,7 @@ describe('NNets test, old', function () {
         if (verbose) {
             console.log("Is error small? : " + (error < 0.3))
             console.log("Error : " + error)
-            //assert.equal(error < 0.3, true);
+            //assert.strictEqual(error < 0.3, true);
         }
         var testIn = linalg.Vector([0, 1])
         var testOut = linalg.Vector([1])
@@ -65,7 +65,7 @@ describe('NNets test, old', function () {
         if (verbose) {
             console.log("Is error small? : " + (error < 0.3))
             console.log("Error : " + error)
-            //assert.equal(error < 0.3, true);
+            //assert.strictEqual(error < 0.3, true);
         }
 
         var testIn = linalg.Vector([1, 0])
@@ -75,7 +75,7 @@ describe('NNets test, old', function () {
         if (verbose) {
             console.log("Is error small? : " + (error < 0.3))
             console.log("Error : " + error)
-            //assert.equal(error < 0.3, true);
+            //assert.strictEqual(error < 0.3, true);
         }
 
         var testIn = linalg.Vector([1, 1])
@@ -85,7 +85,7 @@ describe('NNets test, old', function () {
         if (verbose) {
             console.log("Is error small? : " + (error < 0.3))
             console.log("Error : " + error)
-            //assert.equal(error < 0.3, true);
+            //assert.strictEqual(error < 0.3, true);
         }
 
         //save
@@ -117,6 +117,6 @@ describe('NNets test, old', function () {
         // check if nnet was saved and loaded correctly
         diff = predictions_afterSave.minus(predictions_beforeSave);
 
-        assert.equal(diff.norm(), 0);
+        assert.strictEqual(diff.norm(), 0);
     })
 });

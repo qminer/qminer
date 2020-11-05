@@ -23,8 +23,11 @@ namespace TQm {
             v8::Isolate* Isolate = v8::Isolate::GetCurrent();
             v8::HandleScope HandleScope(Isolate);
 
-            if (Nan::Has(Nan::To<v8::Object>(CallbacksObj).ToLocalChecked(), v8::String::NewFromUtf8(Isolate, Name.CStr())).ToChecked()) {
-                v8::Local<v8::Value> Fun = Nan::To<v8::Object>(CallbacksObj).ToLocalChecked()->Get(v8::String::NewFromUtf8(Isolate, Name.CStr()));
+            v8::Local<v8::String> FldNm = TNodeJsUtil::ToLocal(Nan::New(Name.CStr()));
+            v8::Local<v8::Object> CallbackObj = TNodeJsUtil::ToLocal(Nan::To<v8::Object>(CallbacksObj));
+
+            if (Nan::Has(CallbackObj, FldNm).ToChecked()) {
+                v8::Local<v8::Value> Fun = TNodeJsUtil::ToLocal(Nan::Get(CallbackObj, FldNm));
                 QmAssert(Fun->IsFunction());
                 Callback.Reset(Isolate, v8::Local<v8::Function>::Cast(Fun));
             }
@@ -75,13 +78,10 @@ namespace TQm {
                 throw TQm::TQmExcept::New("Javascript exception triggered from TNodeJsFuncStore::GetRecs, " + TStr(*Msg));
             }
 
-            if (Tmp.IsEmpty()) {
-               Isolate->ThrowException(TryCatch.Exception());
-            } else {
-                v8::Local<v8::Value> RetVal = Tmp.ToLocalChecked();
-                QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStore::GetRecs: Return type expected to be number");
-                return (unsigned long long)(int64)RetVal->NumberValue(Nan::GetCurrentContext()).FromJust();
-            }
+            TNodeJsUtil::CheckObjEmpty(Isolate, TryCatch, Tmp);
+            v8::Local<v8::Value> RetVal = TNodeJsUtil::ToLocal(Tmp);
+            QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStore::GetRecs: Return type expected to be number");
+            return (unsigned long long)Nan::To<int64>(RetVal).FromJust();
         }
 
         PRecSet TNodeJsFuncStore::GetAllRecs() {
@@ -99,15 +99,12 @@ namespace TQm {
                 throw TQm::TQmExcept::New("Javascript exception triggered from TNodeJsFuncStore::GetAllRecs, " + TStr(*Msg));
             }
 
-            if (Tmp.IsEmpty()) {
-                Isolate->ThrowException(TryCatch.Exception());
-            } else {
-                v8::Local<v8::Value> RetVal = Tmp.ToLocalChecked();
-                // unwrap a record set
-                QmAssert(!RetVal.IsEmpty() && RetVal->IsObject());
-                TNodeJsRecSet* JsRecSet = TNodeJsUtil::Unwrap<TNodeJsRecSet>(Nan::To<v8::Object>(RetVal).ToLocalChecked());
-                return JsRecSet->RecSet();
-            }
+            TNodeJsUtil::CheckObjEmpty(Isolate, TryCatch, Tmp);
+            v8::Local<v8::Value> RetVal = TNodeJsUtil::ToLocal(Tmp);
+            // unwrap a record set
+            QmAssert(!RetVal.IsEmpty() && RetVal->IsObject());
+            TNodeJsRecSet* JsRecSet = TNodeJsUtil::Unwrap<TNodeJsRecSet>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(RetVal)));
+            return JsRecSet->RecSet();
         }
 
         uint64 TNodeJsFuncStore::GetFirstRecId() const {
@@ -125,13 +122,10 @@ namespace TQm {
                 throw TQm::TQmExcept::New("Javascript exception triggered from TNodeJsFuncStore::GetFirstRecId, " + TStr(*Msg));
             }
 
-            if (Tmp.IsEmpty()) {
-                Isolate->ThrowException(TryCatch.Exception());
-            } else {
-                v8::Local<v8::Value> RetVal = Tmp.ToLocalChecked();
-                QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStore::GetFirstRecId: Return type expected to be number");
-                return (unsigned long long)(int64)RetVal->NumberValue(Nan::GetCurrentContext()).FromJust();
-            }
+            TNodeJsUtil::CheckObjEmpty(Isolate, TryCatch, Tmp);
+            v8::Local<v8::Value> RetVal = TNodeJsUtil::ToLocal(Tmp);
+            QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStore::GetFirstRecId: Return type expected to be number");
+            return (unsigned long long)Nan::To<int64>(RetVal).FromJust();
         }
 
         uint64 TNodeJsFuncStore::GetLastRecId() const {
@@ -149,13 +143,10 @@ namespace TQm {
                 throw TQm::TQmExcept::New("Javascript exception triggered from TNodeJsFuncStore::GetLastRecId, " + TStr(*Msg));
             }
 
-            if (Tmp.IsEmpty()) {
-                Isolate->ThrowException(TryCatch.Exception());
-            } else {
-                v8::Local<v8::Value> RetVal = Tmp.ToLocalChecked();
-                QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStore::GetLastRecId: Return type expected to be number");
-                return (unsigned long long)(int64)RetVal->NumberValue(Nan::GetCurrentContext()).FromJust();
-            }
+            TNodeJsUtil::CheckObjEmpty(Isolate, TryCatch, Tmp);
+            v8::Local<v8::Value> RetVal = TNodeJsUtil::ToLocal(Tmp);
+            QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStore::GetLastRecId: Return type expected to be number");
+            return (unsigned long long)Nan::To<int64>(RetVal).FromJust();
         }
 
         v8::Local<v8::Value> TNodeJsFuncStore::GetField(const uint64& RecId, const int& FieldId) const {
@@ -167,8 +158,8 @@ namespace TQm {
             v8::Local<v8::Object> GlobalContext = Isolate->GetCurrentContext()->Global();
 
             // wrap args
-            v8::Local<v8::Number> JsRecId = v8::Number::New(Isolate, (double)RecId);
-            v8::Local<v8::Number> JsFieldId = v8::Number::New(Isolate, (double)FieldId);
+            v8::Local<v8::Number> JsRecId = Nan::New((double)RecId);
+            v8::Local<v8::Number> JsFieldId = Nan::New((double)FieldId);
             int Argc = 2;
             v8::Local<v8::Value> Argv[2] = { JsRecId, JsFieldId };
 
@@ -179,12 +170,9 @@ namespace TQm {
                 throw TQm::TQmExcept::New("Javascript exception triggered from TNodeJsFuncStore::GetField, " + TStr(*Msg));
             }
 
-            if (Tmp.IsEmpty()) {
-                Isolate->ThrowException(TryCatch.Exception());
-            } else {
-                v8::Local<v8::Value> RetVal = Tmp.ToLocalChecked();
-                return HandleScope.Escape(RetVal);
-            }
+            TNodeJsUtil::CheckObjEmpty(Isolate, TryCatch, Tmp);
+            v8::Local<v8::Value> RetVal = TNodeJsUtil::ToLocal(Tmp);
+            return HandleScope.Escape(RetVal);
         }
 
         int TNodeJsFuncStore::GetFieldInt(const uint64& RecId, const int& FieldId) const {
@@ -192,7 +180,7 @@ namespace TQm {
             v8::HandleScope HandleScope(Isolate);
             v8::Local<v8::Value> RetVal = GetField(RecId, FieldId);
             QmAssertR(RetVal->IsInt32(), "TNodeJsFuncStore::GetField: Return type expected to be a number");
-            return RetVal->Int32Value(Nan::GetCurrentContext()).FromJust();
+            return Nan::To<int>(RetVal).FromJust();
         }
         void TNodeJsFuncStore::GetFieldIntV(const uint64& RecId, const int& FieldId, TIntV& IntV) const {
             v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -203,15 +191,15 @@ namespace TQm {
                 v8::Local<v8::Array> Array = v8::Local<v8::Array>::Cast(RetVal);
                 TIntV Res;
                 for (uint32_t ElN = 0; ElN < Array->Length(); ElN++) {
-                    v8::Local<v8::Value> ArrayVal = Array->Get(ElN);
+                    v8::Local<v8::Value> ArrayVal = TNodeJsUtil::ToLocal(Nan::Get(Array, ElN));
                     QmAssertR(ArrayVal->IsInt32(), "Field " + GetFieldNm(FieldId) + " expects array of integers");
-                    Res.Add(ArrayVal->Int32Value(Nan::GetCurrentContext()).FromJust());
+                    Res.Add(Nan::To<int>(ArrayVal).FromJust());
                 }
                 IntV = Res;
             } else {
                 // otherwise it must be GLib array (or exception)
-                QmAssertR(RetVal->IsObject() && (TNodeJsUtil::GetClass(Nan::To<v8::Object>(RetVal).ToLocalChecked()) == TNodeJsIntV::GetClassId()), "TNodeJsFuncStore::GetField: Return type not an object (expected an int vector)");
-                TNodeJsIntV* JsIntV = TNodeJsUtil::Unwrap<TNodeJsIntV>(Nan::To<v8::Object>(RetVal).ToLocalChecked());
+                QmAssertR(RetVal->IsObject() && (TNodeJsUtil::GetClass(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(RetVal))) == TNodeJsIntV::GetClassId()), "TNodeJsFuncStore::GetField: Return type not an object (expected an int vector)");
+                TNodeJsIntV* JsIntV = TNodeJsUtil::Unwrap<TNodeJsIntV>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(RetVal)));
                 IntV = JsIntV->Vec;
             }
         }
@@ -220,14 +208,14 @@ namespace TQm {
             v8::HandleScope HandleScope(Isolate);
             v8::Local<v8::Value> RetVal = GetField(RecId, FieldId);
             QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStore::GetField: Return type expected to be a number");
-            return (unsigned long long)(int64) RetVal->NumberValue(Nan::GetCurrentContext()).FromJust();
+            return (unsigned long long)Nan::To<int64>(RetVal).FromJust();
         }
         TStr TNodeJsFuncStore::GetFieldStr(const uint64& RecId, const int& FieldId) const {
             v8::Isolate* Isolate = v8::Isolate::GetCurrent();
             v8::HandleScope HandleScope(Isolate);
             v8::Local<v8::Value> RetVal = GetField(RecId, FieldId);
             QmAssertR(RetVal->IsString(), "TNodeJsFuncStore::GetField: Return type expected to be a string");
-            return TNodeJsUtil::GetStr(Nan::To<v8::String>(RetVal).ToLocalChecked());
+            return TNodeJsUtil::GetStr(TNodeJsUtil::ToLocal(Nan::To<v8::String>(RetVal)));
         }
         void TNodeJsFuncStore::GetFieldStrV(const uint64& RecId, const int& FieldId, TStrV& StrV) const {
             v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -238,15 +226,15 @@ namespace TQm {
                 v8::Local<v8::Array> Array = v8::Local<v8::Array>::Cast(RetVal);
                 TStrV Res;
                 for (uint32_t ElN = 0; ElN < Array->Length(); ElN++) {
-                    v8::Local<v8::Value> ArrayVal = Array->Get(ElN);
+                    v8::Local<v8::Value> ArrayVal = TNodeJsUtil::ToLocal(Nan::Get(Array, ElN));
                     QmAssertR(ArrayVal->IsString(), "Field " + GetFieldNm(FieldId) + " expects array of strings");
-                    Res.Add(TNodeJsUtil::GetStr(Nan::To<v8::String>(ArrayVal).ToLocalChecked()));
+                    Res.Add(TNodeJsUtil::GetStr(TNodeJsUtil::ToLocal(Nan::To<v8::String>(ArrayVal))));
                 }
                 StrV = Res;
             } else {
                 // otherwise it must be GLib array (or exception)
-                QmAssertR(RetVal->IsObject() && (TNodeJsUtil::GetClass(Nan::To<v8::Object>(RetVal).ToLocalChecked()) == TNodeJsStrV::GetClassId()), "TNodeJsFuncStore::GetField: Return type not an object (expected a string vector)");
-                TNodeJsStrV* JsStrV = TNodeJsUtil::Unwrap<TNodeJsStrV>(Nan::To<v8::Object>(RetVal).ToLocalChecked());
+                QmAssertR(RetVal->IsObject() && (TNodeJsUtil::GetClass(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(RetVal))) == TNodeJsStrV::GetClassId()), "TNodeJsFuncStore::GetField: Return type not an object (expected a string vector)");
+                TNodeJsStrV* JsStrV = TNodeJsUtil::Unwrap<TNodeJsStrV>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(RetVal)));
                 StrV = JsStrV->Vec;
             }
         }
@@ -255,14 +243,14 @@ namespace TQm {
             v8::HandleScope HandleScope(Isolate);
             v8::Local<v8::Value> RetVal = GetField(RecId, FieldId);
             QmAssertR(RetVal->IsBoolean(), "TNodeJsFuncStore::GetField: Return type expected to be a boolean");
-            return RetVal->BooleanValue(Nan::GetCurrentContext()).FromJust();
+            return  Nan::To<bool>(RetVal).FromJust();
         }
         double TNodeJsFuncStore::GetFieldFlt(const uint64& RecId, const int& FieldId) const {
             v8::Isolate* Isolate = v8::Isolate::GetCurrent();
             v8::HandleScope HandleScope(Isolate);
             v8::Local<v8::Value> RetVal = GetField(RecId, FieldId);
             QmAssertR(RetVal->IsNumber(), "TNodeJsFuncStore::GetField: Return type expected to be a number");
-            return RetVal->NumberValue(Nan::GetCurrentContext()).FromJust();
+            return Nan::To<double>(RetVal).FromJust();
         }
         TFltPr TNodeJsFuncStore::GetFieldFltPr(const uint64& RecId, const int& FieldId) const {
             v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -271,9 +259,9 @@ namespace TQm {
             QmAssertR(RetVal->IsArray(), "Field " + GetFieldNm(FieldId) + " not array");
             v8::Local<v8::Array> Array = v8::Local<v8::Array>::Cast(RetVal);
             QmAssert(Array->Length() >= 2);
-            QmAssert(Array->Get(0)->IsNumber());
-            QmAssert(Array->Get(1)->IsNumber());
-            return TFltPr(Array->Get(0)->NumberValue(Nan::GetCurrentContext()).FromJust(), Array->Get(1)->NumberValue(Nan::GetCurrentContext()).FromJust());
+            QmAssert(TNodeJsUtil::ToLocal(Nan::Get(Array, 0))->IsNumber());
+            QmAssert(TNodeJsUtil::ToLocal(Nan::Get(Array, 1))->IsNumber());
+            return TFltPr(Nan::To<double>(TNodeJsUtil::ToLocal(Nan::Get(Array, 0))).FromJust(), Nan::To<double>(TNodeJsUtil::ToLocal(Nan::Get(Array, 1))).FromJust());
         }
         void TNodeJsFuncStore::GetFieldFltV(const uint64& RecId, const int& FieldId, TFltV& FltV) const {
             v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -284,16 +272,16 @@ namespace TQm {
                 v8::Local<v8::Array> Array = v8::Local<v8::Array>::Cast(RetVal);
                 TFltV Res;
                 for (uint32_t FltN = 0; FltN < Array->Length(); FltN++) {
-                    v8::Local<v8::Value> ArrayVal = Array->Get(FltN);
+                    v8::Local<v8::Value> ArrayVal = TNodeJsUtil::ToLocal(Nan::Get(Array, FltN));
                     QmAssertR(ArrayVal->IsNumber(), "Field " + GetFieldNm(FieldId) + " expects array of numbers");
-                    const double Val = ArrayVal->NumberValue(Nan::GetCurrentContext()).FromJust();
+                    const double Val = Nan::To<double>(ArrayVal).FromJust();
                     Res.Add(Val);
                 }
                 FltV = Res;
             } else {
                 // otherwise it must be GLib array (or exception)
-                QmAssertR(RetVal->IsObject() && (TNodeJsUtil::GetClass(Nan::To<v8::Object>(RetVal).ToLocalChecked()) == TNodeJsFltV::GetClassId()), "TNodeJsFuncStore::GetField: Return type not an object (expected a vector)");
-                TNodeJsFltV* JsFltV = TNodeJsUtil::Unwrap<TNodeJsFltV>(Nan::To<v8::Object>(RetVal).ToLocalChecked());
+                QmAssertR(RetVal->IsObject() && (TNodeJsUtil::GetClass(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(RetVal))) == TNodeJsFltV::GetClassId()), "TNodeJsFuncStore::GetField: Return type not an object (expected a vector)");
+                TNodeJsFltV* JsFltV = TNodeJsUtil::Unwrap<TNodeJsFltV>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(RetVal)));
                 FltV = JsFltV->Vec;
             }
         }
@@ -315,8 +303,8 @@ namespace TQm {
             v8::Isolate* Isolate = v8::Isolate::GetCurrent();
             v8::HandleScope HandleScope(Isolate);
             v8::Local<v8::Value> RetVal = GetField(RecId, FieldId);
-            QmAssertR(RetVal->IsObject() && (TNodeJsUtil::GetClass(Nan::To<v8::Object>(RetVal).ToLocalChecked()) == TNodeJsSpVec::GetClassId()), "TNodeJsFuncStore::GetField: Return type not an object (expected a sparse vector)");
-            TNodeJsSpVec* JsSpVec = TNodeJsUtil::Unwrap<TNodeJsSpVec>(Nan::To<v8::Object>(RetVal).ToLocalChecked());
+            QmAssertR(RetVal->IsObject() && (TNodeJsUtil::GetClass(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(RetVal))) == TNodeJsSpVec::GetClassId()), "TNodeJsFuncStore::GetField: Return type not an object (expected a sparse vector)");
+            TNodeJsSpVec* JsSpVec = TNodeJsUtil::Unwrap<TNodeJsSpVec>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(RetVal)));
             SpV = JsSpVec->Vec;
         }
 
@@ -351,9 +339,9 @@ namespace TQm {
                     v8::Local<v8::Array> Array = v8::Local<v8::Array>::Cast(CallbacksObj);
                     QmAssert(Len == (int)Array->Length());
                     for (int CallbN = 0; CallbN < Len; CallbN++) {
-                        QmAssert(Array->Get(CallbN)->IsObject());
+                        QmAssert(TNodeJsUtil::ToLocal(Nan::Get(Array, CallbN))->IsObject());
                         // create new store from the schema
-                        PStore Store = new TNodeJsFuncStore(Base, StoreId, StoreNm, StoreSchema, Array->Get(CallbN));
+                        PStore Store = new TNodeJsFuncStore(Base, StoreId, StoreNm, StoreSchema, TNodeJsUtil::ToLocal(Nan::Get(Array, CallbN)));
                         // add store to base
                         Base->AddStore(Store);
                         // remember we create the store

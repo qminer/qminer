@@ -3,7 +3,7 @@
   "version": "9.3.0",
   "description": "A C++ based data analytics platform for processing large-scale real-time streams containing structured and unstructured data",
   "engines": {
-    "node": ">=4"
+    "node": ">=8"
   },
   "license": "BSD-2-Clause-FreeBSD",
   "author": "Blaz Fortuna <blaz@blazfortuna.com>",
@@ -103,12 +103,14 @@
     "aws-sdk": "^2.767.0",
     "jsdoc": "^3.6.6",
     "jsdoc-baseline": "^0.1.5",
-    "mocha": "^8.1.3",
+    "mocha": "^6.2.3",
     "mustache": "^4.0.1"
   },
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build",
-    "test": "cd test && cd nodejs && mocha *.js --timeout 30000 && cd .. && cd .. && node ./test/cpp/run_tests.js"
+    "test:nodejs": "cd test && cd nodejs && mocha *.js --timeout 30000",
+    "test:cpp": "node ./test/cpp/run_tests.js",
+    "test": "npm run test:nodejs && npm run test:cpp"
   },
   "binary": {
     "module_name": "qm",

@@ -24,7 +24,6 @@ describe('Testing base with strict names ...', function () {
         });
     });
     afterEach(function () {
-        console.log('Closing base (strict) ...');
         if (!base.isClosed()) base.close();
     });
 
@@ -91,7 +90,6 @@ describe('Testing base without strict names ...', function () {
     var base = null;
 
     beforeEach(function () {
-        console.log('Creating base (not strict) ...');
         base = new qm.Base({
             mode: 'createClean',
             dbPath: DB_PATH,
@@ -99,7 +97,6 @@ describe('Testing base without strict names ...', function () {
         });
     });
     afterEach(function () {
-        console.log('Closing base (not strict) ...');
         if (!base.isClosed()) base.close();
     });
 

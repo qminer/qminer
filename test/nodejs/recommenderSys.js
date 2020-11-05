@@ -23,25 +23,25 @@ describe("RecommenderSys tests", function () {
         it("should create the object with the default parameters", function () {
             var recSys = new analytics.RecommenderSys();
             var params = recSys.getParams();
-            assert.equal(params.iter, 10000);
-            assert.equal(params.tol, 1e-3);
-            assert.equal(params.k, 2);
-            assert.equal(params.verbose, false);
+            assert.strictEqual(params.iter, 10000);
+            assert.strictEqual(params.tol, 1e-3);
+            assert.strictEqual(params.k, 2);
+            assert.strictEqual(params.verbose, false);
         })
         it("should create the object with the given parameters", function () {
             var recSys = new analytics.RecommenderSys({ iter: 100, tol: 1e-3, k: 20, verbose: true });
             var params = recSys.getParams();
-            assert.equal(params.iter, 100);
+            assert.strictEqual(params.iter, 100);
             assert.eqtol(params.tol, 1e-3);
-            assert.equal(params.k, 20);
-            assert.equal(params.verbose, true);
+            assert.strictEqual(params.k, 20);
+            assert.strictEqual(params.verbose, true);
         })
         it("should create the object with the given parameters, even when the given parameters doesn't have the correct key-values", function () {
             var recSys = new analytics.RecommenderSys({ fruit: 100, blouse: 20, house: true });
             var params = recSys.getParams();
-            assert.equal(params.iter, 10000);
-            assert.equal(params.k, 2);
-            assert.equal(params.verbose, false);
+            assert.strictEqual(params.iter, 10000);
+            assert.strictEqual(params.k, 2);
+            assert.strictEqual(params.verbose, false);
         })
     });
 
@@ -55,10 +55,10 @@ describe("RecommenderSys tests", function () {
         it("should return the parameters of the object", function () {
             var recSys = new analytics.RecommenderSys();
             var params = recSys.getParams();
-            assert.equal(params.iter, 10000);
+            assert.strictEqual(params.iter, 10000);
             assert.eqtol(params.tol, 1e-3);
-            assert.equal(params.k, 2);
-            assert.equal(params.verbose, false);
+            assert.strictEqual(params.k, 2);
+            assert.strictEqual(params.verbose, false);
         })
         it("should throw an exception if parameters are given to the function", function () {
             var recSys = new analytics.RecommenderSys({ iter: 100, k: 20, verbose: true });
@@ -71,10 +71,10 @@ describe("RecommenderSys tests", function () {
             var params = recSys.getParams();
             var recSys2 = new analytics.RecommenderSys(params);
             var params2 = recSys2.getParams();
-            assert.equal(params.iter, params2.iter);
-            assert.equal(params.tol, params2.tol);
-            assert.equal(params.k, params2.k);
-            assert.equal(params.verbose, params.verbose);
+            assert.strictEqual(params.iter, params2.iter);
+            assert.strictEqual(params.tol, params2.tol);
+            assert.strictEqual(params.k, params2.k);
+            assert.strictEqual(params.verbose, params.verbose);
         })
     });
 
@@ -91,10 +91,10 @@ describe("RecommenderSys tests", function () {
             var params = { iter: 100, k: 20, tol: 1e-6, verbose: true };
             recSys.setParams(params);
             var params2 = recSys.getParams();
-            assert.equal(params.iter, params2.iter);
-            assert.equal(params.k, params2.k);
-            assert.equal(params.tol, params2.tol);
-            assert.equal(params.verbose, params2.verbose);
+            assert.strictEqual(params.iter, params2.iter);
+            assert.strictEqual(params.k, params2.k);
+            assert.strictEqual(params.tol, params2.tol);
+            assert.strictEqual(params.verbose, params2.verbose);
         })
         it("should throw an exception if no parameter is given", function () {
             var recSys = new analytics.RecommenderSys();
@@ -117,20 +117,20 @@ describe("RecommenderSys tests", function () {
             var mat = new la.Matrix([[1, 0.5, 0, 1], [0, 3, 0, 0], [0, 0.5, 0, 3], [0, 0, 0.4, 1]]);
             recSys.fit(mat);
             var model = recSys.getModel();
-            assert.equal(model.U.rows, 4);
-            assert.equal(model.U.cols, 2);
-            assert.equal(model.V.rows, 2);
-            assert.equal(model.V.cols, 4);
+            assert.strictEqual(model.U.rows, 4);
+            assert.strictEqual(model.U.cols, 2);
+            assert.strictEqual(model.V.rows, 2);
+            assert.strictEqual(model.V.cols, 4);
         })
         it('should fit the model, sparse matrix', function () {
             var recSys = new analytics.RecommenderSys();
             var mat = new la.SparseMatrix([[[0, 1]], [[0, 5], [1, 3], [2, 5]], [[3, 4]], [[0, 1], [2, 3], [3, 1]]]);
             recSys.fit(mat);
             var model = recSys.getModel();
-            assert.equal(model.U.rows, 4);
-            assert.equal(model.U.cols, 2);
-            assert.equal(model.V.rows, 2);
-            assert.equal(model.V.cols, 4);
+            assert.strictEqual(model.U.rows, 4);
+            assert.strictEqual(model.U.cols, 2);
+            assert.strictEqual(model.V.rows, 2);
+            assert.strictEqual(model.V.cols, 4);
         })
         it("should throw an exception, if the parameter k is greater of the min dimension of matrix, dense matrix", function () {
             var recSys = new analytics.RecommenderSys({ k: 10 });
@@ -158,30 +158,30 @@ describe("RecommenderSys tests", function () {
         it("should return an empty matrices of the model", function () {
             var recSys = new analytics.RecommenderSys();
             var model = recSys.getModel();
-            assert.equal(model.U.rows, 0);
-            assert.equal(model.U.cols, 0);
-            assert.equal(model.V.rows, 0);
-            assert.equal(model.V.cols, 0);
+            assert.strictEqual(model.U.rows, 0);
+            assert.strictEqual(model.U.cols, 0);
+            assert.strictEqual(model.V.rows, 0);
+            assert.strictEqual(model.V.cols, 0);
         })
         it("should return the model of the fitted data, dense matrix", function () {
             var recSys = new analytics.RecommenderSys();
             var mat = new la.Matrix([[1, 0.5, 0, 1], [0, 3, 0, 0], [0, 0.5, 0, 3], [0, 0, 0.4, 1]]);
             recSys.fit(mat);
             var model = recSys.getModel();
-            assert.equal(model.U.rows, 4);
-            assert.equal(model.U.cols, 2);
-            assert.equal(model.V.rows, 2);
-            assert.equal(model.V.cols, 4);
+            assert.strictEqual(model.U.rows, 4);
+            assert.strictEqual(model.U.cols, 2);
+            assert.strictEqual(model.V.rows, 2);
+            assert.strictEqual(model.V.cols, 4);
         })
         it("should return the model of the fitted data, sparse matrix", function () {
             var recSys = new analytics.RecommenderSys();
             var mat = new la.SparseMatrix([[[0, 1]], [[0, 5], [1, 3], [2, 5]], [[3, 4]], [[0, 1], [2, 3], [3, 1]]]);
             recSys.fit(mat);
             var model = recSys.getModel();
-            assert.equal(model.U.rows, 4);
-            assert.equal(model.U.cols, 2);
-            assert.equal(model.V.rows, 2);
-            assert.equal(model.V.cols, 4);
+            assert.strictEqual(model.U.rows, 4);
+            assert.strictEqual(model.U.cols, 2);
+            assert.strictEqual(model.V.rows, 2);
+            assert.strictEqual(model.V.cols, 4);
         })
         it("should throw an exception, if some parameters are given to the function", function () {
             var recSys = new analytics.RecommenderSys();
@@ -202,10 +202,10 @@ describe("RecommenderSys tests", function () {
             var recSys2 = new analytics.RecommenderSys(require('../../index.js').fs.openRead('recommenderSys_test.bin'));
             var params2 = recSys2.getParams();
             var model2 = recSys2.getModel();
-            assert.equal(params.iter, params2.iter);
-            assert.equal(params.k, params2.k);
-            assert.equal(params.tol, params2.tol);
-            assert.equal(params.verbose, params2.verbose);
+            assert.strictEqual(params.iter, params2.iter);
+            assert.strictEqual(params.k, params2.k);
+            assert.strictEqual(params.tol, params2.tol);
+            assert.strictEqual(params.verbose, params2.verbose);
             assert.eqtol(model.U.minus(model2.U).frob(), 0);
             assert.eqtol(model.V.minus(model2.V).frob(), 0);
         });

@@ -2924,7 +2924,7 @@ public:
     TQm::PStoreIter Iter;
     TNodeJsRec* JsRec;
     // placeholder for last object
-    v8::Persistent<v8::Object> RecObj;
+    Nan::Global<v8::Object> RecObj;
     // Object that knows if Base is valid
     PNodeJsBaseWatcher Watcher;
 
@@ -4119,7 +4119,7 @@ public:
 private:
     static TQm::PFtrExt NewFtrExtFromFunc(const TWPt<TQm::TBase>& Base, v8::Local<v8::Object>& Settings, v8::Isolate* Isolate) {
         PJsonVal ParamVal = TNodeJsUtil::GetObjProps(Settings);
-        v8::Local<v8::Function> Func = v8::Local<v8::Function>::Cast(Settings->Get(v8::String::NewFromUtf8(Isolate, "fun")));
+        v8::Local<v8::Function> Func = v8::Local<v8::Function>::Cast(TNodeJsUtil::ToLocal(Nan::Get(Settings, TNodeJsUtil::ToLocal(Nan::New("fun")))));
         return TNodeJsFuncFtrExt::NewFtrExt(Base, ParamVal, Func, Isolate);
     }
 };

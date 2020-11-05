@@ -41,7 +41,7 @@ describe('Simple search with id as filter parameter', function () {
 			// TODO this search is not supported
 
 			//var result = base.search({ $from: 'TestStore', $id: { $gt: 5}});
-            //assert.equal(result.length, 94);
+            //assert.strictEqual(result.length, 94);
         })
     });
 });

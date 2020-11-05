@@ -27,7 +27,8 @@ public:
     static v8::Local<v8::Value> WrapKey(const TStr& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope EscapableHandleScope(Isolate);
-        return EscapableHandleScope.Escape(v8::String::NewFromUtf8(Isolate, Val.CStr()));
+        v8::MaybeLocal<v8::String> TmpString = TNodeJsUtil::ToLocal(Nan::New(Val.CStr()));
+        return EscapableHandleScope.Escape(TNodeJsUtil::ToLocal(TmpString));
     }
     static TInt GetArgDat(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
         // TJsBase is arbitrary here
@@ -50,7 +51,8 @@ public:
     static v8::Local<v8::Value> WrapKey(const TStr& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope EscapableHandleScope(Isolate);
-        return EscapableHandleScope.Escape(v8::String::NewFromUtf8(Isolate, Val.CStr()));
+        v8::MaybeLocal<v8::String> TmpString = TNodeJsUtil::ToLocal(Nan::New(Val.CStr()));
+        return EscapableHandleScope.Escape(TNodeJsUtil::ToLocal(TmpString));
     }
     static TFlt GetArgDat(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
         // TJsBase is arbitrary here
@@ -59,7 +61,7 @@ public:
     static v8::Local<v8::Value> WrapDat(const double& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope EscapableHandleScope(Isolate);
-        return EscapableHandleScope.Escape(v8::Number::New(Isolate, Val));
+        return EscapableHandleScope.Escape(Nan::New(Val));
     }
 };
 
@@ -73,7 +75,8 @@ public:
     static v8::Local<v8::Value> WrapKey(const TStr& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope EscapableHandleScope(Isolate);
-        return EscapableHandleScope.Escape(v8::String::NewFromUtf8(Isolate, Val.CStr()));
+        v8::MaybeLocal<v8::String> TmpString = TNodeJsUtil::ToLocal(Nan::New(Val.CStr()));
+        return EscapableHandleScope.Escape(TNodeJsUtil::ToLocal(TmpString));
     }
     static TStr GetArgDat(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN) {
         // TJsBase is arbitrary here
@@ -82,7 +85,8 @@ public:
     static v8::Local<v8::Value> WrapDat(const TStr& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope EscapableHandleScope(Isolate);
-        return EscapableHandleScope.Escape(v8::String::NewFromUtf8(Isolate, Val.CStr()));
+        v8::MaybeLocal<v8::String> TmpString = TNodeJsUtil::ToLocal(Nan::New(Val.CStr()));
+        return EscapableHandleScope.Escape(TNodeJsUtil::ToLocal(TmpString));
     }
 };
 
@@ -128,7 +132,7 @@ public:
     static v8::Local<v8::Value> WrapDat(const double& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope EscapableHandleScope(Isolate);
-        return EscapableHandleScope.Escape(v8::Number::New(Isolate, Val));
+        return EscapableHandleScope.Escape(Nan::New(Val));
     }
 };
 
@@ -151,7 +155,8 @@ public:
     static v8::Local<v8::Value> WrapDat(const TStr& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope EscapableHandleScope(Isolate);
-        return EscapableHandleScope.Escape(v8::String::NewFromUtf8(Isolate, Val.CStr()));
+        v8::MaybeLocal<v8::String> TmpString = TNodeJsUtil::ToLocal(Nan::New(Val.CStr()));
+        return EscapableHandleScope.Escape(TNodeJsUtil::ToLocal(TmpString));
     }
 };
 
@@ -451,7 +456,7 @@ void TNodeJsHash<TKey, TDat, TAux>::Init(v8::Local<v8::Object> exports) {
     EAssertR(!Name.Empty(), "Could not resolve class ID!");
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, New);
-    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, Name.CStr()));
+    tpl->SetClassName(TNodeJsUtil::ToLocal(Nan::New(Name.CStr())));
     // ObjectWrap uses the first internal field to store the wrapped pointer
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -467,13 +472,14 @@ void TNodeJsHash<TKey, TDat, TAux>::Init(v8::Local<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "sortKey", _sortKey);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "sortDat", _sortDat);
 
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
+    tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("length")), _length);
 
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript
-    constructor.Reset(Isolate, tpl->GetFunction(context).ToLocalChecked());
-    exports->Set(v8::String::NewFromUtf8(Isolate, Name.CStr()),
-        tpl->GetFunction(context).ToLocalChecked());
+    constructor.Reset(Isolate, TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
+
+    Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(Name.CStr())),
+        TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
 }
 
 template<class TKey, class TDat, class TAux>
@@ -485,7 +491,7 @@ void TNodeJsHash<TKey, TDat, TAux>::New(const v8::FunctionCallbackInfo<v8::Value
 
     if (Args.Length() > 0 && (Args[0]->IsExternal() || Args[0]->IsString())) {
     	PSIn SIn = Args[0]->IsExternal() ?
-    			ObjectWrap::Unwrap<TNodeJsFIn>(Nan::To<v8::Object>(Args[0]).ToLocalChecked())->SIn :
+    			ObjectWrap::Unwrap<TNodeJsFIn>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])))->SIn :
 				TFIn::New(TNodeJsUtil::GetArgStr(Args, 0));
 
     	Args.GetReturnValue().Set(WrapInst(Args.Holder(), *SIn));
@@ -506,7 +512,7 @@ void TNodeJsHash<TKey, TDat, TAux>::get(const v8::FunctionCallbackInfo<v8::Value
     if (JsMap->Map.IsKeyGetDat(Key, Dat)) {
         Args.GetReturnValue().Set(TAux::WrapDat(Dat));
     } else {
-        Args.GetReturnValue().Set(v8::Null(Isolate));
+        Args.GetReturnValue().Set(Nan::Null());
     }
 }
 
@@ -531,7 +537,7 @@ void TNodeJsHash<TKey, TDat, TAux>::hasKey(const v8::FunctionCallbackInfo<v8::Va
     EAssertR(Args.Length() == 1, "Expected a key as the argument.");
     TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Args.Holder());
     TKey Key = TAux::GetArgKey(Args, 0);
-    Args.GetReturnValue().Set(v8::Boolean::New(Isolate, JsMap->Map.IsKey(Key)));
+    Args.GetReturnValue().Set(Nan::New(JsMap->Map.IsKey(Key)));
 }
 
 template<class TKey, class TDat, class TAux>
@@ -587,7 +593,7 @@ void TNodeJsHash<TKey, TDat, TAux>::load(const v8::FunctionCallbackInfo<v8::Valu
     EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
         "Expected a TFIn object as the argument.");
     TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Args.Holder());
-    TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
+    TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
     PSIn SIn = JsFIn->SIn;
     JsMap->Map.Load(*SIn);
     Args.GetReturnValue().Set(Args.Holder());
@@ -601,7 +607,7 @@ void TNodeJsHash<TKey, TDat, TAux>::save(const v8::FunctionCallbackInfo<v8::Valu
     EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
         "Expected a TFOut object as the argument.");
     TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Args.Holder());
-    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Nan::To<v8::Object>(Args[0]).ToLocalChecked());
+    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
     EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     PSOut SOut = JsFOut->SOut;
     JsMap->Map.Save(*SOut);

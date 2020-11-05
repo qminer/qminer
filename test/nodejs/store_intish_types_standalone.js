@@ -59,21 +59,21 @@ function PerformTest(field_type, min, max) {
 					vals.push(val);
 				}
 				var rs = db.base.store(store_name).allRecords;
-				// assert.equal(rs.length, records);
+				// assert.strictEqual(rs.length, records);
 				// for (var i = 0; i < rs.length; i++) {
 					// var rec = rs[i];
 					// console.log("Expecting " + vals[i]);
-					// assert.equal(rec.val, vals[i]);
+					// assert.strictEqual(rec.val, vals[i]);
 				// }
 				// make some queries
 				var result = db.base.search({ $from: store_name, val: { $gt: min} });
-				assert.equal(result.length, records);
+				assert.strictEqual(result.length, records);
 				result = db.base.search({ $from: store_name, val: { $gt: max} });
-				assert.equal(result.length, 0);
+				assert.strictEqual(result.length, 0);
 				result = db.base.search({ $from: store_name, val: { $lt: min} });
-				assert.equal(result.length, 1);
+				assert.strictEqual(result.length, 1);
 				result = db.base.search({ $from: store_name, val: { $lt: max} });
-				assert.equal(result.length, records);
+				assert.strictEqual(result.length, records);
 			} finally {
 				db.close();
 			}

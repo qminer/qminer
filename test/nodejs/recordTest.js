@@ -57,48 +57,48 @@ describe('Record Tests', function () {
             Tm: 1433116800000
         };
         // check addition
-        assert.equal(RecordTest.push(rec), 0, "RecordTest.add");
+        assert.strictEqual(RecordTest.push(rec), 0, "RecordTest.add");
         // check getters
         var recByRef = RecordTest[0];
         assert(recByRef != null, "RecordTest[0]");
-        assert.equal(recByRef.Int, 123, "recByRef.Int");
-        assert.equal(recByRef.UInt64, 123, "recByRef.UInt64");
-        assert.equal(recByRef.Str, "test", "recByRef.Str");
-        assert.equal(recByRef.Bool, false, "recByRef.Bool");
-        assert.equal(recByRef.Flt, 1.23, "recByRef.Flt");
-        assert.equal(recByRef.Tm.getTime(), 1433116800000, "recByRef.Tm");
+        assert.strictEqual(recByRef.Int, 123, "recByRef.Int");
+        assert.strictEqual(recByRef.UInt64, 123, "recByRef.UInt64");
+        assert.strictEqual(recByRef.Str, "test", "recByRef.Str");
+        assert.strictEqual(recByRef.Bool, false, "recByRef.Bool");
+        assert.strictEqual(recByRef.Flt, 1.23, "recByRef.Flt");
+        assert.strictEqual(recByRef.Tm.getTime(), 1433116800000, "recByRef.Tm");
 
         //recByRef
 
         // check setters
         recByRef.Int = 124;
-        assert.equal(recByRef.Int, 124, "recByRef.Int");
+        assert.strictEqual(recByRef.Int, 124, "recByRef.Int");
         recByRef.UInt64 = 124;
-        assert.equal(recByRef.UInt64, 124, "recByRef.UInt64");
+        assert.strictEqual(recByRef.UInt64, 124, "recByRef.UInt64");
         recByRef.Str = "tset";
-        assert.equal(recByRef.Str, "tset", "recByRef.Str");
+        assert.strictEqual(recByRef.Str, "tset", "recByRef.Str");
         recByRef.Bool = true;
-        assert.equal(recByRef.Bool, true, "recByRef.Bool");
+        assert.strictEqual(recByRef.Bool, true, "recByRef.Bool");
         recByRef.Flt = 1.24;
-        assert.equal(recByRef.Flt, 1.24, "recByRef.Flt");
+        assert.strictEqual(recByRef.Flt, 1.24, "recByRef.Flt");
         recByRef.Tm = "2015-06-01T00:00:00Z";
-        assert.equal(recByRef.Tm.getTime(), 1433116800000, "recByRef.Tm");
+        assert.strictEqual(recByRef.Tm.getTime(), 1433116800000, "recByRef.Tm");
         recByRef.Tm = 1433116800000 + 5 * 60 * 1000; // +5 min
-        assert.equal(recByRef.Tm.getTime(), 1433116800000 + 5 * 60 * 1000, "recByRef.Tm");
+        assert.strictEqual(recByRef.Tm.getTime(), 1433116800000 + 5 * 60 * 1000, "recByRef.Tm");
 
         // check by value
         var recByVal = RecordTest.newRecord(rec);
         assert(recByVal != null, "RecordTest.newRec(rec)");
-        assert.equal(recByVal.Int, 123, "recByVal.Int");
-        assert.equal(recByVal.UInt64, 123, "recByVal.UInt64");
-        assert.equal(recByVal.Str, "test", "recByVal.Str");
+        assert.strictEqual(recByVal.Int, 123, "recByVal.Int");
+        assert.strictEqual(recByVal.UInt64, 123, "recByVal.UInt64");
+        assert.strictEqual(recByVal.Str, "test", "recByVal.Str");
         assert(recByVal.StrV != null, "recByVal.StrV");
 
         if (verbose) {
             console.log("Record", JSON.stringify(recByVal.StrV));
         }
-        assert.equal(recByVal.Bool, false, "recByVal.Bool");
-        assert.equal(recByVal.Flt, 1.23, "recByVal.Flt");
+        assert.strictEqual(recByVal.Bool, false, "recByVal.Bool");
+        assert.strictEqual(recByVal.Flt, 1.23, "recByVal.Flt");
 
         if (verbose) {
             console.log("Rec test end");
