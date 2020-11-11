@@ -1,31 +1,29 @@
-language: objective-c
-osx_image: xcode6.4
+language: node_js
+
+node_js:
+  - "8"
+  - "9"
+  - "10"
+  - "11"
+  - "12"
+  - "13"
+  - "14"
+
+os: osx
+osx_image: xcode10.1
 
 env:
   global:
    - secure: "jnpbDDHcg2Llnqr+eRrpGS+Bi+Xzcs3XJM+go9kFjM/oVVaB5etCJ3pNyD6zZNJRR00xub7XMODtNYGnJAh5b9Z73zN5QhoB4+czijUyibpBGzhQ+V4kEmycz+9ByDTmpH9rJKPB+kNlGU4htUrwSpgr/mUkymqfRgkaoZSVkAo="
    - secure: "dBebU6FnEv3z/ht9ImWUgOGR5acvbzqihuQ/l57dJiblWYl3OWGG+1z3bw+doIhTcPp3JmgeznapN/Cv6cPGx1cuoGQrcFQrWearikzz7zms0ZJr9klNjI2BYEo/wT9B7wB4ubsjuZUXvc203QGFIsIC9qx1+ByeFb1cen7IUIE="
-  matrix:
-   - export NODE_VERSION="6"
-   - export NODE_VERSION="7"
-   - export NODE_VERSION="8"
-   - export NODE_VERSION="9"
-   - export NODE_VERSION="10"
-   
+
 before_install:
-  - CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang
-  - clang -v
-  - git clone https://github.com/creationix/nvm.git ./.nvm
-  - source ./.nvm/nvm.sh
-  - nvm install $NODE_VERSION
-  - nvm use $NODE_VERSION
   # get commit message
   - COMMIT_MESSAGE=$(git show -s --pretty=oneline $TRAVIS_COMMIT | tr -d '\n')
   # figure out if we should publish
   - PUBLISH_BINARY=false
   # if we put [publish binary] in the commit message
   - if test "${COMMIT_MESSAGE#*'[publish binary]'}" != "$COMMIT_MESSAGE"; then PUBLISH_BINARY=true; fi;
-  - npm install -g npm@5.3.0
 
 install:
   - npm install --build-from-source --verbose
@@ -33,13 +31,14 @@ install:
 script:
   - echo status pub && echo $PUBLISH_BINARY && echo $TRAVIS_REPO_SLUG && echo $TRAVIS_PULL_REQUEST
   - if [[ $PUBLISH_BINARY == true ]] && [ "$TRAVIS_REPO_SLUG" = "qminer/qminer" ] && [[ $TRAVIS_PULL_REQUEST == false ]]; then echo publishing && ./node_modules/.bin/node-pre-gyp package unpublish publish; fi
-  - npm install -g mocha
+  - npm install -g mocha@6.2.3
   - npm install -g mustache
+  - echo "module.exports = require('../index');" > ./node_modules/qminer.js
   - ./tools/mac_genExampleTests.sh
   - ./test/nodejs/mac_test.sh
 
 notifications:
-  email:  
+  email:
   - blaz.fortuna@ijs.si
   - jan.rupnik@ijs.si
   - viktor@carvic.si
