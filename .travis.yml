@@ -1,30 +1,38 @@
-sudo: false
-
 git:
   depth: 10
+
+os: linux
+dist: trusty
 
 language: node_js
 
 node_js:
-  - "6"
-  - "7"
   - "8"
   - "9"
   - "10"
+  - "11"
+  - "12"
+  - "13"
+  - "14"
 
 addons:
   apt:
-    sources: [ 'ubuntu-toolchain-r-test', 'llvm-toolchain-precise-3.6' ]
-    packages: [ 'clang-3.6', 'gcc-4.8', 'g++-4.8', 'gcc-4.8-multilib', 'g++-4.8-multilib', 'libc6-dev-i386', 'linux-libc-dev:i386' ]
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - gcc-7
+      - g++-7
+      - gcc-7-multilib
+      - g++-7-multilib
+      - libc6-dev-i386
+      - linux-libc-dev:i386
 
 env:
   global:
    - secure: "jnpbDDHcg2Llnqr+eRrpGS+Bi+Xzcs3XJM+go9kFjM/oVVaB5etCJ3pNyD6zZNJRR00xub7XMODtNYGnJAh5b9Z73zN5QhoB4+czijUyibpBGzhQ+V4kEmycz+9ByDTmpH9rJKPB+kNlGU4htUrwSpgr/mUkymqfRgkaoZSVkAo="
    - secure: "dBebU6FnEv3z/ht9ImWUgOGR5acvbzqihuQ/l57dJiblWYl3OWGG+1z3bw+doIhTcPp3JmgeznapN/Cv6cPGx1cuoGQrcFQrWearikzz7zms0ZJr9klNjI2BYEo/wT9B7wB4ubsjuZUXvc203QGFIsIC9qx1+ByeFb1cen7IUIE="
-  matrix:
-   - CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang NPMOPT=--clang=1
-   - CXXFLAGS=-std=c++0x CXX=clang++-3.6 CC=clang NPMOPT=--clang=1 QMDEBUG=--debug
-   - CXXFLAGS=-std=c++0x CC=gcc-4.8 CXX=g++-4.8
+  jobs:
+   - CXXFLAGS=-std=c++0x CC=gcc-7 CXX=g++-7
 
 before_install:
   # get commit message
@@ -34,24 +42,24 @@ before_install:
   - TEST_PUBLISH_BINARY=false
   # if we put [publish binary] in the commit message
   - if test "${COMMIT_MESSAGE#*'[publish binary]'}" != "$COMMIT_MESSAGE"; then PUBLISH_BINARY=true; fi;
-  - npm install -g npm@5.3.0
 
 install:
   - npm install --build-from-source $NPMOPT $QMDEBUG
 
 script:
-  - if [ "$CXX" = "g++-4.8" ] ; then echo gpp ok ; fi
+  - if [ "$CXX" = "g++-7" ] ; then echo gpp ok ; fi
   - echo status pub && echo $PUBLISH_BINARY && echo $TRAVIS_REPO_SLUG && echo $TRAVIS_PULL_REQUEST
   # publishing will work from qminer/qminer only!
-  - if [ "$CXX" = "g++-4.8" ] && [[ $PUBLISH_BINARY == true ]] && [ "$TRAVIS_REPO_SLUG" = "qminer/qminer" ] && [[ $TRAVIS_PULL_REQUEST == false ]]; then echo publishing && ./node_modules/.bin/node-pre-gyp package unpublish publish; fi
-  - npm install -g mocha
+  - if [ "$CXX" = "g++-7" ] && [[ $PUBLISH_BINARY == true ]] && [ "$TRAVIS_REPO_SLUG" = "qminer/qminer" ] && [[ $TRAVIS_PULL_REQUEST == false ]]; then echo publishing && ./node_modules/.bin/node-pre-gyp package unpublish publish; fi
+  - npm install -g mocha@6.2.3
   - npm install -g mustache
-  - ./tools/genExampleTests.sh
-  - ./test/nodejs/test.sh
-  - if [ "$CXX" = "g++-4.8" ] && [[ $PUBLISH_BINARY == true ]] && [ "$TRAVIS_REPO_SLUG" = "qminer/qminer" ] && [[ $TRAVIS_PULL_REQUEST == false ]]; then echo "publishing 32bit" && ./tools/publish32.sh; fi
-os: linux
+  - echo "module.exports = require('../index');" > ./node_modules/qminer.js
+  - ./tools/genExampleTests.sh;
+  - npm test;
+  - if [ "$CXX" = "g++-7" ] && [[ $PUBLISH_BINARY == true ]] && [ "$TRAVIS_REPO_SLUG" = "qminer/qminer" ] && [[ $TRAVIS_PULL_REQUEST == false ]]; then echo "publishing 32bit" && ./tools/publish32.sh; fi
+
 notifications:
-  email:  
+  email:
   - blaz.fortuna@ijs.si
   - jan.rupnik@ijs.si
   - viktor@carvic.si
