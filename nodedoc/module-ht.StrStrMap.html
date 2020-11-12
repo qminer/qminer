@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.1</a>
       </div>
     </div>
   </nav>
@@ -24,7 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-ht.html">ht</a>.<wbr></small><span class="symbol-name">StrStrMap</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-ht.html">ht</a>.<wbr></small><span class="symbol-name">StrStrMap</span></h1>
             <p class="source-link">Source: <a href="htdoc.js.html#source-line-46">htdoc.<wbr>js:46</a></p>
             <div class="symbol-classdesc">
               <p>Used for storing key/data pairs, wraps an efficient C++ implementation.</p>
@@ -105,12 +106,12 @@
             <p>String-string hashmap.</p>
             <section>
               <h3>
-            Example
-        </h3>
+                Example
+              </h3>
               <div>
                 <pre class="prettyprint"><code>// create a new hashtable
-ht = require(&#x27;qminer&#x27;).ht;
-var h = new ht.StrStrMap();
+ht &#x3D; require(&#x27;qminer&#x27;).ht;
+var h &#x3D; new ht.StrStrMap();
 // Adding two key/dat pairs
 h.put(&#x27;foo&#x27;, &#x27;bar&#x27;);
 h.put(&#x27;dog&#x27;, &#x27;tisa&#x27;);
@@ -119,13 +120,13 @@ h.hasKey(&#x27;foo&#x27;); // returns true
 h.get(&#x27;dog&#x27;); // returns &#x27;tisa&#x27;
 h.key(1); // returns &#x27;dog&#x27;
 h.dat(1); // returns &#x27;tisa&#x27;
-h.length; // returns 2	
+h.length; // returns 2
 // Saving and loading:
-var fs = require(&#x27;qminer&#x27;).fs;
-fout = fs.openWrite(&#x27;map.dat&#x27;); // open write stream
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+fout &#x3D; fs.openWrite(&#x27;map.dat&#x27;); // open write stream
 h.save(fout).close(); // save and close write stream
-var h2 = new ht.StrStrMap(); // new empty table
-var fin = fs.openRead(&#x27;map.dat&#x27;); // open read stream
+var h2 &#x3D; new ht.StrStrMap(); // new empty table
+var fin &#x3D; fs.openRead(&#x27;map.dat&#x27;); // open read stream
 h2.load(fin); // load</code></pre>
               </div>
             </section>
@@ -139,16 +140,16 @@ h2.load(fin); // load</code></pre>
               <p>Number of key/dat pairs. Type <code>number</code>.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// create a new hashtable
-ht = require(&#x27;qminer&#x27;).ht;
-var h = new ht.StrStrMap();
+ht &#x3D; require(&#x27;qminer&#x27;).ht;
+var h &#x3D; new ht.StrStrMap();
 // Adding two key/dat pairs
 h.put(&#x27;foo&#x27;, &#x27;bar&#x27;);
 // get the number of key/dat pairs
-var length = h.length; // returns 1</code></pre>
+var length &#x3D; h.length; // returns 1</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -161,25 +162,25 @@ var length = h.length; // returns 1</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>string</code>&nbsp;desc - Returns class description</p>
+                  <p><code>string</code>B desc - Returns class description</p>
                 </dd>
               </dl>
               <h3 id="dat"><span class="symbol-name">dat</span><span class="signature"><span class="signature-params">(n)</span>&nbsp;&rarr; <span class="signature-returns"> string</span></span></h3>
               <p>Returns n-th dat.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var qm = require(&#x27;qminer&#x27;);
-var ht = qm.ht;
+var qm &#x3D; require(&#x27;qminer&#x27;);
+var ht &#x3D; qm.ht;
 // create a new hashtable
-var h = new ht.StrStrMap();
+var h &#x3D; new ht.StrStrMap();
 // add a key/dat pair
 h.put(&#x27;foo&#x27;, &#x27;bar&#x27;);
 // get the first dat
-var key = h.key(0); // returns &#x27;bar&#x27;</code></pre>
+var key &#x3D; h.key(0); // returns &#x27;bar&#x27;</code></pre>
                 </div>
               </section>
               <section>
@@ -214,25 +215,25 @@ var key = h.key(0); // returns &#x27;bar&#x27;</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>string</code>&nbsp;The n-th data value.</p>
+                  <p><code>string</code>B The n-th data value.</p>
                 </dd>
               </dl>
               <h3 id="get"><span class="symbol-name">get</span><span class="signature"><span class="signature-params">(key)</span>&nbsp;&rarr; <span class="signature-returns"> string</span></span></h3>
               <p>Returns dat given key.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var qm = require(&#x27;qminer&#x27;);
-var ht = qm.ht;
+var qm &#x3D; require(&#x27;qminer&#x27;);
+var ht &#x3D; qm.ht;
 // create a new hashtable
-var h = new ht.StrStrMap();
+var h &#x3D; new ht.StrStrMap();
 // add a key/dat pair
 h.put(&#x27;foo&#x27;, &#x27;bar&#x27;);
 // get the newly added data
-var val = h.get(&#x27;foo&#x27;); // returns &#x27;bar&#x27;</code></pre>
+var val &#x3D; h.get(&#x27;foo&#x27;); // returns &#x27;bar&#x27;</code></pre>
                 </div>
               </section>
               <section>
@@ -267,21 +268,21 @@ var val = h.get(&#x27;foo&#x27;); // returns &#x27;bar&#x27;</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>string</code>&nbsp;Hashmap data.</p>
+                  <p><code>string</code>B Hashmap data.</p>
                 </dd>
               </dl>
               <h3 id="hasKey"><span class="symbol-name">hasKey</span><span class="signature"><span class="signature-params">(key)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
               <p>Returns true if the map has a given key.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var qm = require(&#x27;qminer&#x27;);
-var ht = qm.ht;
+var qm &#x3D; require(&#x27;qminer&#x27;);
+var ht &#x3D; qm.ht;
 // create a new hashtable
-var h = new ht.StrStrMap();
+var h &#x3D; new ht.StrStrMap();
 // add a key/dat pair
 h.put(&#x27;foo&#x27;, &#x27;bar&#x27;);
 // check if the hashtable has the key
@@ -320,25 +321,25 @@ h.hasKey(&#x27;foo&#x27;); // returns true</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>boolean</code>&nbsp;True if the map contains key. Otherwise, false.</p>
+                  <p><code>boolean</code>B True if the map contains key. Otherwise, false.</p>
                 </dd>
               </dl>
               <h3 id="key"><span class="symbol-name">key</span><span class="signature"><span class="signature-params">(n)</span>&nbsp;&rarr; <span class="signature-returns"> string</span></span></h3>
               <p>Returns n-th key.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var qm = require(&#x27;qminer&#x27;);
-var ht = qm.ht;
+var qm &#x3D; require(&#x27;qminer&#x27;);
+var ht &#x3D; qm.ht;
 // create a new hashtable
-var h = new ht.StrStrMap();
+var h &#x3D; new ht.StrStrMap();
 // add a key/dat pair
 h.put(&#x27;foo&#x27;, &#x27;bar&#x27;);
 // get the first key
-var key = h.key(0); // returns &#x27;foo&#x27;</code></pre>
+var key &#x3D; h.key(0); // returns &#x27;foo&#x27;</code></pre>
                 </div>
               </section>
               <section>
@@ -373,25 +374,25 @@ var key = h.key(0); // returns &#x27;foo&#x27;</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>string</code>&nbsp;The n-th key.</p>
+                  <p><code>string</code>B The n-th key.</p>
                 </dd>
               </dl>
               <h3 id="keyId"><span class="symbol-name">keyId</span><span class="signature"><span class="signature-params">(key)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Returns the ID of the key provided as parameter.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var qm = require(&#x27;qminer&#x27;);
-var ht = qm.ht;
+var qm &#x3D; require(&#x27;qminer&#x27;);
+var ht &#x3D; qm.ht;
 // create a new hashtable
-var h = new ht.StrStrMap();
+var h &#x3D; new ht.StrStrMap();
 // add a key/dat pair
 h.put(&#x27;foo&#x27;, &#x27;bar&#x27;);
-// get key id of &#x27;foo&#x27; 
-var key = h.keyId(&#x27;foo&#x27;); // returns 0</code></pre>
+// get key id of &#x27;foo&#x27;
+var key &#x3D; h.keyId(&#x27;foo&#x27;); // returns 0</code></pre>
                 </div>
               </section>
               <section>
@@ -426,26 +427,26 @@ var key = h.keyId(&#x27;foo&#x27;); // returns 0</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;n - Hashmap index number of the key.</p>
+                  <p><code>number</code>B n - Hashmap index number of the key.</p>
                 </dd>
               </dl>
               <h3 id="load"><span class="symbol-name">load</span><span class="signature"><span class="signature-params">(fin)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-ht.StrStrMap.html">module:ht.StrStrMap</a></span></span></h3>
               <p>Loads the hashtable from input stream.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var qm = require(&#x27;qminer&#x27;);
-var ht = qm.ht;
-var fs = qm.fs;
+var qm &#x3D; require(&#x27;qminer&#x27;);
+var ht &#x3D; qm.ht;
+var fs &#x3D; qm.fs;
 // create a new hashtable
-var h = new ht.StrStrMap();
-fout = fs.openWrite(&#x27;map.dat&#x27;); // open write stream
+var h &#x3D; new ht.StrStrMap();
+fout &#x3D; fs.openWrite(&#x27;map.dat&#x27;); // open write stream
 h.save(fout).close(); // save and close write stream
-var fin = fs.openRead(&#x27;map.dat&#x27;); // open read stream
-var h2 = new ht.StrStrMap();
+var fin &#x3D; fs.openRead(&#x27;map.dat&#x27;); // open read stream
+var h2 &#x3D; new ht.StrStrMap();
 h2.load(fin); // load</code></pre>
                 </div>
               </section>
@@ -481,21 +482,21 @@ h2.load(fin); // load</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-ht.StrStrMap.html">module:ht.StrStrMap</a></code>&nbsp;Self.</p>
+                  <p><code><a href="module-ht.StrStrMap.html">module:ht.StrStrMap</a></code>B Self.</p>
                 </dd>
               </dl>
               <h3 id="put"><span class="symbol-name">put</span><span class="signature"><span class="signature-params">(key, data)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-ht.StrStrMap.html">module:ht.StrStrMap</a></span></span></h3>
               <p>Add/update key-value pair.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var qm = require(&#x27;qminer&#x27;);
-var ht = qm.ht;
+var qm &#x3D; require(&#x27;qminer&#x27;);
+var ht &#x3D; qm.ht;
 // create a new hashtable
-var h = new ht.StrStrMap();
+var h &#x3D; new ht.StrStrMap();
 // add a key/dat pair
 h.put(&#x27;foo&#x27;, &#x27;bar&#x27;);</code></pre>
                 </div>
@@ -546,23 +547,23 @@ h.put(&#x27;foo&#x27;, &#x27;bar&#x27;);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-ht.StrStrMap.html">module:ht.StrStrMap</a></code>&nbsp;Self.</p>
+                  <p><code><a href="module-ht.StrStrMap.html">module:ht.StrStrMap</a></code>B Self.</p>
                 </dd>
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
               <p>Saves the hashtable to output stream.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var qm = require(&#x27;qminer&#x27;);
-var ht = qm.ht;
-var fs = qm.fs;
+var qm &#x3D; require(&#x27;qminer&#x27;);
+var ht &#x3D; qm.ht;
+var fs &#x3D; qm.fs;
 // create a new hashtable
-var h = new ht.StrStrMap();
-fout = fs.openWrite(&#x27;map.dat&#x27;); // open write stream
+var h &#x3D; new ht.StrStrMap();
+fout &#x3D; fs.openWrite(&#x27;map.dat&#x27;); // open write stream
 h.save(fout).close(); // save and close write stream</code></pre>
                 </div>
               </section>
@@ -598,21 +599,21 @@ h.save(fout).close(); // save and close write stream</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;fout.</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>B fout.</p>
                 </dd>
               </dl>
               <h3 id="sortDat"><span class="symbol-name">sortDat</span><span class="signature"><span class="signature-params">([asc])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-ht.StrStrMap.html">module:ht.StrStrMap</a></span></span></h3>
               <p>Sorts by dat.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var qm = require(&#x27;qminer&#x27;);
-var ht = qm.ht;
+var qm &#x3D; require(&#x27;qminer&#x27;);
+var ht &#x3D; qm.ht;
 // create a new hashtable
-var h = new ht.StrStrMap();
+var h &#x3D; new ht.StrStrMap();
 h.put(&#x27;foo&#x27;, &#x27;bar&#x27;);
 h.put(&#x27;dog&#x27;, &#x27;tisa&#x27;);
 // sort the hashtable by dat
@@ -652,21 +653,21 @@ h.sortDat();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-ht.StrStrMap.html">module:ht.StrStrMap</a></code>&nbsp;Self.</p>
+                  <p><code><a href="module-ht.StrStrMap.html">module:ht.StrStrMap</a></code>B Self.</p>
                 </dd>
               </dl>
               <h3 id="sortKey"><span class="symbol-name">sortKey</span><span class="signature"><span class="signature-params">([asc])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-ht.StrStrMap.html">module:ht.StrStrMap</a></span></span></h3>
               <p>Sorts by keys.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var qm = require(&#x27;qminer&#x27;);
-var ht = qm.ht;
+var qm &#x3D; require(&#x27;qminer&#x27;);
+var ht &#x3D; qm.ht;
 // create a new hashtable
-var h = new ht.StrStrMap();
+var h &#x3D; new ht.StrStrMap();
 h.put(&#x27;foo&#x27;, &#x27;bar&#x27;);
 h.put(&#x27;dog&#x27;, &#x27;tisa&#x27;);
 // sort the hashtable by keys
@@ -706,7 +707,7 @@ h.sortKey();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-ht.StrStrMap.html">module:ht.StrStrMap</a></code>&nbsp;Self.</p>
+                  <p><code><a href="module-ht.StrStrMap.html">module:ht.StrStrMap</a></code>B Self.</p>
                 </dd>
               </dl>
             </section>
@@ -724,7 +725,6 @@ h.sortKey();</code></pre>
     </div>
   </footer>
   <script src="scripts/jquery.min.js"></script>
-  <script src="scripts/jquery.cookie.js"></script>
   <script src="scripts/tree.jquery.js"></script>
   <script src="scripts/prettify.js"></script>
   <script src="scripts/jsdoc-toc.js"></script>

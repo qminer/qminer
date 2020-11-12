@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.1</a>
       </div>
     </div>
   </nav>
@@ -24,7 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Record</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Record</span></h1>
             <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1460">qminerdoc.<wbr>js:1460</a></p>
             <dl class="dl-compact">
             </dl>
@@ -87,10 +88,11 @@
           </section>
           <section>
             <h2 id="Record"><span class="symbol-name">Record</span><span class="signature"><span class="signature-params">()</span></span></h2>
-            <p>Records are used for storing data in <a href="module-qm.Store.html">module:qm.Store</a>.
-              <br>
-              <b>Factory pattern</b>: this class cannot be construced using the new keyword. This class is constructed when calling a specific method or attribute, e.g. using <a href="module-qm.Store.html#push">module:qm.Store#push</a> to create a new
-              record in the store or <a href="module-qm.Store.html#newRecord">module:qm.Store#newRecord</a> to create a new record, that is not saved in the store.</p>
+            <p>Records are used for storing data in <a href="module-qm.Store.html">module:qm.Store</a>. <br>
+              <b>Factory pattern</b>: this class cannot be construced using the new keyword. This class is constructed
+              when calling a specific method or attribute, e.g. using <a href="module-qm.Store.html#push">module:qm.Store#push</a> to create a new record in
+              the store or <a href="module-qm.Store.html#newRecord">module:qm.Store#newRecord</a> to create a new record, that is not saved in the store.
+            </p>
             <dl class="dl-compact">
             </dl>
           </section>
@@ -120,13 +122,13 @@
               <p>Adds a join record <code>joinRecord</code> to join <code>joinName</code> (string) with join frequency <code>joinFrequency</code>.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // Create two stores
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
     mode: &#x27;createClean&#x27;,
     schema: [
       { name: &#x27;People&#x27;,
@@ -207,20 +209,20 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.Record.html">module:qm.Record</a></code>&nbsp;The joined record.</p>
+                  <p><code><a href="module-qm.Record.html">module:qm.Record</a></code>B The joined record.</p>
                 </dd>
               </dl>
               <h3 id="$clone"><span class="symbol-name">$clone</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Record.html">module:qm.Record</a></span></span></h3>
               <p>Clones the record.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;StarWarsMovies&quot;,
@@ -236,27 +238,27 @@ base.store(&quot;StarWarsMovies&quot;).push({ Title: &quot;Attack of the Clones&
 base.store(&quot;StarWarsMovies&quot;).push({ Title: &quot;The Empire Strikes Back&quot;, ReleseDate: &quot;1980-06-20T00:00:00&quot;, Length: 124 });
 base.store(&quot;StarWarsMovies&quot;).push({ Title: &quot;Return of the Jedi&quot;, ReleseDate: &quot;1983-05-25T00:00:00&quot;, Length: 134 });
 // create a clone of the &quot;Attack of the Clones&quot; record
-var clone = base.store(&quot;StarWarsMovies&quot;)[0].$clone();
+var clone &#x3D; base.store(&quot;StarWarsMovies&quot;)[0].$clone();
 base.close();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.Record.html">module:qm.Record</a></code>&nbsp;The clone of the record.</p>
+                  <p><code><a href="module-qm.Record.html">module:qm.Record</a></code>B The clone of the record.</p>
                 </dd>
               </dl>
               <h3 id="$delJoin"><span class="symbol-name">$delJoin</span><span class="signature"><span class="signature-params">(joinName, joinRecord[, joinFrequency])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Record.html">module:qm.Record</a></span></span></h3>
               <p>Deletes join record <code>joinRecord</code> from join <code>joinName</code> (string) with join frequency <code>joinFrequency</code>.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // Create two stores
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
     mode: &#x27;createClean&#x27;,
     schema: [
       { name: &#x27;People&#x27;,
@@ -335,20 +337,20 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.Record.html">module:qm.Record</a></code>&nbsp;The joined record.</p>
+                  <p><code><a href="module-qm.Record.html">module:qm.Record</a></code>B The joined record.</p>
                 </dd>
               </dl>
               <h3 id="toJSON"><span class="symbol-name">toJSON</span><span class="signature"><span class="signature-params">([joinRecords][, joinRecordFields][, sysFields])</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
               <p>Creates a JSON version of the record.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;Musicians&quot;,
@@ -365,7 +367,7 @@ base.store(&quot;Musicians&quot;).push({ Name: &quot;Beyonce&quot;, DateOfBirth:
 // get a JSON version of the &quot;Beyonce&quot; record
 // The JSON object for this example si:
 // { &#x27;$id&#x27;: 1, Name: &#x27;Beyonce&#x27;, ActiveSince: &#x27;1981-09-04T00:00:00&#x27;, GreatestHits: [&#x27;Single Ladies (Put a Ring on It)&#x27;] }
-var json = base.store(&quot;Musicians&quot;).recordByName(&quot;Beyonce&quot;).toJSON();
+var json &#x3D; base.store(&quot;Musicians&quot;).recordByName(&quot;Beyonce&quot;).toJSON();
 base.close();</code></pre>
                 </div>
               </section>
@@ -432,7 +434,7 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;The JSON version of the record.</p>
+                  <p><code>Object</code>B The JSON version of the record.</p>
                 </dd>
               </dl>
             </section>
@@ -450,7 +452,6 @@ base.close();</code></pre>
     </div>
   </footer>
   <script src="scripts/jquery.min.js"></script>
-  <script src="scripts/jquery.cookie.js"></script>
   <script src="scripts/tree.jquery.js"></script>
   <script src="scripts/prettify.js"></script>
   <script src="scripts/jsdoc-toc.js"></script>

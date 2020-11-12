@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.1</a>
       </div>
     </div>
   </nav>
@@ -24,10 +24,12 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-inner">inner</span></div><small><a href="module-analytics.html">analytics</a>~<wbr></small><span class="symbol-name">ActiveLearner</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-inner">inner</span></div>
+            <h1><small><a href="module-analytics.html">analytics</a>~<wbr></small><span class="symbol-name">ActiveLearner</span></h1>
             <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-4855">analyticsdoc.<wbr>js:4855</a></p>
             <div class="symbol-classdesc">
-              <p>Active learner. Uses a SVM model and implements an uncertainty measure (distance to the margin) to select which unlabelled example should be labelled next.</p>
+              <p>Active learner. Uses a SVM model and implements an uncertainty measure (distance to the margin)
+                to select which unlabelled example should be labelled next.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -115,17 +117,17 @@
             <h2 id="ActiveLearner">new&nbsp;<span class="symbol-name">ActiveLearner</span><span class="signature"><span class="signature-params">([arg])</span></span></h2>
             <section>
               <h3>
-            Example
-        </h3>
+                Example
+              </h3>
               <div>
                 <pre class="prettyprint"><code>// load libs
-var qm = require(&#x27;qminer&#x27;);
-var la = qm.la;
+var qm &#x3D; require(&#x27;qminer&#x27;);
+var la &#x3D; qm.la;
 // create model
-var al = new qm.analytics.ActiveLearner();
+var al &#x3D; new qm.analytics.ActiveLearner();
 
 // set data (4 labelled and 2 unlabelled examples)
-var X = new la.Matrix([
+var X &#x3D; new la.Matrix([
     [-2, 1],
     [-2, 0],
     [-2, -1],
@@ -135,11 +137,11 @@ var X = new la.Matrix([
 ]).transpose(); // column examples
 al.setX(X);
 
-var y = [-1, 0, -1, 1, 0, 1];
+var y &#x3D; [-1, 0, -1, 1, 0, 1];
 al.sety(y);
 // get the array containing 1 index of the unlabelled example
 // that is the closest to the hyperplane
-var qidx = al.getQueryIdx(1);
+var qidx &#x3D; al.getQueryIdx(1);
 console.log(qidx); // 4</code></pre>
               </div>
             </section>
@@ -160,7 +162,7 @@ console.log(qidx); // 4</code></pre>
                       <p>arg</p>
                     </td>
                     <td>
-                      <p>(<a href="module-analytics.html#~ActiveLearnerParam">module:analytics~ActiveLearnerParam</a>, module:fs~FIn, or string)</p>
+                      <p>&nbsp;</p>
                     </td>
                     <td>
                       <p>Yes</p>
@@ -283,7 +285,7 @@ console.log(qidx); // 4</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Array of number</code>&nbsp;- array of indices of unlabelled examples</p>
+                  <p><code>Array of number</code>B - array of indices of unlabelled examples</p>
                 </dd>
               </dl>
               <h3 id="_getUnlabIdxArr"><span class="symbol-name">_getUnlabIdxArr</span><span class="signature"><span class="signature-params">()</span></span></h3>
@@ -386,7 +388,7 @@ console.log(qidx); // 4</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Array of number</code>&nbsp;array of unlabelled example indices</p>
+                  <p><code>Array of number</code>B array of unlabelled example indices</p>
                 </dd>
               </dl>
               <h3 id="getSVC"><span class="symbol-name">getSVC</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.SVC.html">module:analytics.SVC</a></span></span></h3>
@@ -394,7 +396,7 @@ console.log(qidx); // 4</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.SVC.html">module:analytics.SVC</a></code>&nbsp;SVC model</p>
+                  <p><code><a href="module-analytics.SVC.html">module:analytics.SVC</a></code>B SVC model</p>
                 </dd>
               </dl>
               <h3 id="getX"><span class="symbol-name">getX</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</span></span></h3>
@@ -402,7 +404,7 @@ console.log(qidx); // 4</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</code>&nbsp;data matrix (column examples)</p>
+                  <p><code>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</code>B data matrix (column examples)</p>
                 </dd>
               </dl>
               <h3 id="gety"><span class="symbol-name">gety</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Map</span></span></h3>
@@ -410,7 +412,7 @@ console.log(qidx); // 4</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Map</code>&nbsp;label map</p>
+                  <p><code>Map</code>B label map</p>
                 </dd>
               </dl>
               <h3 id="load"><span class="symbol-name">load</span><span class="signature"><span class="signature-params">(input)</span></span></h3>
@@ -588,7 +590,8 @@ console.log(qidx); // 4</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>array (like) object that encodes labels (-1, 0 or 1) or a Map from indices to 1 or -1</p>
+                        <p>array (like) object that encodes labels
+                          (-1, 0 or 1) or a Map from indices to 1 or -1</p>
                       </td>
                     </tr>
                   </tbody>
@@ -611,7 +614,6 @@ console.log(qidx); // 4</code></pre>
     </div>
   </footer>
   <script src="scripts/jquery.min.js"></script>
-  <script src="scripts/jquery.cookie.js"></script>
   <script src="scripts/tree.jquery.js"></script>
   <script src="scripts/prettify.js"></script>
   <script src="scripts/jsdoc-toc.js"></script>

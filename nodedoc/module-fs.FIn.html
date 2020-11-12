@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.1</a>
       </div>
     </div>
   </nav>
@@ -24,7 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-fs.html">fs</a>.<wbr></small><span class="symbol-name">FIn</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-fs.html">fs</a>.<wbr></small><span class="symbol-name">FIn</span></h1>
             <p class="source-link">Source: <a href="fsdoc.js.html#source-line-255">fsdoc.<wbr>js:255</a></p>
             <div class="symbol-classdesc">
               <p>Used for reading files.</p>
@@ -101,20 +102,20 @@
             <p>Input file stream.</p>
             <section>
               <h3>
-            Example
-        </h3>
+                Example
+              </h3>
               <div>
                 <pre class="prettyprint"><code>// import module
-var fs = require(&#x27;qminer&#x27;).fs;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // open file in write mode
-var fout = fs.openWrite(&#x27;file.txt&#x27;);
+var fout &#x3D; fs.openWrite(&#x27;file.txt&#x27;);
 // write sync and close
 fout.writeLine(&#x27;example text&#x27;);
 fout.close();
 // open file in read mode
-var fin = new fs.FIn(&#x27;file.txt&#x27;);
+var fin &#x3D; new fs.FIn(&#x27;file.txt&#x27;);
 // read a line
-var str = fin.readLine();</code></pre>
+var str &#x3D; fin.readLine();</code></pre>
               </div>
             </section>
             <section>
@@ -156,20 +157,20 @@ var str = fin.readLine();</code></pre>
               <p>True if end of file is detected. Otherwise, false. Type <code>boolean</code>.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import module
-var fs = require(&#x27;qminer&#x27;).fs;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // open file in write mode
-var fout = fs.openWrite(&#x27;file.txt&#x27;);
+var fout &#x3D; fs.openWrite(&#x27;file.txt&#x27;);
 // write sync and close
 fout.writeLine(&#x27;example text&#x27;);
 fout.close();
 // open file in read mode
-var fin = new fs.FIn(&#x27;file.txt&#x27;);
+var fin &#x3D; new fs.FIn(&#x27;file.txt&#x27;);
 // check if it&#x27;s end of the file
-var eof = fin.eof;</code></pre>
+var eof &#x3D; fin.eof;</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -178,20 +179,20 @@ var eof = fin.eof;</code></pre>
               <p>Length of input stream. Type <code>number</code>.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import module
-var fs = require(&#x27;qminer&#x27;).fs;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // open file in write mode
-var fout = fs.openWrite(&#x27;file.txt&#x27;);
+var fout &#x3D; fs.openWrite(&#x27;file.txt&#x27;);
 // write sync and close
 fout.writeLine(&#x27;example text&#x27;);
 fout.close();
 // open file in read mode
-var fin = new fs.FIn(&#x27;file.txt&#x27;);
+var fin &#x3D; new fs.FIn(&#x27;file.txt&#x27;);
 // get the length of the document
-var len = fin.length;</code></pre>
+var len &#x3D; fin.length;</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -203,18 +204,18 @@ var len = fin.length;</code></pre>
               <p>Closes the input stream.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import module
-var fs = require(&#x27;qminer&#x27;).fs;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // open file in write mode
-var fout = fs.openWrite(&#x27;file.txt&#x27;);
+var fout &#x3D; fs.openWrite(&#x27;file.txt&#x27;);
 // write sync and close
 fout.writeLine(&#x27;example text&#x27;);
 fout.close();
 // open file in read mode
-var fin = new fs.FIn(&#x27;file.txt&#x27;);
+var fin &#x3D; new fs.FIn(&#x27;file.txt&#x27;);
 // close the stream
 fin.close();</code></pre>
                 </div>
@@ -225,46 +226,46 @@ fin.close();</code></pre>
               <p>Reads a character.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import module
-var fs = require(&#x27;qminer&#x27;).fs;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // open file in write mode
-var fout = fs.openWrite(&#x27;file.txt&#x27;);
+var fout &#x3D; fs.openWrite(&#x27;file.txt&#x27;);
 // write sync and close
 fout.writeLine(&#x27;example text&#x27;);
 fout.close();
 // open file in read mode
-var fin = new fs.FIn(&#x27;file.txt&#x27;);
+var fin &#x3D; new fs.FIn(&#x27;file.txt&#x27;);
 // get the next character
-var char = fin.getCh();</code></pre>
+var char &#x3D; fin.getCh();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>string</code>&nbsp;Character string.</p>
+                  <p><code>string</code>B Character string.</p>
                 </dd>
               </dl>
               <h3 id="isClosed"><span class="symbol-name">isClosed</span><span class="signature"><span class="signature-params">()</span></span></h3>
               <p>Checks if the input stream is closed.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import module
-var fs = require(&#x27;qminer&#x27;).fs;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // open file in write mode
-var fout = fs.openWrite(&#x27;file.txt&#x27;);
+var fout &#x3D; fs.openWrite(&#x27;file.txt&#x27;);
 // write sync and close
 fout.writeLine(&#x27;example text&#x27;);
 fout.close();
 // open file in read mode
-var fin = new fs.FIn(&#x27;file.txt&#x27;);
+var fin &#x3D; new fs.FIn(&#x27;file.txt&#x27;);
 // check if the stream is closed
-var check = fin.isClosed();</code></pre>
+var check &#x3D; fin.isClosed();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -273,114 +274,114 @@ var check = fin.isClosed();</code></pre>
               <p>Peeks a character.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import module
-var fs = require(&#x27;qminer&#x27;).fs;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // open file in write mode
-var fout = fs.openWrite(&#x27;file.txt&#x27;);
+var fout &#x3D; fs.openWrite(&#x27;file.txt&#x27;);
 // write sync and close
 fout.writeLine(&#x27;example text&#x27;);
 fout.close();
 // open file in read mode
-var fin = new fs.FIn(&#x27;file.txt&#x27;);
+var fin &#x3D; new fs.FIn(&#x27;file.txt&#x27;);
 // peek the next character
-var char = fin.peekCh();</code></pre>
+var char &#x3D; fin.peekCh();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>string</code>&nbsp;Character string.</p>
+                  <p><code>string</code>B Character string.</p>
                 </dd>
               </dl>
               <h3 id="readAll"><span class="symbol-name">readAll</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> string</span></span></h3>
               <p>Reads the whole stream.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import module
-var fs = require(&#x27;qminer&#x27;).fs;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // open file in write mode
-var fout = fs.openWrite(&#x27;file.txt&#x27;);
+var fout &#x3D; fs.openWrite(&#x27;file.txt&#x27;);
 // write sync and close
 fout.writeLine(&#x27;example text&#x27;);
 fout.close();
 // open file in read mode
-var fin = new fs.FIn(&#x27;file.txt&#x27;);
+var fin &#x3D; new fs.FIn(&#x27;file.txt&#x27;);
 // get/read a the whole string
-var all = fin.readAll();</code></pre>
+var all &#x3D; fin.readAll();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>string</code>&nbsp;Content of the file.</p>
+                  <p><code>string</code>B Content of the file.</p>
                 </dd>
               </dl>
               <h3 id="readJson"><span class="symbol-name">readJson</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
               <p>Reads json that was serialized using <code>fs.FOut.writeJson</code>.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
-var fs = require(&#x27;qminer&#x27;).fs;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // create and save a json and then read it using the readJson method</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;Json object.</p>
+                  <p><code>Object</code>B Json object.</p>
                 </dd>
               </dl>
               <h3 id="readLine"><span class="symbol-name">readLine</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> string</span></span></h3>
               <p>Reads a line.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import module
-var fs = require(&#x27;qminer&#x27;).fs;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // open file in write mode
-var fout = fs.openWrite(&#x27;file.txt&#x27;);
+var fout &#x3D; fs.openWrite(&#x27;file.txt&#x27;);
 // write sync and close
 fout.writeLine(&#x27;example text&#x27;);
 fout.close();
 // open file in read mode
-var fin = new fs.FIn(&#x27;file.txt&#x27;);
+var fin &#x3D; new fs.FIn(&#x27;file.txt&#x27;);
 // get/read a new line
-var line = fin.readLine();</code></pre>
+var line &#x3D; fin.readLine();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>string</code>&nbsp;Line string.</p>
+                  <p><code>string</code>B Line string.</p>
                 </dd>
               </dl>
               <h3 id="readString"><span class="symbol-name">readString</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> string</span></span></h3>
               <p>Reads a string that was serialized using <code>fs.FOut.writeBinary</code>.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
-var fs = require(&#x27;qminer&#x27;).fs;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // read a string that was serialized using fs.FOut.writeBinary</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>string</code>&nbsp;String.</p>
+                  <p><code>string</code>B String.</p>
                 </dd>
               </dl>
             </section>
@@ -398,7 +399,6 @@ var fs = require(&#x27;qminer&#x27;).fs;
     </div>
   </footer>
   <script src="scripts/jquery.min.js"></script>
-  <script src="scripts/jquery.cookie.js"></script>
   <script src="scripts/tree.jquery.js"></script>
   <script src="scripts/prettify.js"></script>
   <script src="scripts/jsdoc-toc.js"></script>
