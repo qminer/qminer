@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.1</a>
       </div>
     </div>
   </nav>
@@ -24,11 +24,14 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">CircularRecordBuffer</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">CircularRecordBuffer</span></h1>
             <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-3850">qminerdoc.<wbr>js:3850</a></p>
             <div class="symbol-classdesc">
-              <p>Circular buffer for storing records. Size of buffer is defined at start and is denoted in number of records. When buffer is full, old records are removed from the buffer and new records are stored in their place. For adding and deleting
-                a callback is called. Records are stored by their IDs.</p>
+              <p>Circular buffer for storing records. Size of buffer is defined at
+                start and is denoted in number of records. When buffer is full, old records
+                are removed from the buffer and new records are stored in their place. For
+                adding and deleting a callback is called. Records are stored by their IDs.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -65,8 +68,8 @@
             <h2 id="CircularRecordBuffer">new&nbsp;<span class="symbol-name">CircularRecordBuffer</span><span class="signature"><span class="signature-params">([params])</span></span></h2>
             <section>
               <h3>
-            Example
-        </h3>
+                Example
+              </h3>
               <div>
                 <pre class="prettyprint"><code>// TODO</code></pre>
               </div>
@@ -136,9 +139,11 @@
                       <p>Yes</p>
                     </td>
                     <td>
-                      <p>Callback executed when new record is added to the buffer. Callback is give two parameters:
+                      <p>Callback executed when new record is
+                        added to the buffer. Callback is give two parameters:
                         <br><code>rec</code> - The record. Type <a href="module-qm.Record.html">module:qm.Record</a>.
-                        <br><code>circRecBuff</code> - The circular record buffer instance. Type <a href="module-qm.CircularRecordBuffer.html">module:qm.CircularRecordBuffer</a>.</p>
+                        <br><code>circRecBuff</code> - The circular record buffer instance. Type <a href="module-qm.CircularRecordBuffer.html">module:qm.CircularRecordBuffer</a>.
+                      </p>
                     </td>
                   </tr>
                   <tr>
@@ -152,9 +157,11 @@
                       <p>Yes</p>
                     </td>
                     <td>
-                      <p>Callback executed when record is removed from the buffer. Callback is give two parameters:
+                      <p>Callback executed when record is removed
+                        from the buffer. Callback is give two parameters:
                         <br><code>rec</code> - The record. Type <a href="module-qm.Record.html">module:qm.Record</a>.
-                        <br><code>circRecBuff</code> - The circular record buffer instance. Type <a href="module-qm.CircularRecordBuffer.html">module:qm.CircularRecordBuffer</a>.</p>
+                        <br><code>circRecBuff</code> - The circular record buffer instance. Type <a href="module-qm.CircularRecordBuffer.html">module:qm.CircularRecordBuffer</a>.
+                      </p>
                     </td>
                   </tr>
                 </tbody>
@@ -167,11 +174,12 @@
             <h2>Methods</h2>
             <section>
               <h3 id="load"><span class="symbol-name">load</span><span class="signature"><span class="signature-params">(fin)</span></span></h3>
-              <p>Load circular buffer from input stream. Assumes store, onAdd and onDelete were already initialized in constructor.</p>
+              <p>Load circular buffer from input stream. Assumes store, onAdd and onDelete
+                were already initialized in constructor.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// TODO</code></pre>
                 </div>
@@ -211,8 +219,8 @@
               <p>Add new record to the buffer.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// TODO</code></pre>
                 </div>
@@ -249,11 +257,12 @@
               <dl class="dl-compact">
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
-              <p>Saves circular buffer to the output stream. Does not save store, onAdd and onDelete callbacks.</p>
+              <p>Saves circular buffer to the output stream. Does not save store, onAdd
+                and onDelete callbacks.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// TODO</code></pre>
                 </div>
@@ -290,7 +299,7 @@
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream <code>fout</code>.</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>B The output stream <code>fout</code>.</p>
                 </dd>
               </dl>
             </section>
@@ -308,7 +317,6 @@
     </div>
   </footer>
   <script src="scripts/jquery.min.js"></script>
-  <script src="scripts/jquery.cookie.js"></script>
   <script src="scripts/tree.jquery.js"></script>
   <script src="scripts/prettify.js"></script>
   <script src="scripts/jsdoc-toc.js"></script>

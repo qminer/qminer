@@ -7,7 +7,7 @@
  */
 
 var assert = require('../../src/nodejs/scripts/assert.js');
-var qm = require('qminer');
+var qm = require('../../index.js');
 var fs = qm.fs;
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -34,7 +34,7 @@ function TestStoreManager() {
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
-// 
+//
 // describe('JSON field-type tests ', function () {
 //     var records = 199;
 //     var min = -2392;
@@ -46,7 +46,7 @@ function TestStoreManager() {
 //             db.base.store(store_name).push({ name: "name1", ts: now });
 //             db.base.store(store_name).push({ name: "name2", ts: now - 5 * 1000 });
 //             db.base.store(store_name).push({ name: "name3", ts: now - 10 * 1000 });
-//             
+//
 //             var rs = db.base.search({
 //                 $from: store_name
 //             });
@@ -62,12 +62,12 @@ function TestStoreManager() {
 
 
 
-// 
+//
 // //////////////////////////////////////////////////////////////////////////////////////
 // // Store creation
-// 
+//
 // var store_name = "test_store";
-// 
+//
 // var base = new qm.Base({ mode: 'createClean' });
 // base.createStore({
 //     "name": store_name,
@@ -78,14 +78,14 @@ function TestStoreManager() {
 //     "keys": [
 //     ]
 // });
-// 
+//
 // //////////////////////////////////////////////////////////////////////////////////////
-// 
+//
 // var now = (new Date()).getTime();
 // base.store(store_name).push({ name: "name1", ts: now });
 // base.store(store_name).push({ name: "name2", ts: now - 5 * 1000 });
 // base.store(store_name).push({ name: "name3", ts: now - 10 * 1000 });
-// 
+//
 // var rs = base.search({
 //     $from: store_name
 // });
@@ -93,5 +93,5 @@ function TestStoreManager() {
 //     { type: "timespan", field: "ts", name:"aggr1" }
 // ]);
 // console.log(JSON.stringify(res));
-// 
+//
 // base.close()

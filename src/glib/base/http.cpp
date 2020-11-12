@@ -185,6 +185,8 @@ private:
   THttpExCd HttpExCd;
 public:
   THttpEx(const THttpExCd& _HttpExCd): HttpExCd(_HttpExCd){}
+
+  const THttpExCd& GetHttpExCd() const { return HttpExCd; }
 };
 
 /////////////////////////////////////////////////
@@ -985,4 +987,3 @@ PSIn THttpResp::GetSIn() const {
   MOut.PutStr(HdStr); MOut.PutMem(BodyMem);
   return MOut.GetSIn();
 }
-

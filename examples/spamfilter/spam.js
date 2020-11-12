@@ -1,5 +1,5 @@
 // import modules
-var qm = require('qminer');
+var qm = require('../../index.js');
 var analytics = qm.analytics;
 var fs = qm.fs;
 var la = qm.la;

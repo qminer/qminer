@@ -46,7 +46,7 @@ int TEnv::GetPrefixArgN(const TStr& PrefixStr) const {
 }
 
 TStr TEnv::GetArgPostfix(const TStr& PrefixStr) const {
-	int ArgN = GetPrefixArgN(PrefixStr); IAssert(ArgN != -1);
+	int ArgN = GetPrefixArgN(PrefixStr); EAssert(ArgN != -1);
 	TStr ArgStr = GetArg(ArgN);
 	ArgStr.DelStr(PrefixStr);
 	return ArgStr;

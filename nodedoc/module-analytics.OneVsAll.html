@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.1</a>
       </div>
     </div>
   </nav>
@@ -24,10 +24,13 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">OneVsAll</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">OneVsAll</span></h1>
             <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-3082">analyticsdoc.<wbr>js:3082</a></p>
             <div class="symbol-classdesc">
-              <p>One vs All model for multiclass prediction. Builds binary model for each category and predicts the one with the highest score. Binary model is provided as part of the constructor.</p>
+              <p>One vs All model for multiclass prediction. Builds binary model
+                for each category and predicts the one with the highest score. Binary model is
+                provided as part of the constructor.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -70,13 +73,13 @@
             <h2 id="OneVsAll">new&nbsp;<span class="symbol-name">OneVsAll</span><span class="signature"><span class="signature-params">([arg])</span></span></h2>
             <section>
               <h3>
-            Example
-        </h3>
+                Example
+              </h3>
               <div>
                 <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a new OneVsAll object with the model analytics.SVC
-var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });</code></pre>
+var onevsall &#x3D; new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });</code></pre>
               </div>
             </section>
             <section>
@@ -115,26 +118,27 @@ var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 1
             <h2>Methods</h2>
             <section>
               <h3 id="decisionFunction"><span class="symbol-name">decisionFunction</span><span class="signature"><span class="signature-params">(X)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</span></span></h3>
-              <p>Apply all models to the given vector and returns a vector of scores, one for each category. Semantic of scores depend on the provided binary model.</p>
+              <p>Apply all models to the given vector and returns a vector of scores, one for each category.
+                Semantic of scores depend on the provided binary model.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new OneVsAll object with the model analytics.SVC
-var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
+var onevsall &#x3D; new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
 // create the data (matrix and vector) used to fit the model
-var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
-var vector = new la.Vector([0, 0, 1, 1]);
+var matrix &#x3D; new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
+var vector &#x3D; new la.Vector([0, 0, 1, 1]);
 // fit the model
 onevsall.fit(matrix, vector);
 // create the vector for the decisionFunction
-var test = new la.Vector([1, 2]);
+var test &#x3D; new la.Vector([1, 2]);
 // give the vector to the decision function
-var prediction = onevsall.decisionFunction(test); // returns the vector of scores</code></pre>
+var prediction &#x3D; onevsall.decisionFunction(test); // returns the vector of scores</code></pre>
                 </div>
               </section>
               <section>
@@ -169,26 +173,27 @@ var prediction = onevsall.decisionFunction(test); // returns the vector of score
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</code>&nbsp;The score and label of the input <code>X</code>:
+                  <p><code>(<a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.Matrix.html">module:la.Matrix</a>)</code>B The score and label of the input <code>X</code>:
                     <br>1. <a href="module-la.Vector.html">module:la.Vector</a> of scores, if <code>X</code> is of type <a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>.
-                    <br>2. <a href="module-la.Matrix.html">module:la.Matrix</a> with columns corresponding to instances, and rows corresponding to labels, if <code>X</code> is of type <a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>.</p>
+                    <br>2. <a href="module-la.Matrix.html">module:la.Matrix</a> with columns corresponding to instances, and rows corresponding to labels, if <code>X</code> is of type <a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>.
+                  </p>
                 </dd>
               </dl>
               <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(X, y)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.OneVsAll.html">module:analytics.OneVsAll</a></span></span></h3>
               <p>Apply all models to the given vector and returns category with the highest score.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new OneVsAll object with the model analytics.SVC
-var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
+var onevsall &#x3D; new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
 // create the data (matrix and vector) used to fit the model
-var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
-var vector = new la.Vector([0, 0, 1, 1]);
+var matrix &#x3D; new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
+var vector &#x3D; new la.Vector([0, 0, 1, 1]);
 // fit the model
 onevsall.fit(matrix, vector);</code></pre>
                 </div>
@@ -230,7 +235,8 @@ onevsall.fit(matrix, vector);</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>target category for each training instance. Categories must be integer numbers between <code>0</code> and <code>oneVsAllParam.categories-1</code>.</p>
+                        <p>target category for each training instance. Categories must
+                          be integer numbers between <code>0</code> and <code>oneVsAllParam.categories-1</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -239,53 +245,53 @@ onevsall.fit(matrix, vector);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.OneVsAll.html">module:analytics.OneVsAll</a></code>&nbsp;Self. The models have been fitted.</p>
+                  <p><code><a href="module-analytics.OneVsAll.html">module:analytics.OneVsAll</a></code>B Self. The models have been fitted.</p>
                 </dd>
               </dl>
               <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~oneVsAllParam">module:analytics~oneVsAllParam</a></span></span></h3>
               <p>Gets the parameters.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a new OneVsAll object with the model analytics.SVC
-var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
+var onevsall &#x3D; new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
 // get the parameters
 // returns the JSon object
 // { model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2, models: [] }
-var params = onevsall.getParams();</code></pre>
+var params &#x3D; onevsall.getParams();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.html#~oneVsAllParam">module:analytics~oneVsAllParam</a></code>&nbsp;The constructor parameters.</p>
+                  <p><code><a href="module-analytics.html#~oneVsAllParam">module:analytics~oneVsAllParam</a></code>B The constructor parameters.</p>
                 </dd>
               </dl>
               <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(X)</span>&nbsp;&rarr; <span class="signature-returns"> (number or <a href="module-la.IntVector.html">module:la.IntVector</a>)</span></span></h3>
               <p>Apply all models to the given vector and returns category with the highest score.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new OneVsAll object with the model analytics.SVC
-var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
+var onevsall &#x3D; new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
 // create the data (matrix and vector) used to fit the model
-var matrix = new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
-var vector = new la.Vector([0, 0, 1, 1]);
+var matrix &#x3D; new la.Matrix([[1, 2, 1, 1], [2, 1, -3, -4]]);
+var vector &#x3D; new la.Vector([0, 0, 1, 1]);
 // fit the model
 onevsall.fit(matrix, vector);
 // create the vector for the prediction
-var test = new la.Vector([1, 2]);
+var test &#x3D; new la.Vector([1, 2]);
 // get the prediction of the vector
-var prediction = onevsall.predict(test); // returns 0</code></pre>
+var prediction &#x3D; onevsall.predict(test); // returns 0</code></pre>
                 </div>
               </section>
               <section>
@@ -320,24 +326,24 @@ var prediction = onevsall.predict(test); // returns 0</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(number or <a href="module-la.IntVector.html">module:la.IntVector</a>)</code>&nbsp;
-                    <br>1. number of the category with the higher score, if <code>X</code> is <a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>.
-                    <br>2. <a href="module-la.IntVector.html">module:la.IntVector</a> of categories with the higher score for each column of <code>X</code>, if <code>X</code> is <a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>.</p>
+                  <p><code>(number or <a href="module-la.IntVector.html">module:la.IntVector</a>)</code>B <br>1. number of the category with the higher score, if <code>X</code> is <a href="module-la.Vector.html">module:la.Vector</a> or <a href="module-la.SparseVector.html">module:la.SparseVector</a>.
+                    <br>2. <a href="module-la.IntVector.html">module:la.IntVector</a> of categories with the higher score for each column of <code>X</code>, if <code>X</code> is <a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>.
+                  </p>
                 </dd>
               </dl>
               <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(params)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.OneVsAll.html">module:analytics.OneVsAll</a></span></span></h3>
               <p>Sets the parameters.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a new OneVsAll object with the model analytics.SVC
-var onevsall = new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
+var onevsall &#x3D; new analytics.OneVsAll({ model: analytics.SVC, modelParam: { c: 10, maxTime: 1000 }, cats: 2 });
 // set the parameters
-var params = onevsall.setParams({ model: analytics.SVR, modelParam: { c: 12, maxTime: 10000}, cats: 3, verbose: true });</code></pre>
+var params &#x3D; onevsall.setParams({ model: analytics.SVR, modelParam: { c: 12, maxTime: 10000}, cats: 3, verbose: true });</code></pre>
                 </div>
               </section>
               <section>
@@ -372,7 +378,7 @@ var params = onevsall.setParams({ model: analytics.SVR, modelParam: { c: 12, max
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.OneVsAll.html">module:analytics.OneVsAll</a></code>&nbsp;Self. The parameters are changed.</p>
+                  <p><code><a href="module-analytics.OneVsAll.html">module:analytics.OneVsAll</a></code>B Self. The parameters are changed.</p>
                 </dd>
               </dl>
             </section>
@@ -390,7 +396,6 @@ var params = onevsall.setParams({ model: analytics.SVR, modelParam: { c: 12, max
     </div>
   </footer>
   <script src="scripts/jquery.min.js"></script>
-  <script src="scripts/jquery.cookie.js"></script>
   <script src="scripts/tree.jquery.js"></script>
   <script src="scripts/prettify.js"></script>
   <script src="scripts/jsdoc-toc.js"></script>

@@ -8,11 +8,11 @@
 #include "la_nodejs.h"
 
 ///////////////////////////////
-// NodeJs-Qminer-LinAlg 
+// NodeJs-Qminer-LinAlg
 //
-// These functions play the role of TJsLinAlg in QMiner JS API 
+// These functions play the role of TJsLinAlg in QMiner JS API
 // Implement them in Javascript!
-// 
+//
 
 ///////////////////////////////
 // NodeJs-Qminer-LinAlg
@@ -99,25 +99,25 @@ v8::Local<v8::Value> TNodeJsLinAlg::TSVDTask::WrapResult() {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
 
-    v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result 
-    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "U")), TNodeJsUtil::NewInstance(U));
-    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "V")), TNodeJsUtil::NewInstance(V));
-    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "s")), TNodeJsUtil::NewInstance(s));
+    v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result
+    Nan::Set(JsObj, TNodeJsUtil::ToLocal(Nan::New("U")), TNodeJsUtil::NewInstance(U));
+    Nan::Set(JsObj, TNodeJsUtil::ToLocal(Nan::New("V")), TNodeJsUtil::NewInstance(V));
+    Nan::Set(JsObj, TNodeJsUtil::ToLocal(Nan::New("s")), TNodeJsUtil::NewInstance(s));
     return HandleScope.Escape(JsObj);
 }
 
 void TNodeJsLinAlg::qr(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result 
+    v8::Local<v8::Object> JsObj = v8::Object::New(Isolate); // Result
     TFltVV Q;
     TFltVV R;
     double Tol = TNodeJsUtil::GetArgFlt(Args, 1, 1e-6);
     if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltVV>(Args, 0)) {
-        TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(Args[0]->ToObject());
+        TNodeJsFltVV* JsMat = ObjectWrap::Unwrap<TNodeJsFltVV>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
         TLinAlg::QR(JsMat->Mat, Q, R, Tol);
     }
-    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "Q")), TNodeJsFltVV::New(Q));
-    JsObj->Set(v8::Local<v8::String>(v8::String::NewFromUtf8(Isolate, "R")), TNodeJsFltVV::New(R));
+    Nan::Set(JsObj, TNodeJsUtil::ToLocal(Nan::New("Q")), TNodeJsFltVV::New(Q));
+    Nan::Set(JsObj, TNodeJsUtil::ToLocal(Nan::New("R")), TNodeJsFltVV::New(R));
     Args.GetReturnValue().Set(JsObj);
 }

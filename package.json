@@ -1,9 +1,9 @@
 {
   "name": "qminer",
-  "version": "9.3.0",
+  "version": "9.3.1",
   "description": "A C++ based data analytics platform for processing large-scale real-time streams containing structured and unstructured data",
   "engines": {
-    "node": ">=4"
+    "node": ">=8"
   },
   "license": "BSD-2-Clause-FreeBSD",
   "author": "Blaz Fortuna <blaz@blazfortuna.com>",
@@ -91,22 +91,26 @@
   },
   "main": "./index.js",
   "dependencies": {
-    "node-pre-gyp": "0.10.x"
+    "nan": "^2.14.2",
+    "node-gyp": "^7.1.2",
+    "node-pre-gyp": "^0.15.0"
   },
   "bundledDependencies": [
     "node-pre-gyp"
   ],
   "devDependencies": {
-    "async": "^2.0.0-rc.6",
-    "aws-sdk": "~2.0.0-rc.15",
-    "jsdoc": "~3.3.0-beta3",
-    "jsdoc-baseline": "https://github.com/hegemonic/jsdoc-baseline.git#d161c4136e12ca5d5674747d4b115067a6980185",
-    "mocha": "2.1.x",
-    "mustache": "~2.2.0"
+    "async": "^3.2.0",
+    "aws-sdk": "^2.767.0",
+    "jsdoc": "^3.6.6",
+    "jsdoc-baseline": "^0.1.5",
+    "mocha": "^6.2.3",
+    "mustache": "^4.0.1"
   },
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build",
-    "test": "cd test && cd nodejs && mocha *.js --timeout 30000 && cd .. && cd .. && node ./test/cpp/run_tests.js"
+    "test:nodejs": "cd test && cd nodejs && mocha *.js --timeout 30000",
+    "test:cpp": "node ./test/cpp/run_tests.js",
+    "test": "npm run test:nodejs && npm run test:cpp"
   },
   "binary": {
     "module_name": "qm",

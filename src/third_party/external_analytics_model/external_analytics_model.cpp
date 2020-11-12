@@ -12,12 +12,13 @@ namespace TNodeJsExternalQmAddon {
 /////////////////////////////////////////////
 // QMiner-JavaScript-Hello-Model
 
-void TNodeJsHelloModel::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsHelloModel::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsHelloModel>);
-    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+    tpl->SetClassName(TNodeJsUtil::ToLocal(Nan::New(GetClassId().CStr())));
     // ObjectWrap uses the first internal field to store the wrapped pointer.
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -25,7 +26,7 @@ void TNodeJsHelloModel::Init(v8::Handle<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "hello", _hello);
     NODE_SET_PROTOTYPE_METHOD(tpl, "randomVector", _randomVector);
 
-    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+    Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(GetClassId().CStr())), TNodeJsUtil::ToLocal(tpl->GetFunction(context)).ToLocal());
 }
 
 TNodeJsHelloModel* TNodeJsHelloModel::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -55,19 +56,20 @@ void TNodeJsHelloModel::randomVector(const v8::FunctionCallbackInfo<v8::Value>& 
 /////////////////////////////////////////////
 // QMiner-JavaScript-Bounds-Checker
 
-void TNodeJsBoundsChecker::Init(v8::Handle<v8::Object> exports) {
+void TNodeJsBoundsChecker::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsBoundsChecker>);
-    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+    tpl->SetClassName(TNodeJsUtil::ToLocal(Nan::New(GetClassId().CStr())));
     // ObjectWrap uses the first internal field to store the wrapped pointer.
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
     // Add all methods, getters and setters here.
     NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
     // Attach the class to the exports object
-    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()), tpl->GetFunction());
+    Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(GetClassId().CStr())), TNodeJsUtil::ToLocal(tpl->GetFunction(context)).ToLocal());
 }
 
 TNodeJsBoundsChecker* TNodeJsBoundsChecker::NewFromArgs(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -94,24 +96,24 @@ void TNodeJsBoundsChecker::predict(const v8::FunctionCallbackInfo<v8::Value>& Ar
     // Run model
     double Result = Val > JsModel->UpperBound ? 1.0 : (Val < JsModel->LowerBound ? -1.0 : 0.0);
     // Wrap result
-    Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
+    Args.GetReturnValue().Set(Nan::New(Result));
 }
 
 /////////////////////////////////////////////
 // Initialization-And-Registration
 
-void InitExternalAnalyticsModel(v8::Handle<v8::Object> ExportsQm) {
+void InitExternalAnalyticsModel(v8::Local<v8::Object> ExportsQm) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    v8::Handle<v8::Object> ExternalModels = v8::Object::New(Isolate);
+    v8::Local<v8::Object> ExternalModels = v8::Object::New(Isolate);
     //This will attach the HelloModel class to external object
     TNodeJsHelloModel::Init(ExternalModels);
     //This will attach the BoundsChecker class to external object
     TNodeJsBoundsChecker::Init(ExternalModels);
 
     // Attach all models to qm module under the property "external"
-    ExportsQm->Set(v8::String::NewFromUtf8(Isolate, "external"), ExternalModels);
+    ExportsQm->Set(TNodeJsUtil::ToLocal(Nan::New("external"), ExternalModels);
 }
 
 } // TNodeJsExternalQmAddon namespace

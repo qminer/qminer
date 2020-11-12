@@ -819,7 +819,7 @@ namespace TClustering {
     inline void TDpMeans<TFltVV>::AddCentroid(const TFltVV& FtrVV, TFltVV& ClustDistVV, TFltV& NormC2,
             TFltV& TempK, TFltVV& TempDxK, TFltVV& TempDxK2, const int& InstN) {
         TFltV FtrV;  FtrVV.GetCol(InstN, FtrV);
-        CentroidVV.AddCol(FtrV);
+		this->CentroidVV.AddCol(FtrV); // access through 'this', otherwise MSVC complains; see https://stackoverflow.com/questions/4643074/why-do-i-have-to-access-template-base-class-members-through-the-this-pointer
         ClustDistVV.AddXDim();
         NormC2.Add(0);
         TempK.Add(0);
@@ -831,9 +831,9 @@ namespace TClustering {
     template<>
     inline void TDpMeans<TFltVV>::AddCentroid(const TVec<TIntFltKdV>& FtrVV, TFltVV& ClustDistVV,
             TFltV& NormC2, TFltV& TempK, TFltVV& TempDxK, TFltVV& TempDxK2, const int& InstN) {
-        TIntFltKdV FtrV; GetCol(FtrVV, InstN, FtrV);
-        TFltV DenseFtrV; TLinAlgTransform::ToVec(FtrV, DenseFtrV, GetDataDim(FtrVV));
-        CentroidVV.AddCol(DenseFtrV);
+        TIntFltKdV FtrV; this->GetCol(FtrVV, InstN, FtrV); 
+        TFltV DenseFtrV; TLinAlgTransform::ToVec(FtrV, DenseFtrV, this->GetDataDim(FtrVV)); 
+        this->CentroidVV.AddCol(DenseFtrV); 
         ClustDistVV.AddXDim();
         NormC2.Add(0);
         TempK.Add(0);
@@ -848,7 +848,7 @@ namespace TClustering {
             const int& InstN) {
         TFltV FtrV; FtrVV.GetCol(InstN, FtrV);
         TIntFltKdV SparseFtrV; TLinAlgTransform::ToSpVec(FtrV, SparseFtrV);
-        CentroidVV.Add(SparseFtrV);
+        this->CentroidVV.Add(SparseFtrV); 
         ClustDistVV.AddXDim();
         NormC2.Add(0);
         TempK.Add(0);
@@ -862,7 +862,7 @@ namespace TClustering {
             TFltVV& ClustDistVV, TFltV& NormC2, TFltV& TempK, TVec<TIntFltKdV>& TempDxK,
             TVec<TIntFltKdV>& TempDxK2, const int& InstN) {
         const TIntFltKdV& FtrV = FtrVV[InstN];
-        CentroidVV.Add(FtrV);
+        this->CentroidVV.Add(FtrV); 
         ClustDistVV.AddXDim();
         NormC2.Add(0);
         TempK.Add(0);

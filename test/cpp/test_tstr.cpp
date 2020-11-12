@@ -4,6 +4,35 @@
 
 #include "microtest.h"
 
+TEST(TStrFmt) {
+    // test correctnes for inputs of size: 10*1024 -10 ... 10*1024 +10
+    // which corresponds to outputs of size 10*1024 -8  .... 10*1024 + 12
+    // (different logic at output size: 1024 - 2 characters)
+    for (int Offset = -10; Offset <= 10; Offset++) {
+        TChA Input;
+        for (int ElN = 0; ElN < 10*1024 + Offset; ElN++) {
+            Input.AddCh(' ');
+        }
+
+        TStr TestStr = "x%sy";
+        TStr Out = TStr::Fmt(TestStr.CStr(), Input.CStr());
+        ASSERT_EQ(Out.Len(), 10 * 1024 + Offset + 2);
+        ASSERT_EQ(Out[0], 'x');
+        ASSERT_EQ(Out[1], ' ');
+        ASSERT_EQ(Out[10 * 1024 + Offset], ' ');
+        ASSERT_EQ(Out[10 * 1024 + Offset + 1], 'y');
+    }
+
+    // error
+    TChA Input3;
+    for (int ElN = 0; ElN < 20000; ElN++) {
+        Input3.AddCh(' ');
+    }
+    TStr TestStr3 = "%";
+    TStr Out3 = TStr::Fmt(TestStr3.CStr(), Input3.CStr());
+    ASSERT_EQ(Out3.Len(), 0);
+}
+
 TEST(TStrGetUc) {
     TStr Mixedcase = "AbCd";
     TStr Uppercase = "ABCD";

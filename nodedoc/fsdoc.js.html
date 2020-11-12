@@ -41,16 +41,16 @@
 * @module fs
 * @example
 * // import module
-* var fs = require(&#x27;qminer&#x27;).fs;
+* var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 * // open file in write mode
-* var fout = fs.openWrite(&#x27;file.txt&#x27;);
+* var fout &#x3D; fs.openWrite(&#x27;file.txt&#x27;);
 * // write sync and close
 * fout.writeLine(&#x27;example text&#x27;);
 * fout.close();
 * // open file in read mode
-* var fin = fs.openRead(&#x27;file.txt&#x27;);
+* var fin &#x3D; fs.openRead(&#x27;file.txt&#x27;);
 * // read a line
-* var str = fin.readLine();
+* var str &#x3D; fin.readLine();
 */
 /**
     * Open file in read mode and return file input stream.
@@ -58,121 +58,121 @@
     * @returns {module:fs.FIn} Input stream.
     * @example
     * // import fs module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // open file to write
-    * var fout = fs.openWrite(&#x27;read_text.txt&#x27;);
+    * var fout &#x3D; fs.openWrite(&#x27;read_text.txt&#x27;);
     * // write to file
     * fout.write(&#x27;This is awesome!&#x27;);
     * // close the stream
     * fout.close();
     * // open file to read
-    * var fin = fs.openRead(&#x27;read_text.txt&#x27;);
+    * var fin &#x3D; fs.openRead(&#x27;read_text.txt&#x27;);
     */
- exports.openRead = function(fileName) { return Object.create(require(&#x27;qminer&#x27;).fs.FIn.prototype); }
+ exports.openRead &#x3D; function(fileName) { return Object.create(require(&#x27;qminer&#x27;).fs.FIn.prototype); }
 /**
     * Open file in write mode and return file output stream.
     * @param {string} fileName - File name.
     * @returns {module:fs.FOut} Output stream.
     * @example
     * // import fs module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // open file to write
-    * var fout = fs.openWrite(&#x27;write_text.txt&#x27;);
+    * var fout &#x3D; fs.openWrite(&#x27;write_text.txt&#x27;);
     * // close the stream
     * fout.close();
     */
- exports.openWrite = function(fileName) { return Object.create(require(&#x27;qminer&#x27;).fs.FOut.prototype); }
+ exports.openWrite &#x3D; function(fileName) { return Object.create(require(&#x27;qminer&#x27;).fs.FOut.prototype); }
 /**
     * Open file in append mode and return file output stream.
     * @param {string} fileName - File name.
     * @returns {module:fs.FOut} Output stream.
     * @example
     * // import fs module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // open file to write
-    * var fout = fs.openWrite(&#x27;append_text.txt&#x27;);
+    * var fout &#x3D; fs.openWrite(&#x27;append_text.txt&#x27;);
     * // close the stream
     * fout.close();
     * // open file in append mode
-    * var foutAppend = fs.openAppend(&#x27;append_text.txt&#x27;);
+    * var foutAppend &#x3D; fs.openAppend(&#x27;append_text.txt&#x27;);
     * // close the stream
     * foutAppend.close();
     */
- exports.openAppend = function(fileName) { return Object.create(require(&#x27;qminer&#x27;).fs.FOut.prototype); }
+ exports.openAppend &#x3D; function(fileName) { return Object.create(require(&#x27;qminer&#x27;).fs.FOut.prototype); }
 /**
     * Checks if the file exists.
     * @param {string} fileName - File name.
     * @returns {boolean} True if file exists.
     * @example
     * // import fs module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // check if a file exists
     * fs.exists(&#x27;text.txt&#x27;);
     */
- exports.exists = function(fileName) { return false; }
+ exports.exists &#x3D; function(fileName) { return false; }
 /**
     * Copies a file.
     * @param {string} source - Source file name.
     * @param {string} dest - Destination file name.
     * @example
     * // import fs module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // open file to write
-    * var fout = fs.openWrite(&#x27;text.txt&#x27;);
+    * var fout &#x3D; fs.openWrite(&#x27;text.txt&#x27;);
     * // close the stream
     * fout.close();
     * // copy the file
-    * // var destination = fs.copy(&#x27;text.txt&#x27;, &#x27;copy.txt&#x27;);
+    * // var destination &#x3D; fs.copy(&#x27;text.txt&#x27;, &#x27;copy.txt&#x27;);
     */
- exports.copy = function(source, dest) { return &quot;&quot;; }
+ exports.copy &#x3D; function(source, dest) { return &quot;&quot;; }
 /**
     * Moves a file.
     * @param {string} source - Source file name.
     * @param {string} dest - Destination file name.
     * @example
     * // import fs module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // open file to write
-    * var fout = fs.openWrite(&#x27;text.txt&#x27;);
+    * var fout &#x3D; fs.openWrite(&#x27;text.txt&#x27;);
     * // close the stream
     * fout.close();
     * // move the file
-    * // var destination = fs.move(&#x27;text.txt&#x27;, &#x27;move.txt&#x27;);
+    * // var destination &#x3D; fs.move(&#x27;text.txt&#x27;, &#x27;move.txt&#x27;);
     */
- exports.move = function(source, dest) { return &quot;&quot;; }
+ exports.move &#x3D; function(source, dest) { return &quot;&quot;; }
 /**
     * Deletes a file.
     * @param {string} fileName - File name.
     * @returns {boolean} True if delete succeeded.
     * @example
     * // import fs module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // open file to write
-    * var fout = fs.openWrite(&#x27;delete.txt&#x27;);
+    * var fout &#x3D; fs.openWrite(&#x27;delete.txt&#x27;);
     * // close the stream
     * fout.close();
     * // delete the file
-    * var destination = fs.del(&#x27;delete.txt&#x27;);
+    * var destination &#x3D; fs.del(&#x27;delete.txt&#x27;);
     */
- exports.del = function(fileName) { return false; }
+ exports.del &#x3D; function(fileName) { return false; }
 /**
     * Renames a file.
     * @param {string} source - Source file name.
     * @param {string} dest - Destination file name.
     * @example
     * // import fs module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // open file to write
-    * var fout = fs.openWrite(&#x27;text.txt&#x27;);
+    * var fout &#x3D; fs.openWrite(&#x27;text.txt&#x27;);
     * // close the stream
     * fout.close();
     * // rename the file
     * if (fs.exists(&#x27;rename.txt&#x27;)) {
     *    fs.del(&#x27;rename.txt&#x27;);
     * }
-    * var destination = fs.rename(&#x27;text.txt&#x27;, &#x27;rename.txt&#x27;);
+    * var destination &#x3D; fs.rename(&#x27;text.txt&#x27;, &#x27;rename.txt&#x27;);
     */
- exports.rename = function(source, dest) { return &quot;&quot;; }
+ exports.rename &#x3D; function(source, dest) { return &quot;&quot;; }
 /**
     * @typedef {Object} FileInfo
     * Information about the file.
@@ -187,54 +187,54 @@
     * @returns {module:fs~FileInfo} File info object.
     * @example
     * // import fs module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // open file to write
-    * var fout = fs.openWrite(&#x27;text.txt&#x27;);
+    * var fout &#x3D; fs.openWrite(&#x27;text.txt&#x27;);
     * // close the stream
     * fout.close();
     * // get the file info
-    * var info = fs.fileInfo(&#x27;text.txt&#x27;);
+    * var info &#x3D; fs.fileInfo(&#x27;text.txt&#x27;);
     */
- exports.fileInfo = function(fileName) { return { createTime : &quot;&quot;,  lastAccessTime: &quot;&quot;, lastWriteTime: &quot;&quot;, size: 0 }}
+ exports.fileInfo &#x3D; function(fileName) { return { createTime : &quot;&quot;,  lastAccessTime: &quot;&quot;, lastWriteTime: &quot;&quot;, size: 0 }}
 /**
     * Creates a folder.
     * @param {string} dirName - Folder name.
     * @returns {boolean} True if succeeded.
     * @example
     // import fs module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // create a folder
-    * var makeFolder = fs.mkdir(&#x27;folder&#x27;);
+    * var makeFolder &#x3D; fs.mkdir(&#x27;folder&#x27;);
     */
- exports.mkdir = function(dirName) { return false; }
+ exports.mkdir &#x3D; function(dirName) { return false; }
 /**
     * Removes a folder.
     * @param {string} dirName - Folder name.
     * @returns {boolean} True if succeeded.
     * @example
     // import fs module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // create a folder
-    * var makeFolder = fs.mkdir(&#x27;folder&#x27;);
+    * var makeFolder &#x3D; fs.mkdir(&#x27;folder&#x27;);
     * // delete folder
     * if (makeFolder) {
     *    fs.rmdir(&#x27;folder&#x27;);
     * }
     */
- exports.rmdir = function(dirName) { return false; }
+ exports.rmdir &#x3D; function(dirName) { return false; }
 /**
     * Returns a list fo files in the folder.
     * @param {string} dirName - Folder name.
     * @param {string} [fileExtension] - Results are filtered by file extension.
-    * @param {boolean} [recursive=false] - Recursively searches for file names if true.
+    * @param {boolean} [recursive&#x3D;false] - Recursively searches for file names if true.
     * @returns {Array.&amp;lt;string&gt;} Array of file names.
     * @example
     * // import fs module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // get the names of all files
-    * var fileNames = fs.listFile(&#x27;./&#x27;);
+    * var fileNames &#x3D; fs.listFile(&#x27;./&#x27;);
     */
- exports.listFile = function(dirName, fileExtension, recursive) { return [&#x27;&#x27;]; }
+ exports.listFile &#x3D; function(dirName, fileExtension, recursive) { return [&#x27;&#x27;]; }
 /**
      * Reads a buffer line by line and calls a callback for each line.
      * @param {String | module:fs.FIn | Buffer} buffer - Name of the file, input stream of a Node.js buffer.
@@ -244,18 +244,18 @@
      *   function &#x60;onLine&#x60; returned &#x60;false&#x60;. If error was due to exception, the exception is provided in &#x60;err&#x60;.
      * @example
      * // import fs module
-     * var fs = require(&#x27;qminer&#x27;).fs;
+     * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
      * // create a file and write some lines
-     * var fout = fs.openWrite(&#x27;poem.txt&#x27;);
+     * var fout &#x3D; fs.openWrite(&#x27;poem.txt&#x27;);
      * fout.write(&#x27;I dig,\nYou dig,\nHe digs,\nShe digs,\nWe dig,\nThey dig.\n It\&#x27;s not a beautiful poem, but it\&#x27;s deep.&#x27;);
      * fout.close();
      * // open the file in read mode
-     * var fin = fs.openRead(&#x27;poem.txt&#x27;);
+     * var fin &#x3D; fs.openRead(&#x27;poem.txt&#x27;);
      * // read the file line by line and call functions
-     * var numberOfLines = 0;
+     * var numberOfLines &#x3D; 0;
      * function onLine(line) {
      *     console.log(line);
-     *     numberOfLines += 1;
+     *     numberOfLines +&#x3D; 1;
      *     return true;
      * }
      * function onEnd(err) {
@@ -264,7 +264,7 @@
      * }
      * fs.readLines(fin, onLine, onEnd);
      */
- exports.readLines = function (buffer, onLine, onEnd) {}
+ exports.readLines &#x3D; function (buffer, onLine, onEnd) {}
 /**
     * Input file stream.
     * @classdesc Used for reading files.
@@ -272,224 +272,224 @@
     * @param {string} fileName - File name.
     * @example
     * // import module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // open file in write mode
-    * var fout = fs.openWrite(&#x27;file.txt&#x27;);
+    * var fout &#x3D; fs.openWrite(&#x27;file.txt&#x27;);
     * // write sync and close
     * fout.writeLine(&#x27;example text&#x27;);
     * fout.close();
     * // open file in read mode
-    * var fin = new fs.FIn(&#x27;file.txt&#x27;);
+    * var fin &#x3D; new fs.FIn(&#x27;file.txt&#x27;);
     * // read a line
-    * var str = fin.readLine();
+    * var str &#x3D; fin.readLine();
     */
- exports.FIn = function(fileName) { return Object.create(require(&#x27;qminer&#x27;).fs.FIn.prototype); }
+ exports.FIn &#x3D; function(fileName) { return Object.create(require(&#x27;qminer&#x27;).fs.FIn.prototype); }
 /**
     * Peeks a character.
     * @returns {string} Character string.
     * @example
     * // import module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // open file in write mode
-    * var fout = fs.openWrite(&#x27;file.txt&#x27;);
+    * var fout &#x3D; fs.openWrite(&#x27;file.txt&#x27;);
     * // write sync and close
     * fout.writeLine(&#x27;example text&#x27;);
     * fout.close();
     * // open file in read mode
-    * var fin = new fs.FIn(&#x27;file.txt&#x27;);
+    * var fin &#x3D; new fs.FIn(&#x27;file.txt&#x27;);
     * // peek the next character
-    * var char = fin.peekCh();
+    * var char &#x3D; fin.peekCh();
     */
- exports.FIn.prototype.peekCh= function() { return &#x27;&#x27;; }
+ exports.FIn.prototype.peekCh&#x3D; function() { return &#x27;&#x27;; }
 /**
     * Reads a character.
     * @returns {string} Character string.
     * @example
     * // import module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // open file in write mode
-    * var fout = fs.openWrite(&#x27;file.txt&#x27;);
+    * var fout &#x3D; fs.openWrite(&#x27;file.txt&#x27;);
     * // write sync and close
     * fout.writeLine(&#x27;example text&#x27;);
     * fout.close();
     * // open file in read mode
-    * var fin = new fs.FIn(&#x27;file.txt&#x27;);
+    * var fin &#x3D; new fs.FIn(&#x27;file.txt&#x27;);
     * // get the next character
-    * var char = fin.getCh();
+    * var char &#x3D; fin.getCh();
     */
- exports.FIn.prototype.getCh= function() { return &#x27;&#x27;; }
+ exports.FIn.prototype.getCh&#x3D; function() { return &#x27;&#x27;; }
 /**
     * Reads a line.
     * @returns {string} Line string.
     * @example
     * // import module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // open file in write mode
-    * var fout = fs.openWrite(&#x27;file.txt&#x27;);
+    * var fout &#x3D; fs.openWrite(&#x27;file.txt&#x27;);
     * // write sync and close
     * fout.writeLine(&#x27;example text&#x27;);
     * fout.close();
     * // open file in read mode
-    * var fin = new fs.FIn(&#x27;file.txt&#x27;);
+    * var fin &#x3D; new fs.FIn(&#x27;file.txt&#x27;);
     * // get/read a new line
-    * var line = fin.readLine();
+    * var line &#x3D; fin.readLine();
     */
- exports.FIn.prototype.readLine = function() { return &#x27;&#x27;; }
+ exports.FIn.prototype.readLine &#x3D; function() { return &#x27;&#x27;; }
 /**
     * Reads a string that was serialized using &#x60;fs.FOut.writeBinary&#x60;.
     * @returns {string} String.
     * @example
     * // import fs module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // read a string that was serialized using fs.FOut.writeBinary
     */
- exports.FIn.prototype.readString = function() { return &#x27;&#x27;; }
+ exports.FIn.prototype.readString &#x3D; function() { return &#x27;&#x27;; }
 /**
     * True if end of file is detected. Otherwise, false. Type &#x60;boolean&#x60;.
     * @example
     * // import module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // open file in write mode
-    * var fout = fs.openWrite(&#x27;file.txt&#x27;);
+    * var fout &#x3D; fs.openWrite(&#x27;file.txt&#x27;);
     * // write sync and close
     * fout.writeLine(&#x27;example text&#x27;);
     * fout.close();
     * // open file in read mode
-    * var fin = new fs.FIn(&#x27;file.txt&#x27;);
+    * var fin &#x3D; new fs.FIn(&#x27;file.txt&#x27;);
     * // check if it&#x27;s end of the file
-    * var eof = fin.eof;
+    * var eof &#x3D; fin.eof;
     */
- exports.FIn.prototype.eof = false;
+ exports.FIn.prototype.eof &#x3D; false;
 /**
     * Length of input stream. Type &#x60;number&#x60;.
     * @example
     * // import module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // open file in write mode
-    * var fout = fs.openWrite(&#x27;file.txt&#x27;);
+    * var fout &#x3D; fs.openWrite(&#x27;file.txt&#x27;);
     * // write sync and close
     * fout.writeLine(&#x27;example text&#x27;);
     * fout.close();
     * // open file in read mode
-    * var fin = new fs.FIn(&#x27;file.txt&#x27;);
+    * var fin &#x3D; new fs.FIn(&#x27;file.txt&#x27;);
     * // get the length of the document
-    * var len = fin.length;
+    * var len &#x3D; fin.length;
     */
- exports.FIn.prototype.length = 0;
+ exports.FIn.prototype.length &#x3D; 0;
 /**
     * Reads the whole stream.
     * @returns {string} Content of the file.
     * @example
     * // import module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // open file in write mode
-    * var fout = fs.openWrite(&#x27;file.txt&#x27;);
+    * var fout &#x3D; fs.openWrite(&#x27;file.txt&#x27;);
     * // write sync and close
     * fout.writeLine(&#x27;example text&#x27;);
     * fout.close();
     * // open file in read mode
-    * var fin = new fs.FIn(&#x27;file.txt&#x27;);
+    * var fin &#x3D; new fs.FIn(&#x27;file.txt&#x27;);
     * // get/read a the whole string
-    * var all = fin.readAll();
+    * var all &#x3D; fin.readAll();
     */
- exports.FIn.prototype.readAll = function() { return &#x27;&#x27;; }
+ exports.FIn.prototype.readAll &#x3D; function() { return &#x27;&#x27;; }
 /**
     * Closes the input stream.
     * @example
     * // import module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // open file in write mode
-    * var fout = fs.openWrite(&#x27;file.txt&#x27;);
+    * var fout &#x3D; fs.openWrite(&#x27;file.txt&#x27;);
     * // write sync and close
     * fout.writeLine(&#x27;example text&#x27;);
     * fout.close();
     * // open file in read mode
-    * var fin = new fs.FIn(&#x27;file.txt&#x27;);
+    * var fin &#x3D; new fs.FIn(&#x27;file.txt&#x27;);
     * // close the stream
     * fin.close();
     */
- exports.FIn.prototype.close = function() { }
+ exports.FIn.prototype.close &#x3D; function() { }
 /**
     * Checks if the input stream is closed.
     * @example
     * // import module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // open file in write mode
-    * var fout = fs.openWrite(&#x27;file.txt&#x27;);
+    * var fout &#x3D; fs.openWrite(&#x27;file.txt&#x27;);
     * // write sync and close
     * fout.writeLine(&#x27;example text&#x27;);
     * fout.close();
     * // open file in read mode
-    * var fin = new fs.FIn(&#x27;file.txt&#x27;);
+    * var fin &#x3D; new fs.FIn(&#x27;file.txt&#x27;);
     * // check if the stream is closed
-    * var check = fin.isClosed();
+    * var check &#x3D; fin.isClosed();
     */
- exports.FIn.prototype.isClosed = function() { return false; }
+ exports.FIn.prototype.isClosed &#x3D; function() { return false; }
 /**
     * Output file stream.
     * @classdesc Used for writing files.
     * @class
     * @param {String} fileName - File name.
-    * @param {boolean} [append=false] - Append flag.
+    * @param {boolean} [append&#x3D;false] - Append flag.
     * @example
     * // import module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // open file in write mode
-    * var fout = new fs.FOut(&#x27;file.txt&#x27;);
+    * var fout &#x3D; new fs.FOut(&#x27;file.txt&#x27;);
     * // write a line
     * fout.writeLine(&#x27;example text&#x27;);
     * // close
     * fout.close();
     */
- exports.FOut = function(fileName, append) {}
+ exports.FOut &#x3D; function(fileName, append) {}
 /**
     * Writes a string or number or a JSON object in human readable form.
     * @param {(String | Number | Object)} arg - Argument to write.
     * @returns {module:fs.FOut} Self.
     * @example
     * // import module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // open file in write mode
-    * var fout = new fs.FOut(&#x27;file.txt&#x27;);
+    * var fout &#x3D; new fs.FOut(&#x27;file.txt&#x27;);
     * // write a string
     * fout.write(&#x27;example text&#x27;);
     * // close
     * fout.close();
     */
- exports.FOut.prototype.write = function(arg) { return this; }
+ exports.FOut.prototype.write &#x3D; function(arg) { return this; }
 /**
     * Writes a string or number or a JSON object in binary form.
     * @param {(String | Number | Object)} str - Argument to write.
     * @returns {module:fs.FOut} Self.
     * @example
     * // import fs module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // save a string in binary form
     */
- exports.FOut.prototype.writeBinary = function(arg) { return this; }
+ exports.FOut.prototype.writeBinary &#x3D; function(arg) { return this; }
 /**
     * Writes a string and adds a new line.
     * @param {String} str - String to write.
     * @returns {module:fs.FOut} Self.
     * @example
     * // import module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // open file in write mode
-    * var fout = new fs.FOut(&#x27;file.txt&#x27;);
+    * var fout &#x3D; new fs.FOut(&#x27;file.txt&#x27;);
     * // write a line
     * fout.writeLine(&#x27;example text&#x27;);
     * // close
     * fout.close();
     */
- exports.FOut.prototype.writeLine = function(str) { return this; }
+ exports.FOut.prototype.writeLine &#x3D; function(str) { return this; }
 /**
     * Flushes the output stream.
     * @returns {module:fs.FOut} Self.
     * @example
     * // import module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // open file in write mode
-    * var fout = new fs.FOut(&#x27;file.txt&#x27;);
+    * var fout &#x3D; new fs.FOut(&#x27;file.txt&#x27;);
     * // write a line
     * fout.writeLine(&#x27;example text&#x27;);
     * // flush the stream
@@ -497,36 +497,36 @@
     * // close
     * fout.close();
     */
- exports.FOut.prototype.flush = function() { return this; }
+ exports.FOut.prototype.flush &#x3D; function() { return this; }
 /**
     * Closes the output stream.
     * @example
     * // import module
-    * var fs = require(&#x27;qminer&#x27;).fs;
+    * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
     * // open file in write mode
-    * var fout = new fs.FOut(&#x27;file.txt&#x27;);
+    * var fout &#x3D; new fs.FOut(&#x27;file.txt&#x27;);
     * // write a line
     * fout.writeLine(&#x27;example text&#x27;);
     * // close
     * fout.close();
     */
- exports.FOut.prototype.close = function() {}
+ exports.FOut.prototype.close &#x3D; function() {}
 
 
     function processCsvLine(opts) {
-    	if (opts.delimiter == null) opts.delimiter = &#x27;,&#x27;;
-    	if (opts.onLine == null) throw &#x27;Line callback missing!&#x27;;
-    	if (opts.onEnd == null) opts.onEnd = function () {}
-    	if (opts.lineLimit == null) opts.lineLimit = Infinity;
-    	if (opts.skipLines == null) opts.skipLines = 0;
-    	if (opts.quote == null) opts.quote = &#x27;&quot;&#x27;;
+    	if (opts.delimiter &#x3D;&#x3D; null) opts.delimiter &#x3D; &#x27;,&#x27;;
+    	if (opts.onLine &#x3D;&#x3D; null) throw &#x27;Line callback missing!&#x27;;
+    	if (opts.onEnd &#x3D;&#x3D; null) opts.onEnd &#x3D; function () {}
+    	if (opts.lineLimit &#x3D;&#x3D; null) opts.lineLimit &#x3D; Infinity;
+    	if (opts.skipLines &#x3D;&#x3D; null) opts.skipLines &#x3D; 0;
+    	if (opts.quote &#x3D;&#x3D; null) opts.quote &#x3D; &#x27;&quot;&#x27;;
     	
-    	var strDelimiter = opts.delimiter;
+    	var strDelimiter &#x3D; opts.delimiter;
     	
-    	var lineCb = opts.onLine;
+    	var lineCb &#x3D; opts.onLine;
     	
     	// Create a regular expression to parse the CSV values.
-        var objPattern = new RegExp((
+        var objPattern &#x3D; new RegExp((
                 // Delimiters.
                 &quot;(\\&quot; + strDelimiter + &quot;|\\r?\\n|\\r|^)&quot; +
                 // Quoted fields.
@@ -535,27 +535,27 @@
                 &quot;([^\&quot;\\&quot; + strDelimiter + &quot;\\r\\n]*))&quot;
             ), &quot;gi&quot;);
         
-        var quoteRegex = new RegExp(opts.quote, &#x27;g&#x27;);
+        var quoteRegex &#x3D; new RegExp(opts.quote, &#x27;g&#x27;);
         
-        var i = 0;
-    	var line = &#x27;&#x27;;
+        var i &#x3D; 0;
+    	var line &#x3D; &#x27;&#x27;;
     	
     	return function (batch) {
-    		line += batch;
+    		line +&#x3D; batch;
     		
-    		// if the number of delimiters is odd =&gt; the line hasn&#x27;t ended, but a string field contained a line ending
-    		if ((line.match(quoteRegex) || []).length % 2 == 1) {
+    		// if the number of delimiters is odd &#x3D;&gt; the line hasn&#x27;t ended, but a string field contained a line ending
+    		if ((line.match(quoteRegex) || []).length % 2 &#x3D;&#x3D; 1) {
     			return true;
     		}
 			
 			try {    				
-				var arrData = [ ];
+				var arrData &#x3D; [ ];
 	            // Create an array to hold our individual pattern matching groups.
-	            var arrMatches = null;
+	            var arrMatches &#x3D; null;
 	            // Keep looping over the regular expression matches until we can no longer find a match.
-	            while (arrMatches = objPattern.exec(line)){
+	            while (arrMatches &#x3D; objPattern.exec(line)){
 	                // Let&#x27;s check to see which kind of value we captured (quoted or unquoted).
-	                var strMatchedValue = arrMatches[2] ?
+	                var strMatchedValue &#x3D; arrMatches[2] ?
 	                    // We found a quoted value. When we capture this value, unescape any double quotes.
 	                    arrMatches[2].replace(new RegExp( &quot;\&quot;\&quot;&quot;, &quot;g&quot; ), &quot;\&quot;&quot;) :
 	                    // We found a non-quoted value.
@@ -565,7 +565,7 @@
 	            }
 	            
 	            i++;
-	            line = &#x27;&#x27;;
+	            line &#x3D; &#x27;&#x27;;
 	            
 	            // Return the parsed data.
 	            if (i &gt; opts.skipLines) {
@@ -596,18 +596,18 @@
      * @param {Number} opts.skipLines - The number of lines that should be skipped before first calling the callback.
      * @example
      * // import fs module                                                                                                                                   
-     * let fs = require(&#x27;qminer&#x27;).fs;                                                                                                                        
+     * let fs &#x3D; require(&#x27;qminer&#x27;).fs;                                                                                                                        
      * // create a file and write some lines                                                                                                                 
-     * let fout = fs.openWrite(&#x27;test.csv&#x27;);                                                                                                                  
+     * let fout &#x3D; fs.openWrite(&#x27;test.csv&#x27;);                                                                                                                  
      * fout.write(&#x27;name,movie\nGeorge Clooney,&quot;O Brother, Where Art Thou?&quot;\n&quot;Sylvester &quot;&quot;Sly&quot;&quot; Stallone&quot;,Expendables&#x27;);                                      
      * fout.close();                                                                                                                                         
      * // open the file in read mode                                                                                                                         
-     * let fin = fs.openRead(&#x27;test.csv&#x27;);                                                                                                                    
+     * let fin &#x3D; fs.openRead(&#x27;test.csv&#x27;);                                                                                                                    
      * // prepare callbacks for csv parsing                                                                                                                  
      * // count the lines and for each line output the parsed cells                                                                                          
-     * let nLines = 0;                                                                                                                                       
+     * let nLines &#x3D; 0;                                                                                                                                       
      * function onLine(lineVals) {                                                                                                                           
-     *     nLines += 1;                                                                                                                                      
+     *     nLines +&#x3D; 1;                                                                                                                                      
      *     console.log(lineVals);                                                                                                                            
      *     return true;                                                                                                                                      
      * }                                                                                                                                                     
@@ -622,7 +622,7 @@
      *     &quot;onEnd&quot;: onEnd                                                                                                                                    
      * });                                                                                                                                                   
      */
-    exports.readCsvLines = function (fin, opts) {
+    exports.readCsvLines &#x3D; function (fin, opts) {
     	exports.readLines(fin, processCsvLine(opts), opts.onEnd);
     }
     
@@ -631,11 +631,11 @@
      * @returns {Object} Json object.
      * @example
      * // import fs module
-     * var fs = require(&#x27;qminer&#x27;).fs;
+     * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
      * // create and save a json and then read it using the readJson method
      */
-    exports.FIn.prototype.readJson = function () {
-    	var str = this.readString();
+    exports.FIn.prototype.readJson &#x3D; function () {
+    	var str &#x3D; this.readString();
     	return JSON.parse(str);
     }
     
@@ -645,11 +645,11 @@
      * @returns {module:fs.FOut} Self.
      * @example
      * // import fs module
-     * var fs = require(&#x27;qminer&#x27;).fs;
+     * var fs &#x3D; require(&#x27;qminer&#x27;).fs;
      * // create and save a json using the writeJson method
      */
-    exports.FOut.prototype.writeJson = function (json) {
-    	var str = JSON.stringify(json);
+    exports.FOut.prototype.writeJson &#x3D; function (json) {
+    	var str &#x3D; JSON.stringify(json);
     	this.writeBinary(str);
     	return this;
     }
@@ -670,7 +670,6 @@
     </div>
   </footer>
   <script src="scripts/jquery.min.js"></script>
-  <script src="scripts/jquery.cookie.js"></script>
   <script src="scripts/tree.jquery.js"></script>
   <script src="scripts/prettify.js"></script>
   <script src="scripts/jsdoc-toc.js"></script>

@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.1</a>
       </div>
     </div>
   </nav>
@@ -24,7 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-fs.html">fs</a>.<wbr></small><span class="symbol-name">FOut</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-fs.html">fs</a>.<wbr></small><span class="symbol-name">FOut</span></h1>
             <p class="source-link">Source: <a href="fsdoc.js.html#source-line-413">fsdoc.<wbr>js:413</a></p>
             <div class="symbol-classdesc">
               <p>Used for writing files.</p>
@@ -74,13 +75,13 @@
             <p>Output file stream.</p>
             <section>
               <h3>
-            Example
-        </h3>
+                Example
+              </h3>
               <div>
                 <pre class="prettyprint"><code>// import module
-var fs = require(&#x27;qminer&#x27;).fs;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // open file in write mode
-var fout = new fs.FOut(&#x27;file.txt&#x27;);
+var fout &#x3D; new fs.FOut(&#x27;file.txt&#x27;);
 // write a line
 fout.writeLine(&#x27;example text&#x27;);
 // close
@@ -141,13 +142,13 @@ fout.close();</code></pre>
               <p>Closes the output stream.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import module
-var fs = require(&#x27;qminer&#x27;).fs;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // open file in write mode
-var fout = new fs.FOut(&#x27;file.txt&#x27;);
+var fout &#x3D; new fs.FOut(&#x27;file.txt&#x27;);
 // write a line
 fout.writeLine(&#x27;example text&#x27;);
 // close
@@ -160,13 +161,13 @@ fout.close();</code></pre>
               <p>Flushes the output stream.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import module
-var fs = require(&#x27;qminer&#x27;).fs;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // open file in write mode
-var fout = new fs.FOut(&#x27;file.txt&#x27;);
+var fout &#x3D; new fs.FOut(&#x27;file.txt&#x27;);
 // write a line
 fout.writeLine(&#x27;example text&#x27;);
 // flush the stream
@@ -178,20 +179,20 @@ fout.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;Self.</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>B Self.</p>
                 </dd>
               </dl>
               <h3 id="write"><span class="symbol-name">write</span><span class="signature"><span class="signature-params">(arg)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
               <p>Writes a string or number or a JSON object in human readable form.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import module
-var fs = require(&#x27;qminer&#x27;).fs;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // open file in write mode
-var fout = new fs.FOut(&#x27;file.txt&#x27;);
+var fout &#x3D; new fs.FOut(&#x27;file.txt&#x27;);
 // write a string
 fout.write(&#x27;example text&#x27;);
 // close
@@ -230,18 +231,18 @@ fout.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;Self.</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>B Self.</p>
                 </dd>
               </dl>
               <h3 id="writeBinary"><span class="symbol-name">writeBinary</span><span class="signature"><span class="signature-params">(str)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
               <p>Writes a string or number or a JSON object in binary form.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
-var fs = require(&#x27;qminer&#x27;).fs;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // save a string in binary form</code></pre>
                 </div>
               </section>
@@ -277,41 +278,41 @@ var fs = require(&#x27;qminer&#x27;).fs;
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;Self.</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>B Self.</p>
                 </dd>
               </dl>
               <h3 id="writeJson"><span class="symbol-name">writeJson</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> (Object or <a href="module-fs.FOut.html">module:fs.FOut</a>)</span></span></h3>
               <p>Saves json object, which can be read by <code>fs.FIn.readJson</code>.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
-var fs = require(&#x27;qminer&#x27;).fs;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // create and save a json using the writeJson method</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;obj - Json object to write.</p>
+                  <p><code>Object</code>B obj - Json object to write.</p>
                 </dd>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;Self.</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>B Self.</p>
                 </dd>
               </dl>
               <h3 id="writeLine"><span class="symbol-name">writeLine</span><span class="signature"><span class="signature-params">(str)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
               <p>Writes a string and adds a new line.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import module
-var fs = require(&#x27;qminer&#x27;).fs;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // open file in write mode
-var fout = new fs.FOut(&#x27;file.txt&#x27;);
+var fout &#x3D; new fs.FOut(&#x27;file.txt&#x27;);
 // write a line
 fout.writeLine(&#x27;example text&#x27;);
 // close
@@ -350,7 +351,7 @@ fout.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;Self.</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>B Self.</p>
                 </dd>
               </dl>
             </section>
@@ -368,7 +369,6 @@ fout.close();</code></pre>
     </div>
   </footer>
   <script src="scripts/jquery.min.js"></script>
-  <script src="scripts/jquery.cookie.js"></script>
   <script src="scripts/tree.jquery.js"></script>
   <script src="scripts/prettify.js"></script>
   <script src="scripts/jsdoc-toc.js"></script>

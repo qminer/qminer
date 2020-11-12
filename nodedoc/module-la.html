@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.1</a>
       </div>
     </div>
   </nav>
@@ -24,26 +24,27 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">la</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">module</span></div>
+            <h1><small></small><span class="symbol-name">la</span></h1>
             <p class="source-link">Source: <a href="ladoc.js.html#source-line-8">ladoc.<wbr>js:8</a></p>
             <div class="symbol-description">
               <p>Linear algebra module.</p>
             </div>
             <section>
               <h2>
-            Example
-        </h2>
+                Example
+              </h2>
               <div>
                 <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a random matrix
-var mat = new la.Matrix({ rows: 10, cols: 5, random: true });
+var mat &#x3D; new la.Matrix({ rows: 10, cols: 5, random: true });
 // create a vector
-var vec = new la.Vector([1, 2, 3, 0, -1]);
+var vec &#x3D; new la.Vector([1, 2, 3, 0, -1]);
 // multiply the matrix and vector
-var vec2 = mat.multiply(vec);
+var vec2 &#x3D; mat.multiply(vec);
 // calculate the svd decomposition of the matrix
-var svd = la.svd(mat, 3);</code></pre>
+var svd &#x3D; la.svd(mat, 3);</code></pre>
               </div>
             </section>
             <dl class="dl-compact">
@@ -208,28 +209,29 @@ var svd = la.svd(mat, 3);</code></pre>
             </section>
             <h2>Methods</h2>
             <section>
-              <h3 id=".cat"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">cat</span><span class="signature"><span class="signature-params">(nestedArrMat)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".cat"><span class="symbol-name">cat</span><span class="signature"><span class="signature-params">(nestedArrMat)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
               <p>Constructs a matrix by concatenating a double-nested array of matrices.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create four matrices and concatenate (2 block columns, 2 block rows)
-var la = require(&#x27;qminer&#x27;).la;
-var A = new la.Matrix([[1,2], [3,4]]);
-var B = new la.Matrix([[5,6], [7,8]]);
-var C = new la.Matrix([[9,10], [11,12]]);
-var D = new la.Matrix([[13,14], [15,16]]);
+var la &#x3D; require(&#x27;qminer&#x27;).la;
+var A &#x3D; new la.Matrix([[1,2], [3,4]]);
+var B &#x3D; new la.Matrix([[5,6], [7,8]]);
+var C &#x3D; new la.Matrix([[9,10], [11,12]]);
+var D &#x3D; new la.Matrix([[13,14], [15,16]]);
 // create a nested matrix
 // returns the matrix:
 // 1  2  5  6
 // 3  4  7  8
 // 9  10 13 14
 // 11 12 15 16
-var mat = la.cat([[A,B], [C,D]]);</code></pre>
+var mat &#x3D; la.cat([[A,B], [C,D]]);</code></pre>
                 </div>
               </section>
               <section>
@@ -255,7 +257,8 @@ var mat = la.cat([[A,B], [C,D]]);</code></pre>
                         <p>&nbsp;</p>
                       </td>
                       <td>
-                        <p>An array of block rows, where each block row is an array of matrices. For example: <code>[[m_11, m_12], [m_21, m_22]]</code> is used to construct a matrix where the (i,j)-th block submatrix is <code>m_ij</code>.</p>
+                        <p>An array of block rows, where each block row is an array of matrices.
+                          For example: <code>[[m_11, m_12], [m_21, m_22]]</code> is used to construct a matrix where the (i,j)-th block submatrix is <code>m_ij</code>.</p>
                       </td>
                     </tr>
                   </tbody>
@@ -264,25 +267,26 @@ var mat = la.cat([[A,B], [C,D]]);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;Concatenated matrix.</p>
+                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>B Concatenated matrix.</p>
                 </dd>
               </dl>
-              <h3 id=".conjgrad"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">conjgrad</span><span class="signature"><span class="signature-params">(A, b[, x][, verbose])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".conjgrad"><span class="symbol-name">conjgrad</span><span class="signature"><span class="signature-params">(A, b[, x][, verbose])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Solves the PSD symmetric system: A x = b, where A is a positive-definite symmetric matrix.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a positive-definite symmetric matrix
-var vecTemp = new la.Vector([1, 2, 3]);
-var mat = vecTemp.diag();
+var vecTemp &#x3D; new la.Vector([1, 2, 3]);
+var mat &#x3D; vecTemp.diag();
 // create the right-hand side vector 
-var vec = new la.Vector([0.5, 3, -2]);
+var vec &#x3D; new la.Vector([0.5, 3, -2]);
 // solve the PSD symmetric system
-var x = la.conjgrad(mat, vec);</code></pre>
+var x &#x3D; la.conjgrad(mat, vec);</code></pre>
                 </div>
               </section>
               <section>
@@ -360,22 +364,23 @@ var x = la.conjgrad(mat, vec);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;Solution to the system.</p>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>B Solution to the system.</p>
                 </dd>
               </dl>
-              <h3 id=".copyVecToArray"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">copyVecToArray</span><span class="signature"><span class="signature-params">(vec)</span>&nbsp;&rarr; <span class="signature-returns"> Array of number</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".copyVecToArray"><span class="symbol-name">copyVecToArray</span><span class="signature"><span class="signature-params">(vec)</span>&nbsp;&rarr; <span class="signature-returns"> Array of number</span></span></h3>
               <p>Copies the vector into a JavaScript array of numbers.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([1, 2, 3]);
+var vec &#x3D; new la.Vector([1, 2, 3]);
 // create a JavaScript array out of vec
-var arr = la.copyVecToArray(vec); // returns an array [1, 2, 3]</code></pre>
+var arr &#x3D; la.copyVecToArray(vec); // returns an array [1, 2, 3]</code></pre>
                 </div>
               </section>
               <section>
@@ -410,20 +415,21 @@ var arr = la.copyVecToArray(vec); // returns an array [1, 2, 3]</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Array of number</code>&nbsp;A JavaScript array of numbers.</p>
+                  <p><code>Array of number</code>B A JavaScript array of numbers.</p>
                 </dd>
               </dl>
-              <h3 id=".eye"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">eye</span><span class="signature"><span class="signature-params">(dim)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".eye"><span class="symbol-name">eye</span><span class="signature"><span class="signature-params">(dim)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
               <p>Returns an dense identity matrix.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // generate a dense identity matrix of dimension 5
-var id = la.eye(5);</code></pre>
+var id &#x3D; la.eye(5);</code></pre>
                 </div>
               </section>
               <section>
@@ -458,20 +464,21 @@ var id = la.eye(5);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;A <code>dim</code>-by-<code>dim</code> identity matrix.</p>
+                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>B A <code>dim</code>-by-<code>dim</code> identity matrix.</p>
                 </dd>
               </dl>
-              <h3 id=".findMaxIdx"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">findMaxIdx</span><span class="signature"><span class="signature-params">(X)</span>&nbsp;&rarr; <span class="signature-returns"> Array of number</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".findMaxIdx"><span class="symbol-name">findMaxIdx</span><span class="signature"><span class="signature-params">(X)</span>&nbsp;&rarr; <span class="signature-returns"> Array of number</span></span></h3>
               <p>Returns a JS array of indices <code>idxArray</code> that correspond to the max elements in each column of dense matrix. The resulting array has one element for vector input.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a dense matrix
-var mat = new la.Matrix([[1, 2], [2, 0]]);
+var mat &#x3D; new la.Matrix([[1, 2], [2, 0]]);
 // get the indices of the maximum elements in each column of mat
 // returns the array:
 // [1, 0]
@@ -510,22 +517,23 @@ la.findMaxIdx(mat);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Array of number</code>&nbsp;Array of indexes where maximum is found, one for each column.</p>
+                  <p><code>Array of number</code>B Array of indexes where maximum is found, one for each column.</p>
                 </dd>
               </dl>
-              <h3 id=".inverseSVD"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">inverseSVD</span><span class="signature"><span class="signature-params">(mat)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".inverseSVD"><span class="symbol-name">inverseSVD</span><span class="signature"><span class="signature-params">(mat)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
               <p>Calculates the inverse matrix with SVD.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a random matrix
-var mat = new la.Matrix({ rows: 5, cols: 5, random: true });
+var mat &#x3D; new la.Matrix({ rows: 5, cols: 5, random: true });
 // get the inverse of mat
-var inv = la.inverseSVD(mat);</code></pre>
+var inv &#x3D; la.inverseSVD(mat);</code></pre>
                 </div>
               </section>
               <section>
@@ -560,20 +568,21 @@ var inv = la.inverseSVD(mat);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;The inverse matrix of <code>mat</code>.</p>
+                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>B The inverse matrix of <code>mat</code>.</p>
                 </dd>
               </dl>
-              <h3 id=".ones"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">ones</span><span class="signature"><span class="signature-params">(dim)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".ones"><span class="symbol-name">ones</span><span class="signature"><span class="signature-params">(dim)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Returns a vector with all entries set to 1.0.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a 3-dimensional vector with all entries set to 1.0
-var vec = la.ones(3);</code></pre>
+var vec &#x3D; la.ones(3);</code></pre>
                 </div>
               </section>
               <section>
@@ -608,21 +617,22 @@ var vec = la.ones(3);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;A <code>dim</code>-dimensional vector whose entries are set to 1.0.</p>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>B A <code>dim</code>-dimensional vector whose entries are set to 1.0.</p>
                 </dd>
               </dl>
-              <h3 id=".pdist2"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">pdist2</span><span class="signature"><span class="signature-params">(X1, X2)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".pdist2"><span class="symbol-name">pdist2</span><span class="signature"><span class="signature-params">(X1, X2)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
               <p>Computes and returns the pairwise squared euclidean distances between columns of <code>X1</code> and <code>X2</code> (<code>mat3[i,j] = ||mat(:,i) - mat2(:,j)||^2</code>).</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // construct two input matrices
-var X1 = new la.Matrix([[1,2], [2,0]]);
-var X2 = new la.Matrix([[1,0.5,0],[0,-0.5,-1]]);
+var X1 &#x3D; new la.Matrix([[1,2], [2,0]]);
+var X2 &#x3D; new la.Matrix([[1,0.5,0],[0,-0.5,-1]]);
 // get the pairwise squared distance between the matrices
 // returns the matrix:
 // 4 6.5 10
@@ -676,22 +686,23 @@ la.pdist2(X1, X2);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;Matrix with <code>X1.cols</code> rows and <code>X2.cols</code> columns containing squared euclidean distances.</p>
+                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>B Matrix with <code>X1.cols</code> rows and <code>X2.cols</code> columns containing squared euclidean distances.</p>
                 </dd>
               </dl>
-              <h3 id=".randi"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">randi</span><span class="signature"><span class="signature-params">(num[, len])</span>&nbsp;&rarr; <span class="signature-returns"> (number or la.IntVector)</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".randi"><span class="symbol-name">randi</span><span class="signature"><span class="signature-params">(num[, len])</span>&nbsp;&rarr; <span class="signature-returns"> (number or la.IntVector)</span></span></h3>
               <p>Returns a randomly selected integer(s) from an array.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // generate a random integer between 0 and 10
-var number = la.randi(10);
+var number &#x3D; la.randi(10);
 // generate an integer vector containing 5 random integers between 0 and 10
-var vec = la.randi(10, 5);</code></pre>
+var vec &#x3D; la.randi(10, 5);</code></pre>
                 </div>
               </section>
               <section>
@@ -740,26 +751,27 @@ var vec = la.randi(10, 5);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(number or la.IntVector)</code>&nbsp;
-                    <br>1. Randomly selected integer from the array <code>[0,...,num-1]</code>, if no parameters are given.
-                    <br>2. <a href="module-la.IntVector.html">module:la.IntVector</a>, if parameter <code>len</code> is given. The vector contains random integers from the array <code>[0,...,num-1]</code> (with repetition).</p>
+                  <p><code>(number or la.IntVector)</code>B <br>1. Randomly selected integer from the array <code>[0,...,num-1]</code>, if no parameters are given.
+                    <br>2. <a href="module-la.IntVector.html">module:la.IntVector</a>, if parameter <code>len</code> is given. The vector contains random integers from the array <code>[0,...,num-1]</code> (with repetition).
+                  </p>
                 </dd>
               </dl>
-              <h3 id=".randn"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">randn</span><span class="signature"><span class="signature-params">([arg1][, arg2])</span>&nbsp;&rarr; <span class="signature-returns"> (number, <a href="module-la.Vector.html">module:la.Vector</a>, or <a href="module-la.Matrix.html">module:la.Matrix</a>)</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".randn"><span class="symbol-name">randn</span><span class="signature"><span class="signature-params">([arg1][, arg2])</span>&nbsp;&rarr; <span class="signature-returns"> (number, <a href="module-la.Vector.html">module:la.Vector</a>, or <a href="module-la.Matrix.html">module:la.Matrix</a>)</span></span></h3>
               <p>Returns an object with random numbers.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // generate a random number
-var number = la.randn();
+var number &#x3D; la.randn();
 // generate a random vector of length 7
-var vector = la.randn(7);
+var vector &#x3D; la.randn(7);
 // generate a random matrix with 7 rows and 10 columns
-var mat = la.randn(7, 10);</code></pre>
+var mat &#x3D; la.randn(7, 10);</code></pre>
                 </div>
               </section>
               <section>
@@ -808,23 +820,24 @@ var mat = la.randn(7, 10);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(number, <a href="module-la.Vector.html">module:la.Vector</a>, or <a href="module-la.Matrix.html">module:la.Matrix</a>)</code>&nbsp;
-                    <br>1. Number, if no parameters are given.
+                  <p><code>(number, <a href="module-la.Vector.html">module:la.Vector</a>, or <a href="module-la.Matrix.html">module:la.Matrix</a>)</code>B <br>1. Number, if no parameters are given.
                     <br>2. <a href="module-la.Vector.html">module:la.Vector</a>, if parameter <code>arg1</code> is given.
-                    <br>3. <a href="module-la.Matrix.html">module:la.Matrix</a>, if parameters <code>arg1</code> and <code>arg2</code> are given.</p>
+                    <br>3. <a href="module-la.Matrix.html">module:la.Matrix</a>, if parameters <code>arg1</code> and <code>arg2</code> are given.
+                  </p>
                 </dd>
               </dl>
-              <h3 id=".randPerm"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">randPerm</span><span class="signature"><span class="signature-params">(k)</span>&nbsp;&rarr; <span class="signature-returns"> Array of number</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".randPerm"><span class="symbol-name">randPerm</span><span class="signature"><span class="signature-params">(k)</span>&nbsp;&rarr; <span class="signature-returns"> Array of number</span></span></h3>
               <p>Returns a permutation of elements.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create an array/permutation of 5 elements
-var perm = la.randPerm(5);</code></pre>
+var perm &#x3D; la.randPerm(5);</code></pre>
                 </div>
               </section>
               <section>
@@ -859,20 +872,21 @@ var perm = la.randPerm(5);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Array of number</code>&nbsp;A JavaScript array of integers. Represents a permutation of <code>k</code> elements.</p>
+                  <p><code>Array of number</code>B A JavaScript array of integers. Represents a permutation of <code>k</code> elements.</p>
                 </dd>
               </dl>
-              <h3 id=".randVariation"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">randVariation</span><span class="signature"><span class="signature-params">(n, k)</span>&nbsp;&rarr; <span class="signature-returns"> Array of number</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".randVariation"><span class="symbol-name">randVariation</span><span class="signature"><span class="signature-params">(n, k)</span>&nbsp;&rarr; <span class="signature-returns"> Array of number</span></span></h3>
               <p>Returns a JavaScript array, which is a sample of integers from an array.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create an array containing 5 integers between 0 and 15
-var arr = la.randVariation(15, 5);</code></pre>
+var arr &#x3D; la.randVariation(15, 5);</code></pre>
                 </div>
               </section>
               <section>
@@ -921,20 +935,21 @@ var arr = la.randVariation(15, 5);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Array of number</code>&nbsp;The sample of <code>k</code> numbers from <code>[0,...,n-1]</code>, sampled without replacement.</p>
+                  <p><code>Array of number</code>B The sample of <code>k</code> numbers from <code>[0,...,n-1]</code>, sampled without replacement.</p>
                 </dd>
               </dl>
-              <h3 id=".rangeVec"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">rangeVec</span><span class="signature"><span class="signature-params">(min, max)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.IntVector.html">module:la.IntVector</a></span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".rangeVec"><span class="symbol-name">rangeVec</span><span class="signature"><span class="signature-params">(min, max)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.IntVector.html">module:la.IntVector</a></span></span></h3>
               <p>Generates an integer vector given range.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a range vector containing 1, 2, 3
-var vec = la.rangeVec(1, 3);</code></pre>
+var vec &#x3D; la.rangeVec(1, 3);</code></pre>
                 </div>
               </section>
               <section>
@@ -983,20 +998,21 @@ var vec = la.rangeVec(1, 3);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.IntVector.html">module:la.IntVector</a></code>&nbsp;Integer range vector.</p>
+                  <p><code><a href="module-la.IntVector.html">module:la.IntVector</a></code>B Integer range vector.</p>
                 </dd>
               </dl>
-              <h3 id=".sparse"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">sparse</span><span class="signature"><span class="signature-params">(rows[, cols])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".sparse"><span class="symbol-name">sparse</span><span class="signature"><span class="signature-params">(rows[, cols])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
               <p>Returns a sparse zero matrix.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a sparse zero matrix with 5 rows and columns
-var spMat = la.sparse(5);</code></pre>
+var spMat &#x3D; la.sparse(5);</code></pre>
                 </div>
               </section>
               <section>
@@ -1046,20 +1062,21 @@ var spMat = la.sparse(5);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;A <code>rows</code>-by-<code>cols</code> sparse zero matrix.</p>
+                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>B A <code>rows</code>-by-<code>cols</code> sparse zero matrix.</p>
                 </dd>
               </dl>
-              <h3 id=".speye"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">speye</span><span class="signature"><span class="signature-params">(dim)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".speye"><span class="symbol-name">speye</span><span class="signature"><span class="signature-params">(dim)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
               <p>Returns a sparse identity matrix</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // generate a sparse identity matrix of dimension 5
-var spId = la.speye(5);</code></pre>
+var spId &#x3D; la.speye(5);</code></pre>
                 </div>
               </section>
               <section>
@@ -1094,23 +1111,24 @@ var spId = la.speye(5);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;A dim-by-dim identity matrix.</p>
+                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>B A dim-by-dim identity matrix.</p>
                 </dd>
               </dl>
-              <h3 id=".square"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">square</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> (number or <a href="module-la.Vector.html">module:la.Vector</a>)</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".square"><span class="symbol-name">square</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> (number or <a href="module-la.Vector.html">module:la.Vector</a>)</span></span></h3>
               <p>Squares the values in vector.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a vector
-var vec = new la.Vector([1, 2, 3]);
+var vec &#x3D; new la.Vector([1, 2, 3]);
 // square the values of the vector
 // returns the vector containing  the values 1, 4, 9
-var sqr = la.square(vec);</code></pre>
+var sqr &#x3D; la.square(vec);</code></pre>
                 </div>
               </section>
               <section>
@@ -1145,22 +1163,23 @@ var sqr = la.square(vec);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</code>&nbsp;
-                    <br> 1. If <code>x</code> is a number, returns square of <code>x</code>.
-                    <br> 2. If <code>x</code> is a <a href="module-la.Vector.html">module:la.Vector</a>, returns a <a href="module-la.Vector.html">module:la.Vector</a>, where the i-th value of the vector is the square of <code>x[i]</code>.</p>
+                  <p><code>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</code>B <br> 1. If <code>x</code> is a number, returns square of <code>x</code>.
+                    <br> 2. If <code>x</code> is a <a href="module-la.Vector.html">module:la.Vector</a>, returns a <a href="module-la.Vector.html">module:la.Vector</a>, where the i-th value of the vector is the square of <code>x[i]</code>.
+                  </p>
                 </dd>
               </dl>
-              <h3 id=".zeros"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">zeros</span><span class="signature"><span class="signature-params">(rows[, cols])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".zeros"><span class="symbol-name">zeros</span><span class="signature"><span class="signature-params">(rows[, cols])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
               <p>Returns a dense zero matrix.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a sparse zero matrix with 5 rows and 3 columns
-var mat = la.zeros(5, 3);</code></pre>
+var mat &#x3D; la.zeros(5, 3);</code></pre>
                 </div>
               </section>
               <section>
@@ -1210,22 +1229,22 @@ var mat = la.zeros(5, 3);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;A <code>rows</code>-by-<code>cols</code> dense zero matrix.</p>
+                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>B A <code>rows</code>-by-<code>cols</code> dense zero matrix.</p>
                 </dd>
               </dl>
               <h3 id="qr"><span class="symbol-name">qr</span><span class="signature"><span class="signature-params">(mat[, tol])</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
               <p>Computes the QR decomposition.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a random matrix
-var mat = new la.Matrix({ rows: 10, cols: 5, random: true });
+var mat &#x3D; new la.Matrix({ rows: 10, cols: 5, random: true });
 // calculate the QR decomposition of mat
-var qrRes = la.qr(mat);</code></pre>
+var qrRes &#x3D; la.qr(mat);</code></pre>
                 </div>
               </section>
               <section>
@@ -1275,50 +1294,51 @@ var qrRes = la.qr(mat);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;A JSON object <code>qrRes</code> which contains the decomposition matrices:
+                  <p><code>Object</code>B A JSON object <code>qrRes</code> which contains the decomposition matrices:
                     <br><code>qrRes.Q</code> - The orthogonal matrix Q of the QR decomposition. Type <a href="module-la.Matrix.html">module:la.Matrix</a>.
-                    <br><code>qrRes.R</code> - The upper triangular matrix R of the QR decomposition. Type <a href="module-la.Matrix.html">module:la.Matrix</a>.</p>
+                    <br><code>qrRes.R</code> - The upper triangular matrix R of the QR decomposition. Type <a href="module-la.Matrix.html">module:la.Matrix</a>.
+                  </p>
                 </dd>
               </dl>
               <h3 id="svd"><span class="symbol-name">svd</span><span class="signature"><span class="signature-params">(mat, k[, json][, callback])</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
               <p>Computes the truncated SVD decomposition.</p>
               <section>
                 <h4>
-            Examples
-        </h4>
+                  Examples
+                </h4>
                 <div>
                   <p>Asynchronous function</p>
                   <pre class="prettyprint"><code>// import the modules
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a random matrix
-var A = new la.Matrix({ rows: 10, cols: 5, random: true });
+var A &#x3D; new la.Matrix({ rows: 10, cols: 5, random: true });
 // set the parameters for the calculation
-var k = 2; // number of singular vectors 
-var param = { iter: 1000, tol: 1e-4 };
+var k &#x3D; 2; // number of singular vectors
+var param &#x3D; { iter: 1000, tol: 1e-4 };
 // calculate the svd
 la.svd(A, k, param, function (err, result) {
    if (err) { console.log(err); }
    // successful calculation
-   var U = result.U;
-   var V = result.V;
-   var s = result.s;
+   var U &#x3D; result.U;
+   var V &#x3D; result.V;
+   var s &#x3D; result.s;
 });</code></pre>
                 </div>
                 <div>
                   <p>Synchronous function</p>
                   <pre class="prettyprint"><code>// import the modules
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a random matrix
-var A = new la.Matrix({ rows: 10, cols: 5, random: true });
+var A &#x3D; new la.Matrix({ rows: 10, cols: 5, random: true });
 // set the parameters for the calculation
-var k = 2; // number of singular vectors
-var param = { iter: 1000, tol: 1e-4 };
+var k &#x3D; 2; // number of singular vectors
+var param &#x3D; { iter: 1000, tol: 1e-4 };
 // calculate the svd
-var result = la.svd(A, k, param);
+var result &#x3D; la.svd(A, k, param);
 // successful calculation
-var U = result.U;
-var V = result.V;
-var s = result.s;</code></pre>
+var U &#x3D; result.U;
+var V &#x3D; result.V;
+var s &#x3D; result.s;</code></pre>
                 </div>
               </section>
               <section>
@@ -1430,7 +1450,8 @@ var s = result.s;</code></pre>
                       </td>
                       <td>
                         <p>The callback function, that takes the error parameters (err) and the result parameter (res).
-                          <i>Only for the asynchronous function.</i></p>
+                          <i>Only for the asynchronous function.</i>
+                        </p>
                       </td>
                     </tr>
                   </tbody>
@@ -1439,16 +1460,18 @@ var s = result.s;</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;The JSON object <code>svdRes</code> which contains the SVD decomposition U<em>S</em>V^T matrices:
+                  <p><code>Object</code>B The JSON object <code>svdRes</code> which contains the SVD decomposition U<em>S</em>V^T matrices:
                     <br><code>svdRes.U</code> - The dense matrix of the decomposition. Type <a href="module-la.Matrix.html">module:la.Matrix</a>.
                     <br><code>svdRes.V</code> - The dense matrix of the decomposition. Type <a href="module-la.Matrix.html">module:la.Matrix</a>.
-                    <br><code>svdRes.s</code> - The vector containing the singular values of the decomposition. Type <a href="module-la.Vector.html">module:la.Vector</a>.</p>
+                    <br><code>svdRes.s</code> - The vector containing the singular values of the decomposition. Type <a href="module-la.Vector.html">module:la.Vector</a>.
+                  </p>
                 </dd>
               </dl>
             </section>
             <h2>Abstract types</h2>
             <section>
-              <h3 id="~boolVectorCompareCb"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">boolVectorCompareCb</span><span class="signature"><span class="signature-params">(arg1, arg2)</span>&nbsp;&rarr; <span class="signature-returns"> (number or boolean)</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~boolVectorCompareCb"><span class="symbol-name">boolVectorCompareCb</span><span class="signature"><span class="signature-params">(arg1, arg2)</span>&nbsp;&rarr; <span class="signature-returns"> (number or boolean)</span></span></h3>
               <p>Vector sort comparator callback.</p>
               <section>
                 <h4>Parameters</h4>
@@ -1496,10 +1519,11 @@ var s = result.s;</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(number or boolean)</code>&nbsp;If <code>boolVectorCompareCb(arg1, arg2)</code> is less than 0 or false, sort <code>arg1</code> to a lower index than <code>arg2</code>, i.e. <code>arg1</code> comes first.</p>
+                  <p><code>(number or boolean)</code>B If <code>boolVectorCompareCb(arg1, arg2)</code> is less than 0 or false, sort <code>arg1</code> to a lower index than <code>arg2</code>, i.e. <code>arg1</code> comes first.</p>
                 </dd>
               </dl>
-              <h3 id="~intVectorCompareCb"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">intVectorCompareCb</span><span class="signature"><span class="signature-params">(arg1, arg2)</span>&nbsp;&rarr; <span class="signature-returns"> (number or boolean)</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~intVectorCompareCb"><span class="symbol-name">intVectorCompareCb</span><span class="signature"><span class="signature-params">(arg1, arg2)</span>&nbsp;&rarr; <span class="signature-returns"> (number or boolean)</span></span></h3>
               <p>Vector sort comparator callback.</p>
               <section>
                 <h4>Parameters</h4>
@@ -1547,11 +1571,12 @@ var s = result.s;</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(number or boolean)</code>&nbsp;If <code>intVectorCompareCb(arg1, arg2)</code> is less than 0 or false, sort <code>arg1</code> to a lower index than <code>arg2</code>, i.e. <code>arg1</code> comes first.</p>
+                  <p><code>(number or boolean)</code>B If <code>intVectorCompareCb(arg1, arg2)</code> is less than 0 or false, sort <code>arg1</code> to a lower index than <code>arg2</code>, i.e. <code>arg1</code> comes first.</p>
                 </dd>
               </dl>
-              <h3 id="~matrixArg"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">matrixArg</span><small class="property-type">
-            &nbsp;Object</small></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~matrixArg"><span class="symbol-name">matrixArg</span><small class="property-type">
+                  &nbsp;Object</small></h3>
               <p>Matrix constructor parameter object.</p>
               <section>
                 <h4>Properties</h4>
@@ -1613,7 +1638,8 @@ var s = result.s;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~strVectorCompareCb"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">strVectorCompareCb</span><span class="signature"><span class="signature-params">(arg1, arg2)</span>&nbsp;&rarr; <span class="signature-returns"> (number or boolean)</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~strVectorCompareCb"><span class="symbol-name">strVectorCompareCb</span><span class="signature"><span class="signature-params">(arg1, arg2)</span>&nbsp;&rarr; <span class="signature-returns"> (number or boolean)</span></span></h3>
               <p>Vector sort comparator callback.</p>
               <section>
                 <h4>Parameters</h4>
@@ -1661,10 +1687,11 @@ var s = result.s;</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(number or boolean)</code>&nbsp;If <code>strVectorCompareCb(arg1, arg2)</code> is less than 0 or false, sort <code>arg1</code> to a lower index than <code>arg2</code>, i.e. <code>arg1</code> comes first.</p>
+                  <p><code>(number or boolean)</code>B If <code>strVectorCompareCb(arg1, arg2)</code> is less than 0 or false, sort <code>arg1</code> to a lower index than <code>arg2</code>, i.e. <code>arg1</code> comes first.</p>
                 </dd>
               </dl>
-              <h3 id="~vectorCompareCb"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">vectorCompareCb</span><span class="signature"><span class="signature-params">(arg1, arg2)</span>&nbsp;&rarr; <span class="signature-returns"> (number or boolean)</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~vectorCompareCb"><span class="symbol-name">vectorCompareCb</span><span class="signature"><span class="signature-params">(arg1, arg2)</span>&nbsp;&rarr; <span class="signature-returns"> (number or boolean)</span></span></h3>
               <p>Vector sort comparator callback.</p>
               <section>
                 <h4>Parameters</h4>
@@ -1712,7 +1739,7 @@ var s = result.s;</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(number or boolean)</code>&nbsp;If <code>vectorCompareCb(arg1, arg2)</code> is less than 0 or false, sort <code>arg1</code> to a lower index than <code>arg2</code>, i.e. <code>arg1</code> comes first.</p>
+                  <p><code>(number or boolean)</code>B If <code>vectorCompareCb(arg1, arg2)</code> is less than 0 or false, sort <code>arg1</code> to a lower index than <code>arg2</code>, i.e. <code>arg1</code> comes first.</p>
                 </dd>
               </dl>
             </section>
@@ -1730,7 +1757,6 @@ var s = result.s;</code></pre>
     </div>
   </footer>
   <script src="scripts/jquery.min.js"></script>
-  <script src="scripts/jquery.cookie.js"></script>
   <script src="scripts/tree.jquery.js"></script>
   <script src="scripts/prettify.js"></script>
   <script src="scripts/jsdoc-toc.js"></script>

@@ -8,7 +8,7 @@
 
 // console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js');     //adds assert.run function
-var qm = require('qminer');
+var qm = require('../../index.js');
 qm.delLock();
 
 // the database/store, from which we get the record set
@@ -51,41 +51,41 @@ describe('Records Tests', function () {
     describe('Clone Tests', function () {
         it('should clone the record', function () {
             var rec2 = rec.$clone();
-            assert.equal(rec2.Name, rec.Name);
-            assert.equal(rec2.Gender, rec.Gender);
+            assert.strictEqual(rec2.Name, rec.Name);
+            assert.strictEqual(rec2.Gender, rec.Gender);
         })
     });
 
     describe('ToJSON Tests', function () {
         it('should return the record as a JSON', function () {
             var json = rec.toJSON();
-            assert.equal(json.$id, 0);
-            assert.equal(json.Name, "Carolina Fortuna");
-            assert.equal(json.Gender, "Female");
+            assert.strictEqual(json.$id, 0);
+            assert.strictEqual(json.Name, "Carolina Fortuna");
+            assert.strictEqual(json.Gender, "Female");
         })
     });
 
     describe('Id Test', function () {
         it('should return the id of the record', function () {
-            assert.equal(rec.$id, 0);
+            assert.strictEqual(rec.$id, 0);
         })
     });
 
     describe('Name Test', function () {
         it('should return the name of the record', function () {
-            assert.equal(rec.$name, "Carolina Fortuna");
+            assert.strictEqual(rec.$name, "Carolina Fortuna");
         })
     });
 
     describe('Fq Test', function () {
         it('should return the frequency of the record', function () {
-            assert.equal(rec.$fq, 1);
+            assert.strictEqual(rec.$fq, 1);
         })
     });
 
     describe('Store Test', function () {
         it('should return the store the record belongs to', function () {
-            assert.equal(rec.$store.name, "People");
+            assert.strictEqual(rec.$store.name, "People");
         })
     });
 });
@@ -105,23 +105,23 @@ describe('StoreIterator Tests', function () {
 
     describe('Next Test', function () {
         it('should give the first record of the store', function () {
-            assert.equal(iter.next(), true);
-            assert.equal(iter.record.Name, "Carolina Fortuna");
-            assert.equal(iter.record.Gender, "Female");
-            assert.equal(iter.store.name, "People");
+            assert.strictEqual(iter.next(), true);
+            assert.strictEqual(iter.record.Name, "Carolina Fortuna");
+            assert.strictEqual(iter.record.Gender, "Female");
+            assert.strictEqual(iter.store.name, "People");
         })
         it('should go through all the records of the store', function () {
-            assert.equal(iter.next(), true);
-            assert.equal(iter.record.Name, "Carolina Fortuna");
-            assert.equal(iter.record.Gender, "Female");
-            assert.equal(iter.store.name, "People");
+            assert.strictEqual(iter.next(), true);
+            assert.strictEqual(iter.record.Name, "Carolina Fortuna");
+            assert.strictEqual(iter.record.Gender, "Female");
+            assert.strictEqual(iter.store.name, "People");
 
-            assert.equal(iter.next(), true);
-            assert.equal(iter.record.Name, "Blaz Fortuna");
-            assert.equal(iter.record.Gender, "Male");
-            assert.equal(iter.store.name, "People");
+            assert.strictEqual(iter.next(), true);
+            assert.strictEqual(iter.record.Name, "Blaz Fortuna");
+            assert.strictEqual(iter.record.Gender, "Male");
+            assert.strictEqual(iter.store.name, "People");
 
-            assert.equal(iter.next(), false);
+            assert.strictEqual(iter.next(), false);
         })
     })
 })

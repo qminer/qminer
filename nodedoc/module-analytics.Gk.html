@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.1</a>
       </div>
     </div>
   </nav>
@@ -24,14 +24,22 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">Gk</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">Gk</span></h1>
             <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2491">analyticsdoc.<wbr>js:2491</a></p>
             <div class="symbol-classdesc">
-              <p>Greenwald - Khanna algorithm for online quantile estimation. Given a comulative probability p, the algorithm returns the approximate value of the p-th quantile.</p>
-              <p> The algorithm works by keeping a summary of buckets, each summarizing a range of values. Through the run of the algorithm new buckets are created and periodically merged if possible.</p>
-              <p> It is was first explained in: &quot;Space-Efficient Online Computation of Quantile Summaries&quot; http://infolab.stanford.edu/~datar/courses/cs361a/papers/quantiles.pdf
-              </p>
-              <p> The error is bounded by the rank of the output element (not by the absolute value). Specifically, the worst case error in rank is bounded by eps*n, where n is the number of elements in the summary.</p>
+              <p>Greenwald - Khanna algorithm for online quantile estimation. Given
+                a comulative probability p, the algorithm returns the approximate value of
+                the p-th quantile.</p>
+              <p>The algorithm works by keeping a summary of buckets, each summarizing a
+                range of values. Through the run of the algorithm new buckets are created
+                and periodically merged if possible.</p>
+              <p>It is was first explained in:
+                &quot;Space-Efficient Online Computation of Quantile Summaries&quot;
+                http://infolab.stanford.edu/~datar/courses/cs361a/papers/quantiles.pdf</p>
+              <p>The error is bounded by the rank of the output element (not by the absolute value).
+                Specifically, the worst case error in rank is bounded by eps*n, where n is the
+                number of elements in the summary.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -69,10 +77,10 @@
               <div class="summary-content">
                 <div class="summary-column">
                   <dl class="dl-summary-callout">
-                    <dt><a href="module-analytics.Gk.html#.compress">compress()</a></dt>
+                    <dt><a href="module-analytics.Gk.html#.compress">compress(val)</a></dt>
                     <dd>
                     </dd>
-                    <dt><a href="module-analytics.Gk.html#.compress">compress(val)</a></dt>
+                    <dt><a href="module-analytics.Gk.html#.compress">compress()</a></dt>
                     <dd>
                     </dd>
                     <dt><a href="module-analytics.Gk.html#.kolmogorovStat">kolmogorovStat(distribution)</a></dt>
@@ -110,34 +118,34 @@
             <h2 id="Gk">new&nbsp;<span class="symbol-name">Gk</span><span class="signature"><span class="signature-params">([arg])</span></span></h2>
             <section>
               <h3>
-            Example
-        </h3>
+                Example
+              </h3>
               <div>
                 <pre class="prettyprint"><code>// import modules
-var qm = require(&#x27;qminer&#x27;);
-var fs = require(&#x27;qminer&#x27;).fs;
-var quants = qm.analytics.quantiles;
+var qm &#x3D; require(&#x27;qminer&#x27;);
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+var quants &#x3D; qm.analytics.quantiles;
 
 // create the Gk object
-var gk = new quants.Gk({
+var gk &#x3D; new quants.Gk({
     eps: 0.001,
     autoCompress: true
 });
 
 // create the data used for calculating quantiles
-var inputs = [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
+var inputs &#x3D; [10, 1, 2, 8, 9, 5, 6, 4, 7, 3];
 
 // fit the model
-for (var i = 0; i &lt; inputs.length; i++) {
+for (var i &#x3D; 0; i &lt; inputs.length; i++) {
     gk.insert(inputs[i]);
 }
 
 // make the estimation for the 0.1 quantile
-var quant = gk.quantile(0.1);
+var quant &#x3D; gk.quantile(0.1);
 // save the model
 gk.save(fs.openWrite(&#x27;gk.bin&#x27;)).close();
 // open the gk model under a new variable
-var gk2 = new quants.Gk(fs.openRead(&#x27;gk.bin&#x27;));</code></pre>
+var gk2 &#x3D; new quants.Gk(fs.openRead(&#x27;gk.bin&#x27;));</code></pre>
               </div>
             </section>
             <section>
@@ -165,7 +173,8 @@ var gk2 = new quants.Gk(fs.openRead(&#x27;gk.bin&#x27;));</code></pre>
                     <td>
                       <p>Construction arguments. There are two ways of constructing:
                         <br>1. Using the module:analytics.quantiles~GkParam object,
-                        <br>2. using the file input stream <a href="module-fs.FIn.html">module:fs.FIn</a>.</p>
+                        <br>2. using the file input stream <a href="module-fs.FIn.html">module:fs.FIn</a>.
+                      </p>
                     </td>
                   </tr>
                 </tbody>
@@ -177,43 +186,40 @@ var gk2 = new quants.Gk(fs.openRead(&#x27;gk.bin&#x27;));</code></pre>
           <section>
             <h2>Properties</h2>
             <section>
-              <h3 id=".init"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">init</span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".init"><span class="symbol-name">init</span></h3>
               <p>Returns the current size of the algorithms summary in number of tuples.</p>
               <dl class="dl-compact">
               </dl>
-              <h3 id=".memory"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">memory</span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".memory"><span class="symbol-name">memory</span></h3>
               <p>Returns the models current memory consumption.</p>
               <dl class="dl-compact">
               </dl>
-              <h3 id=".samples"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">samples</span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".samples"><span class="symbol-name">samples</span></h3>
               <p>Returns the number of samples seen by the model.</p>
               <dl class="dl-compact">
               </dl>
-              <h3 id=".size"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">size</span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".size"><span class="symbol-name">size</span></h3>
               <p>Returns the current size of the algorithms summary in number of tuples.</p>
               <dl class="dl-compact">
               </dl>
             </section>
             <h2>Methods</h2>
             <section>
-              <h3 id=".compress"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">compress</span><span class="signature"><span class="signature-params">()</span></span></h3>
-              <p>Manually runs the compression procedure.</p>
-              <dl class="dl-compact">
-                <dt>Returns</dt>
-                <dd>
-                  <p>reference to self</p>
-                </dd>
-              </dl>
-              <h3 id=".compress"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">compress</span><span class="signature"><span class="signature-params">(val)</span>&nbsp;&rarr; <span class="signature-returns"> module:analytics.quantiles.Gk</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".compress"><span class="symbol-name">compress</span><span class="signature"><span class="signature-params">(val)</span>&nbsp;&rarr; <span class="signature-returns"> module:analytics.quantiles.Gk</span></span></h3>
               <p>Adds a new value to the summary.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
-                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+                  <pre class="prettyprint"><code>var qm &#x3D; require(&#x27;qminer&#x27;);
 
-var gk = new qm.analytics.quantiles.Gk();
+var gk &#x3D; new qm.analytics.quantiles.Gk();
 gk.insert(1.0);
 gk.insert(2.0);</code></pre>
                 </div>
@@ -250,15 +256,26 @@ gk.insert(2.0);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>module:analytics.quantiles.Gk</code>&nbsp;reference to self</p>
+                  <p><code>module:analytics.quantiles.Gk</code>B reference to self</p>
                 </dd>
               </dl>
-              <h3 id=".kolmogorovStat"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">kolmogorovStat</span><span class="signature"><span class="signature-params">(distribution)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Compares this distribution to <code>dist</code> and returns the Kolmogorov-Smirnov statistic:
-              </p>
-              <p> D_n,m = sup_x|f1(x) - f2(x)|</p>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".compress"><span class="symbol-name">compress</span><span class="signature"><span class="signature-params">()</span></span></h3>
+              <p>Manually runs the compression procedure.</p>
+              <dl class="dl-compact">
+                <dt>Returns</dt>
+                <dd>
+                  <p>reference to self</p>
+                </dd>
+              </dl>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".kolmogorovStat"><span class="symbol-name">kolmogorovStat</span><span class="signature"><span class="signature-params">(distribution)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Compares this distribution to <code>dist</code> and returns the Kolmogorov-Smirnov
+                statistic:</p>
+              <p>D_n,m = sup_x|f1(x) - f2(x)|</p>
               <p>where f1 and f2 are cumulative distribution function of this distribution and
-                <code>dist</code> respectively.</p>
+                <code>dist</code> respectively.
+              </p>
               <section>
                 <h4>Parameter</h4>
                 <table class="jsdoc-details-table">
@@ -291,11 +308,13 @@ gk.insert(2.0);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;- the K-S statistic</p>
+                  <p><code>number</code>B - the K-S statistic</p>
                 </dd>
               </dl>
-              <h3 id=".kolmogorovTest"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">kolmogorovTest</span><span class="signature"><span class="signature-params">(distribution, alpha)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
-              <p>Compares this distribution to <code>dist</code> using the Kolmogorov-Smirnov test with significance <code>alpha</code>.</p>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".kolmogorovTest"><span class="symbol-name">kolmogorovTest</span><span class="signature"><span class="signature-params">(distribution, alpha)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
+              <p>Compares this distribution to <code>dist</code> using the Kolmogorov-Smirnov test with
+                significance <code>alpha</code>.</p>
               <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
@@ -342,10 +361,11 @@ gk.insert(2.0);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>boolean</code>&nbsp;- true if the distributions differ</p>
+                  <p><code>boolean</code>B - true if the distributions differ</p>
                 </dd>
               </dl>
-              <h3 id=".save"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
               <p>Saves the objects state into the output stream.</p>
               <section>
                 <h4>Parameter</h4>
@@ -379,19 +399,20 @@ gk.insert(2.0);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;- the output stream</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>B - the output stream</p>
                 </dd>
               </dl>
               <h3 id="cdf"><span class="symbol-name">cdf</span><span class="signature"><span class="signature-params">(vals)</span>&nbsp;&rarr; <span class="signature-returns"> (number or Array)</span></span></h3>
-              <p>Provided a given value or array of values it returns the corresponding values of the cumulative distribution function.</p>
+              <p>Provided a given value or array of values it returns the corresponding
+                values of the cumulative distribution function.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
-                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+                  <pre class="prettyprint"><code>var qm &#x3D; require(&#x27;qminer&#x27;);
 
-var gk = new qm.analytics.quantiles.Gk({
+var gk &#x3D; new qm.analytics.quantiles.Gk({
     eps: 0.1
 });
 gk.insert(1.0);
@@ -400,9 +421,9 @@ gk.insert(1.0);
 gk.insert(3.0);
 gk.insert(2.0);
 
-console.log(gk.cdf(0));   // prints the CDF for x = 0
-console.log(gk.cdf(2));   // prints the CDF for x = 2
-console.log(gk.cdf(4));    // prints the CDF for x = 4</code></pre>
+console.log(gk.cdf(0));   // prints the CDF for x &#x3D; 0
+console.log(gk.cdf(2));   // prints the CDF for x &#x3D; 2
+console.log(gk.cdf(4));    // prints the CDF for x &#x3D; 4</code></pre>
                 </div>
               </section>
               <section>
@@ -437,30 +458,34 @@ console.log(gk.cdf(4));    // prints the CDF for x = 4</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(number or Array)</code>&nbsp;pVals - depending whether the input was a single value or array the method returns a probability or array of probabilities</p>
+                  <p><code>(number or Array)</code>B pVals - depending whether the input was a single value or array the method returns a probability or array of probabilities</p>
                 </dd>
               </dl>
               <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> module:analytics.quantiles~GkParam</span></span></h3>
-              <p>Returns the models' parameters as a JavaScript object (JSON). These parameters are the same as are set through the constructor.</p>
+              <p>Returns the models' parameters as a JavaScript object (JSON). These parameters
+                are the same as are set through the constructor.</p>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>module:analytics.quantiles~GkParam</code>&nbsp;The construction parameters.</p>
-                  <p>var analytics = qm.analytics; var gk = new analytics.quantiles.Gk(); var params = gk.getParams();</p>
-                  <p>console.log(params.eps); console.log(params.autoCompress);
-                  </p>
+                  <p><code>module:analytics.quantiles~GkParam</code>B The construction parameters.</p>
+                  <p>var analytics = qm.analytics;
+                    var gk = new analytics.quantiles.Gk();
+                    var params = gk.getParams();</p>
+                  <p>console.log(params.eps);
+                    console.log(params.autoCompress);</p>
                 </dd>
               </dl>
               <h3 id="quantile"><span class="symbol-name">quantile</span><span class="signature"><span class="signature-params">(pVals)</span>&nbsp;&rarr; <span class="signature-returns"> (number or Array)</span></span></h3>
-              <p>Given an input cumulative probability, returns a quantile associated with that probability (e.g. for input 0.5 it will return the median).</p>
+              <p>Given an input cumulative probability, returns a quantile associated with that
+                probability (e.g. for input 0.5 it will return the median).</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
-                  <pre class="prettyprint"><code>var qm = require(&#x27;qminer&#x27;);
+                  <pre class="prettyprint"><code>var qm &#x3D; require(&#x27;qminer&#x27;);
 
-var gk = new qm.analytics.quantiles.Gk({
+var gk &#x3D; new qm.analytics.quantiles.Gk({
     eps: 0.1
 });
 gk.insert(1.0);
@@ -506,7 +531,7 @@ console.log(gk.quantile(0.5));    // prints the median</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(number or Array)</code>&nbsp;quantiles - depending whether the input was a single value or array the method returns a quantile or array of quantiles</p>
+                  <p><code>(number or Array)</code>B quantiles - depending whether the input was a single value or array the method returns a quantile or array of quantiles</p>
                 </dd>
               </dl>
             </section>
@@ -524,7 +549,6 @@ console.log(gk.quantile(0.5));    // prints the median</code></pre>
     </div>
   </footer>
   <script src="scripts/jquery.min.js"></script>
-  <script src="scripts/jquery.cookie.js"></script>
   <script src="scripts/tree.jquery.js"></script>
   <script src="scripts/prettify.js"></script>
   <script src="scripts/jsdoc-toc.js"></script>

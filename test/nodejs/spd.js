@@ -7,7 +7,7 @@
  */
 
 // JavaScript source code
-var qm = require("qminer");
+var qm = require('../../index.js');
 var assert = require("../../src/nodejs/scripts/assert.js");
 //Unit test for Kmeans
 
@@ -67,16 +67,16 @@ describe("SPD aggregate system running aggr tests", function () {
             base.close();
         }
     });//afterEach
-    
+
     /**
     * Borderline tests
     */
     describe("Borderline usage (and arguments) tests", function () {
         it("should return empty array when no records pushed in", function () {
             result = spdAggr.saveJson(1);
-            assert.equal(result.length, 0);
+            assert.strictEqual(result.length, 0);
             result = spdAggr.saveJson(0);
-            assert.equal(result.length, 0);
+            assert.strictEqual(result.length, 0);
         });//it
 
         it("should reject older or same age records that were already provided",
@@ -84,19 +84,19 @@ describe("SPD aggregate system running aggr tests", function () {
             console.log("HERE 0");
             var points =[
                 {
-                    "latitude": 46.0423046, 
+                    "latitude": 46.0423046,
                     "longitude": 14.4875852,
-                    "time": 1342434474215, 
+                    "time": 1342434474215,
                     "accuracy": 26,
                 },
                 {
-                    "latitude": 46.0423046, 
+                    "latitude": 46.0423046,
                     "longitude": 14.4875852,
-                    "time": 1342434474215, 
+                    "time": 1342434474215,
                     "accuracy": 26
                 }
             ];
-            
+
             for (var recIdx = 0; recIdx<points.length; recIdx++){
                 var rec = points[recIdx];
                 var qrec = store.newRecord({
@@ -110,9 +110,9 @@ describe("SPD aggregate system running aggr tests", function () {
                 spdAggr.onAdd(qrec);
             }
             result = spdAggr.saveJson(1);
-            assert.equal(result.length,1);
-            assert.equal(result[0].locations.length, 1);
-            assert.equal(result[0].locationsNum, 1);
+            assert.strictEqual(result.length,1);
+            assert.strictEqual(result[0].locations.length, 1);
+            assert.strictEqual(result[0].locationsNum, 1);
         });//it
     });//describe borderline testsi
 
@@ -125,33 +125,33 @@ describe("SPD aggregate system running aggr tests", function () {
             console.log("HERE 1");
             var points =[
                 {
-                    "latitude": 46.0423046, 
+                    "latitude": 46.0423046,
                     "longitude": 14.4875852,
-                    "time": 0, 
+                    "time": 0,
                     "accuracy": 26,
                     "speed": 5.25,
                     "activities": [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16, 17]
                 },
                 {
-                    "latitude": 46.0423046, 
+                    "latitude": 46.0423046,
                     "longitude": 14.4875852,
-                    "time": 100, 
+                    "time": 100,
                     "accuracy": 26,
                     "speed": 5.25,
                     "activities": [22, 33, 44, 55, 66, 77, 88, 99,
                         10, 11, 12, 13, 14, 15, 16, 9,44]
                 },
                 {
-                    "latitude": 46.0423046, 
+                    "latitude": 46.0423046,
                     "longitude": 14.4875852,
-                    "time": 1000, 
+                    "time": 1000,
                     "accuracy": 26,
                     "speed": 5.25,
                     "activities": [100, 99, 44, 55, 66, 77, 88, 99,
                         10, 11, 12, 13, 14, 99, 16,12,12]
                 }
             ];
-            
+
             for (var recIdx = 0; recIdx<points.length; recIdx++){
                 var rec = points[recIdx];
                 var qrec = store.newRecord({
@@ -166,21 +166,21 @@ describe("SPD aggregate system running aggr tests", function () {
                 spdAggr.onAdd(qrec);
             }
             state = spdAggr.saveStateJson();
-            assert.equal(state.locations[0].time, points[0].time);
-            assert.equal(state.locations[1].time, points[1].time);
-            assert.equal(state.locations[2].time, points[2].time);
-            assert.equal(state.locations[0].latitude, points[0].latitude);
-            assert.equal(state.locations[1].latitude, points[1].latitude);
-            assert.equal(state.locations[2].latitude, points[2].latitude);
-            assert.equal(state.locations[0].longitude, points[0].longitude);
-            assert.equal(state.locations[1].longitude, points[1].longitude);
-            assert.equal(state.locations[2].longitude, points[2].longitude);
-            assert.equal(state.locations[0].accuracy, points[0].accuracy);
-            assert.equal(state.locations[1].accuracy, points[1].accuracy);
-            assert.equal(state.locations[2].accuracy, points[2].accuracy);
-            assert.equal(state.locations[0].speed, points[0].speed);
-            assert.equal(state.locations[1].speed, points[1].speed);
-            assert.equal(state.locations[2].speed, points[2].speed);
+            assert.strictEqual(state.locations[0].time, points[0].time);
+            assert.strictEqual(state.locations[1].time, points[1].time);
+            assert.strictEqual(state.locations[2].time, points[2].time);
+            assert.strictEqual(state.locations[0].latitude, points[0].latitude);
+            assert.strictEqual(state.locations[1].latitude, points[1].latitude);
+            assert.strictEqual(state.locations[2].latitude, points[2].latitude);
+            assert.strictEqual(state.locations[0].longitude, points[0].longitude);
+            assert.strictEqual(state.locations[1].longitude, points[1].longitude);
+            assert.strictEqual(state.locations[2].longitude, points[2].longitude);
+            assert.strictEqual(state.locations[0].accuracy, points[0].accuracy);
+            assert.strictEqual(state.locations[1].accuracy, points[1].accuracy);
+            assert.strictEqual(state.locations[2].accuracy, points[2].accuracy);
+            assert.strictEqual(state.locations[0].speed, points[0].speed);
+            assert.strictEqual(state.locations[1].speed, points[1].speed);
+            assert.strictEqual(state.locations[2].speed, points[2].speed);
             assert.deepEqual(state.locations[0].activities,
                 points[0].activities);
             assert.deepEqual(state.locations[1].activities,
@@ -188,67 +188,67 @@ describe("SPD aggregate system running aggr tests", function () {
             assert.deepEqual(state.locations[2].activities,
                 points[2].activities);
         });//it saveJsonState, loadJson state
-        
+
         it("Should saveJsonState and LoadJson state wihtout losing data",
         function(){
             //these points are chosen so to produce one finished staypoint
             var points =[
                 {
-                    "latitude": 46.0423046, 
+                    "latitude": 46.0423046,
                     "longitude": 14.4875852,
-                    "time": 0, 
+                    "time": 0,
                     "accuracy": 21,
                     "speed":1,
                     "activities": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
                         14, 15, 16]
                 },
                 {
-                    "latitude": 46.0423046, 
+                    "latitude": 46.0423046,
                     "longitude": 14.4875852,
-                    "time": 1000, 
+                    "time": 1000,
                     "accuracy": 22,
                     "speed": 2,
                     "activities": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
                        14, 15, 16]
                 },
                 {
-                    "latitude": 46.0423046, 
+                    "latitude": 46.0423046,
                     "longitude": 14.4875852,
-                    "time": 1342444474215,//100000 s later 
+                    "time": 1342444474215,//100000 s later
                     "accuracy": 23,
                     "speed": 3,
                     "activities": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
                        14, 15, 16]
                 },
                 {
-                    "latitude": 47.0423046,//lat +1 
+                    "latitude": 47.0423046,//lat +1
                     "longitude": 14.4875852,
-                    "time": 13424544474215,//100000 s later 
+                    "time": 13424544474215,//100000 s later
                     "accuracy": 24,
                     "speed": 4,
                     "activities": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
                        14, 15, 16]
                 },
                 {
-                    "latitude": 48.0423046,//lat +1 
+                    "latitude": 48.0423046,//lat +1
                     "longitude": 14.4875852,
-                    "time": 13424654474215,//100000 s later 
+                    "time": 13424654474215,//100000 s later
                     "accuracy": 25,
                     "speed": 5,
                     "activities": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
                        14, 15, 16]
                 },
                 {
-                    "latitude": 49.0423046,//lat +1 
+                    "latitude": 49.0423046,//lat +1
                     "longitude": 14.4875852,
-                    "time": 13425654474215,//100000 s later 
+                    "time": 13425654474215,//100000 s later
                     "accuracy": 26,
                     "speed": 6,
                     "activities": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,
                        14, 15, 16]
                 }
             ];
-            
+
             for (var recIdx = 0; recIdx<points.length; recIdx++){
                 var rec = points[recIdx];
                 var qrec = store.newRecord({
@@ -278,13 +278,13 @@ describe("SPD aggregate system running aggr tests", function () {
             state2 = aggr2.saveStateJson();
 
             assert.deepEqual(state2,state);
-            //console.log(state); 
+            //console.log(state);
         });//it saveJsonState, loadJson state
     });//describe internal state tests
 });//describe outer
 
 /**
-* TMD Averaging 
+* TMD Averaging
 */
 describe("TMD averaging tests", function () {
     var base = null;
@@ -374,7 +374,7 @@ describe("TMD averaging tests", function () {
                     100, 100, 100, 100, 100, 100, 100,100]
             }
         ];
-        
+
         for (var recIdx = 0; recIdx < points.length; recIdx++) {
             var rec = points[recIdx];
             var qrec = store.newRecord({
