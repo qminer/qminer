@@ -6,13 +6,13 @@ environment:
   node_pre_gyp_secretAccessKey:
     secure: 7nDsFrQjWQfhXAPESzf6JO+mslguRKGAPyZ5C4x6Sklcuv4E8/3gkGqoahJJKbZo
   matrix:
-  - nodejs_version: "8"
-  - nodejs_version: "9"
-  - nodejs_version: "10"
-  - nodejs_version: "11"
-  - nodejs_version: "12"
-  - nodejs_version: "13"
-  - nodejs_version: "14"
+    - nodejs_version: "8"
+    - nodejs_version: "9"
+    - nodejs_version: "10"
+    - nodejs_version: "11"
+    - nodejs_version: "12"
+    - nodejs_version: "13"
+    - nodejs_version: "14"
 
 platform:
   - x86
@@ -36,6 +36,7 @@ install:
 
 build_script:
   - npm install --build-from-source --verbose --msvs_version=2019 --%CONFIGURATION%
+  - echo "module.exports = require('../index');" > ./node_modules/qminer.js
   - npm install -g mocha@6.2.3
   - npm install -g mustache
   - cd tools
