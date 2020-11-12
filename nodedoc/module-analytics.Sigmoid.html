@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.1</a>
       </div>
     </div>
   </nav>
@@ -24,7 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">Sigmoid</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">Sigmoid</span></h1>
             <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-583">analyticsdoc.<wbr>js:583</a></p>
             <dl class="dl-compact">
             </dl>
@@ -74,23 +75,23 @@
             <p>Sigmoid function (<code>y = 1/[1 + exp[-A*x + B]]</code>) fitted on decision function to mimic.</p>
             <section>
               <h3>
-            Example
-        </h3>
+                Example
+              </h3>
               <div>
                 <pre class="prettyprint"><code>// import modules
-la = require(&#x27;qminer&#x27;).la;
-analytics = require(&#x27;qminer&#x27;).analytics;
+la &#x3D; require(&#x27;qminer&#x27;).la;
+analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a new model
-var sigmoid = new analytics.Sigmoid();
+var sigmoid &#x3D; new analytics.Sigmoid();
 // generate a random predictions
-var x = new la.Vector([0.5, 2.3, -0.1, 0.5, -7.3, 1.2]);
+var x &#x3D; new la.Vector([0.5, 2.3, -0.1, 0.5, -7.3, 1.2]);
 // generate a random labels
-var y = new la.Vector([1, 1, -1, 1, -1, -1]);
+var y &#x3D; new la.Vector([1, 1, -1, 1, -1, -1]);
 // fit model
 sigmoid.fit(x, y);
 // get predictions
-var pred1 = sigmoid.predict(1.2);
-var pred2 = sigmoid.predict(-1.2);</code></pre>
+var pred1 &#x3D; sigmoid.predict(1.2);
+var pred2 &#x3D; sigmoid.predict(-1.2);</code></pre>
               </div>
             </section>
             <section>
@@ -132,22 +133,22 @@ var pred2 = sigmoid.predict(-1.2);</code></pre>
               <p>Returns the expected response for the provided feature vector.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create the Sigmoid model
-var s = new analytics.Sigmoid();
+var s &#x3D; new analytics.Sigmoid();
 // create the predicted values and the binary labels
-var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
-var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+var X &#x3D; new la.Vector([-3, -2, -1, 1, 2, 3]);
+var y &#x3D; new la.Vector([-1, -1, -1, 1, 1, 1]);
 // fit the model
 s.fit(X, y);
 // predict the probability of the value 0 on this model
 // returns 0.5
-var prediction = s.decisionFunction(0.5);</code></pre>
+var prediction &#x3D; s.decisionFunction(0.5);</code></pre>
                 </div>
               </section>
               <section>
@@ -182,26 +183,26 @@ var prediction = s.decisionFunction(0.5);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</code>&nbsp;
-                    <br> 1. If <code>x</code> is a number, returns a normalized prediction score,
-                    <br> 2. if <code>x</code> is a <a href="module-la.Vector.html">module:la.Vector</a>, returns a vector of normalized prediction scores.</p>
+                  <p><code>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</code>B <br> 1. If <code>x</code> is a number, returns a normalized prediction score,
+                    <br> 2. if <code>x</code> is a <a href="module-la.Vector.html">module:la.Vector</a>, returns a vector of normalized prediction scores.
+                  </p>
                 </dd>
               </dl>
               <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(x, y)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.Sigmoid.html">module:analytics.Sigmoid</a></span></span></h3>
               <p>Fits a column matrix of feature vectors <code>X</code> onto the response variable <code>y</code>.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create the Sigmoid model
-var s = new analytics.Sigmoid();
+var s &#x3D; new analytics.Sigmoid();
 // create the predicted values and the binary labels
-var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
-var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+var X &#x3D; new la.Vector([-3, -2, -1, 1, 2, 3]);
+var y &#x3D; new la.Vector([-1, -1, -1, 1, 1, 1]);
 // fit the model
 // changes the internal A and B values of the model
 s.fit(X, y);</code></pre>
@@ -253,75 +254,76 @@ s.fit(X, y);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.Sigmoid.html">module:analytics.Sigmoid</a></code>&nbsp;Self. The model has been created.</p>
+                  <p><code><a href="module-analytics.Sigmoid.html">module:analytics.Sigmoid</a></code>B Self. The model has been created.</p>
                 </dd>
               </dl>
               <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
               <p>Gets the model.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create the Sigmoid model
-var s = new analytics.Sigmoid();
+var s &#x3D; new analytics.Sigmoid();
 // get the model parameters
 // returns a Json object { A: 0, B: 0 }
-var model = s.getModel();</code></pre>
+var model &#x3D; s.getModel();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;The object <code>sigModel</code> containing the properties:
+                  <p><code>Object</code>B The object <code>sigModel</code> containing the properties:
                     <br> <code>sigModel.A</code> - First value of the Sigmoid model,
-                    <br> <code>sigModel.B</code> - Second value of the Sigmoid model.</p>
+                    <br> <code>sigModel.B</code> - Second value of the Sigmoid model.
+                  </p>
                 </dd>
               </dl>
               <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
               <p>Get the parameters. <i>It doesn't do anything, it's only for consistency for constructing pipeline.</i></p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create the Sigmoid model
-var s = new analytics.Sigmoid();
+var s &#x3D; new analytics.Sigmoid();
 // get the parameters
 // returns an empty object
-var param = s.getParams();</code></pre>
+var param &#x3D; s.getParams();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;An empty object.</p>
+                  <p><code>Object</code>B An empty object.</p>
                 </dd>
               </dl>
               <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(x)</span>&nbsp;&rarr; <span class="signature-returns"> (number or <a href="module-la.Vector.html">module:la.Vector</a>)</span></span></h3>
               <p>Returns the expected response for the provided feature vector.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create the Sigmoid model
-var s = new analytics.Sigmoid();
+var s &#x3D; new analytics.Sigmoid();
 // create the predicted values and the binary labels
-var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
-var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+var X &#x3D; new la.Vector([-3, -2, -1, 1, 2, 3]);
+var y &#x3D; new la.Vector([-1, -1, -1, 1, 1, 1]);
 // fit the model
 s.fit(X, y);
 // predict the probability of the value 0 on this model
 // returns 0.5
-var prediction = s.predict(0.5);</code></pre>
+var prediction &#x3D; s.predict(0.5);</code></pre>
                 </div>
               </section>
               <section>
@@ -356,36 +358,36 @@ var prediction = s.predict(0.5);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</code>&nbsp;
-                    <br> 1. If <code>x</code> is a number, returns a normalized prediction score,
-                    <br> 2. if <code>x</code> is a <a href="module-la.Vector.html">module:la.Vector</a>, returns a vector of normalized prediction scores.</p>
+                  <p><code>(number or <a href="module-la.Vector.html">module:la.Vector</a>)</code>B <br> 1. If <code>x</code> is a number, returns a normalized prediction score,
+                    <br> 2. if <code>x</code> is a <a href="module-la.Vector.html">module:la.Vector</a>, returns a vector of normalized prediction scores.
+                  </p>
                 </dd>
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
               <p>Saves the model into the output stream.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
-var fs = require(&#x27;qminer&#x27;).fs;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // create the Sigmoid model
-var s = new analytics.Sigmoid();
+var s &#x3D; new analytics.Sigmoid();
 // create the predicted values and the binary labels
-var X = new la.Vector([-3, -2, -1, 1, 2, 3]);
-var y = new la.Vector([-1, -1, -1, 1, 1, 1]);
+var X &#x3D; new la.Vector([-3, -2, -1, 1, 2, 3]);
+var y &#x3D; new la.Vector([-1, -1, -1, 1, 1, 1]);
 // fit the model
 s.fit(X, y);
 // create an output stream object and save the model
-var fout = fs.openWrite(&#x27;sigmoid_example.bin&#x27;);
+var fout &#x3D; fs.openWrite(&#x27;sigmoid_example.bin&#x27;);
 s.save(fout);
 fout.close();
 // create a new Sigmoid model by loading the model
-var fin = fs.openRead(&#x27;sigmoid_example.bin&#x27;);
-var s2 = new analytics.Sigmoid(fin);</code></pre>
+var fin &#x3D; fs.openRead(&#x27;sigmoid_example.bin&#x27;);
+var s2 &#x3D; new analytics.Sigmoid(fin);</code></pre>
                 </div>
               </section>
               <section>
@@ -420,20 +422,20 @@ var s2 = new analytics.Sigmoid(fin);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream <code>fout</code>.</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>B The output stream <code>fout</code>.</p>
                 </dd>
               </dl>
               <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(arg)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.Sigmoid.html">module:analytics.Sigmoid</a></span></span></h3>
               <p>Sets the parameters. <i>It doesn't do anything, it's only for consistency for constructing pipeline.</i></p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create the Sigmoid model
-var s = new analytics.Sigmoid();
+var s &#x3D; new analytics.Sigmoid();
 // set the parameters
 // doesn&#x27;t change the model
 s.setParams({});</code></pre>
@@ -471,7 +473,7 @@ s.setParams({});</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.Sigmoid.html">module:analytics.Sigmoid</a></code>&nbsp;Self. Nothing changes.</p>
+                  <p><code><a href="module-analytics.Sigmoid.html">module:analytics.Sigmoid</a></code>B Self. Nothing changes.</p>
                 </dd>
               </dl>
             </section>
@@ -489,7 +491,6 @@ s.setParams({});</code></pre>
     </div>
   </footer>
   <script src="scripts/jquery.min.js"></script>
-  <script src="scripts/jquery.cookie.js"></script>
   <script src="scripts/tree.jquery.js"></script>
   <script src="scripts/prettify.js"></script>
   <script src="scripts/jsdoc-toc.js"></script>

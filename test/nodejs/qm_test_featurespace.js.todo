@@ -1,7 +1,7 @@
 ﻿// JavaScript source code
 
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
-var qm = require('qminer');
+var qm = require('../../index.js');
 
 qm.delLock();
 qm.config('qm.conf', true, 8080, 1024);
@@ -50,7 +50,7 @@ ftr.updateRecord(Store[12]);
 ftr.updateRecord(Store[13]);
 ftr.updateRecord(Store[14]);
 
-assert.equal(ftr.ftrVec(Store[11]).length, 4);
+assert.strictEqual(ftr.ftrVec(Store[11]).length, 4);
 for (var i = 0; i < 4; i++) {
     console.log(ftr.getFtr(i));
 }

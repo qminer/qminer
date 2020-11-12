@@ -8,6 +8,7 @@
 #ifndef QMINER_QM_NODEJS_STORE
 #define QMINER_QM_NODEJS_STORE
 
+#include <nan.h>
 #include <node.h>
 #include <node_object_wrap.h>
 #include <qminer.h>

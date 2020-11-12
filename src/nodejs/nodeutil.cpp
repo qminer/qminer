@@ -15,15 +15,23 @@ TTriple<TInt, TInt, TInt> TNodeJsUtil::ObjCount = TTriple<TInt,TInt,TInt>();
 THash<TStr, TStr> TNodeJsUtil::ClassNmAccessorH = THash<TStr, TStr>();
 
 void TNodeJsUtil::CheckJSExcept(const v8::TryCatch& TryCatch) {
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
     if (TryCatch.HasCaught()) {
-        v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-        v8::String::Utf8Value StackTrace(TryCatch.StackTrace());
-        throw TExcept::New("Javascript exception from callback triggered:" + TStr(*Msg) + "\n" + TStr(*StackTrace));
+        Nan::Utf8String Msg(TryCatch.Message()->Get());
+        v8::MaybeLocal<v8::Value> TmpStackTrace = TryCatch.StackTrace(context);
+        if (TmpStackTrace.IsEmpty()) {
+            throw TExcept::New("Javascript exception from callback triggered:" + TStr(*Msg));
+        } else {
+            Nan::Utf8String StackTrace(TNodeJsUtil::ToLocal(TmpStackTrace));
+            throw TExcept::New("Javascript exception from callback triggered:" + TStr(*Msg) + "\n" + TStr(*StackTrace));
+        }
+
     }
 }
 
 PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Value>& Val, const bool& IgnoreFunc, const bool& IgnoreWrappedObj) {
     AssertR(!Val->IsExternal(), "TNodeJsUtil::GetObjJson: Cannot parse v8::External!");
+
     if (Val->IsObject()) {
         // if we aren't ignoring functions and the object is a function
         // then throw an exception
@@ -38,14 +46,14 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Value>& Val, const bool& Ig
             return TJsonVal::NewBool(BoolObj->ValueOf());
         }
         else if (Val->IsNumberObject()) {
-            return TJsonVal::NewNum(Val->NumberValue());
+            return TJsonVal::NewNum(Nan::To<double>(Val).FromJust());
         }
         else if (Val->IsStringObject() || Val->IsRegExp()) {
-            return TJsonVal::NewStr(TStr(*v8::String::Utf8Value(Val->ToString())));
+            return TJsonVal::NewStr(TStr(*Nan::Utf8String(TNodeJsUtil::ToLocal(Nan::To<v8::String>(Val)))));
         }
         else if (Val->IsDate()) {
             v8::Local<v8::Date> DateObj = v8::Local<v8::Date>::Cast(Val);
-            const int64 UnixMSecs = (int64) DateObj->NumberValue();
+            const int64 UnixMSecs = Nan::To<int64>(DateObj).FromJust();
             const uint64 WinMSecs = TNodeJsUtil::GetCppTimestamp(UnixMSecs);
             TTm Tm = TTm::GetTmFromMSecs(WinMSecs);
             return TJsonVal::NewStr(Tm.GetWebLogDateTimeStr(true, "T", true) + "Z");    // XXX is there a better way than + "Z"???
@@ -53,10 +61,10 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Value>& Val, const bool& Ig
         else if (Val->IsArray()) {
             PJsonVal JsonArr = TJsonVal::NewArr();
 
-            v8::Array* Arr = v8::Array::Cast(*Val);
+            v8::Local<v8::Array> Arr = v8::Local<v8::Array>::Cast(Val);
             for (uint i = 0; i < Arr->Length(); i++) {
-                if (!IgnoreFunc || !Arr->Get(i)->IsFunction()) {
-                    JsonArr->AddToArr(GetObjJson(Arr->Get(i), IgnoreFunc, IgnoreWrappedObj));
+                if (!IgnoreFunc || !TNodeJsUtil::ToLocal(Nan::Get(Arr, i))->IsFunction()) {
+                    JsonArr->AddToArr(GetObjJson(TNodeJsUtil::ToLocal(Nan::Get(Arr, i)), IgnoreFunc, IgnoreWrappedObj));
                 }
             }
 
@@ -64,17 +72,17 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Value>& Val, const bool& Ig
         }
         else {  // general object with fields
             PJsonVal JsonVal = TJsonVal::NewObj();
-            v8::Local<v8::Object> Obj = Val->ToObject();
+            v8::Local<v8::Object> Obj = TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Val));
 
             TStr ClassNm = GetClass(Obj);
             EAssertR(IgnoreWrappedObj || ClassNm.Empty(), "TNodeJsUtil::GetObjJson: Cannot convert '" + ClassNm + "' to json!");
 
             if (ClassNm.Empty()) {
-                v8::Local<v8::Array> FldNmV = Obj->GetOwnPropertyNames();
+                v8::Local<v8::Array> FldNmV = TNodeJsUtil::ToLocal(Nan::GetOwnPropertyNames(Obj));
                 for (uint i = 0; i < FldNmV->Length(); i++) {
-                    const TStr FldNm(*v8::String::Utf8Value(FldNmV->Get(i)->ToString()));
+                    const TStr FldNm(*Nan::Utf8String (TNodeJsUtil::ToLocal(Nan::Get(FldNmV, i))));
 
-                    v8::Local<v8::Value> FldVal = Obj->Get(FldNmV->Get(i));
+                    v8::Local<v8::Value> FldVal = TNodeJsUtil::ToLocal(Nan::Get(Obj, TNodeJsUtil::ToLocal(Nan::Get(FldNmV, i))));
 
                     if (!IgnoreFunc || !FldVal->IsFunction()) {
                         JsonVal->AddToObj(FldNm, GetObjJson(FldVal, IgnoreFunc, IgnoreWrappedObj));
@@ -93,13 +101,13 @@ PJsonVal TNodeJsUtil::GetObjJson(const v8::Local<v8::Value>& Val, const bool& Ig
             return TJsonVal::NewNull();
         }
         else if (Val->IsBoolean()) {
-            return TJsonVal::NewBool(Val->BooleanValue());
+            return TJsonVal::NewBool(Nan::To<bool>(Val).FromJust());
         }
         else if (Val->IsNumber()) {
-            return TJsonVal::NewNum(Val->NumberValue());
+            return TJsonVal::NewNum(Nan::To<double>(Val).FromJust());
         }
         else if (Val->IsString()) {
-            return TJsonVal::NewStr(TStr(*v8::String::Utf8Value(Val->ToString())));
+            return TJsonVal::NewStr(TStr(*Nan::Utf8String (TNodeJsUtil::ToLocal(Nan::To<v8::String>(Val)))));
         }
         else {
             // TODO check for v8::Symbol
@@ -112,19 +120,19 @@ v8::Local<v8::Value> TNodeJsUtil::ParseJson(v8::Isolate* Isolate, const PJsonVal
     v8::EscapableHandleScope HandleScope(Isolate);
 
     if (!JsonVal->IsDef()) {
-        return v8::Undefined(Isolate);
+        return Nan::Undefined();
     }
     else if (JsonVal->IsBool()) {
-        return v8::Boolean::New(Isolate, JsonVal->GetBool());
+        return Nan::New(JsonVal->GetBool());
     }
     else if (JsonVal->IsNull()) {
-        return v8::Null(Isolate);
+        return Nan::Null();
     }
     else if (JsonVal->IsNum()) {
-        return HandleScope.Escape(v8::Number::New(Isolate, JsonVal->GetNum()));
+        return HandleScope.Escape(Nan::New(JsonVal->GetNum()));
     }
     else if (JsonVal->IsStr()) {
-        return HandleScope.Escape(v8::String::NewFromUtf8(Isolate, JsonVal->GetStr().CStr()));
+        return HandleScope.Escape(TNodeJsUtil::ToLocal(Nan::New(JsonVal->GetStr().CStr())));
     }
     else if (JsonVal->IsArr()) {
         const uint Len = JsonVal->GetArrVals();
@@ -132,7 +140,7 @@ v8::Local<v8::Value> TNodeJsUtil::ParseJson(v8::Isolate* Isolate, const PJsonVal
         v8::Local<v8::Array> ResArr = v8::Array::New(Isolate, Len);
 
         for (uint i = 0; i < Len; i++) {
-            ResArr->Set(i, ParseJson(Isolate, JsonVal->GetArrVal(i)));
+            Nan::Set(ResArr, i, ParseJson(Isolate, JsonVal->GetArrVal(i)));
         }
 
         return HandleScope.Escape(ResArr);
@@ -145,8 +153,7 @@ v8::Local<v8::Value> TNodeJsUtil::ParseJson(v8::Isolate* Isolate, const PJsonVal
         for (int i = 0; i < NKeys; i++) {
             TStr Key;    PJsonVal Val;
             JsonVal->GetObjKeyVal(i, Key, Val);
-
-            ResObj->Set(v8::String::NewFromUtf8(Isolate, Key.CStr()), ParseJson(Isolate, Val));
+            Nan::Set(ResObj, TNodeJsUtil::ToLocal(Nan::New(Key.CStr())), ParseJson(Isolate, Val));
         }
 
         return HandleScope.Escape(ResObj);
@@ -159,7 +166,7 @@ v8::Local<v8::Value> TNodeJsUtil::ParseJson(v8::Isolate* Isolate, const PJsonVal
 TStr TNodeJsUtil::GetStr(const v8::Local<v8::String>& V8Str) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    v8::String::Utf8Value Utf8(V8Str);
+    Nan::Utf8String Utf8(V8Str);
     return TStr(*Utf8);
 }
 
@@ -168,12 +175,12 @@ TStr TNodeJsUtil::GetClass(const v8::Local<v8::Object> Obj) {
     v8::HandleScope HandleScope(Isolate);
 #if NODE_MODULE_VERSION >= 48 //NODE_6_0_MODULE_VERSION
     v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
-    v8::Local<v8::Private> Private_key = v8::Private::ForApi(Isolate, v8::String::NewFromUtf8(Isolate, "class"));
+    v8::Local<v8::Private> Private_key = v8::Private::ForApi(Isolate, TNodeJsUtil::ToLocal(Nan::New("class")));
     v8::MaybeLocal<v8::Value> ClassNm = Obj->GetPrivate(Context, Private_key);
     if (ClassNm.IsEmpty()) {
         return "";
     } else {
-        v8::String::Utf8Value Utf8(ClassNm.ToLocalChecked());
+        Nan::Utf8String Utf8(TNodeJsUtil::ToLocal(ClassNm));
         TStr Class(*Utf8);
         if (Class == "undefined") {
             return "";
@@ -182,10 +189,10 @@ TStr TNodeJsUtil::GetClass(const v8::Local<v8::Object> Obj) {
         }
     }
 #else
-    v8::Local<v8::Value> ClassNm = Obj->GetHiddenValue(v8::String::NewFromUtf8(Isolate, "class"));
+    v8::Local<v8::Value> ClassNm = Obj->GetHiddenValue(TNodeJsUtil::ToLocal(Nan::New("class"))));
     const bool EmptyP = ClassNm.IsEmpty();
     if (EmptyP) { return ""; }
-    v8::String::Utf8Value Utf8(ClassNm);
+    Nan::Utf8String Utf8(ClassNm);
     return TStr(*Utf8);
 #endif
 
@@ -307,7 +314,7 @@ bool TNodeJsUtil::IsArgBuffer(const v8::FunctionCallbackInfo<v8::Value>& Args, c
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     EAssertR(ArgN < Args.Length() && ArgN >= 0, "Argument index out of bounds.");
-    return IsBuffer(Args[ArgN]->ToObject());
+    return IsBuffer(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[ArgN])));
 }
 
 bool TNodeJsUtil::IsBuffer(const v8::Local<v8::Object>& Object) {
@@ -336,7 +343,7 @@ bool TNodeJsUtil::GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, co
     EAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
     v8::Local<v8::Value> Val = Args[ArgN];
     EAssertR(Val->IsBoolean(), TStr::Fmt("Argument %d expected to be bool", ArgN));
-    v8::Local<v8::BooleanObject> BoolObj = v8::Local<v8::BooleanObject>::Cast(Val->ToObject());
+    v8::Local<v8::BooleanObject> BoolObj = v8::Local<v8::BooleanObject>::Cast(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Val)));
     return static_cast<bool>(BoolObj->ValueOf());
 }
 
@@ -347,7 +354,7 @@ bool TNodeJsUtil::GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, co
     if (ArgN >= Args.Length()) { return DefVal; }
     v8::Local<v8::Value> Val = Args[ArgN];
     EAssertR(Val->IsBoolean(), TStr::Fmt("Argument %d expected to be bool", ArgN));
-    v8::Local<v8::BooleanObject> BoolObj = v8::Local<v8::BooleanObject>::Cast(Val->ToObject());
+    v8::Local<v8::BooleanObject> BoolObj = v8::Local<v8::BooleanObject>::Cast(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Val)));
     return static_cast<bool>(BoolObj->ValueOf());
 }
 
@@ -356,11 +363,12 @@ bool TNodeJsUtil::GetArgBool(const v8::FunctionCallbackInfo<v8::Value>& Args, co
     v8::HandleScope HandleScope(Isolate);
 
     if (Args.Length() > ArgN) {
-        if (Args[ArgN]->IsObject() && Args[ArgN]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, Property.CStr()))) {
-            v8::Local<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, Property.CStr()));
+        v8::Local<v8::String> TmpProperty = TNodeJsUtil::ToLocal(Nan::New(Property.CStr()));
+        if (Args[ArgN]->IsObject() && Nan::Has(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[ArgN])), TmpProperty).ToChecked()) {
+            v8::Local<v8::Value> Val = TNodeJsUtil::ToLocal(Nan::Get(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[ArgN])), TmpProperty));
             EAssertR(Val->IsBoolean(),
                      TStr::Fmt("Argument %d, property %s expected to be boolean", ArgN, Property.CStr()).CStr());
-            v8::Local<v8::BooleanObject> BoolObj = v8::Local<v8::BooleanObject>::Cast(Val->ToObject());
+            v8::Local<v8::BooleanObject> BoolObj = v8::Local<v8::BooleanObject>::Cast(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Val)));
             return static_cast<bool>(BoolObj->ValueOf());
         }
     }
@@ -373,7 +381,7 @@ int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, co
 
     EAssertR(IsArgInt32(Args, ArgN), "Argument " + TInt::GetStr(ArgN) + " is not int32!");
     v8::Local<v8::Value> Val = Args[ArgN];
-    return Val->Int32Value();
+    return Nan::To<int32_t>(Val).FromJust();
 }
 
 int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const int& DefVal) {
@@ -384,7 +392,7 @@ int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, co
     if (ArgN >= Args.Length()) { return DefVal; }
     v8::Local<v8::Value> Val = Args[ArgN];
     EAssertR(Val->IsInt32(), TStr::Fmt("Argument %d expected to be int", ArgN));
-    return Val->ToInt32(Context).ToLocalChecked()->Value();
+    return Nan::To<int32_t>(Val).FromJust();
 }
 
 
@@ -394,14 +402,14 @@ int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, co
     v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
 
     EAssertR(Args.Length() > ArgN, "insufficient number of arguments!");
+    v8::Local<v8::String> TmpProperty = TNodeJsUtil::ToLocal(Nan::New(Property.CStr()));
+    EAssertR(Args[ArgN]->IsObject() && Nan::Has(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[ArgN])), TmpProperty).ToChecked(), TStr::Fmt("Argument %d, missing property %s", ArgN, Property.CStr()).CStr());
 
-    EAssertR(Args[ArgN]->IsObject() && Args[ArgN]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, Property.CStr())), TStr::Fmt("Argument %d, missing property %s", ArgN, Property.CStr()).CStr());
-
-    v8::Local<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, Property.CStr()));
+    v8::Local<v8::Value> Val = TNodeJsUtil::ToLocal(Nan::Get(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[ArgN])), TmpProperty));
     bool IsInt = Val->IsInt32();
     EAssertR(IsInt,
         TStr::Fmt("Argument %d, property %s expected to be int32", ArgN, Property.CStr()).CStr());
-    return Val->ToInt32(Context).ToLocalChecked()->Value();
+    return Nan::To<int32_t>(Val).FromJust();
 }
 
 int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const int& DefVal) {
@@ -410,12 +418,13 @@ int TNodeJsUtil::GetArgInt32(const v8::FunctionCallbackInfo<v8::Value>& Args, co
     v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
 
     if (Args.Length() > ArgN) {
-        if (Args[ArgN]->IsObject() && Args[ArgN]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, Property.CStr()))) {
-            v8::Local<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, Property.CStr()));
+        v8::Local<v8::String> TmpProperty = TNodeJsUtil::ToLocal(Nan::New(Property.CStr()));
+        if (Args[ArgN]->IsObject() && Nan::Has(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[ArgN])), TmpProperty).ToChecked()) {
+            v8::Local<v8::Value> Val = TNodeJsUtil::ToLocal(Nan::Get(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[ArgN])), TmpProperty));
             bool IsInt = Val->IsInt32();
             EAssertR(IsInt,
                      TStr::Fmt("Argument %d, property %s expected to be int32", ArgN, Property.CStr()).CStr());
-            return Val->ToInt32(Context).ToLocalChecked()->Value();
+            return Nan::To<int32_t>(Val).FromJust();
         }
     }
     return DefVal;
@@ -429,7 +438,7 @@ double TNodeJsUtil::GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, c
     EAssertR(Args.Length() > ArgN, TStr::Fmt("TNodeJsUtil::GetArgFlt: Missing argument %d", ArgN));
     v8::Local<v8::Value> Val = Args[ArgN];
     EAssertR(Val->IsNumber(), TStr::Fmt("Argument %d expected to be number", ArgN));
-    return Val->ToNumber(Context).ToLocalChecked()->Value();
+    return Nan::To<double>(Val).FromJust();
 }
 
 double TNodeJsUtil::GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const double& DefVal) {
@@ -440,7 +449,7 @@ double TNodeJsUtil::GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, c
     if (ArgN >= Args.Length()) { return DefVal; }
     v8::Local<v8::Value> Val = Args[ArgN];
     EAssertR(Val->IsNumber(), TStr::Fmt("Argument %d expected to be number", ArgN));
-    return Val->ToNumber(Context).ToLocalChecked()->Value();
+    return Nan::To<double>(Val).FromJust();
 }
 
 double TNodeJsUtil::GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const TStr& Property, const double& DefVal) {
@@ -449,11 +458,12 @@ double TNodeJsUtil::GetArgFlt(const v8::FunctionCallbackInfo<v8::Value>& Args, c
     v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
 
     if (Args.Length() > ArgN) {
-        if (Args[ArgN]->IsObject() && Args[ArgN]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, Property.CStr()))) {
-            v8::Local<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, Property.CStr()));
+        v8::Local<v8::String> TmpProperty = TNodeJsUtil::ToLocal(Nan::New(Property.CStr()));
+        if (Args[ArgN]->IsObject() && Nan::Has(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[ArgN])), TmpProperty).ToChecked()) {
+            v8::Local<v8::Value> Val = TNodeJsUtil::ToLocal(Nan::Get(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[ArgN])), TmpProperty));
             EAssertR(Val->IsNumber(),
                 TStr::Fmt("Argument %d, property %s expected to be number", ArgN, Property.CStr()).CStr());
-            return Val->ToNumber(Context).ToLocalChecked()->Value();
+            return Nan::To<double>(Val).FromJust();
         }
     }
     return DefVal;
@@ -466,15 +476,15 @@ void TNodeJsUtil::GetArgFltV(const v8::FunctionCallbackInfo<v8::Value>& Args, co
 
     EAssert(Args.Length() > ArgN);
     EAssertR(Args[ArgN]->IsArray(), "TNodeJsUtil::GetArgFltV: Argument is not an array!");
-    v8::Array* Arr = v8::Array::Cast(*Args[ArgN]);
+    v8::Local<v8::Array> Arr = v8::Local<v8::Array>::Cast(Args[ArgN]);
 
     const int Len = Arr->Length();
 
     FltV.Gen(Len);
     for (int i = 0; i < Len; i++) {
-        v8::Local<v8::Value> ArrVal = Arr->Get(i);
+        v8::Local<v8::Value> ArrVal = TNodeJsUtil::ToLocal(Nan::Get(Arr, i));
         EAssertR(ArrVal->IsNumber(), "TNodeJsUtil::GetArgFltV: Value is not a number!");
-        FltV[i] = ArrVal->ToNumber(Context).ToLocalChecked()->Value();
+        FltV[i] = Nan::To<double>(ArrVal).FromJust();
     }
 }
 
@@ -485,7 +495,7 @@ TStr TNodeJsUtil::GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, con
     EAssertR(Args.Length() > ArgN, TStr::Fmt("Missing argument %d", ArgN));
     v8::Local<v8::Value> Val = Args[ArgN];
     EAssertR(Val->IsString(), TStr::Fmt("Argument %d expected to be string", ArgN));
-    v8::String::Utf8Value Utf8(Val);
+    Nan::Utf8String Utf8(Val);
     return TStr(*Utf8);
 }
 
@@ -496,7 +506,7 @@ TStr TNodeJsUtil::GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, con
     if (ArgN >= Args.Length()) { return DefVal; }
     v8::Local<v8::Value> Val = Args[ArgN];
     EAssertR(Val->IsString(), TStr::Fmt("Argument %d expected to be string", ArgN));
-    v8::String::Utf8Value Utf8(Val);
+    Nan::Utf8String Utf8(Val);
     return TStr(*Utf8);
 }
 
@@ -504,10 +514,11 @@ TStr TNodeJsUtil::GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, con
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     if (Args.Length() > ArgN) {
-        if (Args[ArgN]->IsObject() && Args[ArgN]->ToObject()->Has(v8::String::NewFromUtf8(Isolate, Property.CStr()))) {
-            v8::Local<v8::Value> Val = Args[ArgN]->ToObject()->Get(v8::String::NewFromUtf8(Isolate, Property.CStr()));
+        v8::Local<v8::String> TmpProperty = TNodeJsUtil::ToLocal(Nan::New(Property.CStr()));
+        if (Args[ArgN]->IsObject() && Nan::Has(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[ArgN])), TmpProperty).ToChecked()) {
+            v8::Local<v8::Value> Val = TNodeJsUtil::ToLocal(Nan::Get(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[ArgN])), TmpProperty));
             EAssertR(Val->IsString(), TStr::Fmt("Argument %d, property %s expected to be string", ArgN, Property.CStr()));
-            v8::String::Utf8Value Utf8(Val);
+            Nan::Utf8String Utf8(Val);
             return TStr(*Utf8);
         }
     }
@@ -517,14 +528,14 @@ TStr TNodeJsUtil::GetArgStr(const v8::FunctionCallbackInfo<v8::Value>& Args, con
 PJsonVal TNodeJsUtil::GetArgJson(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN, const bool& IgnoreFunc, const bool& IgnoreWrappedObj) {
     EAssertR(Args.Length() > ArgN, "TNodeJsUtil::GetArgJson: Invalid number of arguments!");
     EAssertR(Args[ArgN]->IsObject(), "TNodeJsUtil::GetArgJson: Argument is not an object, number or boolean!");
-    return GetObjJson(Args[ArgN]->ToObject(), IgnoreFunc, IgnoreWrappedObj);
+    return GetObjJson(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[ArgN])), IgnoreFunc, IgnoreWrappedObj);
 }
 
 PJsonVal TNodeJsUtil::GetArgToNmJson(const v8::FunctionCallbackInfo<v8::Value>& Args,
         const int& ArgN) {
     EAssertR(Args.Length() > ArgN, "TNodeJsUtil::GetArgJson: Invalid number of arguments!");
     EAssertR(Args[ArgN]->IsObject(), "TNodeJsUtil::GetArgJson: Argument is not an object, number or boolean!");
-    return GetObjToNmJson(Args[ArgN]->ToObject());
+    return GetObjToNmJson(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[ArgN])));
 }
 
 void TNodeJsUtil::GetArgIntV(const v8::FunctionCallbackInfo<v8::Value>& Args, const int& ArgN,
@@ -535,15 +546,15 @@ void TNodeJsUtil::GetArgIntV(const v8::FunctionCallbackInfo<v8::Value>& Args, co
     EAssertR(Args.Length() > ArgN, "TNodeJsUtil::GetArgIntV: Invalid number of arguments!");
     EAssertR(Args[ArgN]->IsArray(), "TNodeJsUtil::GetArgIntV: argument is not an array!");
 
-    v8::Array* JsIntV = v8::Array::Cast(*Args[ArgN]);
+    v8::Local<v8::Array> JsIntV = v8::Local<v8::Array>::Cast(Args[ArgN]);
 
     const int Len = JsIntV->Length();
     if (IntV.Len() != Len) { IntV.Gen(Len); }
 
     for (int i = 0; i < Len; i++) {
-        v8::Local<v8::Value> Val = JsIntV->Get(i);
+        v8::Local<v8::Value> Val = TNodeJsUtil::ToLocal(Nan::Get(JsIntV, i));
         EAssertR(Val->IsNumber() || Val->IsInt32(), "TNodeJsUtil::GetArgIntV: value is not an integer!");
-        IntV[i] = static_cast<int>(Val->NumberValue());
+        IntV[i] = static_cast<int>(Nan::To<double>(Val).FromJust());
     }
 }
 
@@ -555,22 +566,22 @@ void TNodeJsUtil::GetArgIntVV(const v8::FunctionCallbackInfo<v8::Value>& Args, c
     EAssertR(Args.Length() > ArgN, "TNodeJsUtil::GetArgIntVV: Invalid number of arguments!");
     EAssertR(Args[ArgN]->IsArray(), "TNodeJsUtil::GetArgIntVV: argument is not an array!");
 
-    v8::Array* JsIntVV = v8::Array::Cast(*Args[ArgN]);
+    v8::Local<v8::Array> JsIntVV = v8::Local<v8::Array>::Cast(Args[ArgN]);
 
     const int OuterLen = JsIntVV->Length();
     IntVV.Gen(OuterLen);
 
     for (int i = 0; i < OuterLen; i++) {
-        v8::Local<v8::Value> OuterVal = JsIntVV->Get(i);
+        v8::Local<v8::Value> OuterVal = TNodeJsUtil::ToLocal(Nan::Get(JsIntVV, i));
         EAssertR(OuterVal->IsArray(), "TNodeJsUtil::GetArgIntVV: value is not an array!");
-        v8::Array* JsIntV = v8::Array::Cast(*OuterVal);
+        v8::Local<v8::Array> JsIntV = v8::Local<v8::Array>::Cast(OuterVal);
         const int InnerLen = JsIntV->Length();
         IntVV[i].Gen(InnerLen);
 
         for (int j = 0; j < InnerLen; j++) {
-            v8::Local<v8::Value> InnerVal = JsIntV->Get(j);
+            v8::Local<v8::Value> InnerVal = TNodeJsUtil::ToLocal(Nan::Get(JsIntV, j));
             EAssertR(InnerVal->IsNumber() || InnerVal->IsInt32(), "TNodeJsUtil::GetArgIntVV: value is not an integer!");
-            IntVV[i][j] = (int)InnerVal->NumberValue();
+            IntVV[i][j] = Nan::To<int>(InnerVal).FromJust();
         }
     }
 }
@@ -578,8 +589,8 @@ void TNodeJsUtil::GetArgIntVV(const v8::FunctionCallbackInfo<v8::Value>& Args, c
 bool TNodeJsUtil::IsObjFld(v8::Local<v8::Object> Obj, const TStr& FldNm) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-
-    return Obj->Has(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+    v8::Local<v8::String> FldNmStr = TNodeJsUtil::ToLocal(Nan::New(FldNm.CStr()));
+    return Nan::Has(Obj, FldNmStr).ToChecked();
 }
 
 bool TNodeJsUtil::IsFldNull(v8::Local<v8::Object> Obj, const TStr& FldNm) {
@@ -588,8 +599,8 @@ bool TNodeJsUtil::IsFldNull(v8::Local<v8::Object> Obj, const TStr& FldNm) {
     // the field exists, check if it is null
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-
-    v8::Local<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+    v8::Local<v8::String> FldNmStr = TNodeJsUtil::ToLocal(Nan::New(FldNm.CStr()));
+    v8::Local<v8::Value> FldVal = TNodeJsUtil::ToLocal(Nan::Get(Obj, FldNmStr));
     return FldVal->IsNull() || FldVal->IsUndefined();
 }
 
@@ -598,8 +609,8 @@ bool TNodeJsUtil::IsFldClass(v8::Local<v8::Object> Obj, const TStr& FldNm, const
 
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-
-    v8::Local<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+    v8::Local<v8::String> FldNmStr = TNodeJsUtil::ToLocal(Nan::New(FldNm.CStr()));
+    v8::Local<v8::Value> FldVal = TNodeJsUtil::ToLocal(Nan::Get(Obj, FldNmStr));
     v8::Local<v8::Object> FldObj = v8::Local<v8::Object>::Cast(FldVal);
 
     TStr ClassStr = GetClass(FldObj);
@@ -611,8 +622,8 @@ bool TNodeJsUtil::IsFldFun(v8::Local<v8::Object> Obj, const TStr& FldNm) {
 
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-
-    v8::Local<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+    v8::Local<v8::String> FldNmStr = TNodeJsUtil::ToLocal(Nan::New(FldNm.CStr()));
+    v8::Local<v8::Value> FldVal = TNodeJsUtil::ToLocal(Nan::Get(Obj, FldNmStr));
 
     return FldVal->IsFunction();
 }
@@ -622,8 +633,8 @@ bool TNodeJsUtil::IsFldInt(v8::Local<v8::Object> Obj, const TStr& FldNm) {
 
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-
-    v8::Local<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+    v8::Local<v8::String> FldNmStr = TNodeJsUtil::ToLocal(Nan::New(FldNm.CStr()));
+    v8::Local<v8::Value> FldVal = TNodeJsUtil::ToLocal(Nan::Get(Obj, FldNmStr));
 
     return FldVal->IsInt32() || FldVal->IsUint32();
 }
@@ -633,8 +644,8 @@ bool TNodeJsUtil::IsFldFlt(v8::Local<v8::Object> Obj, const TStr& FldNm) {
 
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-
-    v8::Local<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+    v8::Local<v8::String> FldNmStr = TNodeJsUtil::ToLocal(Nan::New(FldNm.CStr()));
+    v8::Local<v8::Value> FldVal = TNodeJsUtil::ToLocal(Nan::Get(Obj, FldNmStr));
 
     return FldVal->IsNumber() || FldVal->IsNumberObject();
 }
@@ -648,7 +659,8 @@ v8::Local<v8::Object> TNodeJsUtil::GetFldObj(v8::Local<v8::Object> Obj, const TS
     v8::EscapableHandleScope HandleScope(Isolate);
 
     EAssertR(IsObjFld(Obj, FldNm), "TNodeJsUtil::GetUnwrapFld: Key " + FldNm + " is missing!");
-    v8::Local<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+    v8::Local<v8::String> FldNmStr = TNodeJsUtil::ToLocal(Nan::New(FldNm.CStr()));
+    v8::Local<v8::Value> FldVal = TNodeJsUtil::ToLocal(Nan::Get(Obj, FldNmStr));
     EAssertR(FldVal->IsObject(), "TNodeJsUtil::GetUnwrapFld: Key " + FldNm + " is not an object");
     v8::Local<v8::Object> FldObj = v8::Local<v8::Object>::Cast(FldVal);
 
@@ -660,8 +672,8 @@ v8::Local<v8::Function> TNodeJsUtil::GetFldFun(v8::Local<v8::Object> Obj, const 
     v8::EscapableHandleScope HandleScope(Isolate);
 
     EAssertR(IsFldFun(Obj, FldNm), "The field is not a function!");
-
-    v8::Local<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+    v8::Local<v8::String> FldNmStr = TNodeJsUtil::ToLocal(Nan::New(FldNm.CStr()));
+    v8::Local<v8::Value> FldVal = TNodeJsUtil::ToLocal(Nan::Get(Obj, FldNmStr));
     v8::Local<v8::Function> RetFun = v8::Local<v8::Function>::Cast(FldVal);
 
     return HandleScope.Escape(RetFun);
@@ -672,13 +684,13 @@ int TNodeJsUtil::GetFldInt(v8::Local<v8::Object> Obj, const TStr& FldNm) {
     v8::HandleScope HandleScope(Isolate);
 
     EAssertR(IsFldInt(Obj, FldNm), "The field is not an integer!");
-
-    v8::Local<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
+    v8::Local<v8::String> FldNmStr = TNodeJsUtil::ToLocal(Nan::New(FldNm.CStr()));
+    v8::Local<v8::Value> FldVal = TNodeJsUtil::ToLocal(Nan::Get(Obj, FldNmStr));
 
     if (FldVal->IsInt32()) {
-        return FldVal->Int32Value();
+        return Nan::To<int32_t>(FldVal).FromJust();
     } else {            // FldVal->IsUint32()
-        return FldVal->Uint32Value();
+        return Nan::To<uint32_t>(FldVal).FromJust();
     }
 }
 
@@ -687,9 +699,8 @@ double TNodeJsUtil::GetFldFlt(v8::Local<v8::Object> Obj, const TStr& FldNm) {
     v8::HandleScope HandleScope(Isolate);
 
     EAssertR(IsFldFlt(Obj, FldNm), "The field is not an integer!");
-
-    v8::Local<v8::Value> FldVal = Obj->Get(v8::String::NewFromUtf8(Isolate, FldNm.CStr()));
-    return FldVal->NumberValue();
+    v8::Local<v8::Value> FldVal = TNodeJsUtil::ToLocal(Nan::Get(Obj, TNodeJsUtil::ToLocal(Nan::New(FldNm.CStr()))));
+    return Nan::To<double>(FldVal).FromJust();
 }
 
 double TNodeJsUtil::ExecuteFlt(const v8::Local<v8::Function>& Fun, const v8::Local<v8::Object>& Arg) {
@@ -698,11 +709,12 @@ double TNodeJsUtil::ExecuteFlt(const v8::Local<v8::Function>& Fun, const v8::Loc
 
     v8::Local<v8::Value> Argv[1] = { Arg };
     v8::TryCatch TryCatch(Isolate);
-    v8::Local<v8::Value> RetVal = Fun->Call(Isolate->GetCurrentContext()->Global(), 1, Argv);
+    v8::MaybeLocal<v8::Value> Tmp = Nan::Call(Fun, Isolate->GetCurrentContext()->Global(), 1, Argv);
     TNodeJsUtil::CheckJSExcept(TryCatch);
+    TNodeJsUtil::CheckObjEmpty(Isolate, TryCatch, Tmp);
+    v8::Local<v8::Value> RetVal = TNodeJsUtil::ToLocal(Tmp);
     EAssertR(RetVal->IsNumber(), "Return type expected to be number");
-
-    return RetVal->NumberValue();
+    return Nan::To<double>(RetVal).FromJust();
 }
 
 PJsonVal TNodeJsUtil::ExecuteJson(const v8::Local<v8::Function>& Fun,
@@ -712,11 +724,10 @@ PJsonVal TNodeJsUtil::ExecuteJson(const v8::Local<v8::Function>& Fun,
     v8::TryCatch TryCatch(Isolate);
     const int ArgC = 2;
     v8::Local<v8::Value> ArgV[ArgC] = { Arg1, Arg2 };
-    v8::Local<v8::Value> RetVal = Fun->Call(Isolate->GetCurrentContext()->Global(), 2, ArgV);
-    if (TryCatch.HasCaught()) {
-        v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-        throw TExcept::New("Exception while executin JSON: " + TStr(*Msg));
-    }
+    v8::MaybeLocal<v8::Value> Tmp = Nan::Call(Fun, Isolate->GetCurrentContext()->Global(), 2, ArgV);
+    TNodeJsUtil::CheckJSExcept(TryCatch);
+    TNodeJsUtil::CheckObjEmpty(Isolate, TryCatch, Tmp);
+    v8::Local<v8::Value> RetVal = TNodeJsUtil::ToLocal(Tmp);
     return GetObjJson(RetVal);
 }
 
@@ -725,7 +736,7 @@ void TNodeJsUtil::ExecuteVoid(const v8::Local<v8::Function>& Fun, const int& Arg
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     v8::TryCatch TryCatch(Isolate);
-    Fun->Call(Isolate->GetCurrentContext()->Global(), ArgC, ArgV);
+    Nan::Call(Fun, Isolate->GetCurrentContext()->Global(), ArgC, ArgV);
     TNodeJsUtil::CheckJSExcept(TryCatch);
 }
 
@@ -737,10 +748,10 @@ void TNodeJsUtil::ExecuteVoid(const v8::Local<v8::Function>& Fun,
 
     const int ArgC = 2;
     v8::Local<v8::Value> ArgV[ArgC] = { Arg1, Arg2 };
-    Fun->Call(Isolate->GetCurrentContext()->Global(), 2, ArgV);
+    Nan::Call(Fun, Isolate->GetCurrentContext()->Global(), 2, ArgV);
 
     if (TryCatch.HasCaught()) {
-        v8::String::Utf8Value Msg(TryCatch.Message()->Get());
+        Nan::Utf8String Msg(TryCatch.Message()->Get());
         throw TExcept::New("Exception while executing VOID: " + TStr(*Msg));
     }
 }
@@ -750,10 +761,10 @@ void TNodeJsUtil::ExecuteVoid(const v8::Local<v8::Function>& Fun) {
     v8::HandleScope HandleScope(Isolate);
 
     v8::TryCatch TryCatch(Isolate);
-    Fun->Call(Isolate->GetCurrentContext()->Global(), 0, nullptr);
+    Nan::Call(Fun, Isolate->GetCurrentContext()->Global(), 0, nullptr);
     if (TryCatch.HasCaught()) {
-        v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-        throw TExcept::New("Exception while executin JSON: " + TStr(*Msg));
+        Nan::Utf8String Msg(TryCatch.Message()->Get());
+        throw TExcept::New("Exception while executing VOID: " + TStr(*Msg));
     }
 }
 
@@ -763,15 +774,15 @@ void TNodeJsUtil::ExecuteErr(const v8::Local<v8::Function>& Fun, const PExcept& 
     v8::TryCatch TryCatch(Isolate);
 
     const TStr& Msg = Except->GetMsgStr();
-    v8::Local<v8::String> V8Msg = v8::String::NewFromUtf8(Isolate, Msg.CStr());
+    v8::Local<v8::String> V8Msg = TNodeJsUtil::ToLocal(Nan::New(Msg.CStr()));
     v8::Local<v8::Value> Err = v8::Exception::Error(V8Msg);
 
     const int ArgC = 1;
     v8::Local<v8::Value> ArgV[ArgC] = { Err };
-    Fun->Call(Isolate->GetCurrentContext()->Global(), ArgC, ArgV);
+    Nan::Call(Fun, Isolate->GetCurrentContext()->Global(), ArgC, ArgV);
     if (TryCatch.HasCaught()) {
-        v8::String::Utf8Value Msg(TryCatch.Message()->Get());
-        throw TExcept::New("Exception while executin JSON: " + TStr(*Msg));
+        Nan::Utf8String Msg(TryCatch.Message()->Get());
+        throw TExcept::New("Exception while executing ERROR: " + TStr(*Msg));
     }
 }
 
@@ -784,13 +795,13 @@ uint64 TNodeJsUtil::GetTmMSecs(v8::Local<v8::Value>& Value) {
         return GetTmMSecs(Date);
     }
     else if (Value->IsString()) {
-        v8::String::Utf8Value Utf8(Value);
+        Nan::Utf8String Utf8(Value);
         TTm Tm = TTm::GetTmFromWebLogDateTimeStr(TStr(*Utf8), '-', ':', '.', 'T');
         return TTm::GetMSecsFromTm(Tm);
     }
     else {
         EAssertR(Value->IsNumber(), "Date is not in a representation of a string, date or number!");
-        return GetCppTimestamp(int64(Value->NumberValue()));
+        return GetCppTimestamp(Nan::To<int64>(Value).FromJust());
     }
 }
 
@@ -807,7 +818,8 @@ uint64 TNodeJsUtil::GetArgTmMSecs(const v8::FunctionCallbackInfo<v8::Value>& Arg
 
 void TNodeJsUtil::ThrowJsException(v8::Isolate* Isolate, const PExcept& Except) {
     Isolate->ThrowException(v8::Exception::TypeError(
-        v8::String::NewFromUtf8(Isolate, (TStr("[addon] Exception in constructor call: ") + Except->GetStr()).CStr())));
+        TNodeJsUtil::ToLocal(Nan::New((TStr("[addon] Exception in constructor call: ") + Except->GetStr()).CStr()))
+    ));
 }
 
 v8::Local<v8::Value> TNodeJsUtil::V8JsonToV8Str(const v8::Local<v8::Value>& Json) {
@@ -817,16 +829,17 @@ v8::Local<v8::Value> TNodeJsUtil::V8JsonToV8Str(const v8::Local<v8::Value>& Json
     v8::Local<v8::Context> Context = v8::Context::New(Isolate);
     v8::Context::Scope ContextScope(Context);
 
-    v8::Local<v8::Object> JSON = Context->Global()->Get(v8::String::NewFromUtf8(Isolate, "JSON"))->ToObject();
-    v8::Local<v8::Value> FunObj = JSON->Get(v8::String::NewFromUtf8(Isolate, "stringify"));
+    v8::Local<v8::String> FldNm = TNodeJsUtil::ToLocal(Nan::New("JSON"));
+    v8::Local<v8::Object> JSON = v8::Local<v8::Object>::Cast(TNodeJsUtil::ToLocal(Nan::Get(Context->Global(), FldNm)));
+    v8::Local<v8::Value> FunObj = TNodeJsUtil::ToLocal(Nan::Get(JSON, TNodeJsUtil::ToLocal(Nan::New("stringify"))));
     v8::Local<v8::Function> Fun = v8::Local<v8::Function>::Cast(FunObj);
-
 
     v8::TryCatch TryCatch(Isolate);
     v8::Local<v8::Value> ArgV[1] = { Json };
-    v8::Local<v8::Value> JsonStr = Fun->Call(Context->Global(), 1, ArgV);
-
-    if (JsonStr.IsEmpty()) { Isolate->ThrowException(TryCatch.Exception()); }
+    v8::MaybeLocal<v8::Value> Tmp = Nan::Call(Fun, Context->Global(), 1, ArgV);
+    TNodeJsUtil::CheckJSExcept(TryCatch);
+    TNodeJsUtil::CheckObjEmpty(Isolate, TryCatch, Tmp);
+    v8::Local<v8::Value> JsonStr = TNodeJsUtil::ToLocal(Tmp);
     return HandleScope.Escape(JsonStr);
 }
 
@@ -835,7 +848,8 @@ v8::Local<v8::Value> TNodeJsUtil::GetStrArr(const TStrV& StrV) {
     v8::EscapableHandleScope EscapableHandleScope(Isolate);
     v8::Local<v8::Array> JsStrV = v8::Array::New(Isolate, StrV.Len());
     for (int StrN = 0; StrN < StrV.Len(); StrN++) {
-        JsStrV->Set(StrN, v8::String::NewFromUtf8(Isolate, StrV[StrN].CStr()));
+        v8::Local<v8::String> TmpFldNm = TNodeJsUtil::ToLocal(Nan::New(StrV[StrN].CStr()));
+        Nan::Set(JsStrV, StrN, TmpFldNm);
     }
     return EscapableHandleScope.Escape(JsStrV);
 }
@@ -848,9 +862,9 @@ v8::Local<v8::Object> TNodeJsUtil::NewBuffer(const char* ChA, const size_t& Len)
     // which is just a wrapper around v8::Local<> that "enforces a check
     // whether v8::Local<> is empty before it can be used." For details, see
     // http://v8.paulfryzel.com/docs/master/singletonv8_1_1_maybe_local.html
-    return HandleScope.Escape(node::Buffer::Copy(Isolate, ChA, Len).ToLocalChecked());
+    return HandleScope.Escape(TNodeJsUtil::ToLocal(node::Buffer::Copy(Isolate, ChA, Len)));
 #else
-    return HandleScope.Escape(node::Buffer::New(Isolate, ChA, Len));
+    return HandleScope.Escape(TNodeJsUtil::ToLocalnode::Buffer::New(Isolate, ChA, Len)));
 #endif
 }
 
@@ -860,7 +874,7 @@ TMem TNodeJsUtil::GetArgMem(const v8::FunctionCallbackInfo<v8::Value>& Args, con
 
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    v8::Local<v8::Object> Obj = Args[0]->ToObject();
+    v8::Local<v8::Object> Obj = TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0]));
 #if NODE_MODULE_VERSION >= 46 /* Node.js >= v4.0.0 */
     if (!Obj->IsUint8Array()) return TMem();
     return TMem(node::Buffer::Data(Obj), (int) node::Buffer::Length(Obj));
@@ -888,7 +902,7 @@ void TNodeJsUtil::SetPrivate(
 }
 
 uint64 TNodeJsUtil::GetTmMSecs(v8::Local<v8::Date>& Date) {
-    return GetCppTimestamp(int64(Date->NumberValue()));
+    return GetCppTimestamp(Nan::To<int64>(Date).FromJust());
 }
 
 
@@ -915,9 +929,9 @@ TNodeTask::TNodeTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool
     v8::Local<v8::Array> ArgsArr = v8::Array::New(Isolate, Args.Length() + 1);
 
     for (int ArgN = 0; ArgN < Args.Length(); ArgN++) {
-        ArgsArr->Set(ArgN, Args[ArgN]);
+        Nan::Set(ArgsArr, ArgN, Args[ArgN]);
     }
-    ArgsArr->Set(Args.Length(), Args.Holder());
+    Nan::Set(ArgsArr, Args.Length(), Args.Holder());
 
     ArgPersist.Reset(Isolate, ArgsArr);
 }
@@ -931,7 +945,7 @@ v8::Local<v8::Value> TNodeTask::WrapResult() {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::EscapableHandleScope HandleScope(Isolate);
 
-    v8::Local<v8::Value> Result = v8::Undefined(Isolate);
+    v8::Local<v8::Value> Result = Nan::Undefined();
 
     return HandleScope.Escape(Result);
 }
@@ -947,7 +961,7 @@ void TNodeTask::AfterRun() {
         TNodeJsUtil::ExecuteErr(Fun, Except);
     } else {
         v8::Local<v8::Value> Result = WrapResult();
-        TNodeJsUtil::ExecuteVoid(Fun, v8::Undefined(Isolate), Result);
+        TNodeJsUtil::ExecuteVoid(Fun, Nan::Undefined(), Result);
     }
 }
 
@@ -1150,13 +1164,16 @@ PJsonVal TNodeJsUtil::GetObjToNmJson(const v8::Local<v8::Value>& Val) {
 
         // first check if we encountered an object that needs to be replaced with
         // its name or ID. Is there a better way to do this??
-        const TStr ClassId = TNodeJsUtil::GetClass(Val->ToObject());
+        const TStr ClassId = TNodeJsUtil::GetClass(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Val)));
 
         if (!ClassId.Empty()) {
             if (ClassNmAccessorH.IsKey(ClassId)) {
+
                 TStr NmAccessor = TNodeJsUtil::GetClassNmAccessor(ClassId);
-                TStr Name = TStr(*v8::String::Utf8Value(Val->ToObject()->Get(
-                        v8::String::NewFromUtf8(Isolate, NmAccessor.CStr()))->ToString()));
+                TStr Name = TStr(*Nan::Utf8String(TNodeJsUtil::ToLocal(Nan::Get(
+                    TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Val)),
+                    TNodeJsUtil::ToLocal(Nan::New(NmAccessor.CStr()))
+                ))));
                 return TJsonVal::NewStr(Name);
             }
             else {
@@ -1169,29 +1186,29 @@ PJsonVal TNodeJsUtil::GetObjToNmJson(const v8::Local<v8::Value>& Val) {
             return TJsonVal::NewBool(BoolObj->ValueOf());
         }
         else if (Val->IsNumberObject()) {
-            return TJsonVal::NewNum(Val->NumberValue());
+            return TJsonVal::NewNum(Nan::To<double>(Val).FromJust());
         }
         else if (Val->IsStringObject() || Val->IsRegExp() || Val->IsDate()) {
-            return TJsonVal::NewStr(TStr(*v8::String::Utf8Value(Val->ToString())));
+            return TJsonVal::NewStr(TStr(*Nan::Utf8String(TNodeJsUtil::ToLocal(Nan::To<v8::String>(Val)))));
         }
         else if (Val->IsArray()) {
             PJsonVal JsonArr = TJsonVal::NewArr();
 
-            v8::Array* Arr = v8::Array::Cast(*Val);
+            v8::Local<v8::Array> Arr = v8::Local<v8::Array>::Cast(Val);
             for (uint i = 0; i < Arr->Length(); i++) {
-                JsonArr->AddToArr(GetObjToNmJson(Arr->Get(i)));
+                JsonArr->AddToArr(GetObjToNmJson(TNodeJsUtil::ToLocal(Nan::Get(Arr, i))));
             }
 
             return JsonArr;
         }
         else {  // general object with fields
             PJsonVal JsonVal = TJsonVal::NewObj();
-            v8::Local<v8::Object> Obj = Val->ToObject();
+            v8::Local<v8::Object> Obj = TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Val));
 
-            v8::Local<v8::Array> FldNmV = Obj->GetOwnPropertyNames();
+            v8::Local<v8::Array> FldNmV = TNodeJsUtil::ToLocal(Nan::GetOwnPropertyNames(Obj));
             for (uint i = 0; i < FldNmV->Length(); i++) {
-                const TStr FldNm(*v8::String::Utf8Value(FldNmV->Get(i)->ToString()));
-                v8::Local<v8::Value> FldVal = Obj->Get(FldNmV->Get(i));
+                const TStr FldNm(*Nan::Utf8String (TNodeJsUtil::ToLocal(Nan::Get(FldNmV, i))));
+                v8::Local<v8::Value> FldVal = TNodeJsUtil::ToLocal(Nan::Get(Obj, TNodeJsUtil::ToLocal(Nan::Get(FldNmV, i))));
 
                 const PJsonVal FldJson = GetObjToNmJson(FldVal);
                 JsonVal->AddToObj(FldNm, FldJson);
@@ -1208,14 +1225,14 @@ PJsonVal TNodeJsUtil::GetObjToNmJson(const v8::Local<v8::Value>& Val) {
             return TJsonVal::NewNull();
         }
         else if (Val->IsBoolean()) {
-            return TJsonVal::NewBool(Val->BooleanValue());
+            return TJsonVal::NewBool(Nan::To<bool>(Val).FromJust());
         }
         else if (Val->IsNumber()) {
-            const double& NumVal = Val->NumberValue();
+            const double& NumVal = Nan::To<double>(Val).FromJust();
             return TJsonVal::NewNum(NumVal);
         }
         else if (Val->IsString()) {
-            return TJsonVal::NewStr(TStr(*v8::String::Utf8Value(Val->ToString())));
+            return TJsonVal::NewStr(TStr(*Nan::Utf8String (TNodeJsUtil::ToLocal(Nan::To<v8::String>(Val)))));
         }
         else {
             // TODO check for v8::Symbol

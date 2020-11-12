@@ -15,9 +15,10 @@ const double TNodeJsStreamStory::DEFAULT_DELTA_TM = 1e-6;
 void TNodeJsStreamStory::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, TNodeJsUtil::_NewJs<TNodeJsStreamStory>);
-    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()));
+    tpl->SetClassName(TNodeJsUtil::ToLocal(Nan::New(GetClassId().CStr())));
     // ObjectWrap uses the first internal field to store the wrapped pointer.
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -77,8 +78,8 @@ void TNodeJsStreamStory::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "getParam", _getParam);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
-    exports->Set(v8::String::NewFromUtf8(Isolate, GetClassId().CStr()),
-        tpl->GetFunction());
+    Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(GetClassId().CStr())),
+        TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
 }
 
 TNodeJsStreamStory::TNodeJsStreamStory(TMc::TStreamStory* _StreamStory):
@@ -175,7 +176,7 @@ TNodeJsStreamStory::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>
     EAssertR(Args.Length() > 0, "ss.fitAsync expects at least one argument!");
 
     JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-    v8::Local<v8::Object> ArgObj = Args[0]->ToObject();
+    v8::Local<v8::Object> ArgObj = TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0]));
 
     EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "observations", TNodeJsFltVV::GetClassId()), "Missing field observations or invalid class!");
     EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "controls", TNodeJsFltVV::GetClassId()), "Missing field controls or invalid class!");
@@ -237,7 +238,7 @@ void TNodeJsStreamStory::update(const v8::FunctionCallbackInfo<v8::Value>& Args)
     const uint64 RecTm = TNodeJsUtil::GetArgTmMSecs(Args, 2);
 
     JsMChain->StreamStory->OnAddRec(RecTm, JsObsFtrV->Vec, JsContrFtrV->Vec);
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Nan::Undefined());
 }
 
 void TNodeJsStreamStory::futureStates(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -263,10 +264,10 @@ void TNodeJsStreamStory::futureStates(const v8::FunctionCallbackInfo<v8::Value>&
     for (int i = 0; i < StateIdProbPrV.Len(); i++) {
         v8::Local<v8::Object> StateObj = v8::Object::New(Isolate);
 
-        StateObj->Set(v8::String::NewFromUtf8(Isolate, "id"), v8::Integer::New(Isolate, StateIdProbPrV[i].Val1));
-        StateObj->Set(v8::String::NewFromUtf8(Isolate, "prob"), v8::Number::New(Isolate, StateIdProbPrV[i].Val2));
+        Nan::Set(StateObj, TNodeJsUtil::ToLocal(Nan::New("id")), v8::Integer::New(Isolate, StateIdProbPrV[i].Val1));
+        Nan::Set(StateObj, TNodeJsUtil::ToLocal(Nan::New("prob")), Nan::New(StateIdProbPrV[i].Val2));
 
-        StateArr->Set(i, StateObj);
+        Nan::Set(StateArr, i, StateObj);
     }
 
     Args.GetReturnValue().Set(StateArr);
@@ -295,10 +296,10 @@ void TNodeJsStreamStory::pastStates(const v8::FunctionCallbackInfo<v8::Value>& A
     for (int i = 0; i < StateIdProbPrV.Len(); i++) {
         v8::Local<v8::Object> StateObj = v8::Object::New(Isolate);
 
-        StateObj->Set(v8::String::NewFromUtf8(Isolate, "id"), v8::Integer::New(Isolate, StateIdProbPrV[i].Val1));
-        StateObj->Set(v8::String::NewFromUtf8(Isolate, "prob"), v8::Number::New(Isolate, StateIdProbPrV[i].Val2));
+        Nan::Set(StateObj, TNodeJsUtil::ToLocal(Nan::New("id")), v8::Integer::New(Isolate, StateIdProbPrV[i].Val1));
+        Nan::Set(StateObj, TNodeJsUtil::ToLocal(Nan::New("prob")), Nan::New(StateIdProbPrV[i].Val2));
 
-        StateArr->Set(i, StateObj);
+        Nan::Set(StateArr, i, StateObj);
     }
 
     Args.GetReturnValue().Set(StateArr);
@@ -382,9 +383,9 @@ void TNodeJsStreamStory::probsAtTime(const v8::FunctionCallbackInfo<v8::Value>& 
         const double Prob = ProbV[i];
 
         v8::Local<v8::Object> StateObj = v8::Object::New(Isolate);
-        StateObj->Set(v8::String::NewFromUtf8(Isolate, "stateId"), v8::Integer::New(Isolate, StateId));
-        StateObj->Set(v8::String::NewFromUtf8(Isolate, "prob"), v8::Number::New(Isolate, Prob));
-        Result->Set(i, StateObj);
+        Nan::Set(StateObj, TNodeJsUtil::ToLocal(Nan::New("stateId")), v8::Integer::New(Isolate, StateId));
+        Nan::Set(StateObj, TNodeJsUtil::ToLocal(Nan::New("prob")), Nan::New(Prob));
+        Nan::Set(Result, i, StateObj);
     }
 
     Args.GetReturnValue().Set(Result);
@@ -402,7 +403,7 @@ void TNodeJsStreamStory::histStates(const v8::FunctionCallbackInfo<v8::Value>& A
 
     v8::Local<v8::Array> StateArr = v8::Array::New(Isolate, StateIdV.Len());
     for (int i = 0; i < StateIdV.Len(); i++) {
-        StateArr->Set(i, v8::Integer::New(Isolate, StateIdV[i]));
+        Nan::Set(StateArr, i, v8::Integer::New(Isolate, StateIdV[i]));
     }
 
     Args.GetReturnValue().Set(StateArr);
@@ -453,29 +454,29 @@ void TNodeJsStreamStory::getHistoricalStates(const v8::FunctionCallbackInfo<v8::
                 const double& Prob = StateIdDistH[KeyId];
 
                 StateIdDistJson->AddToObj(TInt::GetStr(StateId), Prob);
-                /* StateIdDistObj->Set(v8::Integer::New(Isolate, StateId), v8::Number::New(Isolate, Prob)); */
+                /* StateIdDistObj->Set(v8::Integer::New(Isolate, StateId), Nan::New(Prob)); */
             }
 
             StateJson->AddToObj("start", (double) TNodeJsUtil::GetJsTimestamp(StateTmDurStateIdPrV[BlockN].Val1));
             StateJson->AddToObj("duration", StateTmDurStateIdPrV[BlockN].Val2);
             StateJson->AddToObj("states", StateIdDistJson);
             ScaleJsonVec->Vec[BlockN] = StateJson;
-            /* StateObj->Set(v8::String::NewFromUtf8(Isolate, "start"), v8::Number::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(StateTmDurStateIdPrV[BlockN].Val1))); */
-            /* StateObj->Set(v8::String::NewFromUtf8(Isolate, "duration"), v8::Number::New(Isolate, (double) StateTmDurStateIdPrV[BlockN].Val2)); */
-            /* StateObj->Set(v8::String::NewFromUtf8(Isolate, "states"), StateIdDistObj); */
+            /* Nan::Set(StateObj, TNodeJsUtil::ToLocal(Nan::New("start")), Nan::New((double) TNodeJsUtil::GetJsTimestamp(StateTmDurStateIdPrV[BlockN].Val1))); */
+            /* Nan::Set(StateObj, TNodeJsUtil::ToLocal(Nan::New("duration")), Nan::New((double) StateTmDurStateIdPrV[BlockN].Val2)); */
+            /* Nan::Set(StateObj, TNodeJsUtil::ToLocal(Nan::New("states")), StateIdDistObj); */
 
 /*             JsScaleHist->Set(BlockN, StateObj); */
         }
 
-        ScaleObj->Set(v8::String::NewFromUtf8(Isolate, "scale"), v8::Number::New(Isolate, ScaleTmIdVPr.Val1));
-        ScaleObj->Set(v8::String::NewFromUtf8(Isolate, "states"), JsScaleJsonVec);
+        Nan::Set(ScaleObj, TNodeJsUtil::ToLocal(Nan::New("scale")), Nan::New(ScaleTmIdVPr.Val1));
+        Nan::Set(ScaleObj, TNodeJsUtil::ToLocal(Nan::New("states")), JsScaleJsonVec);
 
-        JsBlocks->Set(ScaleN, ScaleObj);
+        Nan::Set(JsBlocks, ScaleN, ScaleObj);
     }
 
-    JsResult->Set(v8::String::NewFromUtf8(Isolate, "window"), JsBlocks);
-    JsResult->Set(v8::String::NewFromUtf8(Isolate, "historyStart"), v8::Number::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(MnTm)));
-        JsResult->Set(v8::String::NewFromUtf8(Isolate, "historyEnd"), v8::Number::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(MxTm)));
+    Nan::Set(JsResult, TNodeJsUtil::ToLocal(Nan::New("window")), JsBlocks);
+    Nan::Set(JsResult, TNodeJsUtil::ToLocal(Nan::New("historyStart")), Nan::New((double) TNodeJsUtil::GetJsTimestamp(MnTm)));
+    Nan::Set(JsResult, TNodeJsUtil::ToLocal(Nan::New("historyEnd")), Nan::New((double) TNodeJsUtil::GetJsTimestamp(MxTm)));
 
     Args.GetReturnValue().Set(JsResult);
 }
@@ -529,11 +530,9 @@ void TNodeJsStreamStory::getTransitionModel(const v8::FunctionCallbackInfo<v8::V
     PJsonVal MatJson = TJsonVal::NewArr();
     for (int i = 0; i < Mat.GetRows(); i++) {
         PJsonVal RowJson = TJsonVal::NewArr();
-
         for (int j = 0; j < Mat.GetCols(); j++) {
             RowJson->AddToArr(Mat(i,j));
         }
-
         MatJson->AddToArr(RowJson);
     }
 
@@ -551,7 +550,7 @@ void TNodeJsStreamStory::currState(const v8::FunctionCallbackInfo<v8::Value>& Ar
         int CurrStateId = JsMChain->StreamStory->GetCurrStateId(Height);
 
         v8::Local<v8::Object> StateObj = v8::Object::New(Isolate);
-        StateObj->Set(v8::String::NewFromUtf8(Isolate, "id"), v8::Integer::New(Isolate, CurrStateId));
+        Nan::Set(StateObj, TNodeJsUtil::ToLocal(Nan::New("id")), v8::Integer::New(Isolate, CurrStateId));
 
         Args.GetReturnValue().Set(StateObj);
     } else {
@@ -561,10 +560,10 @@ void TNodeJsStreamStory::currState(const v8::FunctionCallbackInfo<v8::Value>& Ar
         for (int i = 0; i < StateIdHeightPrV.Len(); i++) {
             v8::Local<v8::Object> StateObj = v8::Object::New(Isolate);
 
-            StateObj->Set(v8::String::NewFromUtf8(Isolate, "id"), v8::Integer::New(Isolate, StateIdHeightPrV[i].Val1));
-            StateObj->Set(v8::String::NewFromUtf8(Isolate, "height"), v8::Number::New(Isolate, StateIdHeightPrV[i].Val2));
+            Nan::Set(StateObj, TNodeJsUtil::ToLocal(Nan::New("id")), v8::Integer::New(Isolate, StateIdHeightPrV[i].Val1));
+            Nan::Set(StateObj, TNodeJsUtil::ToLocal(Nan::New("height")), Nan::New(StateIdHeightPrV[i].Val2));
 
-            AncestryArr->Set(i, StateObj);
+            Nan::Set(AncestryArr, i, StateObj);
         }
 
         Args.GetReturnValue().Set(AncestryArr);
@@ -583,7 +582,7 @@ void TNodeJsStreamStory::fullCoords(const v8::FunctionCallbackInfo<v8::Value>& A
 
     v8::Local<v8::Array> FtrVJson = v8::Array::New(Isolate, FtrV.Len());
     for (int i = 0; i < FtrV.Len(); i++) {
-        FtrVJson->Set(i, v8::Number::New(Isolate, FtrV[i]));
+        Nan::Set(FtrVJson, i, Nan::New(FtrV[i]));
     }
 
     Args.GetReturnValue().Set(FtrVJson);
@@ -605,10 +604,10 @@ void TNodeJsStreamStory::getStateCentroids(const v8::FunctionCallbackInfo<v8::Va
         v8::Local<v8::Array> FtrVJson = v8::Array::New(Isolate, FtrV.Len());
 
         for (int FtrN = 0; FtrN < FtrV.Len(); FtrN++) {
-            FtrVJson->Set(FtrN, v8::Number::New(Isolate, FtrV[FtrN]));
+            Nan::Set(FtrVJson, FtrN, Nan::New(FtrV[FtrN]));
         }
 
-        FtrVVJson->Set(CentroidN, FtrVJson);
+        Nan::Set(FtrVVJson, CentroidN, FtrVJson);
     }
 
     Args.GetReturnValue().Set(FtrVVJson);
@@ -709,8 +708,8 @@ void TNodeJsStreamStory::getFtrBounds(const v8::FunctionCallbackInfo<v8::Value>&
     const TFltPr FtrBounds = JsStreamStory->StreamStory->GetFtrBounds(FtrId);
 
     v8::Local<v8::Object> Result = v8::Object::New(Isolate);
-    Result->Set(v8::String::NewFromUtf8(Isolate, "min"), v8::Number::New(Isolate, FtrBounds.Val1.Val));
-    Result->Set(v8::String::NewFromUtf8(Isolate, "max"), v8::Number::New(Isolate, FtrBounds.Val2.Val));
+    Nan::Set(Result, TNodeJsUtil::ToLocal(Nan::New("min")), Nan::New(FtrBounds.Val1.Val));
+    Nan::Set(Result, TNodeJsUtil::ToLocal(Nan::New("max")), Nan::New(FtrBounds.Val2.Val));
 
     Args.GetReturnValue().Set(Result);
 }
@@ -728,7 +727,7 @@ void TNodeJsStreamStory::stateIds(const v8::FunctionCallbackInfo<v8::Value>& Arg
 
     v8::Local<v8::Array> StateIdJsV = v8::Array::New(Isolate, StateIdV.Len());
     for (int i = 0; i < StateIdV.Len(); i++) {
-        StateIdJsV->Set(i, v8::Integer::New(Isolate, StateIdV[i]));
+        Nan::Set(StateIdJsV, i, v8::Integer::New(Isolate, StateIdV[i]));
     }
 
     Args.GetReturnValue().Set(StateIdJsV);
@@ -781,7 +780,7 @@ void TNodeJsStreamStory::setActivity(const v8::FunctionCallbackInfo<v8::Value>& 
 
     JsStreamStory->StreamStory->AddActivity(ActName, StateIdSeqVV);
 
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Nan::Undefined());
 }
 
 void TNodeJsStreamStory::removeActivity(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -794,7 +793,7 @@ void TNodeJsStreamStory::removeActivity(const v8::FunctionCallbackInfo<v8::Value
 
     JsStreamStory->StreamStory->RemoveActivity(ActNm);
 
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Nan::Undefined());
 }
 
 void TNodeJsStreamStory::getActivities(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -807,17 +806,17 @@ void TNodeJsStreamStory::getActivities(const v8::FunctionCallbackInfo<v8::Value>
     TIntV ActStepsV;
     JsStreamStory->StreamStory->GetActivities(ActNmV, ActStepsV);
 
-    v8::Local<v8::String> JsNmStr = v8::String::NewFromUtf8(Isolate, "name");
-    v8::Local<v8::String> JsStepsStr = v8::String::NewFromUtf8(Isolate, "steps");
+    v8::Local<v8::String> JsNmStr = TNodeJsUtil::ToLocal(Nan::New("name"));
+    v8::Local<v8::String> JsStepsStr = TNodeJsUtil::ToLocal(Nan::New("steps"));
 
     v8::Local<v8::Array> JsActV = v8::Array::New(Isolate, ActNmV.Len());
     for (int ActN = 0; ActN < ActNmV.Len(); ActN++) {
         v8::Local<v8::Object> JsAct = v8::Object::New(Isolate);
 
-        JsAct->Set(JsNmStr, v8::String::NewFromUtf8(Isolate, ActNmV[ActN].CStr()));
-        JsAct->Set(JsStepsStr, v8::Integer::New(Isolate, ActStepsV[ActN]));
+        Nan::Set(JsAct, JsNmStr, TNodeJsUtil::ToLocal(Nan::New(ActNmV[ActN].CStr())));
+        Nan::Set(JsAct, JsStepsStr, v8::Integer::New(Isolate, ActStepsV[ActN]));
 
-        JsActV->Set(ActN, JsAct);
+        Nan::Set(JsActV, ActN, JsAct);
     }
 
     Args.GetReturnValue().Set(JsActV);
@@ -837,7 +836,7 @@ void TNodeJsStreamStory::onStateChanged(const v8::FunctionCallbackInfo<v8::Value
         JsStreamStory->StateChangedCallback.Reset(Isolate, Callback);
     }
 
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Nan::Undefined());
 }
 
 void TNodeJsStreamStory::onAnomaly(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -854,7 +853,7 @@ void TNodeJsStreamStory::onAnomaly(const v8::FunctionCallbackInfo<v8::Value>& Ar
         JsStreamStory->AnomalyCallback.Reset(Isolate, Callback);
     }
 
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Nan::Undefined());
 }
 
 void TNodeJsStreamStory::onOutlier(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -871,7 +870,7 @@ void TNodeJsStreamStory::onOutlier(const v8::FunctionCallbackInfo<v8::Value>& Ar
         JsStreamStory->OutlierCallback.Reset(Isolate, Callback);
     }
 
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Nan::Undefined());
 }
 
 void TNodeJsStreamStory::onProgress(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -888,7 +887,7 @@ void TNodeJsStreamStory::onProgress(const v8::FunctionCallbackInfo<v8::Value>& A
         JsStreamStory->ProgressCallback.Reset(Isolate, Callback);
     }
 
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Nan::Undefined());
 }
 
 void TNodeJsStreamStory::onPrediction(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -905,7 +904,7 @@ void TNodeJsStreamStory::onPrediction(const v8::FunctionCallbackInfo<v8::Value>&
         JsStreamStory->PredictionCallback.Reset(Isolate, Callback);
     }
 
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Nan::Undefined());
 }
 
 void TNodeJsStreamStory::onActivity(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -922,7 +921,7 @@ void TNodeJsStreamStory::onActivity(const v8::FunctionCallbackInfo<v8::Value>& A
         JsStreamStory->ActivityCallback.Reset(Isolate, Callback);
     }
 
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Nan::Undefined());
 }
 
 void TNodeJsStreamStory::rebuildHistograms(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -932,7 +931,7 @@ void TNodeJsStreamStory::rebuildHistograms(const v8::FunctionCallbackInfo<v8::Va
     EAssertR(Args.Length() == 1, "hmc.rebuildHistograms: expects 1 argument!");
 
     TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-    v8::Local<v8::Object> ArgObj = Args[0]->ToObject();
+    v8::Local<v8::Object> ArgObj = TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0]));
 
     EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "observations", TNodeJsFltVV::GetClassId()), "Missing field observations!");
     EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "controls", TNodeJsFltVV::GetClassId()), "Missing field controls!");
@@ -957,7 +956,7 @@ void TNodeJsStreamStory::rebuildHistograms(const v8::FunctionCallbackInfo<v8::Va
         JsStreamStory->StreamStory->InitHistograms(JsObsFtrVV->Mat, JsControlFtrVV->Mat, JsIgnoredFtrVV->Mat, RecTmV, TBoolV());
     }
 
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Nan::Undefined());
 }
 
 void TNodeJsStreamStory::getStateLabel(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -971,7 +970,7 @@ void TNodeJsStreamStory::getStateLabel(const v8::FunctionCallbackInfo<v8::Value>
     const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
     const TStr& StateNm = JsStreamStory->StreamStory->GetStateLabel(StateId);
 
-    Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, StateNm.CStr()));
+    Args.GetReturnValue().Set(TNodeJsUtil::ToLocal(Nan::New(StateNm.CStr())));
 }
 
 void TNodeJsStreamStory::getStateAutoName(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1043,7 +1042,7 @@ void TNodeJsStreamStory::getStateName(const v8::FunctionCallbackInfo<v8::Value>&
     const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
     const TStr& StateNm = JsStreamStory->StreamStory->GetStateNm(StateId);
 
-    Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, StateNm.CStr()));
+    Args.GetReturnValue().Set(TNodeJsUtil::ToLocal(Nan::New(StateNm.CStr())));
 }
 
 void TNodeJsStreamStory::setStateName(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1059,7 +1058,7 @@ void TNodeJsStreamStory::setStateName(const v8::FunctionCallbackInfo<v8::Value>&
 
     JsMChain->StreamStory->SetStateNm(StateId, StateNm);
 
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Nan::Undefined());
 }
 
 void TNodeJsStreamStory::setStateCoords(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1083,7 +1082,7 @@ void TNodeJsStreamStory::setStateCoords(const v8::FunctionCallbackInfo<v8::Value
     }
 
     JsStreamStory->StreamStory->SetStatePosV(PosV);
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Nan::Undefined());
 }
 
 void TNodeJsStreamStory::clearStateName(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1097,7 +1096,7 @@ void TNodeJsStreamStory::clearStateName(const v8::FunctionCallbackInfo<v8::Value
     const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
     JsStreamStory->StreamStory->SetStateNm(StateId, "");
 
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Nan::Undefined());
 }
 
 void TNodeJsStreamStory::isTarget(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1123,7 +1122,7 @@ void TNodeJsStreamStory::setTarget(const v8::FunctionCallbackInfo<v8::Value>& Ar
 
     JsStreamStory->StreamStory->SetTargetState(StateId, IsTarget);
 
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Nan::Undefined());
 }
 
 void TNodeJsStreamStory::isLeaf(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1145,15 +1144,15 @@ void TNodeJsStreamStory::getTimeUnit(const v8::FunctionCallbackInfo<v8::Value>& 
     const uint64 TimeUnit = JsStreamStory->StreamStory->GetTimeUnit();
 
     if (TimeUnit == TMc::TCtmcModeller::TU_SECOND) {
-        Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "second"));
+        Args.GetReturnValue().Set(TNodeJsUtil::ToLocal(Nan::New("second")));
     } else if (TimeUnit == TMc::TCtmcModeller::TU_MINUTE) {
-        Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "minute"));
+        Args.GetReturnValue().Set(TNodeJsUtil::ToLocal(Nan::New("minute")));
     } else if (TimeUnit == TMc::TCtmcModeller::TU_HOUR) {
-        Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "hour"));
+        Args.GetReturnValue().Set(TNodeJsUtil::ToLocal(Nan::New("hour")));
     } else if (TimeUnit == TMc::TCtmcModeller::TU_DAY) {
-        Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "day"));
+        Args.GetReturnValue().Set(TNodeJsUtil::ToLocal(Nan::New("day")));
     } else if (TimeUnit == TMc::TCtmcModeller::TU_MONTH) {
-        Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, "month"));
+        Args.GetReturnValue().Set(TNodeJsUtil::ToLocal(Nan::New("month")));
     } else {
         throw TExcept::New("Invalid time unit!", "TNodeJsStreamStory::getTimeUnit");
     }
@@ -1168,7 +1167,7 @@ void TNodeJsStreamStory::setControlVal(const v8::FunctionCallbackInfo<v8::Value>
     EAssertR(Args.Length() == 1, "TNodeJsStreamStory::setControlVal: expecting 1 argument!");
 
     TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-    v8::Local<v8::Object> ArgsObj = Args[0]->ToObject();
+    v8::Local<v8::Object> ArgsObj = TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0]));
 
     const int FtrId = TNodeJsUtil::GetFldInt(ArgsObj, "ftrId");
     const double Val = TNodeJsUtil::GetFldFlt(ArgsObj, "val");
@@ -1180,7 +1179,7 @@ void TNodeJsStreamStory::setControlVal(const v8::FunctionCallbackInfo<v8::Value>
         JsStreamStory->StreamStory->SetControlFtrsVal(FtrId, Val);
     }
 
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Nan::Undefined());
 }
 
 void TNodeJsStreamStory::resetControlVal(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1190,7 +1189,7 @@ void TNodeJsStreamStory::resetControlVal(const v8::FunctionCallbackInfo<v8::Valu
     EAssertR(Args.Length() == 1, "TNodeJsStreamStory::setControlVal: expecting 1 argument!");
 
     TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
-    v8::Local<v8::Object> ArgsObj = Args[0]->ToObject();
+    v8::Local<v8::Object> ArgsObj = TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0]));
 
     if (TNodeJsUtil::IsFldInt(ArgsObj, "stateId")) {
         const int StateId = TNodeJsUtil::GetFldInt(ArgsObj, "stateId");
@@ -1204,7 +1203,7 @@ void TNodeJsStreamStory::resetControlVal(const v8::FunctionCallbackInfo<v8::Valu
         JsStreamStory->StreamStory->ResetControlFtrVals();
     }
 
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Nan::Undefined());
 }
 
 void TNodeJsStreamStory::isAnyControlFtrSet(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1258,10 +1257,10 @@ void TNodeJsStreamStory::getParam(const v8::FunctionCallbackInfo<v8::Value>& Arg
         Args.GetReturnValue().Set(v8::Boolean::New(Isolate, JsMChain->StreamStory->IsVerbose()));
         return;
     } else if (ParamNm == "predictionThreshold") {
-        Args.GetReturnValue().Set(v8::Number::New(Isolate, JsMChain->StreamStory->GetPredictionThreshold()));
+        Args.GetReturnValue().Set(Nan::New(JsMChain->StreamStory->GetPredictionThreshold()));
         return;
     } else if (ParamNm == "timeHorizon") {
-        Args.GetReturnValue().Set(v8::Number::New(Isolate, JsMChain->StreamStory->GetTimeHorizon()));
+        Args.GetReturnValue().Set(Nan::New(JsMChain->StreamStory->GetTimeHorizon()));
         return;
     } else if (ParamNm == "pdfBins") {
         Args.GetReturnValue().Set(v8::Integer::New(Isolate, JsMChain->StreamStory->GetPdfBins()));
@@ -1301,16 +1300,16 @@ void TNodeJsStreamStory::OnStateChanged(const uint64 Tm, const TIntFltPrV& State
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::HandleScope HandleScope(Isolate);
 
-        v8::Local<v8::Value> JsTm = v8::Date::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(Tm));
+        v8::Local<v8::Date> JsTm = Nan::New<v8::Date>((double) TNodeJsUtil::GetJsTimestamp(Tm)).ToLocalChecked();
         v8::Local<v8::Array> StateArr = v8::Array::New(Isolate, StateIdHeightV.Len());
 
         for (int i = 0; i < StateIdHeightV.Len(); i++) {
             v8::Local<v8::Object> StateObj = v8::Object::New(Isolate);
 
-            StateObj->Set(v8::String::NewFromUtf8(Isolate, "id"), v8::Integer::New(Isolate, StateIdHeightV[i].Val1));
-            StateObj->Set(v8::String::NewFromUtf8(Isolate, "height"), v8::Number::New(Isolate, StateIdHeightV[i].Val2));
+            Nan::Set(StateObj, TNodeJsUtil::ToLocal(Nan::New("id")), v8::Integer::New(Isolate, StateIdHeightV[i].Val1));
+            Nan::Set(StateObj, TNodeJsUtil::ToLocal(Nan::New("height")), Nan::New(StateIdHeightV[i].Val2));
 
-            StateArr->Set(i, StateObj);
+            Nan::Set(StateArr, i, StateObj);
         }
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, StateChangedCallback);
@@ -1323,7 +1322,7 @@ void TNodeJsStreamStory::OnAnomaly(const TStr& AnomalyDesc) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::HandleScope HandleScope(Isolate);
 
-        v8::Local<v8::String> Param = v8::String::NewFromUtf8(Isolate, AnomalyDesc.CStr());
+        v8::Local<v8::String> Param = TNodeJsUtil::ToLocal(Nan::New(AnomalyDesc.CStr()));
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, AnomalyCallback);
         TNodeJsUtil::ExecuteVoid(Callback, Param);
@@ -1359,19 +1358,19 @@ void TNodeJsStreamStory::OnPrediction(const uint64& RecTm, const int& CurrStateI
         v8::Local<v8::Array> JsTmV = v8::Array::New(Isolate, TmV.Len());
 
         for (int i = 0; i < ProbV.Len(); i++) {
-            JsProbV->Set(i, v8::Number::New(Isolate, ProbV[i]));
+            Nan::Set(JsProbV, i, Nan::New(ProbV[i]));
         }
         for (int i = 0; i < TmV.Len(); i++) {
-            JsTmV->Set(i, v8::Number::New(Isolate, TmV[i]));
+            Nan::Set(JsTmV, i, Nan::New(TmV[i]));
         }
 
         const int ArgC = 6;
 
         v8::Local<v8::Value> ArgV[ArgC] = {
-            v8::Date::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(RecTm)),
+            TNodeJsUtil::ToLocal(Nan::New<v8::Date>((double) TNodeJsUtil::GetJsTimestamp(RecTm))),
             v8::Integer::New(Isolate, CurrStateId),
             v8::Integer::New(Isolate, TargetStateId),
-            v8::Number::New(Isolate, Prob),
+            Nan::New(Prob),
             JsProbV,
             JsTmV
         };
@@ -1388,9 +1387,9 @@ void TNodeJsStreamStory::OnActivityDetected(const uint64& StartTm, const uint64&
 
         const int ArgC = 3;
         v8::Local<v8::Value> ArgV[ArgC] = {
-            v8::Date::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(StartTm)),
-            v8::Date::New(Isolate, (double) TNodeJsUtil::GetJsTimestamp(EndTm)),
-            v8::String::NewFromUtf8(Isolate, ActNm.CStr())
+            TNodeJsUtil::ToLocal(Nan::New<v8::Date>((double) TNodeJsUtil::GetJsTimestamp(StartTm))),
+            TNodeJsUtil::ToLocal(Nan::New<v8::Date>((double) TNodeJsUtil::GetJsTimestamp(EndTm))),
+            TNodeJsUtil::ToLocal(Nan::New(ActNm.CStr()))
         };
 
         v8::Local<v8::Function> Callback = v8::Local<v8::Function>::New(Isolate, ActivityCallback);
@@ -1419,9 +1418,9 @@ void TNodeJsStreamStory::ProcessProgressQ() {
         const TIntStrPr& PercMsgPr = TempProgressQ[ProgressN];
 
         v8::Local<v8::Integer> JsPerc = v8::Integer::New(Isolate, PercMsgPr.Val1.Val);
-        v8::Local<v8::String> JsMsg = v8::String::NewFromUtf8(Isolate, PercMsgPr.Val2.CStr());
+        v8::Local<v8::String> JsMsg = TNodeJsUtil::ToLocal(Nan::New(PercMsgPr.Val2.CStr()));
 
-        TNodeJsUtil::ExecuteVoid(Callback, JsPerc->ToObject(), JsMsg->ToObject());
+        TNodeJsUtil::ExecuteVoid(Callback, Nan::To<v8::Object>(JsPerc).ToLocalChecked(), Nan::To<v8::Object>(JsMsg).ToLocalChecked());
     }
 }
 
@@ -1452,35 +1451,35 @@ v8::Local<v8::Object> TNodeJsStreamStory::WrapHistogram(const TFltV& BinValV,
     double TotalCount = 0;
 
     for (int i = 0; i < BinValV.Len(); i++) {
-        BinStartJsV->Set(i, v8::Number::New(Isolate, BinValV[i]));
+        Nan::Set(BinStartJsV, i, Nan::New(BinValV[i]));
     }
 
     for (int i = 0; i < SourceProbV.Len(); i++) {
-        ProbJsV->Set(i, v8::Number::New(Isolate, SourceProbV[i]));
+        Nan::Set(ProbJsV, i, Nan::New(SourceProbV[i]));
         TotalCount += SourceProbV[i];
     }
 
-    Result->Set(v8::String::NewFromUtf8(Isolate, "binValV"), BinStartJsV);
-    Result->Set(v8::String::NewFromUtf8(Isolate, "countV"), ProbJsV);
-    Result->Set(v8::String::NewFromUtf8(Isolate, "totalCount"), v8::Number::New(Isolate, TotalCount));
+    Nan::Set(Result, TNodeJsUtil::ToLocal(Nan::New("binValV")), BinStartJsV);
+    Nan::Set(Result, TNodeJsUtil::ToLocal(Nan::New("countV")), ProbJsV);
+    Nan::Set(Result, TNodeJsUtil::ToLocal(Nan::New("totalCount")), Nan::New(TotalCount));
 
     if (!TargetProbV.Empty()) {
         v8::Local<v8::Array> TargetProbJsV = v8::Array::New(Isolate, TargetProbV.Len());
         double TargetProbSum = 0;
         for (int i = 0; i < TargetProbV.Len(); i++) {
-            TargetProbJsV->Set(i, v8::Number::New(Isolate, TargetProbV[i]));
+            Nan::Set(TargetProbJsV, i, Nan::New(TargetProbV[i]));
             TargetProbSum += TargetProbV[i];
         }
-        Result->Set(v8::String::NewFromUtf8(Isolate, "targetCountV"), TargetProbJsV);
-        Result->Set(v8::String::NewFromUtf8(Isolate, "targetTotalCount"), v8::Number::New(Isolate, TargetProbSum));
+        Nan::Set(Result, TNodeJsUtil::ToLocal(Nan::New("targetCountV")), TargetProbJsV);
+        Nan::Set(Result, TNodeJsUtil::ToLocal(Nan::New("targetTotalCount")), Nan::New(TargetProbSum));
     }
 
     if (!AllProbV.Empty()) {
         v8::Local<v8::Array> AllProbJsV = v8::Array::New(Isolate, AllProbV.Len());
         for (int i = 0; i < AllProbV.Len(); i++) {
-            AllProbJsV->Set(i, v8::Number::New(Isolate, AllProbV[i]));
+            Nan::Set(AllProbJsV, i, Nan::New(AllProbV[i]));
         }
-        Result->Set(v8::String::NewFromUtf8(Isolate, "allCountV"), AllProbJsV);
+        Nan::Set(Result, TNodeJsUtil::ToLocal(Nan::New("allCountV")), AllProbJsV);
     }
 
     return HandleScope.Escape(Result);

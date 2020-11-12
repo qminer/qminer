@@ -23,17 +23,17 @@
 
 class TBlocker {
 protected:
-	pthread_cond_t Event;
-	pthread_mutex_t Mutex;
+    pthread_cond_t Event;
+    pthread_mutex_t Mutex;
 
-	//HANDLE Event;
+    //HANDLE Event;
 
 public:
-	TBlocker();
-	~TBlocker();
+    TBlocker();
+    ~TBlocker();
 
-	void Block(int Msecs = TInt::Mx);
-	void Release();
+    void Block(int Msecs = TInt::Mx);
+    void Release();
 };
 
 /**
@@ -41,35 +41,35 @@ public:
  */
 class TCriticalSection {
 protected:
-	//CRITICAL_SECTION Cs;
-	pthread_mutex_t Cs;
-	pthread_mutexattr_t CsAttr;
+    //CRITICAL_SECTION Cs;
+    pthread_mutex_t Cs;
+    pthread_mutexattr_t CsAttr;
 
 public:
-	TCriticalSection();
-	~TCriticalSection();
+    TCriticalSection();
+    ~TCriticalSection();
 
-	void Enter();
-	bool TryEnter();
-	void Leave();
+    void Enter();
+    bool TryEnter();
+    void Leave();
 };
 
 ////////////////////////////////////////////
 // Thread
 ClassTP(TThread, PThread)// {
 private:
-	const static int STATUS_CREATED;
-	const static int STATUS_STARTED;
-	const static int STATUS_CANCELLED;
-	const static int STATUS_FINISHED;
+    const static int STATUS_CREATED;
+    const static int STATUS_STARTED;
+    const static int STATUS_CANCELLED;
+    const static int STATUS_FINISHED;
 
-	pthread_t ThreadHandle;
+    pthread_t ThreadHandle;
 
-	// Use for interrupting and waiting
-	TBlocker* SleeperBlocker;
-	TCriticalSection CriticalSection;
+    // Use for interrupting and waiting
+    TBlocker* SleeperBlocker;
+    TCriticalSection CriticalSection;
 
-	volatile sig_atomic_t Status;
+    volatile sig_atomic_t Status;
 
 private:
     static void * EntryPoint(void * pArg);
@@ -77,10 +77,10 @@ private:
 public:
     TThread();
 
-	TThread(const TThread& Other) {
-		operator=(Other);
-	}
-	TThread& operator =(const TThread& Other);
+    TThread(const TThread& Other) {
+        operator=(Other);
+    }
+    TThread& operator =(const TThread& Other);
 
     virtual ~TThread();
 
@@ -97,16 +97,16 @@ public:
     // windows thread handle
     pthread_t GetThreadHandle() const { return ThreadHandle; }
 
-	void Interrupt();
-	void WaitForInterrupt(const int Msecs = INFINITE);
+    void Interrupt();
+    void WaitForInterrupt(const int Msecs = INFINITE);
 
-	int Join();
+    int Join();
 
-	bool IsAlive();
-	bool IsCancelled();
-	bool IsFinished();
+    bool IsAlive();
+    bool IsCancelled();
+    bool IsFinished();
 
-	static int GetCoreCount();
+    static int GetCoreCount();
 
 };
 
@@ -116,10 +116,10 @@ public:
 template <class TThreadType>
 int ThreadWait(TThreadType& Thread, const int& MxMSecs = -1) {
     //DWORD dwMilliSeconds = (MxMSecs == -1) ? INFINITE : ((DWORD)MxMSecs);
-	int dwMilliSeconds = (MxMSecs == -1) ? TInt::Mx : MxMSecs;
+    int dwMilliSeconds = (MxMSecs == -1) ? TInt::Mx : MxMSecs;
     const int Res = pthread_join(Thread.GetThreadHandle(), dwMilliSeconds);
 
-    		//WaitForSingleObject(Thread.GetThreadHandle(), dwMilliSeconds);
+            //WaitForSingleObject(Thread.GetThreadHandle(), dwMilliSeconds);
     return Res;//(Res == WAIT_ABANDONED) || (Res == WAIT_OBJECT_0);
 }
 
@@ -139,7 +139,7 @@ int ThreadWaitOne(TVec<TThreadType>& ThreadV, const int& MxMSecs = -1) {
     }
     // wait
     //const int Res = pthread_
-    		//WaitForMultipleObjects(
+            //WaitForMultipleObjects(
         //nCount, lpHandles, waitAll, dwMilliSeconds);
     // delete array
     for (int ThreadN = 0; ThreadN)
@@ -147,29 +147,29 @@ int ThreadWaitOne(TVec<TThreadType>& ThreadV, const int& MxMSecs = -1) {
     // check the output and finish
     if (Res == WAIT_TIMEOUT) { return -1; } // timed-out
     return (int)(Res - WAIT_OBJECT_0); // return the index of finished thread*/
-	int ret = 0;
-	for (int i = 0;i < ThreadV.Len(); i++) {
-		ret = ThreadV[i].Join(MxMSecs);
-	}
-	return ret;
+    int ret = 0;
+    for (int i = 0;i < ThreadV.Len(); i++) {
+        ret = ThreadV[i].Join(MxMSecs);
+    }
+    return ret;
 }
 
 
 template<class TThreadType>
 class TThreadV : public TVec<TThreadType> {
 public:
-	void StartAll() {
-		for (int i = 0; i < this->Len(); i++) {
-			(*this)[i].Start();
-		}
-	}
-	int Join() {
-		int Status = 0;
-		for (int i = 0; i < this->Len(); i++) {
-			Status = (*this)[i].Join();//ThreadWait<TThreadType>((*this)[i]);
-		}
-		return Status;
-	}
+    void StartAll() {
+        for (int i = 0; i < this->Len(); i++) {
+            (*this)[i].Start();
+        }
+    }
+    int Join() {
+        int Status = 0;
+        for (int i = 0; i < this->Len(); i++) {
+            Status = (*this)[i].Join();//ThreadWait<TThreadType>((*this)[i]);
+        }
+        return Status;
+    }
 };
 
 class TCondVarLock;
@@ -177,11 +177,11 @@ class TCondVarLock;
 ////////////////////////////////////////////
 // Mutex
 class TMutex {
-	friend class TCondVarLock;
+    friend class TCondVarLock;
 private:
-	TMutexType Type;
-	pthread_mutex_t MutexHandle;
-	pthread_mutexattr_t Attributes;
+    TMutexType Type;
+    pthread_mutex_t MutexHandle;
+    pthread_mutexattr_t Attributes;
 
 
 public:
@@ -191,7 +191,7 @@ public:
     // waits so the mutex is released and locks it
     bool Wait(const int& MxMSecs = -1);
 
-	void GetLock();
+    void GetLock();
     // releases the mutex
     bool Release();
 
@@ -204,29 +204,29 @@ public:
 // blocks threads on a until a condition is fulfilled
 class TCondVarLock {
 private:
-	pthread_cond_t CondVar;
-	TMutex Mutex;
+    pthread_cond_t CondVar;
+    TMutex Mutex;
 
 public:
-	TCondVarLock();
-	~TCondVarLock();
+    TCondVarLock();
+    ~TCondVarLock();
 
-	// locks the mutex
-	void Lock();
-	// releases the mutex
-	bool Release();
-	// must be locked before calling this method
-	// unlocks the mutex and waits for a signal once it gets the signal the
-	// mutex is automatically locked
-	void WaitForSignal();
-	// must be locked before signaling
-	// unblocks at least one thread waiting on the
-	// conditional variable
-	void Signal();
-	// must be locked before broadcasting
-	// unblocks all threads waiting on the
-	// conditional variable
-	void Broadcast();
+    // locks the mutex
+    void Lock();
+    // releases the mutex
+    bool Release();
+    // must be locked before calling this method
+    // unlocks the mutex and waits for a signal once it gets the signal the
+    // mutex is automatically locked
+    void WaitForSignal();
+    // must be locked before signaling
+    // unblocks at least one thread waiting on the
+    // conditional variable
+    void Signal();
+    // must be locked before broadcasting
+    // unblocks all threads waiting on the
+    // conditional variable
+    void Broadcast();
 };
 
 

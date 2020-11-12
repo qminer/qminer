@@ -1635,6 +1635,10 @@ public:
   uint GetLsVal() const {
     return (uint)(Val & 0xffffffff);}
 
+  static uint64 GetMn(const uint64& Int1, const uint64& Int2){
+    return Int1<Int2?Int1:Int2;}
+  static uint64 GetMx(const uint64& Int1, const uint64& Int2){
+    return Int1>Int2?Int1:Int2;}
 
   #ifdef GLib_WIN
   TStr GetStr() const {return TStr::Fmt("%I64u", Val);}

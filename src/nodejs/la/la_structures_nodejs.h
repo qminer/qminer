@@ -1,13 +1,14 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 #ifndef QMINER_LA_STRUCTURES_NODEJS_H
 #define QMINER_LA_STRUCTURES_NODEJS_H
 
+#include <nan.h>
 #include <node.h>
 #include <node_object_wrap.h>
 #include "base.h"
@@ -41,7 +42,7 @@
 * // create a new matrix with nested arrays
 * var mat2 = new la.Matrix([[1, 7, 4], [-10, 0, 3]]); // creates a 2 x 3 matrix with the designated values
 */
-//# exports.Matrix = function(arg) { return Object.create(require('qminer').la.Matrix.prototype); }    
+//# exports.Matrix = function(arg) { return Object.create(require('qminer').la.Matrix.prototype); }
 
 class TNodeJsFltVV : public node::ObjectWrap {
     friend class TNodeJsUtil;
@@ -78,7 +79,7 @@ private:
 
     /**
     * Sets an element or a block of matrix.
-    * @param {number} rowIdx - Row index (zero based). 
+    * @param {number} rowIdx - Row index (zero based).
     * @param {number} colIdx - Column index (zero based).
     * @param {(number | module:la.Matrix)} arg - A number or a matrix. If arg is of type {@link module:la.Matrix}, it gets copied, where the argument's upper left corner, <code>arg.at(0,0)</code>, gets copied to position (<code>rowIdx</code>, <code>colIdx</code>).
     * @returns {module:la.Matrix} Self. The (<code>rowIdx</code>, <code>colIdx</code>) value/block is changed.
@@ -92,7 +93,7 @@ private:
     * // updates the matrix to
     * // 1  10  11
     * // 4  12  13
-    * // 7   8   9   
+    * // 7   8   9
     */
     //# exports.Matrix.prototype.put = function(rowIdx, colIdx, arg) { return Object.create(require('qminer').la.Matrix.prototype); }
     JsDeclareFunction(put);
@@ -145,7 +146,7 @@ private:
     * // create two matrices
     * var mat = new la.Matrix([[1, 2], [-1, 5]]);
     * var mat2 = new la.Matrix([[1, -1], [3, 2]]);
-    * // add the matrices 
+    * // add the matrices
     * // the return matrix is
     * // 2   1
     * // 2   7
@@ -237,7 +238,7 @@ private:
 
     /**
     * Normalizes each column of matrix.
-    * @returns {module:la.Matrix} Self. The columns of matrix are normalized. 
+    * @returns {module:la.Matrix} Self. The columns of matrix are normalized.
     * @example
     * // import la module
     * var la = require('qminer').la;
@@ -391,7 +392,7 @@ private:
     * Gets the submatrix from the column ids.
     * @param {module:la.IntVector} intVec - The vector containing the column ids.
     * @returns {module:la.Matrix} The submatrix containing the the columns of the original matrix.
-    * @example 
+    * @example
     * //import la module
     * var la = require('qminer').la;
     * // create a random matrix
@@ -518,17 +519,17 @@ public:
 
 ///////////////////////////////
 // NodeJs-Linalg-Sparse-Vector
-//! 
+//!
 //! ### SpVector (sparse vector)
-//! 
+//!
 //! Sparse vector is an array of (int,double) pairs that represent column indices and values (TIntFltKdV is implemented in glib/base/ds.h.)
 //! Using the global `la` object, sparse vectors can be generated in the following ways:
-//! 
+//!
 //! ```JavaScript
 //! var spVec = la.newSpVec(); //empty vector
 //! // refer to la.newSpVec for alternative ways to generate sparse vectors
 //! ```
-//! 
+//!
 
 /**
 * Sparse Vector.
@@ -546,7 +547,7 @@ public:
 * // create new sparse vector with dim
 * var spVec2 = new la.SparseVector([[0, 1], [2, 3], [3, 6]], 5); // largest index (zero based) is 4
 */
-//# exports.SparseVector = function(arg, dim) { return Object.create(require('qminer').la.SparseVector.prototype); }    
+//# exports.SparseVector = function(arg, dim) { return Object.create(require('qminer').la.SparseVector.prototype); }
 
 class TNodeJsSpVec : public node::ObjectWrap {
     friend class TNodeJsUtil;
@@ -682,7 +683,7 @@ public:
     * var vec = new la.SparseVector([[0, 2], [3, 1], [7, 5], [11, 4]], 15);
     * // get the dimension of the sparse vector
     * // returns 15
-    * var dim = vec.dim; 
+    * var dim = vec.dim;
     */
     //# exports.SparseVector.prototype.dim = 0;
     JsDeclareProperty(dim);
@@ -694,7 +695,7 @@ public:
     * // import la module
     * var la = require('qminer').la;
     * // create a new sparse vector
-    * var vec = new la.SparseVector([[0, 2], [3, 1], [7, 5], [11, 4]]); 
+    * var vec = new la.SparseVector([[0, 2], [3, 1], [7, 5], [11, 4]]);
     * // get the norm of the vector
     * var norm = vec.norm();
     */
@@ -708,7 +709,7 @@ public:
     * // import la module
     * var la = require('qminer').la;
     * // create a new sparse vector
-    * var vec = new la.SparseVector([[0, 2], [3, 1], [7, 5], [11, 4]]); 
+    * var vec = new la.SparseVector([[0, 2], [3, 1], [7, 5], [11, 4]]);
     * // create a dense representation of the vector
     * var dense = vec.full();
     */
@@ -742,7 +743,7 @@ public:
     */
     //# exports.SparseVector.prototype.idxVec = function () { return Object.create(require('qminer').la.Vector.prototype); }
     JsDeclareFunction(idxVec);
-        
+
     /**
     * Returns the string representation.
     * @returns {string} The string representation of the sparse vector.
@@ -750,7 +751,7 @@ public:
     * // import la module
     * var la = require('qminer').la;
     * // create a new sparse vector
-    * var spVec = new la.SparseVector([[0, 1], [2, 3]]);    
+    * var spVec = new la.SparseVector([[0, 1], [2, 3]]);
     * // get the string representation of the vector
     * spVec.toString(); // returns the string '[(0, 1), (2, 3)]'
     */
@@ -760,17 +761,17 @@ public:
 
 ///////////////////////////////
 // NodeJs-Linalg-Sparse-Col-Matrix
-//! 
+//!
 //! ### SpMatrix (sparse column matrix)
-//! 
+//!
 //! SpMatrix is a sparse matrix represented as a dense vector of sparse vectors which correspond to matrix columns (TVec<TIntFltKdV>, implemented in glib/base/ds.h.)
 //! Using the global `la` object, sparse matrices are generated in several ways:
-//! 
+//!
 //! ```JavaScript
 //! var spMat = la.newSpMat(); //empty matrix
 //! // refer to la.newSpMat function for alternative ways to generate sparse matrices
 //! ```
-//! 
+//!
 
 /**
 * Sparse Matrix
@@ -789,7 +790,7 @@ public:
 * // create a new sparse matrix with specified max rows
 * var mat2 = new la.SparseMatrix([[[0, 2]], [[0, 1], [2, 3]]], 3);
 */
-//# exports.SparseMatrix = function(arg) { return Object.create(require('qminer').la.SparseMatrix.prototype); }    
+//# exports.SparseMatrix = function(arg) { return Object.create(require('qminer').la.SparseMatrix.prototype); }
 
 class TNodeJsSpMat : public node::ObjectWrap {
     friend class TNodeJsUtil;
@@ -1106,7 +1107,7 @@ public:
     * // check the number of rows in sparse matrix
     * mat.rows;
     */
-    //# exports.SparseMatrix.prototype.rows = 0; 
+    //# exports.SparseMatrix.prototype.rows = 0;
     JsDeclareProperty(rows);
 
     /**
@@ -1119,7 +1120,7 @@ public:
     * // check the number of columns in sparse matrix
     * mat.cols;
     */
-    //# exports.SparseMatrix.prototype.cols = 0; 
+    //# exports.SparseMatrix.prototype.cols = 0;
     JsDeclareProperty(cols);
 
     /**

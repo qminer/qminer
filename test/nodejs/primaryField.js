@@ -8,7 +8,7 @@
 
 // console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); // additional JS implementations
-var qm = require('qminer');
+var qm = require('../../index.js');
 
 //describe('Primary field, old', function () {
 //	it('should survive', function () {
@@ -112,11 +112,11 @@ describe('PrimaryField Tests', function () {
             base.store("primary_tm").push(rec);
         }
 
-        assert.equal(base.store("primary_string").length, strVals.length, "string");
-        assert.equal(base.store("primary_int").length, intVals.length, "int");
-        assert.equal(base.store("primary_uint64").length, uint64Vals.length, "uint64");
-        assert.equal(base.store("primary_float").length, fltVals.length, "float");
-        assert.equal(base.store("primary_tm").length, tmVals.length, "tm");
+        assert.strictEqual(base.store("primary_string").length, strVals.length, "string");
+        assert.strictEqual(base.store("primary_int").length, intVals.length, "int");
+        assert.strictEqual(base.store("primary_uint64").length, uint64Vals.length, "uint64");
+        assert.strictEqual(base.store("primary_float").length, fltVals.length, "float");
+        assert.strictEqual(base.store("primary_tm").length, tmVals.length, "tm");
 
         base.close();
         //})});

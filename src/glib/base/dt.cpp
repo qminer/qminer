@@ -2207,13 +2207,28 @@ TStr TStr::GetStr(const TStrV& StrV, const TStr& DelimiterStr){
   return ResStr;
 }
 
-TStr TStr::Fmt(const char *FmtStr, ...){
-  char Bf[10*1024];
-  va_list valist;
-  va_start(valist, FmtStr);
-  const int RetVal=vsnprintf(Bf, 10*1024-2, FmtStr, valist);
-  va_end(valist);
-  return RetVal!=-1 ? TStr(Bf) : TStr();
+TStr TStr::Fmt(const char *FmtStr, ...) {
+    const int BfLen = 10 * 1024;
+    char Bf[BfLen];
+    va_list valist;
+    va_start(valist, FmtStr);
+    const int RequiredLen = vsnprintf(Bf, BfLen - 2, FmtStr, valist);
+    va_end(valist);
+    if (RequiredLen < 0) {
+        // error
+        return TStr();
+    } else if (RequiredLen < BfLen - 2) {
+        // fits in buffer
+        return TStr(Bf);
+    } else {
+        // buffer was too short
+        char* NewBf = new char[RequiredLen + 1];
+        va_list valist;
+        va_start(valist, FmtStr);
+        const int RequiredLen2 = vsnprintf(NewBf, RequiredLen + 1, FmtStr, valist);
+        va_end(valist);
+        return WrapCStr(NewBf);
+    }
 }
 
 TStr TStr::GetSpaceStr(const int& Spaces) {

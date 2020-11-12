@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.1</a>
       </div>
     </div>
   </nav>
@@ -24,11 +24,14 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">RecordVector</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">RecordVector</span></h1>
             <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-1631">qminerdoc.<wbr>js:1631</a></p>
             <div class="symbol-classdesc">
-              <p>Vector storing records defined by value. Vector can be serialized and iterated over. For storing records by reference use <a href="module-qm.RecordSet.html">module:qm.RecordSet</a> or
-                <a href="module-la.IntVector.html">module:la.IntVector</a>.</p>
+              <p>Vector storing records defined by value. Vector can be serialized and
+                iterated over. For storing records by reference use <a href="module-qm.RecordSet.html">module:qm.RecordSet</a> or
+                <a href="module-la.IntVector.html">module:la.IntVector</a>.
+              </p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -77,13 +80,13 @@
             <p>Vector of records by value.</p>
             <section>
               <h3>
-            Example
-        </h3>
+                Example
+              </h3>
               <div>
                 <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;Philosophers&quot;,
@@ -94,7 +97,7 @@ var base = new qm.Base({
    }]
 });
 // Create record vector
-var recordVector = new qm.RecordVector(base);
+var recordVector &#x3D; new qm.RecordVector(base);
 // Add some records to the vector
 recordVector.push(base.store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Plato&quot;, Era: &quot;Ancient philosophy&quot; }));
 recordVector.push(base.store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Immanuel Kant&quot;, Era: &quot;18th-century philosophy&quot; }));
@@ -102,9 +105,9 @@ recordVector.push(base.store(&quot;Philosophers&quot;).newRecord({ Name: &quot;E
 recordVector.push(base.store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Rene Descartes&quot;, Era: &quot;17th-century philosophy&quot; }));
 recordVector.push(base.store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Confucius&quot;, Era: &quot;Ancient philosophy&quot; }));
 // Iterate over all records
-for (var i = 0; i &lt; recordVector.length; i++) {
-   var rec = recordVector[i];
-   var tite = rec.Name + &quot; (&quot; + rec.Era + &quot;)&quot;;
+for (var i &#x3D; 0; i &lt; recordVector.length; i++) {
+   var rec &#x3D; recordVector[i];
+   var tite &#x3D; rec.Name + &quot; (&quot; + rec.Era + &quot;)&quot;;
 }
 base.close();</code></pre>
               </div>
@@ -169,13 +172,13 @@ base.close();</code></pre>
               <p>Adds a new record to the vector.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;Philosophers&quot;,
@@ -186,7 +189,7 @@ var base = new qm.Base({
    }]
 });
 // Create record vector
-var recordVector = new qm.RecordVector(base);
+var recordVector &#x3D; new qm.RecordVector(base);
 // Add some records to the vector
 recordVector.push(base.store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Plato&quot;, Era: &quot;Ancient philosophy&quot; }));
 base.close();</code></pre>
@@ -224,21 +227,21 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;The position of the added record in the vector.</p>
+                  <p><code>number</code>B The position of the added record in the vector.</p>
                 </dd>
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
               <p>Saves the vector into the output stream.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
-var fs = require(&#x27;qminer&#x27;).fs;
+var qm &#x3D; require(&#x27;qminer&#x27;);
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;Philosophers&quot;,
@@ -249,15 +252,15 @@ var base = new qm.Base({
    }]
 });
 // Create record vector
-var recordVector = new qm.RecordVector(base);
+var recordVector &#x3D; new qm.RecordVector(base);
 // Add some records to the vector
 recordVector.push(base.store(&quot;Philosophers&quot;).newRecord({ Name: &quot;Plato&quot;, Era: &quot;Ancient philosophy&quot; }));
 // save to disk
-var fout = fs.openWrite(&#x27;record_vector.bin&#x27;);
+var fout &#x3D; fs.openWrite(&#x27;record_vector.bin&#x27;);
 recordVector.save(fout).close();
 // load into a new vector
-var fin = fs.openRead(&#x27;record_vector.bin&#x27;);
-var recordVector2 = new qm.RecordVector(base, fin);
+var fin &#x3D; fs.openRead(&#x27;record_vector.bin&#x27;);
+var recordVector2 &#x3D; new qm.RecordVector(base, fin);
 base.close();</code></pre>
                 </div>
               </section>
@@ -293,7 +296,7 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream <code>fout</code>.</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>B The output stream <code>fout</code>.</p>
                 </dd>
               </dl>
             </section>
@@ -311,7 +314,6 @@ base.close();</code></pre>
     </div>
   </footer>
   <script src="scripts/jquery.min.js"></script>
-  <script src="scripts/jquery.cookie.js"></script>
   <script src="scripts/tree.jquery.js"></script>
   <script src="scripts/prettify.js"></script>
   <script src="scripts/jsdoc-toc.js"></script>

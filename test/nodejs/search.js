@@ -8,7 +8,7 @@
 
 // console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
-var qm = require('qminer');
+var qm = require('../../index.js');
 
 describe('BTree Integer Search Tests', function () {
     var base = undefined;
@@ -41,41 +41,41 @@ describe('BTree Integer Search Tests', function () {
     describe('Tests of base.search after initial push', function () {
         it('returns all elements >= 5', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5}});
-            assert.equal(result.length, 50);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
+            assert.strictEqual(result.length, 50);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
         })
         it('returns all elements <= 6', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $lt: 6}});
-            assert.equal(result.length, 70);
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 70);
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements >= 5 and <= 6', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5, $lt: 6}});
-            assert.equal(result.length, 20);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 20);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements >= 5 and <= 6 and sort according to ForSort field', function () {
             var result = base.search({ $from: 'BTreeSearchTest', $sort: {ForSort: 1}, Value: { $gt: 5, $lt: 6}});
-            assert.equal(result.length, 20);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 20);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
             for (var i = 1; i < result.length; i++) {
-                assert.equal(result[i-1].ForSort < result[i].ForSort, true);
+                assert.strictEqual(result[i-1].ForSort < result[i].ForSort, true);
             }
         })
         it('returns all elements == 5', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: 5});
-            assert.equal(result.length, 10);
-            result.each(function (rec) { assert.equal(rec.Value == 5, true); });
+            assert.strictEqual(result.length, 10);
+            result.each(function (rec) { assert.strictEqual(rec.Value == 5, true); });
         })
         it('returns all elements', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: { }});
-            assert.equal(result.length, 100);
+            assert.strictEqual(result.length, 100);
         })
         it('returns no elements', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: -5});
-            assert.equal(result.length, 0);
+            assert.strictEqual(result.length, 0);
         })
     });
 
@@ -84,42 +84,42 @@ describe('BTree Integer Search Tests', function () {
             base.close();
             base = new qm.Base({ mode: 'open'});
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5}});
-            assert.equal(result.length, 50);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
+            assert.strictEqual(result.length, 50);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
         })
         it('returns all elements <= 6', function () {
             base.close();
             base = new qm.Base({ mode: 'open'});
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $lt: 6}});
-            assert.equal(result.length, 70);
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 70);
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements >= 5 and <= 6', function () {
             base.close();
             base = new qm.Base({ mode: 'open'});
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5, $lt: 6}});
-            assert.equal(result.length, 20);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 20);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements == 5', function () {
             base.close();
             base = new qm.Base({ mode: 'open'});
             var result = base.search({ $from: 'BTreeSearchTest', Value: 5});
-            assert.equal(result.length, 10);
-            result.each(function (rec) { assert.equal(rec.Value == 5, true); });
+            assert.strictEqual(result.length, 10);
+            result.each(function (rec) { assert.strictEqual(rec.Value == 5, true); });
         })
         it('returns all elements', function () {
             base.close();
             base = new qm.Base({ mode: 'open'});
             var result = base.search({ $from: 'BTreeSearchTest', Value: { }});
-            assert.equal(result.length, 100);
+            assert.strictEqual(result.length, 100);
         })
         it('returns no elements', function () {
             base.close();
             base = new qm.Base({ mode: 'open'});
             var result = base.search({ $from: 'BTreeSearchTest', Value: -5});
-            assert.equal(result.length, 0);
+            assert.strictEqual(result.length, 0);
         })
     });
 
@@ -127,37 +127,37 @@ describe('BTree Integer Search Tests', function () {
         it('returns all elements >= 5', function () {
             store.clear(50);
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5}});
-            assert.equal(result.length, 25);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
+            assert.strictEqual(result.length, 25);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
         })
         it('returns all elements <= 6', function () {
             store.clear(50);
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $lt: 6}});
-            assert.equal(result.length, 35);
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 35);
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements >= 5 and <= 6', function () {
             store.clear(50);
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5, $lt: 6}});
-            assert.equal(result.length, 10);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 10);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements == 5', function () {
             store.clear(50);
             var result = base.search({ $from: 'BTreeSearchTest', Value: 5});
-            assert.equal(result.length, 5);
-            result.each(function (rec) { assert.equal(rec.Value == 5, true); });
+            assert.strictEqual(result.length, 5);
+            result.each(function (rec) { assert.strictEqual(rec.Value == 5, true); });
         })
         it('returns all elements', function () {
             store.clear(50);
             var result = base.search({ $from: 'BTreeSearchTest', Value: { }});
-            assert.equal(result.length, 50);
+            assert.strictEqual(result.length, 50);
         })
         it('returns no elements', function () {
             store.clear(50);
             var result = base.search({ $from: 'BTreeSearchTest', Value: -5});
-            assert.equal(result.length, 0);
+            assert.strictEqual(result.length, 0);
         })
     });
 
@@ -165,37 +165,37 @@ describe('BTree Integer Search Tests', function () {
         it('returns all elements >= 5', function () {
             store.each(function (rec) { rec.Value = rec.Value + 1; });
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5}});
-            assert.equal(result.length, 60);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
+            assert.strictEqual(result.length, 60);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
         })
         it('returns all elements <= 6', function () {
             store.each(function (rec) { rec.Value = rec.Value + 1; });
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $lt: 6}});
-            assert.equal(result.length, 60);
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 60);
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements >= 5 and <= 6', function () {
             store.each(function (rec) { rec.Value = rec.Value + 1; });
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5, $lt: 6}});
-            assert.equal(result.length, 20);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 20);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements == 5', function () {
             store.each(function (rec) { rec.Value = rec.Value + 1; });
             var result = base.search({ $from: 'BTreeSearchTest', Value: 5});
-            assert.equal(result.length, 10);
-            result.each(function (rec) { assert.equal(rec.Value == 5, true); });
+            assert.strictEqual(result.length, 10);
+            result.each(function (rec) { assert.strictEqual(rec.Value == 5, true); });
         })
         it('returns all elements', function () {
             store.each(function (rec) { rec.Value = rec.Value + 1; });
             var result = base.search({ $from: 'BTreeSearchTest', Value: { }});
-            assert.equal(result.length, 100);
+            assert.strictEqual(result.length, 100);
         })
         it('returns no elements', function () {
             store.each(function (rec) { rec.Value = rec.Value + 1; });
             var result = base.search({ $from: 'BTreeSearchTest', Value: 0});
-            assert.equal(result.length, 0);
+            assert.strictEqual(result.length, 0);
         })
     });
 });
@@ -231,41 +231,41 @@ describe('BTree UInt64 Search Tests', function () {
     describe('Tests of base.search after initial push', function () {
         it('returns all elements >= 5', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5}});
-            assert.equal(result.length, 50);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
+            assert.strictEqual(result.length, 50);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
         })
         it('returns all elements <= 6', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $lt: 6}});
-            assert.equal(result.length, 70);
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 70);
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements >= 5 and <= 6', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5, $lt: 6}});
-            assert.equal(result.length, 20);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 20);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements >= 5 and <= 6 and sort according to ForSort field', function () {
             var result = base.search({ $from: 'BTreeSearchTest', $sort: {ForSort: 1}, Value: { $gt: 5, $lt: 6}});
-            assert.equal(result.length, 20);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 20);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
             for (var i = 1; i < result.length; i++) {
-                assert.equal(result[i-1].ForSort < result[i].ForSort, true);
+                assert.strictEqual(result[i-1].ForSort < result[i].ForSort, true);
             }
         })
         it('returns all elements == 5', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: 5});
-            assert.equal(result.length, 10);
-            result.each(function (rec) { assert.equal(rec.Value == 5, true); });
+            assert.strictEqual(result.length, 10);
+            result.each(function (rec) { assert.strictEqual(rec.Value == 5, true); });
         })
         it('returns all elements', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: { }});
-            assert.equal(result.length, 100);
+            assert.strictEqual(result.length, 100);
         })
         it('returns no elements', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: -5});
-            assert.equal(result.length, 0);
+            assert.strictEqual(result.length, 0);
         })
     });
 
@@ -274,42 +274,42 @@ describe('BTree UInt64 Search Tests', function () {
             base.close();
             base = new qm.Base({ mode: 'open'});
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5}});
-            assert.equal(result.length, 50);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
+            assert.strictEqual(result.length, 50);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
         })
         it('returns all elements <= 6', function () {
             base.close();
             base = new qm.Base({ mode: 'open'});
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $lt: 6}});
-            assert.equal(result.length, 70);
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 70);
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements >= 5 and <= 6', function () {
             base.close();
             base = new qm.Base({ mode: 'open'});
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5, $lt: 6}});
-            assert.equal(result.length, 20);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 20);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements == 5', function () {
             base.close();
             base = new qm.Base({ mode: 'open'});
             var result = base.search({ $from: 'BTreeSearchTest', Value: 5});
-            assert.equal(result.length, 10);
-            result.each(function (rec) { assert.equal(rec.Value == 5, true); });
+            assert.strictEqual(result.length, 10);
+            result.each(function (rec) { assert.strictEqual(rec.Value == 5, true); });
         })
         it('returns all elements', function () {
             base.close();
             base = new qm.Base({ mode: 'open'});
             var result = base.search({ $from: 'BTreeSearchTest', Value: { }});
-            assert.equal(result.length, 100);
+            assert.strictEqual(result.length, 100);
         })
         it('returns no elements', function () {
             base.close();
             base = new qm.Base({ mode: 'open'});
             var result = base.search({ $from: 'BTreeSearchTest', Value: -5});
-            assert.equal(result.length, 0);
+            assert.strictEqual(result.length, 0);
         })
     });
 
@@ -317,37 +317,37 @@ describe('BTree UInt64 Search Tests', function () {
         it('returns all elements >= 5', function () {
             store.clear(50);
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5}});
-            assert.equal(result.length, 25);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
+            assert.strictEqual(result.length, 25);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
         })
         it('returns all elements <= 6', function () {
             store.clear(50);
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $lt: 6}});
-            assert.equal(result.length, 35);
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 35);
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements >= 5 and <= 6', function () {
             store.clear(50);
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5, $lt: 6}});
-            assert.equal(result.length, 10);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 10);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements == 5', function () {
             store.clear(50);
             var result = base.search({ $from: 'BTreeSearchTest', Value: 5});
-            assert.equal(result.length, 5);
-            result.each(function (rec) { assert.equal(rec.Value == 5, true); });
+            assert.strictEqual(result.length, 5);
+            result.each(function (rec) { assert.strictEqual(rec.Value == 5, true); });
         })
         it('returns all elements', function () {
             store.clear(50);
             var result = base.search({ $from: 'BTreeSearchTest', Value: { }});
-            assert.equal(result.length, 50);
+            assert.strictEqual(result.length, 50);
         })
         it('returns no elements', function () {
             store.clear(50);
             var result = base.search({ $from: 'BTreeSearchTest', Value: -5});
-            assert.equal(result.length, 0);
+            assert.strictEqual(result.length, 0);
         })
     });
 
@@ -355,37 +355,37 @@ describe('BTree UInt64 Search Tests', function () {
         it('returns all elements >= 5', function () {
             store.each(function (rec) { rec.Value = rec.Value + 1; });
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5}});
-            assert.equal(result.length, 60);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
+            assert.strictEqual(result.length, 60);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
         })
         it('returns all elements <= 6', function () {
             store.each(function (rec) { rec.Value = rec.Value + 1; });
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $lt: 6}});
-            assert.equal(result.length, 60);
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 60);
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements >= 5 and <= 6', function () {
             store.each(function (rec) { rec.Value = rec.Value + 1; });
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5, $lt: 6}});
-            assert.equal(result.length, 20);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 20);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements == 5', function () {
             store.each(function (rec) { rec.Value = rec.Value + 1; });
             var result = base.search({ $from: 'BTreeSearchTest', Value: 5});
-            assert.equal(result.length, 10);
-            result.each(function (rec) { assert.equal(rec.Value == 5, true); });
+            assert.strictEqual(result.length, 10);
+            result.each(function (rec) { assert.strictEqual(rec.Value == 5, true); });
         })
         it('returns all elements', function () {
             store.each(function (rec) { rec.Value = rec.Value + 1; });
             var result = base.search({ $from: 'BTreeSearchTest', Value: { }});
-            assert.equal(result.length, 100);
+            assert.strictEqual(result.length, 100);
         })
         it('returns no elements', function () {
             store.each(function (rec) { rec.Value = rec.Value + 1; });
             var result = base.search({ $from: 'BTreeSearchTest', Value: 0});
-            assert.equal(result.length, 0);
+            assert.strictEqual(result.length, 0);
         })
     });
 });
@@ -421,41 +421,41 @@ describe('BTree Float Search Tests', function () {
     describe('Tests of base.search after initial push', function () {
         it('returns all elements >= 5', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5}});
-            assert.equal(result.length, 50);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
+            assert.strictEqual(result.length, 50);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
         })
         it('returns all elements <= 6', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $lt: 6}});
-            assert.equal(result.length, 60);
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 60);
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements >= 5 and <= 6', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5, $lt: 6}});
-            assert.equal(result.length, 10);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 10);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements >= 5 and <= 6 and sort according to ForSort field', function () {
             var result = base.search({ $from: 'BTreeSearchTest', $sort: {ForSort: 1}, Value: { $gt: 5, $lt: 6}});
-            assert.equal(result.length, 10);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 10);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
             for (var i = 1; i < result.length; i++) {
-                assert.equal(result[i-1].ForSort < result[i].ForSort, true);
+                assert.strictEqual(result[i-1].ForSort < result[i].ForSort, true);
             }
         })
         it('returns all elements == 5.123', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: 5.123});
-            assert.equal(result.length, 10);
-            result.each(function (rec) { assert.equal(rec.Value == 5.123, true); });
+            assert.strictEqual(result.length, 10);
+            result.each(function (rec) { assert.strictEqual(rec.Value == 5.123, true); });
         })
         it('returns all elements', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: { }});
-            assert.equal(result.length, 100);
+            assert.strictEqual(result.length, 100);
         })
         it('returns no elements', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: -5});
-            assert.equal(result.length, 0);
+            assert.strictEqual(result.length, 0);
         })
     });
 
@@ -464,42 +464,42 @@ describe('BTree Float Search Tests', function () {
             base.close();
             base = new qm.Base({ mode: 'open'});
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5}});
-            assert.equal(result.length, 50);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
+            assert.strictEqual(result.length, 50);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
         })
         it('returns all elements <= 6', function () {
             base.close();
             base = new qm.Base({ mode: 'open'});
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $lt: 6}});
-            assert.equal(result.length, 60);
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 60);
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements >= 5 and <= 6', function () {
             base.close();
             base = new qm.Base({ mode: 'open'});
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5, $lt: 6}});
-            assert.equal(result.length, 10);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 10);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements == 5.123', function () {
             base.close();
             base = new qm.Base({ mode: 'open'});
             var result = base.search({ $from: 'BTreeSearchTest', Value: 5.123});
-            assert.equal(result.length, 10);
-            result.each(function (rec) { assert.equal(rec.Value == 5.123, true); });
+            assert.strictEqual(result.length, 10);
+            result.each(function (rec) { assert.strictEqual(rec.Value == 5.123, true); });
         })
         it('returns all elements', function () {
             base.close();
             base = new qm.Base({ mode: 'open'});
             var result = base.search({ $from: 'BTreeSearchTest', Value: { }});
-            assert.equal(result.length, 100);
+            assert.strictEqual(result.length, 100);
         })
         it('returns no elements', function () {
             base.close();
             base = new qm.Base({ mode: 'open'});
             var result = base.search({ $from: 'BTreeSearchTest', Value: -5});
-            assert.equal(result.length, 0);
+            assert.strictEqual(result.length, 0);
         })
     });
 
@@ -507,37 +507,37 @@ describe('BTree Float Search Tests', function () {
         it('returns all elements >= 5', function () {
             store.clear(50);
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5}});
-            assert.equal(result.length, 25);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
+            assert.strictEqual(result.length, 25);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
         })
         it('returns all elements <= 6', function () {
             store.clear(50);
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $lt: 6}});
-            assert.equal(result.length, 30);
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 30);
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements >= 5 and <= 6', function () {
             store.clear(50);
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5, $lt: 6}});
-            assert.equal(result.length, 5);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 5);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements == 5.123', function () {
             store.clear(50);
             var result = base.search({ $from: 'BTreeSearchTest', Value: 5.123});
-            assert.equal(result.length, 5);
-            result.each(function (rec) { assert.equal(rec.Value == 5.123, true); });
+            assert.strictEqual(result.length, 5);
+            result.each(function (rec) { assert.strictEqual(rec.Value == 5.123, true); });
         })
         it('returns all elements', function () {
             store.clear(50);
             var result = base.search({ $from: 'BTreeSearchTest', Value: { }});
-            assert.equal(result.length, 50);
+            assert.strictEqual(result.length, 50);
         })
         it('returns no elements', function () {
             store.clear(50);
             var result = base.search({ $from: 'BTreeSearchTest', Value: -5});
-            assert.equal(result.length, 0);
+            assert.strictEqual(result.length, 0);
         })
     });
 
@@ -545,37 +545,37 @@ describe('BTree Float Search Tests', function () {
         it('returns all elements >= 5', function () {
             store.each(function (rec) { rec.Value = rec.Value + 1; });
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5}});
-            assert.equal(result.length, 60);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
+            assert.strictEqual(result.length, 60);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
         })
         it('returns all elements <= 6', function () {
             store.each(function (rec) { rec.Value = rec.Value + 1; });
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $lt: 6}});
-            assert.equal(result.length, 50);
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 50);
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements >= 5 and <= 6', function () {
             store.each(function (rec) { rec.Value = rec.Value + 1; });
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: 5, $lt: 6}});
-            assert.equal(result.length, 10);
-            result.each(function (rec) { assert.equal(rec.Value >= 5, true); });
-            result.each(function (rec) { assert.equal(rec.Value <= 6, true); });
+            assert.strictEqual(result.length, 10);
+            result.each(function (rec) { assert.strictEqual(rec.Value >= 5, true); });
+            result.each(function (rec) { assert.strictEqual(rec.Value <= 6, true); });
         })
         it('returns all elements == 5.123', function () {
             store.each(function (rec) { rec.Value = rec.Value + 1; });
             var result = base.search({ $from: 'BTreeSearchTest', Value: 5.123});
-            assert.equal(result.length, 10);
-            result.each(function (rec) { assert.equal(rec.Value == 5.123, true); });
+            assert.strictEqual(result.length, 10);
+            result.each(function (rec) { assert.strictEqual(rec.Value == 5.123, true); });
         })
         it('returns all elements', function () {
             store.each(function (rec) { rec.Value = rec.Value + 1; });
             var result = base.search({ $from: 'BTreeSearchTest', Value: { }});
-            assert.equal(result.length, 100);
+            assert.strictEqual(result.length, 100);
         })
         it('returns no elements', function () {
             store.each(function (rec) { rec.Value = rec.Value + 1; });
             var result = base.search({ $from: 'BTreeSearchTest', Value: 0});
-            assert.equal(result.length, 0);
+            assert.strictEqual(result.length, 0);
         })
     });
 });
@@ -613,72 +613,72 @@ describe('BTree DateTime Search Tests', function () {
     describe('Tests of base.search after initial push', function () {
         it('returns all elements >= 2015-09-27T05:00:00.000Z', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: '2015-09-27T05:00:00.000Z'}});
-            assert.equal(result.length, 50);
-            result.each(function (rec) { assert.equal(rec.Value.toISOString() >= '2015-09-27T05:00:00.000Z', true); });
+            assert.strictEqual(result.length, 50);
+            result.each(function (rec) { assert.strictEqual(rec.Value.toISOString() >= '2015-09-27T05:00:00.000Z', true); });
         })
         it('returns all elements <= 2015-09-27T06:00:00.000Z', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $lt: '2015-09-27T06:00:00.000Z'}});
-            assert.equal(result.length, 70);
-            result.each(function (rec) { assert.equal(rec.Value.toISOString() <= '2015-09-27T06:00:00.000Z', true); });
+            assert.strictEqual(result.length, 70);
+            result.each(function (rec) { assert.strictEqual(rec.Value.toISOString() <= '2015-09-27T06:00:00.000Z', true); });
         })
         it('returns all elements >= 2015-09-27T05:00:00.000 and <= 2015-09-27T06:00:00.000Z', function () {
             var result = base.search({
                 $from: 'BTreeSearchTest',
                 Value: { $gt: '2015-09-27T05:00:00.000Z', $lt: '2015-09-27T06:00:00.000Z'}});
-            assert.equal(result.length, 20);
-            result.each(function (rec) { assert.equal(rec.Value.toISOString() >= '2015-09-27T05:00:00.000Z', true); });
-            result.each(function (rec) { assert.equal(rec.Value.toISOString() <= '2015-09-27T06:00:00.000Z', true); });
+            assert.strictEqual(result.length, 20);
+            result.each(function (rec) { assert.strictEqual(rec.Value.toISOString() >= '2015-09-27T05:00:00.000Z', true); });
+            result.each(function (rec) { assert.strictEqual(rec.Value.toISOString() <= '2015-09-27T06:00:00.000Z', true); });
         })
         it('returns all elements >= 2015-09-27T05:00:00.000 and <= 2015-09-27T06:00:00.000Z and sort according to ForSort field', function () {
             var result = base.search({
                 $from: 'BTreeSearchTest',
                 $sort: {ForSort: 1},
                 Value: { $gt: '2015-09-27T05:00:00.000Z', $lt: '2015-09-27T06:00:00.000Z'}});
-            assert.equal(result.length, 20);
-            result.each(function (rec) { assert.equal(rec.Value.toISOString() >= '2015-09-27T05:00:00.000Z', true); });
-            result.each(function (rec) { assert.equal(rec.Value.toISOString() <= '2015-09-27T06:00:00.000Z', true); });
+            assert.strictEqual(result.length, 20);
+            result.each(function (rec) { assert.strictEqual(rec.Value.toISOString() >= '2015-09-27T05:00:00.000Z', true); });
+            result.each(function (rec) { assert.strictEqual(rec.Value.toISOString() <= '2015-09-27T06:00:00.000Z', true); });
             for (var i = 1; i < result.length; i++) {
-                assert.equal(result[i-1].ForSort < result[i].ForSort, true);
+                assert.strictEqual(result[i-1].ForSort < result[i].ForSort, true);
             }
         })
         it('returns all elements == 2015-09-27T05:00:00.000Z', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: '2015-09-27T05:00:00.000Z'});
-            assert.equal(result.length, 10);
-            result.each(function (rec) { assert.equal(rec.Value.toISOString() == '2015-09-27T05:00:00.000Z', true); });
+            assert.strictEqual(result.length, 10);
+            result.each(function (rec) { assert.strictEqual(rec.Value.toISOString() == '2015-09-27T05:00:00.000Z', true); });
         })
         it('returns all elements', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: { }});
-            assert.equal(result.length, 100);
+            assert.strictEqual(result.length, 100);
         })
         it('returns no elements', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: -5});
-            assert.equal(result.length, 0);
+            assert.strictEqual(result.length, 0);
         })
     });
 
     describe('Tests of base.search passing DateTime as JavaScript timestamp (date.getTime())', function () {
         it('returns all elements >= 2015-09-27T05:00:00.000Z', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: new Date('2015-09-27T05:00:00.000Z').getTime()}});
-            assert.equal(result.length, 50);
-            result.each(function (rec) { assert.equal(rec.Value.toISOString() >= '2015-09-27T05:00:00.000Z', true); });
+            assert.strictEqual(result.length, 50);
+            result.each(function (rec) { assert.strictEqual(rec.Value.toISOString() >= '2015-09-27T05:00:00.000Z', true); });
         })
         it('returns all elements <= 2015-09-27T06:00:00.000Z', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $lt: new Date('2015-09-27T06:00:00.000Z').getTime()}});
-            assert.equal(result.length, 70);
-            result.each(function (rec) { assert.equal(rec.Value.toISOString() <= '2015-09-27T06:00:00.000Z', true); });
+            assert.strictEqual(result.length, 70);
+            result.each(function (rec) { assert.strictEqual(rec.Value.toISOString() <= '2015-09-27T06:00:00.000Z', true); });
         })
         it('returns all elements >= 2015-09-27T05:00:00.000 and <= 2015-09-27T06:00:00.000Z', function () {
             var result = base.search({
                 $from: 'BTreeSearchTest',
                 Value: { $gt: new Date('2015-09-27T05:00:00.000Z').getTime(), $lt: new Date('2015-09-27T06:00:00.000Z').getTime()}});
-            assert.equal(result.length, 20);
-            result.each(function (rec) { assert.equal(rec.Value.toISOString() >= '2015-09-27T05:00:00.000Z', true); });
-            result.each(function (rec) { assert.equal(rec.Value.toISOString() <= '2015-09-27T06:00:00.000Z', true); });
+            assert.strictEqual(result.length, 20);
+            result.each(function (rec) { assert.strictEqual(rec.Value.toISOString() >= '2015-09-27T05:00:00.000Z', true); });
+            result.each(function (rec) { assert.strictEqual(rec.Value.toISOString() <= '2015-09-27T06:00:00.000Z', true); });
         })
         it('returns all elements == 2015-09-27T05:00:00.000Z', function () {
             var result = base.search({ $from: 'BTreeSearchTest', Value: new Date('2015-09-27T05:00:00.000Z').getTime()});
-            assert.equal(result.length, 10);
-            result.each(function (rec) { assert.equal(rec.Value.toISOString() == '2015-09-27T05:00:00.000Z', true); });
+            assert.strictEqual(result.length, 10);
+            result.each(function (rec) { assert.strictEqual(rec.Value.toISOString() == '2015-09-27T05:00:00.000Z', true); });
         })
     });
 
@@ -686,39 +686,39 @@ describe('BTree DateTime Search Tests', function () {
         it('returns all elements >= 2015-09-27T05:00:00.000Z', function () {
             store.clear(50);
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: '2015-09-27T05:00:00.000Z'}});
-            assert.equal(result.length, 25);
-            result.each(function (rec) { assert.equal(rec.Value.toISOString() >= '2015-09-27T05:00:00.000Z', true); });
+            assert.strictEqual(result.length, 25);
+            result.each(function (rec) { assert.strictEqual(rec.Value.toISOString() >= '2015-09-27T05:00:00.000Z', true); });
         })
         it('returns all elements <= 2015-09-27T06:00:00.000Z', function () {
             store.clear(50);
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $lt: '2015-09-27T06:00:00.000Z'}});
-            assert.equal(result.length, 35);
-            result.each(function (rec) { assert.equal(rec.Value.toISOString() <= '2015-09-27T06:00:00.000Z', true); });
+            assert.strictEqual(result.length, 35);
+            result.each(function (rec) { assert.strictEqual(rec.Value.toISOString() <= '2015-09-27T06:00:00.000Z', true); });
         })
         it('returns all elements >= 2015-09-27T05:00:00.000 and <= 2015-09-27T06:00:00.000Z', function () {
             store.clear(50);
             var result = base.search({
                 $from: 'BTreeSearchTest',
                 Value: { $gt: '2015-09-27T05:00:00.000Z', $lt: '2015-09-27T06:00:00.000Z'}});
-            assert.equal(result.length, 10);
-            result.each(function (rec) { assert.equal(rec.Value.toISOString() >= '2015-09-27T05:00:00.000Z', true); });
-            result.each(function (rec) { assert.equal(rec.Value.toISOString() <= '2015-09-27T06:00:00.000Z', true); });
+            assert.strictEqual(result.length, 10);
+            result.each(function (rec) { assert.strictEqual(rec.Value.toISOString() >= '2015-09-27T05:00:00.000Z', true); });
+            result.each(function (rec) { assert.strictEqual(rec.Value.toISOString() <= '2015-09-27T06:00:00.000Z', true); });
         })
         it('returns all elements == 2015-09-27T05:00:00.000Z', function () {
             store.clear(50);
             var result = base.search({ $from: 'BTreeSearchTest', Value: '2015-09-27T05:00:00.000Z'});
-            assert.equal(result.length, 5);
-            result.each(function (rec) { assert.equal(rec.Value.toISOString() == '2015-09-27T05:00:00.000Z', true); });
+            assert.strictEqual(result.length, 5);
+            result.each(function (rec) { assert.strictEqual(rec.Value.toISOString() == '2015-09-27T05:00:00.000Z', true); });
         })
         it('returns all elements', function () {
             store.clear(50);
             var result = base.search({ $from: 'BTreeSearchTest', Value: { }});
-            assert.equal(result.length, 50);
+            assert.strictEqual(result.length, 50);
         })
         it('returns no elements', function () {
             store.clear(50);
             var result = base.search({ $from: 'BTreeSearchTest', Value: -5});
-            assert.equal(result.length, 0);
+            assert.strictEqual(result.length, 0);
         })
     });
 
@@ -726,39 +726,39 @@ describe('BTree DateTime Search Tests', function () {
         it('returns all elements >= 2015-09-27T05:00:00.000Z', function () {
             store.each(function (rec) { rec.Value = new Date(rec.Value.getTime() + 1000); });
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $gt: '2015-09-27T05:00:00.000Z'}});
-            assert.equal(result.length, 50);
-            result.each(function (rec) { assert.equal(rec.Value.toISOString() >= '2015-09-27T05:00:00.000Z', true); });
+            assert.strictEqual(result.length, 50);
+            result.each(function (rec) { assert.strictEqual(rec.Value.toISOString() >= '2015-09-27T05:00:00.000Z', true); });
         })
         it('returns all elements <= 2015-09-27T06:00:00.000Z', function () {
             store.each(function (rec) { rec.Value = new Date(rec.Value.getTime() + 1000); });
             var result = base.search({ $from: 'BTreeSearchTest', Value: { $lt: '2015-09-27T06:00:00.000Z'}});
-            assert.equal(result.length, 60);
-            result.each(function (rec) { assert.equal(rec.Value.toISOString() <= '2015-09-27T06:00:00.000Z', true); });
+            assert.strictEqual(result.length, 60);
+            result.each(function (rec) { assert.strictEqual(rec.Value.toISOString() <= '2015-09-27T06:00:00.000Z', true); });
         })
         it('returns all elements >= 2015-09-27T05:00:00.000 and <= 2015-09-27T06:00:00.000Z', function () {
             store.each(function (rec) { rec.Value = new Date(rec.Value.getTime() + 1000); });
             var result = base.search({
                 $from: 'BTreeSearchTest',
                 Value: { $gt: '2015-09-27T05:00:00.000Z', $lt: '2015-09-27T06:00:00.000Z'}});
-            assert.equal(result.length, 10);
-            result.each(function (rec) { assert.equal(rec.Value.toISOString() >= '2015-09-27T05:00:00.000Z', true); });
-            result.each(function (rec) { assert.equal(rec.Value.toISOString() <= '2015-09-27T06:00:00.000Z', true); });
+            assert.strictEqual(result.length, 10);
+            result.each(function (rec) { assert.strictEqual(rec.Value.toISOString() >= '2015-09-27T05:00:00.000Z', true); });
+            result.each(function (rec) { assert.strictEqual(rec.Value.toISOString() <= '2015-09-27T06:00:00.000Z', true); });
         })
         it('returns all elements == 2015-09-27T05:00:00.000Z', function () {
             store.each(function (rec) { rec.Value = new Date(rec.Value.getTime() + 1000); });
             var result = base.search({ $from: 'BTreeSearchTest', Value: '2015-09-27T05:00:01.000Z'});
-            assert.equal(result.length, 10);
-            result.each(function (rec) { assert.equal(rec.Value.toISOString() == '2015-09-27T05:00:01.000Z', true); });
+            assert.strictEqual(result.length, 10);
+            result.each(function (rec) { assert.strictEqual(rec.Value.toISOString() == '2015-09-27T05:00:01.000Z', true); });
         })
         it('returns all elements', function () {
             store.each(function (rec) { rec.Value = new Date(rec.Value.getTime() + 1000); });
             var result = base.search({ $from: 'BTreeSearchTest', Value: { }});
-            assert.equal(result.length, 100);
+            assert.strictEqual(result.length, 100);
         })
         it('returns no elements', function () {
             store.each(function (rec) { rec.Value = new Date(rec.Value.getTime() + 1000); });
             var result = base.search({ $from: 'BTreeSearchTest', Value: -5});
-            assert.equal(result.length, 0);
+            assert.strictEqual(result.length, 0);
         })
     });
 });
@@ -1079,37 +1079,37 @@ describe('Gix Tests', function () {
         describe('Test search for gix type "' + gixType + '"', function () {
             it('should return correct number of records for simple query', function () {
                 prepareSimpleStore();
-                assert.equal(base.search({ $from: "TestStore", Value: "A" }).length, 1);
-                assert.equal(base.search({ $from: "TestStore", Value: "B" }).length, 2);
-                assert.equal(base.search({ $from: "TestStore", Value: "C" }).length, 3);
-                assert.equal(base.search({ $from: "TestStore", Value: "D" }).length, 4);
+                assert.strictEqual(base.search({ $from: "TestStore", Value: "A" }).length, 1);
+                assert.strictEqual(base.search({ $from: "TestStore", Value: "B" }).length, 2);
+                assert.strictEqual(base.search({ $from: "TestStore", Value: "C" }).length, 3);
+                assert.strictEqual(base.search({ $from: "TestStore", Value: "D" }).length, 4);
             })
             it('should return correct number of records for simple query after delete', function () {
                 prepareSimpleStore();
-                assert.equal(base.search({ $from: "TestStore", Value: "A" }).length, 1);
-                assert.equal(base.search({ $from: "TestStore", Value: "B" }).length, 2);
+                assert.strictEqual(base.search({ $from: "TestStore", Value: "A" }).length, 1);
+                assert.strictEqual(base.search({ $from: "TestStore", Value: "B" }).length, 2);
                 base.store("TestStore").clear(1);
-                assert.equal(base.search({ $from: "TestStore", Value: "A" }).length, 0);
+                assert.strictEqual(base.search({ $from: "TestStore", Value: "A" }).length, 0);
                 base.store("TestStore").clear(1);
-                assert.equal(base.search({ $from: "TestStore", Value: "B" }).length, 1);
+                assert.strictEqual(base.search({ $from: "TestStore", Value: "B" }).length, 1);
                 base.store("TestStore").clear(3);
-                assert.equal(base.search({ $from: "TestStore", Value: "B" }).length, 0);
+                assert.strictEqual(base.search({ $from: "TestStore", Value: "B" }).length, 0);
             })
             it('should return correct number of records for or query', function () {
                 prepareSimpleStore();
-                assert.equal(base.search({
+                assert.strictEqual(base.search({
                     $from: "TestStore",
                     $or:  [ { Value: "A" }, { Value: "B"} ]
                 }).length, 3);
             })
             it('should return correct number of records for and query', function () {
                 prepareDualStore();
-                assert.equal(base.search({
+                assert.strictEqual(base.search({
                     $from: "TestStore",
                     Value: "D",
                     Count: { $gt: 6 }
                 }).length, 3);
-                assert.equal(base.search({
+                assert.strictEqual(base.search({
                     $from: "TestStore",
                     Value: "B",
                     Count: { $gt: 6 }
@@ -1117,12 +1117,12 @@ describe('Gix Tests', function () {
             })
             it('should return correct number of records for join query', function () {
                 prepareJoinStore1();
-                assert.equal(base.store("TestStore1").length, 10);
-                assert.equal(base.store("TestStore2").length, 3);
+                assert.strictEqual(base.store("TestStore1").length, 10);
+                assert.strictEqual(base.store("TestStore2").length, 3);
                 // x < y < z
-                assert.equal(base.store("TestStore2").recordByName("x").$id, 0);
-                assert.equal(base.store("TestStore2").recordByName("y").$id, 1);
-                assert.equal(base.store("TestStore2").recordByName("z").$id, 2);
+                assert.strictEqual(base.store("TestStore2").recordByName("x").$id, 0);
+                assert.strictEqual(base.store("TestStore2").recordByName("y").$id, 1);
+                assert.strictEqual(base.store("TestStore2").recordByName("z").$id, 2);
                 // x => [A, D, D, D]
                 var res1 = base.search({
                     $join: {
@@ -1130,11 +1130,11 @@ describe('Gix Tests', function () {
                         $query: { $from: "TestStore2", Value: "x" }
                     }
                 });
-                assert.equal(res1.length, 4);
-                assert.equal(res1[0].Value, "A");
-                assert.equal(res1[1].Value, "D");
-                assert.equal(res1[2].Value, "D");
-                assert.equal(res1[3].Value, "D");
+                assert.strictEqual(res1.length, 4);
+                assert.strictEqual(res1[0].Value, "A");
+                assert.strictEqual(res1[1].Value, "D");
+                assert.strictEqual(res1[2].Value, "D");
+                assert.strictEqual(res1[3].Value, "D");
                 // A => [x]
                 var res2 = base.search({
                     $join: {
@@ -1142,8 +1142,8 @@ describe('Gix Tests', function () {
                         $query: { $from: "TestStore1", Value: "A" }
                     }
                 });
-                assert.equal(res2.length, 1);
-                assert.equal(res2[0].Value, "x");
+                assert.strictEqual(res2.length, 1);
+                assert.strictEqual(res2[0].Value, "x");
                 //C => [y, z]
                 var res3 = base.search({
                     $join: {
@@ -1151,11 +1151,11 @@ describe('Gix Tests', function () {
                         $query: { $from: "TestStore1", Value: "C" }
                     }
                 });
-                assert.equal(res3.length, 2);
-                assert.equal(res3[0].Value, "y");
-                assert.equal(res3[0].$fq, 1);
-                assert.equal(res3[1].Value, "z");
-                assert.equal(res3[1].$fq, 2);
+                assert.strictEqual(res3.length, 2);
+                assert.strictEqual(res3[0].Value, "y");
+                assert.strictEqual(res3[0].$fq, 1);
+                assert.strictEqual(res3[1].Value, "z");
+                assert.strictEqual(res3[1].$fq, 2);
                 //A => [x] => [A, D, D, D]
                 var res4 = base.search({
                     $join: {
@@ -1170,15 +1170,15 @@ describe('Gix Tests', function () {
                         }
                     }
                 });
-                assert.equal(res4.length, 4);
-                assert.equal(res4[0].Value, "A");
-                assert.equal(res4[0].$fq, 1);
-                assert.equal(res4[1].Value, "D");
-                assert.equal(res4[1].$fq, 1);
-                assert.equal(res4[2].Value, "D");
-                assert.equal(res4[2].$fq, 1);
-                assert.equal(res4[3].Value, "D");
-                assert.equal(res4[3].$fq, 1);
+                assert.strictEqual(res4.length, 4);
+                assert.strictEqual(res4[0].Value, "A");
+                assert.strictEqual(res4[0].$fq, 1);
+                assert.strictEqual(res4[1].Value, "D");
+                assert.strictEqual(res4[1].$fq, 1);
+                assert.strictEqual(res4[2].Value, "D");
+                assert.strictEqual(res4[2].$fq, 1);
+                assert.strictEqual(res4[3].Value, "D");
+                assert.strictEqual(res4[3].$fq, 1);
             })
             it('should return correct number of records for join query after delete', function () {
                 prepareJoinStore1();
@@ -1190,10 +1190,10 @@ describe('Gix Tests', function () {
                         $query: { $from: "TestStore2", Value: "x" }
                     }
                 });
-                assert.equal(res1.length, 3);
-                assert.equal(res1[0].Value, "D");
-                assert.equal(res1[1].Value, "D");
-                assert.equal(res1[2].Value, "D");
+                assert.strictEqual(res1.length, 3);
+                assert.strictEqual(res1[0].Value, "D");
+                assert.strictEqual(res1[1].Value, "D");
+                assert.strictEqual(res1[2].Value, "D");
             })
             it('should return correct number of records for join query after delete', function () {
                 prepareJoinStore1();
@@ -1206,9 +1206,9 @@ describe('Gix Tests', function () {
                         $query: { $from: "TestStore1", Value: "C" }
                     }
                 });
-                assert.equal(res3.length, 2);
-                assert.equal(res3[0].Value, "y");
-                assert.equal(res3[1].Value, "z");
+                assert.strictEqual(res3.length, 2);
+                assert.strictEqual(res3[0].Value, "y");
+                assert.strictEqual(res3[1].Value, "z");
                 // delete y
                 base.store("TestStore2").clear(1);
                 //C => [z]
@@ -1218,8 +1218,8 @@ describe('Gix Tests', function () {
                         $query: { $from: "TestStore1", Value: "C" }
                     }
                 });
-                assert.equal(res3.length, 1);
-                assert.equal(res3[0].Value, "z");
+                assert.strictEqual(res3.length, 1);
+                assert.strictEqual(res3[0].Value, "z");
             })
         })
     }
@@ -1263,199 +1263,199 @@ describe('Gix Tests', function () {
                 prepareJoinStore()
                 // first direct joins, without search
                 var rec1 = base.store("TestStore1").recordByName("A");
-                assert.equal(rec1.Join.length, 3);
-                assert.equal(rec1.Join[0].Value, "x");
-                assert.equal(rec1.Join[0].$id, 0);
-                assert.equal(rec1.Join[0].$fq, 1);
-                assert.equal(rec1.Join[1].Value, "y");
-                assert.equal(rec1.Join[1].$id, 1);
-                assert.equal(rec1.Join[1].$fq, 2);
-                assert.equal(rec1.Join[2].Value, "z");
-                assert.equal(rec1.Join[2].$id, 2);
-                assert.equal(rec1.Join[2].$fq, 4);
+                assert.strictEqual(rec1.Join.length, 3);
+                assert.strictEqual(rec1.Join[0].Value, "x");
+                assert.strictEqual(rec1.Join[0].$id, 0);
+                assert.strictEqual(rec1.Join[0].$fq, 1);
+                assert.strictEqual(rec1.Join[1].Value, "y");
+                assert.strictEqual(rec1.Join[1].$id, 1);
+                assert.strictEqual(rec1.Join[1].$fq, 2);
+                assert.strictEqual(rec1.Join[2].Value, "z");
+                assert.strictEqual(rec1.Join[2].$id, 2);
+                assert.strictEqual(rec1.Join[2].$fq, 4);
 
                 var rec2 = base.store("TestStore1").recordByName("B");
-                assert.equal(rec2.Join.length, 2);
-                assert.equal(rec2.Join[0].Value, "x");
-                assert.equal(rec2.Join[0].$id, 0);
-                assert.equal(rec2.Join[0].$fq, 5);
-                assert.equal(rec2.Join[1].Value, "y");
-                assert.equal(rec2.Join[1].$id, 1);
-                assert.equal(rec2.Join[1].$fq, 6);
+                assert.strictEqual(rec2.Join.length, 2);
+                assert.strictEqual(rec2.Join[0].Value, "x");
+                assert.strictEqual(rec2.Join[0].$id, 0);
+                assert.strictEqual(rec2.Join[0].$fq, 5);
+                assert.strictEqual(rec2.Join[1].Value, "y");
+                assert.strictEqual(rec2.Join[1].$id, 1);
+                assert.strictEqual(rec2.Join[1].$fq, 6);
 
                 var rec3 = base.store("TestStore1").recordByName("C");
-                assert.equal(rec3.Join.length, 1);
-                assert.equal(rec3.Join[0].Value, "z");
-                assert.equal(rec3.Join[0].$id, 2);
-                assert.equal(rec3.Join[0].$fq, 1);
+                assert.strictEqual(rec3.Join.length, 1);
+                assert.strictEqual(rec3.Join[0].Value, "z");
+                assert.strictEqual(rec3.Join[0].$id, 2);
+                assert.strictEqual(rec3.Join[0].$fq, 1);
 
                 var rec4 = base.store("TestStore1").recordByName("D");
-                assert.equal(rec4.Join.length, 1);
-                assert.equal(rec4.Join[0].Value, "x");
-                assert.equal(rec4.Join[0].$id, 0);
-                assert.equal(rec4.Join[0].$fq, 2);
+                assert.strictEqual(rec4.Join.length, 1);
+                assert.strictEqual(rec4.Join[0].Value, "x");
+                assert.strictEqual(rec4.Join[0].$id, 0);
+                assert.strictEqual(rec4.Join[0].$fq, 2);
 
                 var rec5 = base.store("TestStore2").recordByName("x");
-                assert.equal(rec5.Join.length, 3);
-                assert.equal(rec5.Join[0].Value, "A");
-                assert.equal(rec5.Join[0].$id, 0);
-                assert.equal(rec5.Join[0].$fq, 1);
-                assert.equal(rec5.Join[1].Value, "B");
-                assert.equal(rec5.Join[1].$id, 1);
-                assert.equal(rec5.Join[1].$fq, 5);
-                assert.equal(rec5.Join[2].Value, "D");
-                assert.equal(rec5.Join[2].$id, 3);
-                assert.equal(rec5.Join[2].$fq, 2);
+                assert.strictEqual(rec5.Join.length, 3);
+                assert.strictEqual(rec5.Join[0].Value, "A");
+                assert.strictEqual(rec5.Join[0].$id, 0);
+                assert.strictEqual(rec5.Join[0].$fq, 1);
+                assert.strictEqual(rec5.Join[1].Value, "B");
+                assert.strictEqual(rec5.Join[1].$id, 1);
+                assert.strictEqual(rec5.Join[1].$fq, 5);
+                assert.strictEqual(rec5.Join[2].Value, "D");
+                assert.strictEqual(rec5.Join[2].$id, 3);
+                assert.strictEqual(rec5.Join[2].$fq, 2);
 
                 var rec6 = base.store("TestStore2").recordByName("y");
-                assert.equal(rec6.Join.length, 2);
-                assert.equal(rec6.Join[0].Value, "A");
-                assert.equal(rec6.Join[0].$id, 0);
-                assert.equal(rec6.Join[0].$fq, 2);
-                assert.equal(rec6.Join[1].Value, "B");
-                assert.equal(rec6.Join[1].$id, 1);
-                assert.equal(rec6.Join[1].$fq, 6);
+                assert.strictEqual(rec6.Join.length, 2);
+                assert.strictEqual(rec6.Join[0].Value, "A");
+                assert.strictEqual(rec6.Join[0].$id, 0);
+                assert.strictEqual(rec6.Join[0].$fq, 2);
+                assert.strictEqual(rec6.Join[1].Value, "B");
+                assert.strictEqual(rec6.Join[1].$id, 1);
+                assert.strictEqual(rec6.Join[1].$fq, 6);
 
                 var rec7 = base.store("TestStore2").recordByName("z");
-                assert.equal(rec7.Join.length, 2);
-                assert.equal(rec7.Join[0].Value, "A");
-                assert.equal(rec7.Join[0].$id, 0);
-                assert.equal(rec7.Join[0].$fq, 4);
-                assert.equal(rec7.Join[1].Value, "C");
-                assert.equal(rec7.Join[1].$id, 2);
-                assert.equal(rec7.Join[1].$fq, 1);
+                assert.strictEqual(rec7.Join.length, 2);
+                assert.strictEqual(rec7.Join[0].Value, "A");
+                assert.strictEqual(rec7.Join[0].$id, 0);
+                assert.strictEqual(rec7.Join[0].$fq, 4);
+                assert.strictEqual(rec7.Join[1].Value, "C");
+                assert.strictEqual(rec7.Join[1].$id, 2);
+                assert.strictEqual(rec7.Join[1].$fq, 1);
             })
             it('should return correct frequencies for records when doing direct join or recordset', function () {
                 prepareJoinStore()
                 // first direct joins, without search
                 var rec1 = base.search({ $from: "TestStore1", Value: "A" }).join("Join");
-                assert.equal(rec1.length, 3);
-                assert.equal(rec1[0].Value, "x");
-                assert.equal(rec1[0].$id, 0);
-                assert.equal(rec1[0].$fq, 1);
-                assert.equal(rec1[1].Value, "y");
-                assert.equal(rec1[1].$id, 1);
-                assert.equal(rec1[1].$fq, 2);
-                assert.equal(rec1[2].Value, "z");
-                assert.equal(rec1[2].$id, 2);
-                assert.equal(rec1[2].$fq, 4);
+                assert.strictEqual(rec1.length, 3);
+                assert.strictEqual(rec1[0].Value, "x");
+                assert.strictEqual(rec1[0].$id, 0);
+                assert.strictEqual(rec1[0].$fq, 1);
+                assert.strictEqual(rec1[1].Value, "y");
+                assert.strictEqual(rec1[1].$id, 1);
+                assert.strictEqual(rec1[1].$fq, 2);
+                assert.strictEqual(rec1[2].Value, "z");
+                assert.strictEqual(rec1[2].$id, 2);
+                assert.strictEqual(rec1[2].$fq, 4);
 
                 var rec2 = base.search({ $from: "TestStore1", Value: "B" }).join("Join");
-                assert.equal(rec2.length, 2);
-                assert.equal(rec2[0].Value, "x");
-                assert.equal(rec2[0].$id, 0);
-                assert.equal(rec2[0].$fq, 5);
-                assert.equal(rec2[1].Value, "y");
-                assert.equal(rec2[1].$id, 1);
-                assert.equal(rec2[1].$fq, 6);
+                assert.strictEqual(rec2.length, 2);
+                assert.strictEqual(rec2[0].Value, "x");
+                assert.strictEqual(rec2[0].$id, 0);
+                assert.strictEqual(rec2[0].$fq, 5);
+                assert.strictEqual(rec2[1].Value, "y");
+                assert.strictEqual(rec2[1].$id, 1);
+                assert.strictEqual(rec2[1].$fq, 6);
 
                 var rec3 = base.search({ $from: "TestStore1", Value: "C" }).join("Join");
-                assert.equal(rec3.length, 1);
-                assert.equal(rec3[0].Value, "z");
-                assert.equal(rec3[0].$id, 2);
-                assert.equal(rec3[0].$fq, 1);
+                assert.strictEqual(rec3.length, 1);
+                assert.strictEqual(rec3[0].Value, "z");
+                assert.strictEqual(rec3[0].$id, 2);
+                assert.strictEqual(rec3[0].$fq, 1);
 
                 var rec4 = base.search({ $from: "TestStore1", Value: "D" }).join("Join");
-                assert.equal(rec4.length, 1);
-                assert.equal(rec4[0].Value, "x");
-                assert.equal(rec4[0].$id, 0);
-                assert.equal(rec4[0].$fq, 2);
+                assert.strictEqual(rec4.length, 1);
+                assert.strictEqual(rec4[0].Value, "x");
+                assert.strictEqual(rec4[0].$id, 0);
+                assert.strictEqual(rec4[0].$fq, 2);
 
                 var rec5 = base.search({ $from: "TestStore2", Value: "x" }).join("Join");
-                assert.equal(rec5.length, 3);
-                assert.equal(rec5[0].Value, "A");
-                assert.equal(rec5[0].$id, 0);
-                assert.equal(rec5[0].$fq, 1);
-                assert.equal(rec5[1].Value, "B");
-                assert.equal(rec5[1].$id, 1);
-                assert.equal(rec5[1].$fq, 5);
-                assert.equal(rec5[2].Value, "D");
-                assert.equal(rec5[2].$id, 3);
-                assert.equal(rec5[2].$fq, 2);
+                assert.strictEqual(rec5.length, 3);
+                assert.strictEqual(rec5[0].Value, "A");
+                assert.strictEqual(rec5[0].$id, 0);
+                assert.strictEqual(rec5[0].$fq, 1);
+                assert.strictEqual(rec5[1].Value, "B");
+                assert.strictEqual(rec5[1].$id, 1);
+                assert.strictEqual(rec5[1].$fq, 5);
+                assert.strictEqual(rec5[2].Value, "D");
+                assert.strictEqual(rec5[2].$id, 3);
+                assert.strictEqual(rec5[2].$fq, 2);
 
                 var rec6 = base.search({ $from: "TestStore2", Value: "y" }).join("Join");
-                assert.equal(rec6.length, 2);
-                assert.equal(rec6[0].Value, "A");
-                assert.equal(rec6[0].$id, 0);
-                assert.equal(rec6[0].$fq, 2);
-                assert.equal(rec6[1].Value, "B");
-                assert.equal(rec6[1].$id, 1);
-                assert.equal(rec6[1].$fq, 6);
+                assert.strictEqual(rec6.length, 2);
+                assert.strictEqual(rec6[0].Value, "A");
+                assert.strictEqual(rec6[0].$id, 0);
+                assert.strictEqual(rec6[0].$fq, 2);
+                assert.strictEqual(rec6[1].Value, "B");
+                assert.strictEqual(rec6[1].$id, 1);
+                assert.strictEqual(rec6[1].$fq, 6);
 
                 var rec7 = base.search({ $from: "TestStore2", Value: "z" }).join("Join");
-                assert.equal(rec7.length, 2);
-                assert.equal(rec7[0].Value, "A");
-                assert.equal(rec7[0].$id, 0);
-                assert.equal(rec7[0].$fq, 4);
-                assert.equal(rec7[1].Value, "C");
-                assert.equal(rec7[1].$id, 2);
-                assert.equal(rec7[1].$fq, 1);
+                assert.strictEqual(rec7.length, 2);
+                assert.strictEqual(rec7[0].Value, "A");
+                assert.strictEqual(rec7[0].$id, 0);
+                assert.strictEqual(rec7[0].$fq, 4);
+                assert.strictEqual(rec7[1].Value, "C");
+                assert.strictEqual(rec7[1].$id, 2);
+                assert.strictEqual(rec7[1].$fq, 1);
             })
             it('should return correct frequencies for records when doing search join', function () {
                 prepareJoinStore()
                 // first direct joins, without search
                 var rec1 = base.search({ $join: { $name: "Join", $query: { $from: "TestStore1", Value: "A" }}});
-                assert.equal(rec1.length, 3);
-                assert.equal(rec1[0].Value, "x");
-                assert.equal(rec1[0].$id, 0);
-                assert.equal(rec1[0].$fq, 1);
-                assert.equal(rec1[1].Value, "y");
-                assert.equal(rec1[1].$id, 1);
-                assert.equal(rec1[1].$fq, 2);
-                assert.equal(rec1[2].Value, "z");
-                assert.equal(rec1[2].$id, 2);
-                assert.equal(rec1[2].$fq, 4);
+                assert.strictEqual(rec1.length, 3);
+                assert.strictEqual(rec1[0].Value, "x");
+                assert.strictEqual(rec1[0].$id, 0);
+                assert.strictEqual(rec1[0].$fq, 1);
+                assert.strictEqual(rec1[1].Value, "y");
+                assert.strictEqual(rec1[1].$id, 1);
+                assert.strictEqual(rec1[1].$fq, 2);
+                assert.strictEqual(rec1[2].Value, "z");
+                assert.strictEqual(rec1[2].$id, 2);
+                assert.strictEqual(rec1[2].$fq, 4);
 
                 var rec2 = base.search({ $join: { $name: "Join", $query: { $from: "TestStore1", Value: "B" }}});
-                assert.equal(rec2.length, 2);
-                assert.equal(rec2[0].Value, "x");
-                assert.equal(rec2[0].$id, 0);
-                assert.equal(rec2[0].$fq, 5);
-                assert.equal(rec2[1].Value, "y");
-                assert.equal(rec2[1].$id, 1);
-                assert.equal(rec2[1].$fq, 6);
+                assert.strictEqual(rec2.length, 2);
+                assert.strictEqual(rec2[0].Value, "x");
+                assert.strictEqual(rec2[0].$id, 0);
+                assert.strictEqual(rec2[0].$fq, 5);
+                assert.strictEqual(rec2[1].Value, "y");
+                assert.strictEqual(rec2[1].$id, 1);
+                assert.strictEqual(rec2[1].$fq, 6);
 
                 var rec3 = base.search({ $join: { $name: "Join", $query: { $from: "TestStore1", Value: "C" }}});
-                assert.equal(rec3.length, 1);
-                assert.equal(rec3[0].Value, "z");
-                assert.equal(rec3[0].$id, 2);
-                assert.equal(rec3[0].$fq, 1);
+                assert.strictEqual(rec3.length, 1);
+                assert.strictEqual(rec3[0].Value, "z");
+                assert.strictEqual(rec3[0].$id, 2);
+                assert.strictEqual(rec3[0].$fq, 1);
 
                 var rec4 = base.search({ $join: { $name: "Join", $query: { $from: "TestStore1", Value: "D" }}});
-                assert.equal(rec4.length, 1);
-                assert.equal(rec4[0].Value, "x");
-                assert.equal(rec4[0].$id, 0);
-                assert.equal(rec4[0].$fq, 2);
+                assert.strictEqual(rec4.length, 1);
+                assert.strictEqual(rec4[0].Value, "x");
+                assert.strictEqual(rec4[0].$id, 0);
+                assert.strictEqual(rec4[0].$fq, 2);
 
                 var rec5 = base.search({ $join: { $name: "Join", $query: { $from: "TestStore2", Value: "x" }}});
-                assert.equal(rec5.length, 3);
-                assert.equal(rec5[0].Value, "A");
-                assert.equal(rec5[0].$id, 0);
-                assert.equal(rec5[0].$fq, 1);
-                assert.equal(rec5[1].Value, "B");
-                assert.equal(rec5[1].$id, 1);
-                assert.equal(rec5[1].$fq, 5);
-                assert.equal(rec5[2].Value, "D");
-                assert.equal(rec5[2].$id, 3);
-                assert.equal(rec5[2].$fq, 2);
+                assert.strictEqual(rec5.length, 3);
+                assert.strictEqual(rec5[0].Value, "A");
+                assert.strictEqual(rec5[0].$id, 0);
+                assert.strictEqual(rec5[0].$fq, 1);
+                assert.strictEqual(rec5[1].Value, "B");
+                assert.strictEqual(rec5[1].$id, 1);
+                assert.strictEqual(rec5[1].$fq, 5);
+                assert.strictEqual(rec5[2].Value, "D");
+                assert.strictEqual(rec5[2].$id, 3);
+                assert.strictEqual(rec5[2].$fq, 2);
 
                 var rec6 = base.search({ $join: { $name: "Join", $query: { $from: "TestStore2", Value: "y" }}});
-                assert.equal(rec6.length, 2);
-                assert.equal(rec6[0].Value, "A");
-                assert.equal(rec6[0].$id, 0);
-                assert.equal(rec6[0].$fq, 2);
-                assert.equal(rec6[1].Value, "B");
-                assert.equal(rec6[1].$id, 1);
-                assert.equal(rec6[1].$fq, 6);
+                assert.strictEqual(rec6.length, 2);
+                assert.strictEqual(rec6[0].Value, "A");
+                assert.strictEqual(rec6[0].$id, 0);
+                assert.strictEqual(rec6[0].$fq, 2);
+                assert.strictEqual(rec6[1].Value, "B");
+                assert.strictEqual(rec6[1].$id, 1);
+                assert.strictEqual(rec6[1].$fq, 6);
 
                 var rec7 = base.search({ $join: { $name: "Join", $query: { $from: "TestStore2", Value: "z" }}});
-                assert.equal(rec7.length, 2);
-                assert.equal(rec7[0].Value, "A");
-                assert.equal(rec7[0].$id, 0);
-                assert.equal(rec7[0].$fq, 4);
-                assert.equal(rec7[1].Value, "C");
-                assert.equal(rec7[1].$id, 2);
-                assert.equal(rec7[1].$fq, 1);
+                assert.strictEqual(rec7.length, 2);
+                assert.strictEqual(rec7[0].Value, "A");
+                assert.strictEqual(rec7[0].$id, 0);
+                assert.strictEqual(rec7[0].$fq, 4);
+                assert.strictEqual(rec7[1].Value, "C");
+                assert.strictEqual(rec7[1].$id, 2);
+                assert.strictEqual(rec7[1].$fq, 1);
             })
         })
     }
@@ -1498,30 +1498,30 @@ describe('Gix Tests', function () {
             it('should return correct frequencies for records when doing direct join on record', function () {
                 prepareJoinStore()
                 var rec1 = base.store("TestStore1").allRecords.join("Join");
-                assert.equal(rec1.length, 3);
-                assert.equal(rec1[0].Value, "x");
-                assert.equal(rec1[0].$id, 0);
-                assert.equal(rec1[0].$fq, 4);
-                assert.equal(rec1[1].Value, "y");
-                assert.equal(rec1[1].$id, 1);
-                assert.equal(rec1[1].$fq, 3);
-                assert.equal(rec1[2].Value, "z");
-                assert.equal(rec1[2].$id, 2);
-                assert.equal(rec1[2].$fq, 2);
+                assert.strictEqual(rec1.length, 3);
+                assert.strictEqual(rec1[0].Value, "x");
+                assert.strictEqual(rec1[0].$id, 0);
+                assert.strictEqual(rec1[0].$fq, 4);
+                assert.strictEqual(rec1[1].Value, "y");
+                assert.strictEqual(rec1[1].$id, 1);
+                assert.strictEqual(rec1[1].$fq, 3);
+                assert.strictEqual(rec1[2].Value, "z");
+                assert.strictEqual(rec1[2].$id, 2);
+                assert.strictEqual(rec1[2].$fq, 2);
                 var rec2 = base.store("TestStore2").allRecords.join("Join");
-                assert.equal(rec2.length, 4);
-                assert.equal(rec2[0].Value, "A");
-                assert.equal(rec2[0].$id, 0);
-                assert.equal(rec2[0].$fq, 3);
-                assert.equal(rec2[1].Value, "B");
-                assert.equal(rec2[1].$id, 1);
-                assert.equal(rec2[1].$fq, 3);
-                assert.equal(rec2[2].Value, "C");
-                assert.equal(rec2[2].$id, 2);
-                assert.equal(rec2[2].$fq, 2);
-                assert.equal(rec2[3].Value, "D");
-                assert.equal(rec2[3].$id, 3);
-                assert.equal(rec2[3].$fq, 1);
+                assert.strictEqual(rec2.length, 4);
+                assert.strictEqual(rec2[0].Value, "A");
+                assert.strictEqual(rec2[0].$id, 0);
+                assert.strictEqual(rec2[0].$fq, 3);
+                assert.strictEqual(rec2[1].Value, "B");
+                assert.strictEqual(rec2[1].$id, 1);
+                assert.strictEqual(rec2[1].$fq, 3);
+                assert.strictEqual(rec2[2].Value, "C");
+                assert.strictEqual(rec2[2].$id, 2);
+                assert.strictEqual(rec2[2].$fq, 2);
+                assert.strictEqual(rec2[3].Value, "D");
+                assert.strictEqual(rec2[3].$id, 3);
+                assert.strictEqual(rec2[3].$fq, 1);
 
             })
         })
@@ -1579,7 +1579,7 @@ describe('Gix Position Tests', function () {
             for (var i=0; i < text.length; i++) {
                 store.push({ Value: text[i] });
             }
-            assert.equal(store.length, text.length);
+            assert.strictEqual(store.length, text.length);
         });
         it('delete existing records', function () {
             var store = base.createStore({
@@ -1591,11 +1591,11 @@ describe('Gix Position Tests', function () {
                 store.push({ Value: text[i] });
             }
             store.clear(1);
-            assert.equal(store.length, text.length - 1);
+            assert.strictEqual(store.length, text.length - 1);
             store.clear(2);
-            assert.equal(store.length, text.length - 3);
+            assert.strictEqual(store.length, text.length - 3);
             store.clear(text.length - 3);
-            assert.equal(store.length, 0);
+            assert.strictEqual(store.length, 0);
         });
     });
 
@@ -1614,10 +1614,10 @@ describe('Gix Position Tests', function () {
             });
             populate(store);
 
-            assert.equal(base.search({ $from: "TestStore", Value: "kraft" }).length, 3);
-            assert.equal(base.search({ $from: "TestStore", Value: "aa" }).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: "aa" })[0].$fq, 11);
-            assert.equal(base.search({ $from: "TestStore", Value: "pizza" }).length, 0);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "kraft" }).length, 3);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "aa" }).length, 1);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "aa" })[0].$fq, 11);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "pizza" }).length, 0);
         });
         it('two word phrases', function () {
             var store = base.createStore({
@@ -1627,36 +1627,36 @@ describe('Gix Position Tests', function () {
             });
             populate(store);
 
-            assert.equal(base.search({ $from: "TestStore", Value: "kraft wins" }).length, 2);
-            assert.equal(base.search({ $from: "TestStore", Value: "planica event" }).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: "planica tralala" }).length, 0);
-            assert.equal(base.search({ $from: "TestStore", Value: "tralala planica" }).length, 0);
-            assert.equal(base.search({ $from: "TestStore", Value: "aa aa" }).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: "aa aa" })[0].$fq, 8);
-            assert.equal(base.search({ $from: "TestStore", Value: "aa bb" }).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: "aa cc" }).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: "kk xx" }).length, 1);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "kraft wins" }).length, 2);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "planica event" }).length, 1);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "planica tralala" }).length, 0);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "tralala planica" }).length, 0);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "aa aa" }).length, 1);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "aa aa" })[0].$fq, 8);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "aa bb" }).length, 1);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "aa cc" }).length, 1);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "kk xx" }).length, 1);
             // no items where kk and ll are together
-            assert.equal(base.search({ $from: "TestStore", Value: "kk ll" }).length, 0);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "kk ll" }).length, 0);
             // one valid and one false positive where kk and mm are together - due to modulo 1023
-            assert.equal(base.search({ $from: "TestStore", Value: "kk mm" }).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: "kk mm" })[0].$fq, 2);
-            assert.equal(base.search({ $from: "TestStore", Value: "kk nn" }).length, 0);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "kk mm" }).length, 1);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "kk mm" })[0].$fq, 2);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "kk nn" }).length, 0);
 
-            assert.equal(base.search({ $from: "TestStore", Value: "xx" }).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: "xx" })[0].$fq, 1021);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "xx" }).length, 1);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "xx" })[0].$fq, 1021);
 
             // false positives (due to modulo positions)
-            assert.equal(base.search({ $from: "TestStore", Value: "oo tt" }).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: "ss pp" }).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: "tt rr" }).length, 1);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "oo tt" }).length, 1);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "ss pp" }).length, 1);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "tt rr" }).length, 1);
 
-            assert.equal(base.search({ $from: "TestStore", Value: "ss rr" }).length, 0);
-            assert.equal(base.search({ $from: "TestStore", Value: { $str: "ss rr", $diff: 2 } }).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: { $str: "ss rr", $diff: 3 } }).length, 1);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "ss rr" }).length, 0);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: { $str: "ss rr", $diff: 2 } }).length, 1);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: { $str: "ss rr", $diff: 3 } }).length, 1);
             // overlapping indices
-            assert.equal(base.search({ $from: "TestStore", Value: "oo ss" }).length, 0);
-            assert.equal(base.search({ $from: "TestStore", Value: "pp tt" }).length, 0);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "oo ss" }).length, 0);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "pp tt" }).length, 0);
 
         });
         it('long word phrases', function () {
@@ -1667,10 +1667,10 @@ describe('Gix Position Tests', function () {
             });
             populate(store);
 
-            assert.equal(base.search({ $from: "TestStore", Value: "Kraft wins first individual ski flying event at Planica" }).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: "planica event" }).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: "aa aa aa" }).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: "aa aa aa" })[0].$fq, 6);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "Kraft wins first individual ski flying event at Planica" }).length, 1);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "planica event" }).length, 1);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "aa aa aa" }).length, 1);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: "aa aa aa" })[0].$fq, 6);
         });
         it('phrases with gaps', function () {
             var store = base.createStore({
@@ -1680,10 +1680,10 @@ describe('Gix Position Tests', function () {
             });
             populate(store);
 
-            assert.equal(base.search({ $from: "TestStore", Value: { $str: "kraft planica", $diff: 1 }}).length, 0);
-            assert.equal(base.search({ $from: "TestStore", Value: { $str: "kraft planica", $diff: 2 }}).length, 0);
-            assert.equal(base.search({ $from: "TestStore", Value: { $str: "kraft planica", $diff: 3 }}).length, 1);
-            assert.equal(base.search({ $from: "TestStore", Value: { $str: "cc dd", $diff: 2 }}).length, 1);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: { $str: "kraft planica", $diff: 1 }}).length, 0);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: { $str: "kraft planica", $diff: 2 }}).length, 0);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: { $str: "kraft planica", $diff: 3 }}).length, 1);
+            assert.strictEqual(base.search({ $from: "TestStore", Value: { $str: "cc dd", $diff: 2 }}).length, 1);
         });
 
     });
@@ -1726,6 +1726,6 @@ describe('Gix Join Test', function () {
                 }
             }
         });
-        assert.equal(res.length, 3);
+        assert.strictEqual(res.length, 3);
     });
 });

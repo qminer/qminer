@@ -7,7 +7,7 @@
  */
 
 // console.log(__filename)
-var qm = require('qminer');
+var qm = require('../../index.js');
 
 describe('Empty Store Tests', function () {
     var base1 = undefined;

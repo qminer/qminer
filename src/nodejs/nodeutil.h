@@ -12,6 +12,7 @@
     #define BUILDING_NODE_EXTENSION
 #endif
 
+#include <nan.h>
 #include <node.h>
 #include <node_object_wrap.h>
 #include <node_buffer.h>
@@ -28,7 +29,7 @@
             Function(Name, Info); \
         } catch (const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError( \
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
+            TNodeJsUtil::ToLocal(Nan::New(TStr("[addon] Exception: " + Except->GetStr()).CStr())))); \
         } \
     };
 
@@ -41,7 +42,7 @@
             Function(Index, Info); \
         } catch(const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError(\
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
+            TNodeJsUtil::ToLocal(Nan::New(TStr("[addon] Exception: " + Except->GetStr()).CStr())))); \
         } \
     }
 
@@ -54,7 +55,7 @@
             FunctionGetter(Index, Info); \
         } catch(const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError(\
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
+            TNodeJsUtil::ToLocal(Nan::New(TStr("[addon] Exception: " + Except->GetStr()).CStr())))); \
         } \
     } \
     static void FunctionSetter(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<v8::Value>& Info); \
@@ -65,7 +66,7 @@
             FunctionSetter(Index, Value, Info); \
         } catch(const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError(\
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
+            TNodeJsUtil::ToLocal(Nan::New(TStr("[addon] Exception: " + Except->GetStr()).CStr())))); \
         } \
     }
 
@@ -78,7 +79,7 @@
             GetFunction(Name, Info); \
         } catch (const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError( \
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
+            TNodeJsUtil::ToLocal(Nan::New(TStr("[addon] Exception: " + Except->GetStr()).CStr())))); \
       } \
     } \
     static void SetFunction(v8::Local<v8::Name> Name, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info); \
@@ -89,7 +90,7 @@
             SetFunction(Name, Value, Info); \
         } catch (const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError( \
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
+            TNodeJsUtil::ToLocal(Nan::New(TStr("[addon] Exception: " + Except->GetStr()).CStr())))); \
         } \
     };
 
@@ -101,7 +102,7 @@
             Function(Args); \
         } catch (const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError(\
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
+            TNodeJsUtil::ToLocal(Nan::New(TStr("[addon] Exception: " + Except->GetStr()).CStr())))); \
         } \
     };
 
@@ -118,7 +119,7 @@
             Function(Args); \
         } catch (const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError(\
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
+            TNodeJsUtil::ToLocal(Nan::New(TStr("[addon] Exception: " + Except->GetStr()).CStr())))); \
         } \
     };
 
@@ -129,7 +130,7 @@
         TTask* Task = new TTask(Args, true);  \
         Task->ExtractCallback(Args);    \
         TNodeJsAsyncUtil::ExecuteOnWorker(Task);    \
-        Args.GetReturnValue().Set(v8::Undefined(Isolate));  \
+        Args.GetReturnValue().Set(Nan::Undefined());  \
     };  \
     JsDeclareInternalFunction(Function);
 
@@ -172,6 +173,12 @@ public:
 
     /// Checks if TryCatch caught an error, extracts the message and throws a PExcept
     static void CheckJSExcept(const v8::TryCatch& TryCatch);
+    /// Checks if the MaybeLocal object is empty, and throws an exception if it is
+    template <class TClass>
+    static void CheckObjEmpty(v8::Isolate* Isolate, const v8::TryCatch& TryCatch, const v8::MaybeLocal<TClass>& Obj);
+    // converts the maybe local values to local values
+    template <class TClass>
+    static v8::Local<TClass> ToLocal(Nan::MaybeLocal<TClass> Obj);
     /// Convert v8 Json to GLib Json (PJsonVal). Is parameter IgnoreFunc is set to true the method will
     /// ignore functions otherwise an exception will be thrown when a function is encountered
     static PJsonVal GetObjJson(const v8::Local<v8::Value>& Val, const bool& IgnoreFunc=false, const bool& IgnoreWrappedObj=false);
@@ -349,7 +356,7 @@ public:
     static v8::Local<v8::Object> NewInstance(TClass* Obj);
 
     static v8::Local<v8::Value> V8JsonToV8Str(const v8::Local<v8::Value>& Json);
-    static TStr JSONStringify(const v8::Local<v8::Value>& Json) { return GetStr(V8JsonToV8Str(Json)->ToString()); }
+    static TStr JSONStringify(const v8::Local<v8::Value>& Json) { return GetStr(TNodeJsUtil::ToLocal(Nan::To<v8::String>(V8JsonToV8Str(Json)))); }
 
     /// TStrV -> v8 string array
     static v8::Local<v8::Value> GetStrArr(const TStrV& StrV);

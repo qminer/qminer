@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.1</a>
       </div>
     </div>
   </nav>
@@ -24,7 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-la.html">la</a>.<wbr></small><span class="symbol-name">Vector</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-la.html">la</a>.<wbr></small><span class="symbol-name">Vector</span></h1>
             <p class="source-link">Source: <a href="ladoc.js.html#source-line-1745">ladoc.<wbr>js:1745</a></p>
             <div class="symbol-classdesc">
               <p>The number vector representation. Wraps a C++ array.</p>
@@ -168,14 +169,14 @@
             <p>Vector - array of doubles.</p>
             <section>
               <h3>
-            Example
-        </h3>
+                Example
+              </h3>
               <div>
-                <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new empty vector
-var vec = new la.Vector();
+var vec &#x3D; new la.Vector();
 // create a new vector
-var vec2 = new la.Vector([1, 2, 3]);</code></pre>
+var vec2 &#x3D; new la.Vector([1, 2, 3]);</code></pre>
               </div>
             </section>
             <section>
@@ -203,7 +204,8 @@ var vec2 = new la.Vector([1, 2, 3]);</code></pre>
                     <td>
                       <p>Constructor arguments. There are two ways of constructing:
                         <br>1. using an array of vector elements. Example: using <code>[1, 2, 3]</code> creates a vector of length 3,
-                        <br>2. using a vector (copy constructor).</p>
+                        <br>2. using a vector (copy constructor).
+                      </p>
                     </td>
                   </tr>
                 </tbody>
@@ -219,14 +221,14 @@ var vec2 = new la.Vector([1, 2, 3]);</code></pre>
               <p>Gives the length of vector. Type <code>number</code>.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var x = new la.Vector([1, 2, 3]);
+var x &#x3D; new la.Vector([1, 2, 3]);
 // get the length of the vector
-var len = x.length; // returns 3</code></pre>
+var len &#x3D; x.length; // returns 3</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -238,15 +240,15 @@ var len = x.length; // returns 3</code></pre>
               <p>Returns element at index.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([1, 2, 3]);
+var vec &#x3D; new la.Vector([1, 2, 3]);
 // get the element at index 1
-var el = vec[1];</code></pre>
+var el &#x3D; vec[1];</code></pre>
                 </div>
               </section>
               <section>
@@ -281,22 +283,22 @@ var el = vec[1];</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Vector element.</p>
+                  <p><code>number</code>B Vector element.</p>
                 </dd>
               </dl>
               <h3 id="cosine"><span class="symbol-name">cosine</span><span class="signature"><span class="signature-params">(vec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Returns the cosine between the two vectors.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create two new vectors
-var x = new la.Vector([1, 0]);
-var y = new la.Vector([0, 1]);
+var x &#x3D; new la.Vector([1, 0]);
+var y &#x3D; new la.Vector([0, 1]);
 // calculate the cosine between those two vectors
-var num = x.cosine(y); // returns 0</code></pre>
+var num &#x3D; x.cosine(y); // returns 0</code></pre>
                 </div>
               </section>
               <section>
@@ -331,21 +333,21 @@ var num = x.cosine(y); // returns 0</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;The cosine between the two vectors.</p>
+                  <p><code>number</code>B The cosine between the two vectors.</p>
                 </dd>
               </dl>
               <h3 id="diag"><span class="symbol-name">diag</span><span class="signature"><span class="signature-params">()</span></span></h3>
               <p>Creates a dense diagonal matrix out of the vector.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([4, 5, -1]);
+var vec &#x3D; new la.Vector([4, 5, -1]);
 // create a dense matrix with the diagonal equal to vec
-var mat = vec.diag();</code></pre>
+var mat &#x3D; vec.diag();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -355,22 +357,28 @@ var mat = vec.diag();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Index of the maximal element in the vector. // import la modules var la = require('qminer').la; // create a new vector var vec = new la.Vector([1, 2, 3]); // get the index of the maximum value var idx = vec.getMaxIdx();</p>
+                  <p><code>number</code>B Index of the maximal element in the vector.
+                    // import la modules
+                    var la = require('qminer').la;
+                    // create a new vector
+                    var vec = new la.Vector([1, 2, 3]);
+                    // get the index of the maximum value
+                    var idx = vec.getMaxIdx();</p>
                 </dd>
               </dl>
               <h3 id="inner"><span class="symbol-name">inner</span><span class="signature"><span class="signature-params">(vec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Computes the inner product.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create two new vectors
-var x = new la.Vector([1, 2, 3]);
-var y = new la.Vector([4, 5, -1]);
+var x &#x3D; new la.Vector([1, 2, 3]);
+var y &#x3D; new la.Vector([4, 5, -1]);
 // get the inner product of the two vectors
-var prod = x.inner(y); // returns 11</code></pre>
+var prod &#x3D; x.inner(y); // returns 11</code></pre>
                 </div>
               </section>
               <section>
@@ -405,23 +413,23 @@ var prod = x.inner(y); // returns 11</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Inner product between the instance and the other vector.</p>
+                  <p><code>number</code>B Inner product between the instance and the other vector.</p>
                 </dd>
               </dl>
               <h3 id="load"><span class="symbol-name">load</span><span class="signature"><span class="signature-params">(fin)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Loads the vector from input stream (binary deserialization).</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
-var fs = require(&#x27;qminer&#x27;).fs;
-var la = require(&#x27;qminer&#x27;).la;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create an empty vector
-var vec = new la.Vector();
+var vec &#x3D; new la.Vector();
 // open a read stream
-var fin = fs.openRead(&#x27;vec.dat&#x27;);
+var fin &#x3D; fs.openRead(&#x27;vec.dat&#x27;);
 // load the vector
 vec.load(fin);</code></pre>
                 </div>
@@ -458,23 +466,23 @@ vec.load(fin);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;Self. The vector is filled using the input stream <code>fin</code>.</p>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>B Self. The vector is filled using the input stream <code>fin</code>.</p>
                 </dd>
               </dl>
               <h3 id="loadascii"><span class="symbol-name">loadascii</span><span class="signature"><span class="signature-params">(fin)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Loads the vector from input stream (ascii deserialization).</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
-var fs = require(&#x27;qminer&#x27;).fs;
-var la = require(&#x27;qminer&#x27;).la;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create an empty vector
-var vec = new la.Vector();
+var vec &#x3D; new la.Vector();
 // open a read stream
-var fin = fs.openRead(&#x27;vec.dat&#x27;);
+var fin &#x3D; fs.openRead(&#x27;vec.dat&#x27;);
 // load the matrix
 vec.loadascii(fin);</code></pre>
                 </div>
@@ -511,22 +519,22 @@ vec.loadascii(fin);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;Self. The vector is filled using the input stream <code>fin</code>.</p>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>B Self. The vector is filled using the input stream <code>fin</code>.</p>
                 </dd>
               </dl>
               <h3 id="minus"><span class="symbol-name">minus</span><span class="signature"><span class="signature-params">(vec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Vector substraction.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create two new vectors
-var x = new la.Vector([1, 2, 3]);
-var y = new la.Vector([4, 5, -1]);
+var x &#x3D; new la.Vector([1, 2, 3]);
+var y &#x3D; new la.Vector([4, 5, -1]);
 // substract the vectors
-var z = x.minus(y);</code></pre>
+var z &#x3D; x.minus(y);</code></pre>
                 </div>
               </section>
               <section>
@@ -561,21 +569,21 @@ var z = x.minus(y);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The difference of the instance and the other vector.</p>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>B The difference of the instance and the other vector.</p>
                 </dd>
               </dl>
               <h3 id="multiply"><span class="symbol-name">multiply</span><span class="signature"><span class="signature-params">(val)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Multiplies the vector with a scalar.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var x = new la.Vector([4, 5, -1]);
+var x &#x3D; new la.Vector([4, 5, -1]);
 // multiply the vector with the scalar 3
-var y = x.multiply(3);</code></pre>
+var y &#x3D; x.multiply(3);</code></pre>
                 </div>
               </section>
               <section>
@@ -610,39 +618,39 @@ var y = x.multiply(3);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;Product of the vector and scalar.</p>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>B Product of the vector and scalar.</p>
                 </dd>
               </dl>
               <h3 id="norm"><span class="symbol-name">norm</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Calculates the norm of the vector.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([4, 5, -1]);
+var vec &#x3D; new la.Vector([4, 5, -1]);
 // get the norm of the vector
-var norm = vec.norm();</code></pre>
+var norm &#x3D; vec.norm();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;The norm of the vector.</p>
+                  <p><code>number</code>B The norm of the vector.</p>
                 </dd>
               </dl>
               <h3 id="normalize"><span class="symbol-name">normalize</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Normalizes vector.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var x = new la.Vector([4, 5, -1]); 
+var x &#x3D; new la.Vector([4, 5, -1]);
 // normalize the vector
 x.normalize();</code></pre>
                 </div>
@@ -650,22 +658,22 @@ x.normalize();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;Self. The vector is normalized.</p>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>B Self. The vector is normalized.</p>
                 </dd>
               </dl>
               <h3 id="outer"><span class="symbol-name">outer</span><span class="signature"><span class="signature-params">(vec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
               <p>Creates a dense matrix A by multiplying two vectors x and y: <code>A = x * y^T</code>.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create two new vectors
-var x = new la.Vector([1, 2, 3]);
-var y = new la.Vector([4, 5]);
+var x &#x3D; new la.Vector([1, 2, 3]);
+var y &#x3D; new la.Vector([4, 5]);
 // create the outer product of these vectors
-var A = x.outer(y); // creates the dense matrix [[4, 5], [8, 10], [12, 15]]</code></pre>
+var A &#x3D; x.outer(y); // creates the dense matrix [[4, 5], [8, 10], [12, 15]]</code></pre>
                 </div>
               </section>
               <section>
@@ -700,22 +708,22 @@ var A = x.outer(y); // creates the dense matrix [[4, 5], [8, 10], [12, 15]]</cod
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;Matrix obtained by the outer product of the instance and second vector.</p>
+                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>B Matrix obtained by the outer product of the instance and second vector.</p>
                 </dd>
               </dl>
               <h3 id="plus"><span class="symbol-name">plus</span><span class="signature"><span class="signature-params">(vec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Vector addition.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create two new vectors
-var x = new la.Vector([1, 2, 3]);
-var y = new la.Vector([4, 5, -1]);
+var x &#x3D; new la.Vector([1, 2, 3]);
+var y &#x3D; new la.Vector([4, 5, -1]);
 // sum the vectors
-var z = x.plus(y);</code></pre>
+var z &#x3D; x.plus(y);</code></pre>
                 </div>
               </section>
               <section>
@@ -750,20 +758,20 @@ var z = x.plus(y);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;Sum of the instance and the second vector.</p>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>B Sum of the instance and the second vector.</p>
                 </dd>
               </dl>
               <h3 id="print"><span class="symbol-name">print</span><span class="signature"><span class="signature-params">()</span></span></h3>
               <p>Prints the vector on-screen.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([1, 2, 3]);
+var vec &#x3D; new la.Vector([1, 2, 3]);
 // print the vector
 // For this example it prints:
 // [1, 2, 3]
@@ -776,13 +784,13 @@ vec.print();</code></pre>
               <p>Adds an element to the end of the vector.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([1, 2, 3]);
+var vec &#x3D; new la.Vector([1, 2, 3]);
 // push an element to the vector
 vec.push(10);</code></pre>
                 </div>
@@ -819,21 +827,21 @@ vec.push(10);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;The new length property of the object upon which the method was called.</p>
+                  <p><code>number</code>B The new length property of the object upon which the method was called.</p>
                 </dd>
               </dl>
               <h3 id="pushV"><span class="symbol-name">pushV</span><span class="signature"><span class="signature-params">(vec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Appends a second vector to the first one.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create two new vectors
-var vec = new la.Vector([1, 2, 3]);
-var vec2 = new la.Vector([4, 5]);
+var vec &#x3D; new la.Vector([1, 2, 3]);
+var vec2 &#x3D; new la.Vector([4, 5]);
 // append the two vectors
 vec.pushV(vec2);</code></pre>
                 </div>
@@ -870,20 +878,20 @@ vec.pushV(vec2);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;The new length property of the vectors.</p>
+                  <p><code>number</code>B The new length property of the vectors.</p>
                 </dd>
               </dl>
               <h3 id="put"><span class="symbol-name">put</span><span class="signature"><span class="signature-params">(idx, val)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Sets an element in vector.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([1, 2, 3]);
+var vec &#x3D; new la.Vector([1, 2, 3]);
 // set the first element to 10
 vec.put(0, 10);</code></pre>
                 </div>
@@ -934,23 +942,23 @@ vec.put(0, 10);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;Self. The values at index <code>idx</code> has been changed to <code>val</code>.</p>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>B Self. The values at index <code>idx</code> has been changed to <code>val</code>.</p>
                 </dd>
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
               <p>Saves the vector as output stream (binary serialization).</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
-var fs = require(&#x27;qminer&#x27;).fs;
-var la = require(&#x27;qminer&#x27;).la;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([1, 2, 3]);
+var vec &#x3D; new la.Vector([1, 2, 3]);
 // open write stream
-var fout = fs.openWrite(&#x27;vec.dat&#x27;);
+var fout &#x3D; fs.openWrite(&#x27;vec.dat&#x27;);
 // save vector and close write stream
 vec.save(fout).close();</code></pre>
                 </div>
@@ -987,23 +995,23 @@ vec.save(fout).close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream <code>fout</code>.</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>B The output stream <code>fout</code>.</p>
                 </dd>
               </dl>
               <h3 id="saveascii"><span class="symbol-name">saveascii</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
               <p>Saves the vector as output stream (ascii serialization).</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import fs module
-var fs = require(&#x27;qminer&#x27;).fs;
-var la = require(&#x27;qminer&#x27;).la;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([1, 2, 3]);
+var vec &#x3D; new la.Vector([1, 2, 3]);
 // open write stream
-var fout = fs.openWrite(&#x27;vec.dat&#x27;);
+var fout &#x3D; fs.openWrite(&#x27;vec.dat&#x27;);
 // save matrix and close write stream
 vec.saveascii(fout).close();</code></pre>
                 </div>
@@ -1040,20 +1048,20 @@ vec.saveascii(fout).close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream <code>fout</code>.</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>B The output stream <code>fout</code>.</p>
                 </dd>
               </dl>
               <h3 id="shuffle"><span class="symbol-name">shuffle</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Randomly reorders the elements of the vector (inplace).</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([-2.0, 1.0, 3.0]); 
+var vec &#x3D; new la.Vector([-2.0, 1.0, 3.0]);
 // shuffle the elements
 vec.shuffle();</code></pre>
                 </div>
@@ -1061,19 +1069,19 @@ vec.shuffle();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;Self. The elements are randomly reordered.</p>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>B Self. The elements are randomly reordered.</p>
                 </dd>
               </dl>
               <h3 id="sort"><span class="symbol-name">sort</span><span class="signature"><span class="signature-params">([arg])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Sorts the vector (in place operation).</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([-2.0, 1.0, 3.0]);
+var vec &#x3D; new la.Vector([-2.0, 1.0, 3.0]);
 // sort ascending
 vec.sort(); // sorts to: [-2.0, 1.0, 3.0]
 // sort using callback
@@ -1112,26 +1120,26 @@ vec.sort(function(arg1, arg2) { return Math.abs(arg1) - Math.abs(arg2); }); // s
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;Self.
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>B Self.
                     <br>1. Vector sorted in ascending order, if <code>arg</code> is boolean and true.
-                    <br>
                     <br>2. Vector sorted in descending order, if <code>arg</code> is boolean and false.
-                    <br>3. Vector sorted by using the comparator callback, if <code>arg</code> is a <a href="module-la.html#~vectorCompareCb">module:la~vectorCompareCb</a>.</p>
+                    <br>3. Vector sorted by using the comparator callback, if <code>arg</code> is a <a href="module-la.html#~vectorCompareCb">module:la~vectorCompareCb</a>.
+                  </p>
                 </dd>
               </dl>
               <h3 id="sortPerm"><span class="symbol-name">sortPerm</span><span class="signature"><span class="signature-params">([asc])</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
               <p>Sorts the vector and returns the sorted vector as well as the permutation.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([-2.0, 1.0, 3.0]);
+var vec &#x3D; new la.Vector([-2.0, 1.0, 3.0]);
 // sort ascending
-var result = vec.sortPerm();
+var result &#x3D; vec.sortPerm();
 result.vec;  // [-2.0, 1.0, 3.0]
 result.perm; // permutation index vector</code></pre>
                 </div>
@@ -1169,61 +1177,62 @@ result.perm; // permutation index vector</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;The object <code>VectorSortResult</code> containing the properties:
+                  <p><code>Object</code>B The object <code>VectorSortResult</code> containing the properties:
                     <br> <code>VectorSortResult.vec</code> - The sorted vector,
-                    <br> <code>VectorSortResult.perm</code> - Permutation vector, where <code>VectorSortResult.vec[i] = instanceVector[VectorSortResult.perm[i]]</code>.</p>
+                    <br> <code>VectorSortResult.perm</code> - Permutation vector, where <code>VectorSortResult.vec[i] = instanceVector[VectorSortResult.perm[i]]</code>.
+                  </p>
                 </dd>
               </dl>
               <h3 id="sparse"><span class="symbol-name">sparse</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseVector.html">module:la.SparseVector</a></span></span></h3>
               <p>Creates the sparse vector representation of the vector.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([4, 5, -1]);
+var vec &#x3D; new la.Vector([4, 5, -1]);
 // create the sparse representation of the vector
-var spVec = vec.sparse();</code></pre>
+var spVec &#x3D; vec.sparse();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.SparseVector.html">module:la.SparseVector</a></code>&nbsp;The sparse vector representation.</p>
+                  <p><code><a href="module-la.SparseVector.html">module:la.SparseVector</a></code>B The sparse vector representation.</p>
                 </dd>
               </dl>
               <h3 id="spDiag"><span class="symbol-name">spDiag</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></span></span></h3>
               <p>Creates a sparse diagonal matrix out of the vector.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([4, 5, -1]);
+var vec &#x3D; new la.Vector([4, 5, -1]);
 // create a sparse matrix with the diagonal equal to vec
-var mat = vec.spDiag();</code></pre>
+var mat &#x3D; vec.spDiag();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>&nbsp;Diagonal matrix, where the (i, i)-th element is the i-th element of vector.</p>
+                  <p><code><a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a></code>B Diagonal matrix, where the (i, i)-th element is the i-th element of vector.</p>
                 </dd>
               </dl>
               <h3 id="splice"><span class="symbol-name">splice</span><span class="signature"><span class="signature-params">(start, deleteCount[, ...itemN])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Changes the vector by removing and adding elements.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([1, 2, 3]);
+var vec &#x3D; new la.Vector([1, 2, 3]);
 // splice the vector by removing the last two elements and adding 4, 5
 vec.splice(1, 2, 4, 5)// returns vector [1, 4, 5]</code></pre>
                 </div>
@@ -1289,22 +1298,22 @@ vec.splice(1, 2, 4, 5)// returns vector [1, 4, 5]</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;Self. The selected elements are removed/replaced.</p>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>B Self. The selected elements are removed/replaced.</p>
                 </dd>
               </dl>
               <h3 id="subVec"><span class="symbol-name">subVec</span><span class="signature"><span class="signature-params">(arg)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Returns a subvector.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([1, 2, 3]);
+var vec &#x3D; new la.Vector([1, 2, 3]);
 // get the subvector of the first two elements
-var subvec = vec.subVec([0, 1]);</code></pre>
+var subvec &#x3D; vec.subVec([0, 1]);</code></pre>
                 </div>
               </section>
               <section>
@@ -1339,81 +1348,81 @@ var subvec = vec.subVec([0, 1]);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;Subvector, where the i-th element is the <code>arg[i]</code>-th element of the instance.</p>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>B Subvector, where the i-th element is the <code>arg[i]</code>-th element of the instance.</p>
                 </dd>
               </dl>
               <h3 id="sum"><span class="symbol-name">sum</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Sums the elements in the vector.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la modules
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([1, 2, 3]);
+var vec &#x3D; new la.Vector([1, 2, 3]);
 // sum all the elements of the vector
-var sum = vec.sum();</code></pre>
+var sum &#x3D; vec.sum();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;The sum of all elements in the instance.</p>
+                  <p><code>number</code>B The sum of all elements in the instance.</p>
                 </dd>
               </dl>
               <h3 id="toArray"><span class="symbol-name">toArray</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Array of number</span></span></h3>
               <p>Copies the vector into a JavaScript array of numbers.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([1, 2, 3]);
+var vec &#x3D; new la.Vector([1, 2, 3]);
 // create a JavaScript array out of vec
-var arr = vec.toArray(); // returns an array [1, 2, 3]</code></pre>
+var arr &#x3D; vec.toArray(); // returns an array [1, 2, 3]</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Array of number</code>&nbsp;A JavaScript array of numbers.</p>
+                  <p><code>Array of number</code>B A JavaScript array of numbers.</p>
                 </dd>
               </dl>
               <h3 id="toMat"><span class="symbol-name">toMat</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
               <p>Creates a matrix with a single column that is equal to the vector.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([4, 5, -1]);
+var vec &#x3D; new la.Vector([4, 5, -1]);
 // create a matrix representation of the vector
-var mat = vec.toMat();</code></pre>
+var mat &#x3D; vec.toMat();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;The matrix with a single column that is equal to the instance.</p>
+                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>B The matrix with a single column that is equal to the instance.</p>
                 </dd>
               </dl>
               <h3 id="toString"><span class="symbol-name">toString</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> string</span></span></h3>
               <p>Returns the vector as string.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([1, 2, 3]);
+var vec &#x3D; new la.Vector([1, 2, 3]);
 // create vector as string
 vec.toString(); // returns &#x27;1, 2, 3&#x27;</code></pre>
                 </div>
@@ -1421,19 +1430,19 @@ vec.toString(); // returns &#x27;1, 2, 3&#x27;</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>string</code>&nbsp;String representation.</p>
+                  <p><code>string</code>B String representation.</p>
                 </dd>
               </dl>
               <h3 id="trunc"><span class="symbol-name">trunc</span><span class="signature"><span class="signature-params">(idx)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Deletes elements with sprecific index or more.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
-                  <pre class="prettyprint"><code>var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([1, 2, 3]);
+var vec &#x3D; new la.Vector([1, 2, 3]);
 // trunc all elements with index 1 or more
 vec.trunc(1); // returns vector [1]</code></pre>
                 </div>
@@ -1470,22 +1479,22 @@ vec.trunc(1); // returns vector [1]</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;Self after truncating.</p>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>B Self after truncating.</p>
                 </dd>
               </dl>
               <h3 id="unshift"><span class="symbol-name">unshift</span><span class="signature"><span class="signature-params">(...args)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Adds elements to the beginning of the vector.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import la module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new vector
-var vec = new la.Vector([1, 2, 3]);
+var vec &#x3D; new la.Vector([1, 2, 3]);
 // add two elements to the beggining of the vector
-var len = vec.unshift(4, 5); // returns 5</code></pre>
+var len &#x3D; vec.unshift(4, 5); // returns 5</code></pre>
                 </div>
               </section>
               <section>
@@ -1521,7 +1530,7 @@ var len = vec.unshift(4, 5); // returns 5</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;The new length of vector.</p>
+                  <p><code>number</code>B The new length of vector.</p>
                 </dd>
               </dl>
             </section>
@@ -1539,7 +1548,6 @@ var len = vec.unshift(4, 5); // returns 5</code></pre>
     </div>
   </footer>
   <script src="scripts/jquery.min.js"></script>
-  <script src="scripts/jquery.cookie.js"></script>
   <script src="scripts/tree.jquery.js"></script>
   <script src="scripts/prettify.js"></script>
   <script src="scripts/jsdoc-toc.js"></script>

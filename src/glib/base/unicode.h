@@ -154,7 +154,7 @@ public:
 
     // The following wrappers around the UTF-8 encoder return a TStr containing
     // the UTF-8-encoded version of the input string.
-    template<typename TSrcVec> TStr EncodeUtf8Str(const TSrcVec& src, size_t srcIdx, const size_t srcCount) const { TVec<char> temp; EncodeUtf8(src, srcIdx, srcCount, temp); TStr retVal = &(temp[0]); return retVal; }
+    template<typename TSrcVec> TStr EncodeUtf8Str(const TSrcVec& src, size_t srcIdx, const size_t srcCount) const { TVec<char> temp; EncodeUtf8(src, srcIdx, srcCount, temp); temp.Add(0); TStr retVal = &(temp[0]); return retVal; }
     template<typename TSrcVec> TStr EncodeUtf8Str(const TSrcVec& src) const { TVec<char> temp; EncodeUtf8(src, temp); temp.Add(0); TStr retVal = &(temp[0]); return retVal; }
 
     //-----------------------------------------------------------------------

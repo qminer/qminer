@@ -8,7 +8,7 @@
 
 // console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js'); //adds assert.run function
-var qm = require('qminer');
+var qm = require('../../index.js');
 var fs = qm.fs;
 // test feature construction
 var analytics = qm.analytics;
@@ -56,21 +56,21 @@ describe('Time series test, old', function() {
 
 		// test empty stores
 		var TimeSeries = base.store("TimeSeries");
-		assert.equal(TimeSeries.name, "TimeSeries", "TimeSeries.name");
+		assert.strictEqual(TimeSeries.name, "TimeSeries", "TimeSeries.name");
 		assert.ok(TimeSeries.empty, "TimeSeries.empty");
-		assert.equal(TimeSeries.length, 0, "TimeSeries.length");
-		assert.equal(TimeSeries.allRecords.length, 0, "TimeSeries.allRecords.length");
-		assert.equal(TimeSeries.fields.length, 2, "TimeSeries.fields.length");
-		assert.equal(TimeSeries.joins.length, 0, "TimeSeries.joins.length");
-		assert.equal(TimeSeries.keys.length, 0, "TimeSeries.keys.length");
+		assert.strictEqual(TimeSeries.length, 0, "TimeSeries.length");
+		assert.strictEqual(TimeSeries.allRecords.length, 0, "TimeSeries.allRecords.length");
+		assert.strictEqual(TimeSeries.fields.length, 2, "TimeSeries.fields.length");
+		assert.strictEqual(TimeSeries.joins.length, 0, "TimeSeries.joins.length");
+		assert.strictEqual(TimeSeries.keys.length, 0, "TimeSeries.keys.length");
 		var Resampled = base.store("Resampled");
-		assert.equal(Resampled.name, "Resampled", "Resampled.name");
+		assert.strictEqual(Resampled.name, "Resampled", "Resampled.name");
 		assert.ok(Resampled.empty, "Resampled.empty");
-		assert.equal(Resampled.length, 0, "Resampled.length");
-		assert.equal(Resampled.allRecords.length, 0, "Resampled.allRecords.length");
-		assert.equal(Resampled.fields.length, 3, "Resampled.fields.length");
-		assert.equal(Resampled.joins.length, 0, "Resampled.joins.length");
-		assert.equal(Resampled.keys.length, 0, "Resampled.keys.length");
+		assert.strictEqual(Resampled.length, 0, "Resampled.length");
+		assert.strictEqual(Resampled.allRecords.length, 0, "Resampled.allRecords.length");
+		assert.strictEqual(Resampled.fields.length, 3, "Resampled.fields.length");
+		assert.strictEqual(Resampled.joins.length, 0, "Resampled.joins.length");
+		assert.strictEqual(Resampled.keys.length, 0, "Resampled.keys.length");
 
 		// insert triggers
 		var TimeSeriesAdd = 0;
@@ -149,24 +149,24 @@ describe('Time series test, old', function() {
 
 		// insert a meassurement
 		// 1.26946,2012-01-08T22:00:14.153
-		assert.equal(TimeSeries.push({
+		assert.strictEqual(TimeSeries.push({
 			"Time": "2012-01-08T22:00:14.153",
 			"Value": 1.26946
 		}), 0, "TimeSeries.push");
-		assert.equal(TimeSeries.length, 1, "TimeSeries.length");
+		assert.strictEqual(TimeSeries.length, 1, "TimeSeries.length");
 		assert.exists(TimeSeries[0], "TimeSeries[0]");
-		assert.equal(TimeSeries[0].Time.toJSON(), "2012-01-08T22:00:14.153Z", "TimeSeries[0].Time.toJSON()");
-		assert.equal(TimeSeries[0].Value, 1.26946, "TimeSeries[0].Value");
+		assert.strictEqual(TimeSeries[0].Time.toJSON(), "2012-01-08T22:00:14.153Z", "TimeSeries[0].Time.toJSON()");
+		assert.strictEqual(TimeSeries[0].Value, 1.26946, "TimeSeries[0].Value");
 		// insert another measurement
 		// 1.26947,2012-01-08T22:00:14.497
-		assert.equal(TimeSeries.push({
+		assert.strictEqual(TimeSeries.push({
 			"Time": "2012-01-08T22:00:14.497",
 			"Value": 1.26947
 		}), 1, "TimeSeries.push");
-		assert.equal(TimeSeries.length, 2, "TimeSeries.length");
+		assert.strictEqual(TimeSeries.length, 2, "TimeSeries.length");
 		assert.exists(TimeSeries[1], "TimeSeries[1]");
-		assert.equal(TimeSeries[1].Time.toJSON(), "2012-01-08T22:00:14.497Z", "TimeSeries[1].Time.toJSON()");
-		assert.equal(TimeSeries[1].Value, 1.26947, "TimeSeries[1].Value");
+		assert.strictEqual(TimeSeries[1].Time.toJSON(), "2012-01-08T22:00:14.497Z", "TimeSeries[1].Time.toJSON()");
+		assert.strictEqual(TimeSeries[1].Value, 1.26947, "TimeSeries[1].Value");
 
 
 		// load from file
@@ -185,7 +185,7 @@ describe('Time series test, old', function() {
 					"Value": parseFloat(vals[0])
 				};
 				var length = TimeSeries.length;
-				assert.equal(TimeSeries.push(rec), length, "TimeSeries.add(rec)");
+				assert.strictEqual(TimeSeries.push(rec), length, "TimeSeries.add(rec)");
 				assert.exists(TimeSeries[length], "TimeSeries[length]");
 			} catch (err) {
 				console.log("TimeSeries", err);

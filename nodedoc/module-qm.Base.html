@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.1</a>
       </div>
     </div>
   </nav>
@@ -24,7 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Base</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Base</span></h1>
             <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-363">qminerdoc.<wbr>js:363</a></p>
             <div class="symbol-classdesc">
               <p>Represents the database and holds stores.</p>
@@ -98,13 +99,13 @@
             <p>Base</p>
             <section>
               <h3>
-            Example
-        </h3>
+                Example
+              </h3>
               <div>
                 <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // using a constructor, in open mode
-var base = new qm.Base({ mode: &#x27;open&#x27; });
+var base &#x3D; new qm.Base({ mode: &#x27;open&#x27; });
 base.close();</code></pre>
               </div>
             </section>
@@ -147,13 +148,13 @@ base.close();</code></pre>
               <p>Closes the database.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // using a constructor, in open mode
-var base = new qm.Base({ mode: &#x27;open&#x27; });
+var base &#x3D; new qm.Base({ mode: &#x27;open&#x27; });
 // close the database
 base.close();</code></pre>
                 </div>
@@ -161,20 +162,20 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>null</code>&nbsp;No value is returned.</p>
+                  <p><code>null</code>B No value is returned.</p>
                 </dd>
               </dl>
               <h3 id="createStore"><span class="symbol-name">createStore</span><span class="signature"><span class="signature-params">(storeDef[, storeSizeInMB])</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-qm.Store.html">module:qm.Store</a> or Array of <a href="module-qm.Store.html">module:qm.Store</a>)</span></span></h3>
               <p>Creates a new store.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base with one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [
    {
@@ -262,7 +263,7 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(<a href="module-qm.Store.html">module:qm.Store</a> or Array of <a href="module-qm.Store.html">module:qm.Store</a>)</code>&nbsp;- Returns a store or an array of stores (if the schema definition was an array).</p>
+                  <p><code>(<a href="module-qm.Store.html">module:qm.Store</a> or Array of <a href="module-qm.Store.html">module:qm.Store</a>)</code>B - Returns a store or an array of stores (if the schema definition was an array).</p>
                 </dd>
               </dl>
               <h3 id="garbageCollect"><span class="symbol-name">garbageCollect</span><span class="signature"><span class="signature-params">([max_time])</span></span></h3>
@@ -303,13 +304,13 @@ base.close();</code></pre>
               <p>Retrieves performance statistics for qminer.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a base with two stores
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [
    {
@@ -336,20 +337,20 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.html#~PerformanceStatBase">module:qm~PerformanceStatBase</a></code>&nbsp;The performance statistics.</p>
+                  <p><code><a href="module-qm.html#~PerformanceStatBase">module:qm~PerformanceStatBase</a></code>B The performance statistics.</p>
                 </dd>
               </dl>
               <h3 id="getStoreList"><span class="symbol-name">getStoreList</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Array of object</span></span></h3>
               <p>Returns a list of store descriptors.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a base with two stores
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [
    {
@@ -369,33 +370,34 @@ var base = new qm.Base({
    }]
 });
 // get the list of store descriptors
-var exists = base.getStoreList();
+var exists &#x3D; base.getStoreList();
 base.close();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Array of object</code>&nbsp;An array of store descriptors. The store descriptor <code>storeDesc</code> contains the properties:
+                  <p><code>Array of object</code>B An array of store descriptors. The store descriptor <code>storeDesc</code> contains the properties:
                     <br>1. <code>storeDesc.storeId</code> - The store ID. Type <code>number</code>.
                     <br>2. <code>storeDesc.storeName</code> - Store name. Type <code>string</code>.
                     <br>3. <code>storeDesc.storeRecords</code> - Number of records in store. Type <code>number</code>.
                     <br>4. <code>storeDesc.fields</code> - The store field schema. Type <code>Array of <a href="module-qm.html#~SchemaFieldDef">module:qm.SchemaFieldDef</a></code>.
                     <br>5. <code>storeDesc.keys</code> - The store key schema. Type <code>Array of <a href="module-qm.html#~SchemaKeyDef">module:qm.SchemaKeyDef</a></code>.
-                    <br>6. <code>storeDesc.joins</code> - The store join schema. Type <code>Array of <a href="module-qm.html#~SchemaJoinDef">module:qm.SchemaJoinDef</a></code>.</p>
+                    <br>6. <code>storeDesc.joins</code> - The store join schema. Type <code>Array of <a href="module-qm.html#~SchemaJoinDef">module:qm.SchemaJoinDef</a></code>.
+                  </p>
                 </dd>
               </dl>
               <h3 id="getStreamAggr"><span class="symbol-name">getStreamAggr</span><span class="signature"><span class="signature-params">(saName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></span></span></h3>
               <p>Gets the stream aggregate of the given name.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a simple base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;People&quot;,
@@ -414,7 +416,7 @@ var base = new qm.Base({
 });
 
 // create a new time series window buffer stream aggregator for &#x27;Laser&#x27; store (with the JSON object)
-var wavelength = {
+var wavelength &#x3D; {
     name: &quot;WaveLengthLaser&quot;,
     type: &quot;timeSeriesWinBuf&quot;,
     store: &quot;Laser&quot;,
@@ -422,9 +424,9 @@ var wavelength = {
     value: &quot;WaveLength&quot;,
     winsize: 10000
 }
-var sa = base.store(&quot;Laser&quot;).addStreamAggr(wavelength);
+var sa &#x3D; base.store(&quot;Laser&quot;).addStreamAggr(wavelength);
 // get the stream aggregate with the name &#x27;Laser&#x27;
-var streamAggr = base.getStreamAggr(&#x27;WaveLengthLaser&#x27;);
+var streamAggr &#x3D; base.getStreamAggr(&#x27;WaveLengthLaser&#x27;);
 base.close();</code></pre>
                 </div>
               </section>
@@ -460,20 +462,20 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></code>&nbsp;The stream aggregate whose name is <code>saName</code>.</p>
+                  <p><code><a href="module-qm.StreamAggr.html">module:qm.StreamAggr</a></code>B The stream aggregate whose name is <code>saName</code>.</p>
                 </dd>
               </dl>
               <h3 id="getStreamAggrNames"><span class="symbol-name">getStreamAggrNames</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Array of string</span></span></h3>
               <p>Gets an array of the stream aggregate names in the base.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a simple base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;People&quot;,
@@ -492,19 +494,19 @@ var base = new qm.Base({
 });
 
 // create a new stream aggregator for &#x27;People&#x27; store, get the length of the record name (with the function object)
-var aggr = new qm.StreamAggr(base, new function () {
-   var length = 0;
-   this.name = &#x27;nameLength&#x27;,
-   this.onAdd = function (rec) {
-       length = rec.Name.length;
+var aggr &#x3D; new qm.StreamAggr(base, new function () {
+   var length &#x3D; 0;
+   this.name &#x3D; &#x27;nameLength&#x27;,
+   this.onAdd &#x3D; function (rec) {
+       length &#x3D; rec.Name.length;
    };
-   this.saveJson = function (limit) {
+   this.saveJson &#x3D; function (limit) {
        return { val: length };
    }
 }, &quot;People&quot;);
 
 // create a new time series window buffer stream aggregator for &#x27;Laser&#x27; store (with the JSON object)
-var wavelength = {
+var wavelength &#x3D; {
     name: &quot;WaveLengthLaser&quot;,
     type: &quot;timeSeriesWinBuf&quot;,
     store: &quot;Laser&quot;,
@@ -512,16 +514,16 @@ var wavelength = {
     value: &quot;WaveLength&quot;,
     winsize: 10000
 }
-var sa = base.store(&quot;Laser&quot;).addStreamAggr(wavelength);
+var sa &#x3D; base.store(&quot;Laser&quot;).addStreamAggr(wavelength);
 // get the stream aggregates names
-var streamAggrNames = base.getStreamAggrNames();
+var streamAggrNames &#x3D; base.getStreamAggrNames();
 base.close();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Array of string</code>&nbsp;The array containing the stream aggregate names.</p>
+                  <p><code>Array of string</code>B The array containing the stream aggregate names.</p>
                 </dd>
               </dl>
               <h3 id="getStreamAggrStats"><span class="symbol-name">getStreamAggrStats</span><span class="signature"><span class="signature-params">()</span></span></h3>
@@ -532,15 +534,15 @@ base.close();</code></pre>
               <p>Checks if the base is closed.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // using a constructor, in open mode
-var base = new qm.Base({ mode: &#x27;open&#x27; });
+var base &#x3D; new qm.Base({ mode: &#x27;open&#x27; });
 // check if the base is closed
-var closed = base.isClosed();
+var closed &#x3D; base.isClosed();
 // close the database
 base.close();</code></pre>
                 </div>
@@ -548,20 +550,20 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Boolean</code>&nbsp;Returns <code>true</code>, if the base is closed.</p>
+                  <p><code>Boolean</code>B Returns <code>true</code>, if the base is closed.</p>
                 </dd>
               </dl>
               <h3 id="isStore"><span class="symbol-name">isStore</span><span class="signature"><span class="signature-params">(name)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
               <p>Checks if there is a store.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a base with two stores
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [
    {
@@ -581,7 +583,7 @@ var base = new qm.Base({
    }]
 });
 // get the &quot;KwikEMart&quot; store
-var exists = base.isStore(&quot;KwikEMart&quot;);    // true
+var exists &#x3D; base.isStore(&quot;KwikEMart&quot;);    // true
 base.close();</code></pre>
                 </div>
               </section>
@@ -617,7 +619,7 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>boolean</code>&nbsp;True, if there exists a store with the store <code>name</code>. Otherwise, false.</p>
+                  <p><code>boolean</code>B True, if there exists a store with the store <code>name</code>. Otherwise, false.</p>
                 </dd>
               </dl>
               <h3 id="loadCSV"><span class="symbol-name">loadCSV</span><span class="signature"><span class="signature-params">(opts[, callback])</span></span></h3>
@@ -671,13 +673,13 @@ base.close();</code></pre>
               <p>Base saves dirty data given some time window.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a base with two stores
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [
    {
@@ -734,7 +736,7 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Number of records it flushed.</p>
+                  <p><code>number</code>B Number of records it flushed.</p>
                 </dd>
               </dl>
               <h3 id="search"><span class="symbol-name">search</span><span class="signature"><span class="signature-params">(query)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
@@ -771,20 +773,20 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;The record set that matches the search criterion.</p>
+                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>B The record set that matches the search criterion.</p>
                 </dd>
               </dl>
               <h3 id="store"><span class="symbol-name">store</span><span class="signature"><span class="signature-params">(name)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Store.html">module:qm.Store</a></span></span></h3>
               <p>Returns the store with the specified name.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a base with two stores
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [
    {
@@ -804,7 +806,7 @@ var base = new qm.Base({
    }]
 });
 // get the &quot;KwikEMart&quot; store
-var store = base.store(&quot;KwikEMart&quot;); // returns the store with the name &quot;KwikEMart&quot;
+var store &#x3D; base.store(&quot;KwikEMart&quot;); // returns the store with the name &quot;KwikEMart&quot;
 base.close();</code></pre>
                 </div>
               </section>
@@ -840,7 +842,7 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.Store.html">module:qm.Store</a></code>&nbsp;The store.</p>
+                  <p><code><a href="module-qm.Store.html">module:qm.Store</a></code>B The store.</p>
                 </dd>
               </dl>
             </section>
@@ -858,7 +860,6 @@ base.close();</code></pre>
     </div>
   </footer>
   <script src="scripts/jquery.min.js"></script>
-  <script src="scripts/jquery.cookie.js"></script>
   <script src="scripts/tree.jquery.js"></script>
   <script src="scripts/prettify.js"></script>
   <script src="scripts/jsdoc-toc.js"></script>

@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.1</a>
       </div>
     </div>
   </nav>
@@ -24,10 +24,14 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>~<wbr><a href="module-analytics-preprocessing.html">preprocessing</a>.<wbr></small><span class="symbol-name">Binarizer</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-analytics.html">analytics</a>~<wbr><a href="module-analytics-preprocessing.html">preprocessing</a>.<wbr></small><span class="symbol-name">Binarizer</span></h1>
             <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-2947">analyticsdoc.<wbr>js:2947</a></p>
             <div class="symbol-classdesc">
-              <p>Transform given array of labels into binary vector with different numeric value for elements when label matches specified label and for other elements. By default, these values are +1 for matching labels, and -1 for the rest.</p>
+              <p>Transform given array of labels into binary vector with different
+                numeric value for elements when label matches specified label and
+                for other elements. By default, these values are +1 for matching
+                labels, and -1 for the rest.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -55,13 +59,13 @@
             <p>Transforming arrays with labels to vector appropriate for binary classifiers.</p>
             <section>
               <h3>
-            Example
-        </h3>
+                Example
+              </h3>
               <div>
                 <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create binarizer with &#x27;b&#x27; as positive label
-var binarizer = new analytics.preprocessing.Binarizer(&#x27;b&#x27;);</code></pre>
+var binarizer &#x3D; new analytics.preprocessing.Binarizer(&#x27;b&#x27;);</code></pre>
               </div>
             </section>
             <section>
@@ -147,15 +151,15 @@ var binarizer = new analytics.preprocessing.Binarizer(&#x27;b&#x27;);</code></pr
               <p>Transform given array of labels to binary numeric vector.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create binarizer with &#x27;b&#x27; as positive label
-var binarizer = new analytics.preprocessing.Binarizer(&#x27;b&#x27;);
+var binarizer &#x3D; new analytics.preprocessing.Binarizer(&#x27;b&#x27;);
 // get vector with binarized labels
-var bins = binarizer.transform([&#x27;a&#x27;,&#x27;b&#x27;,&#x27;a&#x27;,&#x27;c&#x27;]);</code></pre>
+var bins &#x3D; binarizer.transform([&#x27;a&#x27;,&#x27;b&#x27;,&#x27;a&#x27;,&#x27;c&#x27;]);</code></pre>
                 </div>
               </section>
               <section>
@@ -190,7 +194,7 @@ var bins = binarizer.transform([&#x27;a&#x27;,&#x27;b&#x27;,&#x27;a&#x27;,&#x27;
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>modul:la.Vector</code>&nbsp;Binarized vector.</p>
+                  <p><code>modul:la.Vector</code>B Binarized vector.</p>
                 </dd>
               </dl>
             </section>
@@ -208,7 +212,6 @@ var bins = binarizer.transform([&#x27;a&#x27;,&#x27;b&#x27;,&#x27;a&#x27;,&#x27;
     </div>
   </footer>
   <script src="scripts/jquery.min.js"></script>
-  <script src="scripts/jquery.cookie.js"></script>
   <script src="scripts/tree.jquery.js"></script>
   <script src="scripts/prettify.js"></script>
   <script src="scripts/jsdoc-toc.js"></script>

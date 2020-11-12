@@ -1,13 +1,14 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 #ifndef QMINER_LA_VEC_NODEJS_H
 #define QMINER_LA_VEC_NODEJS_H
 
+#include <nan.h>
 #include <node.h>
 #include <node_object_wrap.h>
 #include "base.h"
@@ -24,10 +25,10 @@ public:
     static v8::Local<v8::Value> GetObjVal(const double& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope HandleScope(Isolate);
-        return HandleScope.Escape(v8::Number::New(Isolate, Val));
+        return HandleScope.Escape(Nan::New(Val));
     }
     static double CastVal(v8::Local<v8::Context>& Context, const v8::Local<v8::Value>& Value) {
-        return Value->ToNumber(Context).ToLocalChecked()->Value();
+        return Nan::To<double>(Value).FromJust();
     }
     static void AssertType(const v8::Local<v8::Value>& Val) {
         EAssertR(Val->IsNumber(), ClassId + "::AssertType: Value expected to be a number");
@@ -46,7 +47,7 @@ public:
         return HandleScope.Escape(v8::Integer::New(Isolate, Val));
     }
     static int CastVal(v8::Local<v8::Context>& Context, const v8::Local<v8::Value>& Value) {
-        return Value->ToInt32(Context).ToLocalChecked()->Value();
+        return Nan::To<int>(Value).FromJust();
     }
     static void AssertType(const v8::Local<v8::Value>& Val) {
         EAssertR(Val->IsInt32(), ClassId + "::AssertType: Value expected to be an integer");
@@ -62,10 +63,11 @@ public:
     static v8::Local<v8::Value> GetObjVal(const TStr& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope HandleScope(Isolate);
-        return HandleScope.Escape(v8::String::NewFromUtf8(Isolate, Val.CStr()));
+        v8::MaybeLocal<v8::String> TmpString = TNodeJsUtil::ToLocal(Nan::New(Val.CStr()));
+        return HandleScope.Escape(TNodeJsUtil::ToLocal(TmpString));
     }
     static TStr CastVal(v8::Local<v8::Context>& Context, const v8::Local<v8::Value>& Value) {
-        v8::String::Utf8Value Utf8(Value);
+        Nan::Utf8String Utf8(Value);
         return TStr(*Utf8);
     }
     static void AssertType(const v8::Local<v8::Value>& Val) {
@@ -82,10 +84,10 @@ public:
     static v8::Local<v8::Value> GetObjVal(const TBool& Val) {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::EscapableHandleScope HandleScope(Isolate);
-        return v8::Boolean::New(Isolate, Val);
+        return Nan::New(Val);
     }
     static bool CastVal(v8::Local<v8::Context>& Context, const v8::Local<v8::Value>& Value) {
-        return Value->ToBoolean(Context).ToLocalChecked()->Value();
+        return Nan::To<bool>(Value).FromJust();
     }
     static void AssertType(const v8::Local<v8::Value>& Val) {
         EAssertR(Val->IsBoolean(), ClassId + "::AssertType: Value expected to be a boolean");
@@ -117,7 +119,7 @@ public:
 
 template <class TVal = TFlt, class TAux = TAuxFltV>
 class TJsVecComparator {
-private:    
+private:
     // Callbacks
     v8::Persistent<v8::Function> Callback;
 public:
@@ -128,7 +130,7 @@ public:
     bool operator()(const TVal& Val1, const TVal& Val2) const {
         v8::Isolate* Isolate = v8::Isolate::GetCurrent();
         v8::HandleScope HandleScope(Isolate);
-        
+
         // prepare arguments
         v8::Local<v8::Value> Arg1 = TAux::GetObjVal(Val1);
         v8::Local<v8::Value> Arg2 = TAux::GetObjVal(Val2);
@@ -138,11 +140,16 @@ public:
         const unsigned Argc = 2;
         v8::Local<v8::Value> ArgV[Argc] = { Arg1, Arg2 };
         v8::TryCatch TryCatch(Isolate);
-        v8::Local<v8::Value> ReturnVal = Callbck->Call(GlobalContext, Argc, ArgV);
+        v8::MaybeLocal<v8::Value> Tmp = Nan::Call(Callbck, GlobalContext, Argc, ArgV);
         TNodeJsUtil::CheckJSExcept(TryCatch);
 
-        EAssertR(ReturnVal->IsBoolean() || ReturnVal->IsNumber(), "Comparator callback must return a boolean or a number!");
-        return ReturnVal->IsBoolean() ? ReturnVal->BooleanValue() : ReturnVal->NumberValue() < 0;
+        if (Tmp.IsEmpty()) {
+            Isolate->ThrowException(TryCatch.Exception());
+        } else {
+            v8::Local<v8::Value> ReturnVal = TNodeJsUtil::ToLocal(Tmp);
+            EAssertR(ReturnVal->IsBoolean() || ReturnVal->IsNumber(), "Comparator callback must return a boolean or a number!");
+            return ReturnVal->IsBoolean() ? Nan::To<bool>(ReturnVal).FromJust() : Nan::To<double>(ReturnVal).FromJust() < 0;
+        }
     }
 };
 
@@ -169,7 +176,7 @@ template <class TVal = TFlt, class TAux = TAuxFltV>
 class TNodeJsVec : public node::ObjectWrap {
     friend class TNodeJsUtil;
     friend class TNodeJsFltVV;
-public: // So we can register the class 
+public: // So we can register the class
     const static TStr GetClassId() { return TAux::ClassId; }
 
     static void Init(v8::Local<v8::Object> exports);
@@ -186,8 +193,8 @@ public: // So we can register the class
         v8::Local<v8::Object> Instance;
         EAssertR(MaybeInstance.ToLocal(&Instance), "TNodeJsVec<TFlt, TAuxFltV>::New: failed to create instance (empty)");
 
-        v8::Local<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-        v8::Local<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxFltV::ClassId.CStr());
+        v8::Local<v8::String> Key = TNodeJsUtil::ToLocal(Nan::New("class"));
+        v8::Local<v8::String> Value = TNodeJsUtil::ToLocal(Nan::New(TAuxFltV::ClassId.CStr()));
         TNodeJsUtil::SetPrivate(Instance, Key, Value);
 
         int Len = IntV.Len();
@@ -211,8 +218,8 @@ public: // So we can register the class
         v8::Local<v8::Object> Instance;
         EAssertR(MaybeInstance.ToLocal(&Instance), "TNodeJsVec<TInt, TAuxFltV>::New: failed to create instance (empty)");
 
-        v8::Local<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-        v8::Local<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAuxIntV::ClassId.CStr());
+        v8::Local<v8::String> Key = TNodeJsUtil::ToLocal(Nan::New("class"));
+        v8::Local<v8::String> Value = TNodeJsUtil::ToLocal(Nan::New(TAuxIntV::ClassId.CStr()));
         TNodeJsUtil::SetPrivate(Instance, Key, Value);
 
         int Len = FltV.Len();
@@ -238,8 +245,8 @@ public:
 public:
     JsDeclareFunction(New);
 private:
-    
-    
+
+
     //# var <% className %>DefaultVal = <% defaultVal %>; // for intellisense
 
     /**
@@ -256,7 +263,7 @@ private:
     */
     //# exports.<% className %>.prototype.at = function(number) { return <% className %>DefaultVal; }
     JsDeclareFunction(at);
-    
+
     /**
     * Returns a subvector.
     * @param {(Array.<number> | module:la.IntVector)} arg - Index array or vector. Indices can repeat (zero based).
@@ -271,10 +278,10 @@ private:
     */
     //# <% skipSubVec %>exports.<% className %>.prototype.subVec = function (arg) { return Object.create(this); }
     JsDeclareFunction(subVec);
-    
+
     //!- `num = vec[idx]; vec[idx] = num` -- get value `num` at index `idx`, set value at index `idx` to `num` of vector `vec`(0-based indexing)
     JsDeclareSetIndexedProperty(indexGet, indexSet);
-        
+
     /**
     * Sets an element in vector.
     * @param {number} idx - Index (zero based).
@@ -290,7 +297,7 @@ private:
     */
     //# exports.<% className %>.prototype.put = function (idx, val) { return this;}
     JsDeclareFunction(put);
-        
+
     /**
     * Adds an element to the end of the vector.
     * @param {<% elementType %>} val - The element added to the vector.
@@ -305,7 +312,7 @@ private:
     */
     //# exports.<% className %>.prototype.push = function (val) { return 0; }
     JsDeclareFunction(push);
-        
+
     /**
     * Changes the vector by removing and adding elements.
     * @param {number} start - Index at which to start changing the array.
@@ -353,7 +360,7 @@ private:
     //# exports.<% className %>.prototype.pushV = function (vec) { return 0; }
     JsDeclareFunction(pushV);
 
-    /** 
+    /**
     * Sums the elements in the vector.
     * @returns {number} The sum of all elements in the instance.
     * @example
@@ -376,7 +383,7 @@ private:
     * var vec = new la.<% className %>(<% example1 %>);
     * // get the index of the maximum value
     * var idx = vec.getMaxIdx();
-    * 
+    *
     */
     //# <% skipGetMaxIdx %>exports.<% className %>.prototype.getMaxIdx = function () { return 0; }
     JsDeclareSpecializedFunction(getMaxIdx);
@@ -388,12 +395,12 @@ private:
     * @param {<% elementType %>} arg2 - Second argument.
     * @returns {(number | boolean)} If `<% sortCallback %>(arg1, arg2)` is less than 0 or false, sort `arg1` to a lower index than `arg2`, i.e. `arg1` comes first.
     */
-    
+
     /**
     * Sorts the vector (in place operation).
     * @param {(module:la~<% sortCallback %> | boolean)} [arg] - Sort callback or a boolean ascend flag. Default is boolean and true.
     * @returns {module:la.<% className %>} Self.
-    * <br>1. Vector sorted in ascending order, if `arg` is boolean and true.  
+    * <br>1. Vector sorted in ascending order, if `arg` is boolean and true.
     * <br>2. Vector sorted in descending order, if `arg` is boolean and false.
     * <br>3. Vector sorted by using the comparator callback, if `arg` is a {@link module:la~<% sortCallback %>}.
     * @example
@@ -405,7 +412,7 @@ private:
     * // sort using callback
     * vec.sort(<% inputSort %>); // sorts to: <% outputSort %>
     */
-    //# <% skipSort %>exports.<% className %>.prototype.sort = function (bool) { return this; } 
+    //# <% skipSort %>exports.<% className %>.prototype.sort = function (bool) { return this; }
     JsDeclareFunction(sort);
 
     /**
@@ -424,7 +431,7 @@ private:
     * result.vec;  // <% outputSortAsc %>
     * result.perm; // permutation index vector
     */
-    //# <% skipSort %>exports.<% className %>.prototype.sortPerm = function (asc) { return {vec: Object.create(this), perm: Object.create(require('qminer').la.IntVector.prototype) }; } 
+    //# <% skipSort %>exports.<% className %>.prototype.sortPerm = function (asc) { return {vec: Object.create(this), perm: Object.create(require('qminer').la.IntVector.prototype) }; }
     JsDeclareSpecializedFunction(sortPerm);
 
     /**
@@ -434,7 +441,7 @@ private:
     * // import la module
     * var la = require('qminer').la;
     * // create a new vector
-    * var vec = new la.<% className %>(<% exampleSort %>); 
+    * var vec = new la.<% className %>(<% exampleSort %>);
     * // shuffle the elements
     * vec.shuffle();
     */
@@ -452,9 +459,9 @@ private:
     * // trunc all elements with index 1 or more
     * vec.trunc(1); // returns vector <% output3 %>
     */
-    //# exports.<% className %>.prototype.trunc = function (idx) { return this; } 
+    //# exports.<% className %>.prototype.trunc = function (idx) { return this; }
     JsDeclareFunction(trunc);
-    
+
     /**
     * Creates a dense matrix A by multiplying two vectors x and y: `A = x * y^T`.
     * @param {module:la.<% className %>} vec - Second vector.
@@ -469,7 +476,7 @@ private:
     */
     //# <% skipOuter %>exports.<% className %>.prototype.outer = function (vec) { return Object.create(require('qminer').la.Matrix.prototype); }
     JsDeclareSpecializedFunction(outer);
-    
+
     /**
     * Computes the inner product.
     * @param {module:la.Vector} vec - Other vector.
@@ -550,11 +557,11 @@ private:
     * @example
     * var la = require('qminer').la;
     * // create a new vector
-    * var x = new la.Vector([4, 5, -1]); 
+    * var x = new la.Vector([4, 5, -1]);
     * // normalize the vector
     * x.normalize();
     */
-    //# <% skipNormalize %>exports.Vector.prototype.normalize = function () { return this; } 
+    //# <% skipNormalize %>exports.Vector.prototype.normalize = function () { return this; }
     JsDeclareSpecializedFunction(normalize);
 
     /**
@@ -701,7 +708,7 @@ private:
     //# <% skipSave %>exports.<% className %>.prototype.saveascii = function (fout) {  return Object.create(require('qminer').fs.FOut.prototype); }
 
     JsDeclareFunction(saveascii);
-    
+
     /**
     * Loads the vector from input stream (ascii deserialization).
     * @param {module:fs.FIn} fin - Input stream.
@@ -747,8 +754,8 @@ inline v8::Local<v8::Object> TNodeJsVec<TVal, TAux>::New(const TVec<TVal>& ValV)
     v8::Local<v8::Object> Instance;
     EAssertR(MaybeInstance.ToLocal(&Instance), "TNodeJsVec<TVal, TAux>::New: failed to create instance (empty)");
 
-    v8::Local<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-    v8::Local<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAux::ClassId.CStr());
+    v8::Local<v8::String> Key = TNodeJsUtil::ToLocal(Nan::New("class"));
+    v8::Local<v8::String> Value = TNodeJsUtil::ToLocal(Nan::New(TAux::ClassId.CStr()));
     TNodeJsUtil::SetPrivate(Instance, Key, Value);
 
     TNodeJsVec<TVal, TAux>* JsVec = new TNodeJsVec<TVal, TAux>(ValV);
@@ -765,11 +772,12 @@ inline v8::Local<v8::Object> TNodeJsVec<TVal, TAux>::New(const TVec<T>&) {
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::Init(v8::Local<v8::Object> exports) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::Local<v8::Context> context = Nan::GetCurrentContext();
 
     TStr Name = TAux::ClassId;
 
     v8::Local<v8::FunctionTemplate> tpl = v8::FunctionTemplate::New(Isolate, _New);
-    tpl->SetClassName(v8::String::NewFromUtf8(Isolate, Name.CStr()));
+    tpl->SetClassName(TNodeJsUtil::ToLocal(Nan::New(Name.CStr())));
     // ObjectWrap uses the first internal field to store the wrapped pointer.
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
@@ -805,20 +813,20 @@ void TNodeJsVec<TVal, TAux>::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "saveascii", _saveascii);
     NODE_SET_PROTOTYPE_METHOD(tpl, "loadascii", _loadascii);
 
-    // Properties 
+    // Properties
     tpl->InstanceTemplate()->SetIndexedPropertyHandler(_indexGet, _indexSet);
-    tpl->InstanceTemplate()->SetAccessor(v8::String::NewFromUtf8(Isolate, "length"), _length);
+    tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("length")), _length);
 
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript.
-    Constructor.Reset(Isolate, tpl->GetFunction());
+    Constructor.Reset(Isolate, TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
 #ifndef MODULE_INCLUDE_LA
-    exports->Set(v8::String::NewFromUtf8(Isolate, Name.CStr()),
-        tpl->GetFunction());
+    Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(Name.CStr())),
+        TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
 #endif
 }
 
-// Returns i = arg max_i v[i] for a vector v 
+// Returns i = arg max_i v[i] for a vector v
 template <>
 inline void TNodeJsVec<TFlt, TAuxFltV>::getMaxIdx(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -862,8 +870,8 @@ inline void TNodeJsVec<TFlt, TAuxFltV>::sortPerm(const v8::FunctionCallbackInfo<
     TIntV PermV;
     TVec<TFlt>::SortGetPerm(JsVec->Vec, SortedV, PermV, Asc);
     v8::Local<v8::Object> Obj = v8::Object::New(Isolate);
-    Obj->Set(v8::String::NewFromUtf8(Isolate, "vec"), New(SortedV));
-    Obj->Set(v8::String::NewFromUtf8(Isolate, "perm"), TNodeJsVec<TInt, TAuxIntV>::New(PermV));
+    Nan::Set(Obj, TNodeJsUtil::ToLocal(Nan::New("vec")), New(SortedV));
+    Nan::Set(Obj, TNodeJsUtil::ToLocal(Nan::New("perm")), TNodeJsVec<TInt, TAuxIntV>::New(PermV));
     Args.GetReturnValue().Set(Obj);
 }
 
@@ -880,7 +888,7 @@ inline void TNodeJsVec<TFlt, TAuxFltV>::outer(const v8::FunctionCallbackInfo<v8:
 
     TFltVV ResMat;
     TNodeJsVec<TFlt, TAuxFltV>* JsArgVec =
-        ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV>>(Args[0]->ToObject());
+        ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV>>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
     ResMat.Gen(JsVec->Vec.Len(), JsArgVec->Vec.Len());
 
     TLinAlg::OuterProduct(JsVec->Vec, JsArgVec->Vec, ResMat);
@@ -898,11 +906,11 @@ inline void TNodeJsVec<TFlt, TAuxFltV>::inner(const v8::FunctionCallbackInfo<v8:
     double Result = 0.0;
     if (Args[0]->IsObject()) {
         TNodeJsVec<TFlt, TAuxFltV>* OthVec =
-            ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
+            ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
         Result = TLinAlg::DotProduct(OthVec->Vec, JsVec->Vec);
     }
 
-    Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
+    Args.GetReturnValue().Set(Nan::New(Result));
 }
 
 template<>
@@ -915,11 +923,11 @@ inline void TNodeJsVec<TFlt, TAuxFltV>::cosine(const v8::FunctionCallbackInfo<v8
     double Result = 0.0;
     if (Args[0]->IsObject()) {
         TNodeJsVec<TFlt, TAuxFltV>* OthVec =
-            ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
+            ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
         Result = TLinAlg::DotProduct(OthVec->Vec, JsVec->Vec);
         Result /= (TLinAlg::Norm(JsVec->Vec)* TLinAlg::Norm(OthVec->Vec));
     }
-    Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
+    Args.GetReturnValue().Set(Nan::New(Result));
 }
 
 template <>
@@ -933,7 +941,7 @@ inline void TNodeJsVec<TFlt, TAuxFltV>::plus(const v8::FunctionCallbackInfo<v8::
     TNodeJsVec<TFlt, TAuxFltV>* JsVec =
         ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.Holder());
     TNodeJsVec<TFlt, TAuxFltV>* OthVec =
-        ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
+        ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
     TFltV Result(JsVec->Vec.Len());
     TLinAlg::LinComb(1.0, JsVec->Vec, 1.0, OthVec->Vec, Result);
 
@@ -951,7 +959,7 @@ inline void TNodeJsVec<TFlt, TAuxFltV>::minus(const v8::FunctionCallbackInfo<v8:
     TNodeJsVec<TFlt, TAuxFltV>* JsVec =
         ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.Holder());
     TNodeJsVec<TFlt, TAuxFltV>* OthVec =
-        ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
+        ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
     TFltV Result; Result.Gen(JsVec->Vec.Len());
     TLinAlg::LinComb(1.0, JsVec->Vec, -1.0, OthVec->Vec, Result);
 
@@ -968,7 +976,7 @@ inline void TNodeJsVec<TFlt, TAuxFltV>::multiply(const v8::FunctionCallbackInfo<
 
     TNodeJsVec<TFlt, TAuxFltV>* JsVec =
         ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.Holder());
-    const double Scalar = Args[0]->NumberValue();
+    const double Scalar = Nan::To<double>(Args[0]).FromJust();
 
     TFltV Result;
     Result.Gen(JsVec->Vec.Len());
@@ -1032,7 +1040,7 @@ inline void TNodeJsVec<TFlt, TAuxFltV>::norm(const v8::FunctionCallbackInfo<v8::
     TNodeJsVec<TFlt, TAuxFltV>* JsVec =
         ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.This());
     const double Result = TLinAlg::Norm(JsVec->Vec);
-    Args.GetReturnValue().Set(v8::Number::New(Isolate, Result));
+    Args.GetReturnValue().Set(Nan::New(Result));
 }
 
 template<>
@@ -1042,7 +1050,7 @@ inline void TNodeJsVec<TFlt, TAuxFltV>::sparse(const v8::FunctionCallbackInfo<v8
 
     TNodeJsVec<TFlt, TAuxFltV>* JsVec =
         ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args.This());
-    
+
     int Dim = TNodeJsUtil::GetArgInt32(Args, 0, JsVec->Vec.Len());
     TIntFltKdV Res;
     TLinAlgTransform::ToSpVec(JsVec->Vec, Res);
@@ -1076,38 +1084,38 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
         //printf("vector construct call, class = %s, nargs: %d\n", TAux::ClassId.CStr(), Args.Length());
         TNodeJsVec<TVal, TAux>* JsVec = new TNodeJsVec<TVal, TAux>();
 
-        v8::Local<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-        v8::Local<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAux::ClassId.CStr());
+        v8::Local<v8::String> Key = TNodeJsUtil::ToLocal(Nan::New("class"));
+        v8::Local<v8::String> Value = TNodeJsUtil::ToLocal(Nan::New(TAux::ClassId.CStr()));
         v8::Local<v8::Object> Instance = Args.This();
 
-        // If we got Javascript array on the input: vector.new([1,2,3]) 
+        // If we got Javascript array on the input: vector.new([1,2,3])
         if (Args[0]->IsArray()) {
             //printf("vector construct call, class = %s, input array\n", TAux::ClassId.CStr());
             v8::Local<v8::Array> Arr = v8::Local<v8::Array>::Cast(Args[0]);
             const int Len = Arr->Length();
-            for (int ElN = 0; ElN < Len; ++ElN) { JsVec->Vec.Add(TAux::CastVal(Context, Arr->Get(ElN))); }
+            for (int ElN = 0; ElN < Len; ++ElN) { JsVec->Vec.Add(TAux::CastVal(Context, TNodeJsUtil::ToLocal(Nan::Get(Arr, ElN)))); }
         }
         else if (Args[0]->IsObject()) {
             if (TNodeJsUtil::IsArgWrapObj<TNodeJsFltV>(Args, 0)) {
                 //printf("vector construct call, class = %s, input TFltV\n", TAux::ClassId.CStr());
-                TNodeJsVec<TFlt, TAuxFltV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(Args[0]->ToObject());
+                TNodeJsVec<TFlt, TAuxFltV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TFlt, TAuxFltV> >(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
                 Args.GetReturnValue().Set(New(JsVecArg->Vec));
                 return;
             }
             else if (TNodeJsUtil::IsArgWrapObj<TNodeJsIntV>(Args, 0)) {
                 //printf("vector construct call, class = %s, input TIntV\n", TAux::ClassId.CStr());
-                TNodeJsVec<TInt, TAuxIntV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args[0]->ToObject());
+                TNodeJsVec<TInt, TAuxIntV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
                 Args.GetReturnValue().Set(New(JsVecArg->Vec));
                 return;
             }
             else if (TNodeJsUtil::IsArgWrapObj<TNodeJsStrV>(Args, 0)) {
                 //printf("vector construct call, class = %s, input TStrV\n", TAux::ClassId.CStr());
-                TNodeJsVec<TStr, TAuxStrV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TStr, TAuxStrV> >(Args[0]->ToObject());
+                TNodeJsVec<TStr, TAuxStrV>* JsVecArg = ObjectWrap::Unwrap<TNodeJsVec<TStr, TAuxStrV> >(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
                 Args.GetReturnValue().Set(New(JsVecArg->Vec));
                 return;
             }
             else if (TNodeJsUtil::IsArgWrapObj<TNodeJsBoolV>(Args, 0)) {
-                TNodeJsBoolV* JsBoolV = ObjectWrap::Unwrap<TNodeJsBoolV>(Args[0]->ToObject());
+                TNodeJsBoolV* JsBoolV = ObjectWrap::Unwrap<TNodeJsBoolV>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
                 Args.GetReturnValue().Set(New(JsBoolV->Vec));
                 return;
             }
@@ -1122,7 +1130,7 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
                 }
                 else { JsVec->Vec.Gen(Vals); }
             }
-        } // else return an empty vector 
+        } // else return an empty vector
 
         TNodeJsUtil::SetPrivate(Instance, Key, Value);
         JsVec->Wrap(Instance);
@@ -1136,15 +1144,15 @@ void TNodeJsVec<TVal, TAux>::New(const v8::FunctionCallbackInfo<v8::Value>& Args
         v8::Local<v8::Object> Instance;
         EAssertR(MaybeInstance.ToLocal(&Instance), "TNodeJsVec<TVal, TAux>::New: failed to create instance (empty)");
 
-        v8::Local<v8::String> Key = v8::String::NewFromUtf8(Isolate, "class");
-        v8::Local<v8::String> Value = v8::String::NewFromUtf8(Isolate, TAux::ClassId.CStr());
-        Instance->Set(Key, Value);
+        v8::Local<v8::String> Key = TNodeJsUtil::ToLocal(Nan::New("class"));
+        v8::Local<v8::String> Value = TNodeJsUtil::ToLocal(Nan::New(TAux::ClassId.CStr()));
+        Nan::Set(Instance, Key, Value);
 
         Args.GetReturnValue().Set(Instance);
     }
 }
 
-// Returns an element at index idx=Args[0]; assert 0 <= idx < v.length() 
+// Returns an element at index idx=Args[0]; assert 0 <= idx < v.length()
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::at(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -1153,7 +1161,7 @@ void TNodeJsVec<TVal, TAux>::at(const v8::FunctionCallbackInfo<v8::Value>& Args)
     TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
 
     EAssertR(Args.Length() >= 1 && Args[0]->IsInt32(), "Expected integer.");
-    const int Idx = Args[0]->Int32Value();
+    const int Idx = Nan::To<int>(Args[0]).FromJust();
 
     EAssertR(Idx >= 0 && Idx < JsVec->Vec.Len(), "Index out of bounds.");
     Args.GetReturnValue().Set(TAux::GetObjVal(JsVec->Vec[Idx]));
@@ -1170,9 +1178,9 @@ void TNodeJsVec<TVal, TAux>::subVec(const v8::FunctionCallbackInfo<v8::Value>& A
             const int Len = Array->Length();
             TVec<TVal> ResultVec(Len);
             for (int ElN = 0; ElN < Len; ++ElN) {
-                EAssertR(Array->Get(ElN)->IsInt32(),
+                EAssertR(TNodeJsUtil::ToLocal(Nan::Get(Array, ElN))->IsInt32(),
                     "Expected array to contain integers only.");
-                const int Idx = Array->Get(ElN)->Int32Value();
+                const int Idx = Nan::To<int>(TNodeJsUtil::ToLocal(Nan::Get(Array, ElN))).FromJust();
                 EAssertR(Idx >= 0 && Idx < JsVec->Vec.Len(),
                     "One of the indices from the index vector is out of bounds");
                 ResultVec[ElN] = JsVec->Vec[Idx];
@@ -1181,7 +1189,7 @@ void TNodeJsVec<TVal, TAux>::subVec(const v8::FunctionCallbackInfo<v8::Value>& A
             return;
         }
         else if (TNodeJsUtil::IsArgWrapObj<TNodeJsIntV>(Args, 0)) {
-            TNodeJsVec<TInt, TAuxIntV>* IdxV = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(Args[0]->ToObject());
+            TNodeJsVec<TInt, TAuxIntV>* IdxV = ObjectWrap::Unwrap<TNodeJsVec<TInt, TAuxIntV> >(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
             const int Len = IdxV->Vec.Len();
             TVec<TVal> ResultVec(Len);
             for (int ElN = 0; ElN < Len; ElN++) {
@@ -1193,12 +1201,12 @@ void TNodeJsVec<TVal, TAux>::subVec(const v8::FunctionCallbackInfo<v8::Value>& A
             return;
         }
         else {
-            Args.GetReturnValue().Set(v8::Undefined(Isolate));
+            Args.GetReturnValue().Set(Nan::Undefined());
             throw TExcept::New("Expected array or vector of indices.");
         }
     }
     else {
-        Args.GetReturnValue().Set(v8::Undefined(Isolate));
+        Args.GetReturnValue().Set(Nan::Undefined());
         throw TExcept::New("No arguments.");
     }
 }
@@ -1222,10 +1230,10 @@ void TNodeJsVec<TVal, TAux>::indexSet(uint32_t Index, v8::Local<v8::Value> Value
     TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Info.Holder());
     EAssertR(Index < static_cast<uint32_t>(JsVec->Vec.Len()), "Index out of bounds.");
     JsVec->Vec[Index] = TAux::CastVal(Context, Value);
-    Info.GetReturnValue().Set(v8::Undefined(Isolate));
+    Info.GetReturnValue().Set(Nan::Undefined());
 }
 
-// Returns the sum of the vectors elements (only make sense for numeric values) 
+// Returns the sum of the vectors elements (only make sense for numeric values)
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::sum(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -1243,7 +1251,7 @@ inline void TNodeJsVec<PJsonVal, TAuxJsonV>::sum(const v8::FunctionCallbackInfo<
     throw TExcept::New("Cannot sum objects!");
 }
 
-// put(idx, num) sets v[idx] := num 
+// put(idx, num) sets v[idx] := num
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::put(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -1258,7 +1266,7 @@ void TNodeJsVec<TVal, TAux>::put(const v8::FunctionCallbackInfo<v8::Value>& Args
     TNodeJsVec<TVal, TAux>* JsVec =
         ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
 
-    const int Idx = Args[0]->Int32Value();
+    const int Idx = Nan::To<int>(Args[0]).FromJust();
 
     EAssertR(Idx >= 0 && Idx < JsVec->Vec.Len(), "Index out of bounds");
 
@@ -1267,7 +1275,7 @@ void TNodeJsVec<TVal, TAux>::put(const v8::FunctionCallbackInfo<v8::Value>& Args
     Args.GetReturnValue().Set(Args.Holder());
 }
 
-// Appends an element to the vector 
+// Appends an element to the vector
 template <typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::push(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -1279,16 +1287,16 @@ void TNodeJsVec<TVal, TAux>::push(const v8::FunctionCallbackInfo<v8::Value>& Arg
 
     if (Args.Length() < 1) {
         Isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(Isolate, "Expected 1 argument, 0 given.")));
+            TNodeJsUtil::ToLocal(Nan::New("Expected 1 argument, 0 given"))));
     }
     else if (!Args[0]->IsNumber() && !Args[0]->IsString() && !Args[0]->IsBoolean()) {
         Isolate->ThrowException(v8::Exception::TypeError(
-            v8::String::NewFromUtf8(Isolate, "Expected number, string or boolean")));
+            TNodeJsUtil::ToLocal(Nan::New("Expected number, string or boolean"))));
     }
     else {
-        
+
         JsVec->Vec.Add(TAux::CastVal(Context, Args[0]));
-        Args.GetReturnValue().Set(v8::Number::New(Isolate, JsVec->Vec.Len()));
+        Args.GetReturnValue().Set(Nan::New(JsVec->Vec.Len()));
     }
 }
 
@@ -1359,7 +1367,7 @@ void TNodeJsVec<TVal, TAux>::unshift(const v8::FunctionCallbackInfo<v8::Value>& 
     }
     Temp.AddV(JsVec->Vec);
     JsVec->Vec = Temp;
-    Args.GetReturnValue().Set(v8::Number::New(Isolate, JsVec->Vec.Len()));
+    Args.GetReturnValue().Set(Nan::New(JsVec->Vec.Len()));
 }
 
 template <typename TVal, typename TAux>
@@ -1371,11 +1379,11 @@ void TNodeJsVec<TVal, TAux>::pushV(const v8::FunctionCallbackInfo<v8::Value>& Ar
         "Expected a vector on the input");
 
     TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
-    TNodeJsVec<TVal, TAux>* OthVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args[0]->ToObject());
+    TNodeJsVec<TVal, TAux>* OthVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
 
     JsVec->Vec.AddV(OthVec->Vec);
 
-    Args.GetReturnValue().Set(v8::Number::New(Isolate, JsVec->Vec.Len()));
+    Args.GetReturnValue().Set(Nan::New(JsVec->Vec.Len()));
 }
 
 template <typename TVal, typename TAux>
@@ -1387,7 +1395,7 @@ void TNodeJsVec<TVal, TAux>::sort(const v8::FunctionCallbackInfo<v8::Value>& Arg
         ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
 
     if (Args.Length() == 1 && Args[0]->IsFunction()) {
-        v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);                
+        v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
         JsVec->Vec.SortCmp(TJsVecComparator<TVal, TAux>(Callback));
     } else {
         const bool Asc = TNodeJsUtil::GetArgBool(Args, 0, true);
@@ -1420,11 +1428,11 @@ void TNodeJsVec<TVal, TAux>::trunc(const v8::FunctionCallbackInfo<v8::Value>& Ar
     v8::HandleScope HandleScope(Isolate);
 
     EAssertR(Args.Length() >= 1 && Args[0]->IsInt32() &&
-        Args[0]->Int32Value() >= 0, "Expected a nonnegative integer");
+        Nan::To<int>(Args[0]).FromJust() >= 0, "Expected a nonnegative integer");
 
     TNodeJsVec<TVal, TAux>* JsVec =
         ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
-    const int NewLen = Args[0]->Int32Value();
+    const int NewLen = Nan::To<int>(Args[0]).FromJust();
     JsVec->Vec.Trunc(NewLen);
 
     Args.GetReturnValue().Set(Args.Holder());
@@ -1444,9 +1452,9 @@ void TNodeJsVec<TVal, TAux>::toString(const v8::FunctionCallbackInfo<v8::Value>&
     }
     if (JsVec->Vec.Len() > 0) {
         Str += JsVec->Vec.Last().GetStr();
-    }    
+    }
 
-    Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, Str.CStr()));
+    Args.GetReturnValue().Set(TNodeJsUtil::ToLocal(Nan::New(Str.CStr())));
 }
 
 template<>
@@ -1464,12 +1472,12 @@ inline void TNodeJsVec<PJsonVal, TAuxJsonV>::toString(const v8::FunctionCallback
     }
     if (JsVec->Vec.Len() > 0) {
         Str += JsVec->Vec.Last()->GetStr();
-    }    
+    }
 
-    Args.GetReturnValue().Set(v8::String::NewFromUtf8(Isolate, Str.CStr()));
+    Args.GetReturnValue().Set(TNodeJsUtil::ToLocal(Nan::New(Str.CStr())));
 }
 
-// Returns the size of the vector 
+// Returns the size of the vector
 template<typename TVal, typename TAux>
 void TNodeJsVec<TVal, TAux>::length(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
@@ -1490,7 +1498,7 @@ void TNodeJsVec<TVal, TAux>::save(const v8::FunctionCallbackInfo<v8::Value>& Arg
     EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
         "Expected a TNodeJsFOut object");
     TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
-    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
     EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     PSOut SOut = JsFOut->SOut;
     JsVec->Vec.Save(*SOut);
@@ -1506,11 +1514,11 @@ void TNodeJsVec<TVal, TAux>::load(const v8::FunctionCallbackInfo<v8::Value>& Arg
     EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
         "Expected a TNodeJsFIn object");
     TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
-    TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+    TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
     PSIn SIn = JsFIn->SIn;
     JsVec->Vec.Load(*SIn);
 
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Nan::Undefined());
 }
 
 template<typename TVal, typename TAux>
@@ -1521,7 +1529,7 @@ void TNodeJsVec<TVal, TAux>::saveascii(const v8::FunctionCallbackInfo<v8::Value>
     EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
         "Expected a TNodeJsFOut object");
     TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
-    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
     EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     PSOut SOut = JsFOut->SOut;
     const int Rows = JsVec->Vec.Len();
@@ -1541,7 +1549,7 @@ inline void TNodeJsVec<PJsonVal, TAuxJsonV>::saveascii(const v8::FunctionCallbac
     EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
         "Expected a TNodeJsFOut object");
     TNodeJsJsonV* JsVec = ObjectWrap::Unwrap<TNodeJsJsonV>(Args.Holder());
-    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args[0]->ToObject());
+    TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
     EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     PSOut SOut = JsFOut->SOut;
     const int Rows = JsVec->Vec.Len();
@@ -1561,14 +1569,14 @@ void TNodeJsVec<TVal, TAux>::loadascii(const v8::FunctionCallbackInfo<v8::Value>
     EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
         "Expected a TNodeJsFIn object");
     TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(Args.Holder());
-    TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Args[0]->ToObject());
+    TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
     PSIn SIn = JsFIn->SIn;
     TStr Line;
     while (SIn->GetNextLn(Line)) {
         JsVec->Vec.Add(TAux::Parse(Line));
     }
 
-    Args.GetReturnValue().Set(v8::Undefined(Isolate));
+    Args.GetReturnValue().Set(Nan::Undefined());
 }
 
 #endif

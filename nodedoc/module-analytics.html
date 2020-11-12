@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.1</a>
       </div>
     </div>
   </nav>
@@ -24,19 +24,20 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">module</span></div><small></small><span class="symbol-name">analytics</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">module</span></div>
+            <h1><small></small><span class="symbol-name">analytics</span></h1>
             <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-8">analyticsdoc.<wbr>js:8</a></p>
             <div class="symbol-description">
               <p>Analytics module.</p>
             </div>
             <section>
               <h2>
-            Example
-        </h2>
+                Example
+              </h2>
               <div>
                 <pre class="prettyprint"><code>// import modules
-var qm = require(&#x27;qminer&#x27;);
-var analytics = qm.analytics;
+var qm &#x3D; require(&#x27;qminer&#x27;);
+var analytics &#x3D; qm.analytics;
 // load dataset, create model, evaluate model</code></pre>
               </div>
             </section>
@@ -288,34 +289,34 @@ var analytics = qm.analytics;
               <p>Calculates the non-negative matrix factorization, see: <a href="https://en.wikipedia.org/wiki/Non-negative_matrix_factorization">https://en.wikipedia.org/wiki/Non-negative_matrix_factorization</a>.</p>
               <section>
                 <h4>
-            Examples
-        </h4>
+                  Examples
+                </h4>
                 <div>
                   <p>Asynchronous function</p>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a matrix
-var mat = new la.Matrix({ rows: 10, cols: 5, random: true });
+var mat &#x3D; new la.Matrix({ rows: 10, cols: 5, random: true });
 // compute the non-negative matrix factorization
 analytics.nmfAsync(mat, 3, { iter: 100, tol: 1e-4 }, function (err, result) {
    if (err) { console.log(err); }
    // calculation successful
-   var U = result.U;
-   var V = result.V;
+   var U &#x3D; result.U;
+   var V &#x3D; result.V;
 });</code></pre>
                 </div>
                 <div>
                   <p>Synchronous function</p>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a matrix
-var mat = new la.Matrix({ rows: 10, cols: 5, random: true });
+var mat &#x3D; new la.Matrix({ rows: 10, cols: 5, random: true });
 // compute the non-negative matrix factorization
-var result = analytics.nmf(mat, 3, { iter: 100, tol: 1e-4 });
-var U = result.U;
-var V = result.V;</code></pre>
+var result &#x3D; analytics.nmf(mat, 3, { iter: 100, tol: 1e-4 });
+var U &#x3D; result.U;
+var V &#x3D; result.V;</code></pre>
                 </div>
               </section>
               <section>
@@ -436,16 +437,18 @@ var V = result.V;</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;The json object <code>nmfRes</code> containing the non-negative matrices U and V:
+                  <p><code>Object</code>B The json object <code>nmfRes</code> containing the non-negative matrices U and V:
                     <br> <code>nmfRes.U</code>- The <a href="module-la.Matrix.html">module:la.Matrix</a> representation of the matrix U,
-                    <br> <code>nmfRes.V</code>- The <a href="module-la.Matrix.html">module:la.Matrix</a> representation of the matrix V.</p>
+                    <br> <code>nmfRes.V</code>- The <a href="module-la.Matrix.html">module:la.Matrix</a> representation of the matrix V.
+                  </p>
                 </dd>
               </dl>
             </section>
             <h2>Abstract types</h2>
             <section>
-              <h3 id="~ActiveLearnerParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">ActiveLearnerParam</span><small class="property-type">
-            &nbsp;Object</small></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~ActiveLearnerParam"><span class="symbol-name">ActiveLearnerParam</span><small class="property-type">
+                  &nbsp;Object</small></h3>
               <p>An object used for the construction of module:analytics.ActiveLearner.</p>
               <section>
                 <h4>Properties</h4>
@@ -520,8 +523,9 @@ var V = result.V;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~BiasedGkParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">BiasedGkParam</span><small class="property-type">
-            &nbsp;Object</small></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~BiasedGkParam"><span class="symbol-name">BiasedGkParam</span><small class="property-type">
+                  &nbsp;Object</small></h3>
               <p>An object used for the construction of module:analytics.quantiles.BiasedGk.</p>
               <section>
                 <h4>Properties</h4>
@@ -546,7 +550,7 @@ var V = result.V;</code></pre>
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>The probability where the algorithm is most accurate. Its accuracy is determined as eps<em>max(p, targetProb) when targetProb &lt; 0.5 and eps</em>max(1-p, 1-targetProb) when targetProb &gt;= 0.5. Higher values of <code>targetProb</code>                          allow for a smaller memory footprint.</p>
+                        <p>The probability where the algorithm is most accurate. Its accuracy is determined as eps<em>max(p, targetProb) when targetProb &lt; 0.5 and eps</em>max(1-p, 1-targetProb) when targetProb &gt;= 0.5. Higher values of <code>targetProb</code> allow for a smaller memory footprint.</p>
                         <p>Defaults to <code>0.01</code>.</p>
                       </td>
                     </tr>
@@ -600,8 +604,9 @@ var V = result.V;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~BufferedDigestParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">BufferedDigestParam</span><small class="property-type">
-            &nbsp;Object</small></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~BufferedDigestParam"><span class="symbol-name">BufferedDigestParam</span><small class="property-type">
+                  &nbsp;Object</small></h3>
               <p>An object used for the construction of module:analytics.quantiles.BufferedTDigest.</p>
               <section>
                 <h4>Properties</h4>
@@ -665,8 +670,9 @@ var V = result.V;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~detectorParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">detectorParam</span><small class="property-type">
-            &nbsp;Object</small></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~detectorParam"><span class="symbol-name">detectorParam</span><small class="property-type">
+                  &nbsp;Object</small></h3>
               <p>An object used for the construction of <a href="module-analytics.NearestNeighborAD.html">module:analytics.NearestNeighborAD</a>.</p>
               <section>
                 <h4>Parameters</h4>
@@ -715,8 +721,9 @@ var V = result.V;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~DpMeansExplain"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">DpMeansExplain</span><small class="property-type">
-            &nbsp;Object</small></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~DpMeansExplain"><span class="symbol-name">DpMeansExplain</span><small class="property-type">
+                  &nbsp;Object</small></h3>
               <p>The examplanation returned by <a href="module-analytics.KMeans.html#explain">module:analytics.KMeans#explain</a>.</p>
               <section>
                 <h4>Properties</h4>
@@ -777,8 +784,9 @@ var V = result.V;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~DpMeansParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">DpMeansParam</span><small class="property-type">
-            &nbsp;Object</small></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~DpMeansParam"><span class="symbol-name">DpMeansParam</span><small class="property-type">
+                  &nbsp;Object</small></h3>
               <p>An object used for the construction of <a href="module-analytics.KMeans.html">module:analytics.KMeans</a>.</p>
               <section>
                 <h4>Properties</h4>
@@ -987,8 +995,9 @@ var V = result.V;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~GkParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">GkParam</span><small class="property-type">
-            &nbsp;Object</small></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~GkParam"><span class="symbol-name">GkParam</span><small class="property-type">
+                  &nbsp;Object</small></h3>
               <p>An object used for the construction of module:analytics.quantiles.Gk.</p>
               <section>
                 <h4>Properties</h4>
@@ -1052,8 +1061,9 @@ var V = result.V;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~hazardModelParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">hazardModelParam</span><small class="property-type">
-            &nbsp;Object</small></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~hazardModelParam"><span class="symbol-name">hazardModelParam</span><small class="property-type">
+                  &nbsp;Object</small></h3>
               <p>An object used for the construction of <a href="module-analytics.PropHazards.html">module:analytics.PropHazards</a>.</p>
               <section>
                 <h4>Property</h4>
@@ -1087,8 +1097,9 @@ var V = result.V;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~KMeansExplain"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">KMeansExplain</span><small class="property-type">
-            &nbsp;Object</small></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~KMeansExplain"><span class="symbol-name">KMeansExplain</span><small class="property-type">
+                  &nbsp;Object</small></h3>
               <p>The examplanation returned by <a href="module-analytics.KMeans.html#explain">module:analytics.KMeans#explain</a>.</p>
               <section>
                 <h4>Properties</h4>
@@ -1149,8 +1160,9 @@ var V = result.V;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~KMeansParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">KMeansParam</span><small class="property-type">
-            &nbsp;Object</small></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~KMeansParam"><span class="symbol-name">KMeansParam</span><small class="property-type">
+                  &nbsp;Object</small></h3>
               <p>An object used for the construction of <a href="module-analytics.KMeans.html">module:analytics.KMeans</a>.</p>
               <section>
                 <h4>Properties</h4>
@@ -1329,8 +1341,9 @@ var V = result.V;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~logisticRegParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">logisticRegParam</span><small class="property-type">
-            &nbsp;Object</small></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~logisticRegParam"><span class="symbol-name">logisticRegParam</span><small class="property-type">
+                  &nbsp;Object</small></h3>
               <p>An object used for the construction of <a href="module-analytics.LogReg.html">module:analytics.LogReg</a>.</p>
               <section>
                 <h4>Properties</h4>
@@ -1379,8 +1392,9 @@ var V = result.V;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~MDSParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">MDSParam</span><small class="property-type">
-            &nbsp;Object</small></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~MDSParam"><span class="symbol-name">MDSParam</span><small class="property-type">
+                  &nbsp;Object</small></h3>
               <p>An object used for the construction of <a href="module-analytics.MDS.html">module:analytics.MDS</a>.</p>
               <section>
                 <h4>Properties</h4>
@@ -1459,8 +1473,9 @@ var V = result.V;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~NearestNeighborADExplain"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">NearestNeighborADExplain</span><small class="property-type">
-            &nbsp;Object</small></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~NearestNeighborADExplain"><span class="symbol-name">NearestNeighborADExplain</span><small class="property-type">
+                  &nbsp;Object</small></h3>
               <p>An object used for interpreting the predictions of <a href="module-analytics.NearestNeighborAD.html#explain">module:analytics.NearestNeighborAD#explain</a>.</p>
               <section>
                 <h4>Properties</h4>
@@ -1549,9 +1564,11 @@ var V = result.V;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~NearestNeighborADFeatureContribution"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">NearestNeighborADFeatureContribution</span><small class="property-type">
-            &nbsp;Object</small></h3>
-              <p>An object explaining the prediction of <a href="module-analytics.NearestNeighborAD.html#explain">module:analytics.NearestNeighborAD#explain</a> in terms of a single feature. Contained in the object <a href="module-analytics.html#~NearestNeighborADExplain">module:analytics~NearestNeighborADExplain</a>.</p>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~NearestNeighborADFeatureContribution"><span class="symbol-name">NearestNeighborADFeatureContribution</span><small class="property-type">
+                  &nbsp;Object</small></h3>
+              <p>An object explaining the prediction of <a href="module-analytics.NearestNeighborAD.html#explain">module:analytics.NearestNeighborAD#explain</a> in terms of a single feature.
+                Contained in the object <a href="module-analytics.html#~NearestNeighborADExplain">module:analytics~NearestNeighborADExplain</a>.</p>
               <section>
                 <h4>Properties</h4>
                 <table class="jsdoc-details-table">
@@ -1625,8 +1642,9 @@ var V = result.V;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~nnetParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">nnetParam</span><small class="property-type">
-            &nbsp;Object</small></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~nnetParam"><span class="symbol-name">nnetParam</span><small class="property-type">
+                  &nbsp;Object</small></h3>
               <p>An object used for the construction of <a href="module-analytics.NNet.html">module:analytics.NNet</a>.</p>
               <section>
                 <h4>Properties</h4>
@@ -1720,8 +1738,9 @@ var V = result.V;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~oneVsAllParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">oneVsAllParam</span><small class="property-type">
-            &nbsp;Object</small></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~oneVsAllParam"><span class="symbol-name">oneVsAllParam</span><small class="property-type">
+                  &nbsp;Object</small></h3>
               <p>An object used for the construction of <a href="module-analytics.OneVsAll.html">module:analytics.OneVsAll</a>.</p>
               <section>
                 <h4>Properties</h4>
@@ -1746,7 +1765,8 @@ var V = result.V;</code></pre>
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>Constructor for binary model to be used internaly. Constructor should expect only one parameter.</p>
+                        <p>Constructor for binary model to be
+                          used internaly. Constructor should expect only one parameter.</p>
                       </td>
                     </tr>
                     <tr>
@@ -1797,8 +1817,9 @@ var V = result.V;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~PCAParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">PCAParam</span><small class="property-type">
-            &nbsp;Object</small></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~PCAParam"><span class="symbol-name">PCAParam</span><small class="property-type">
+                  &nbsp;Object</small></h3>
               <p>An object used for the construction of <a href="module-analytics.PCA.html">module:analytics.PCA</a>.</p>
               <section>
                 <h4>Properties</h4>
@@ -1847,8 +1868,9 @@ var V = result.V;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~recLinRegParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">recLinRegParam</span><small class="property-type">
-            &nbsp;Object</small></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~recLinRegParam"><span class="symbol-name">recLinRegParam</span><small class="property-type">
+                  &nbsp;Object</small></h3>
               <p>An object used for the construction of <a href="module-analytics.RecLinReg.html">module:analytics.RecLinReg</a>.</p>
               <section>
                 <h4>Parameters</h4>
@@ -1911,8 +1933,9 @@ var V = result.V;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~RecSysParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">RecSysParam</span><small class="property-type">
-            &nbsp;Object</small></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~RecSysParam"><span class="symbol-name">RecSysParam</span><small class="property-type">
+                  &nbsp;Object</small></h3>
               <p>An object used for the construction of <a href="module-analytics.RecommenderSys.html">module:analytics.RecommenderSys</a>.</p>
               <section>
                 <h4>Properties</h4>
@@ -1991,8 +2014,9 @@ var V = result.V;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~ridgeRegParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">ridgeRegParam</span><small class="property-type">
-            &nbsp;Object</small></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~ridgeRegParam"><span class="symbol-name">ridgeRegParam</span><small class="property-type">
+                  &nbsp;Object</small></h3>
               <p>An object used for the construction of <a href="module-analytics.RidgeReg.html">module:analytics.RidgeReg</a>.</p>
               <section>
                 <h4>Property</h4>
@@ -2026,8 +2050,9 @@ var V = result.V;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~SVMParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">SVMParam</span><small class="property-type">
-            &nbsp;Object</small></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~SVMParam"><span class="symbol-name">SVMParam</span><small class="property-type">
+                  &nbsp;Object</small></h3>
               <p>SVM constructor parameters. Used for the construction of <a href="module-analytics.SVC.html">module:analytics.SVC</a> and <a href="module-analytics.SVR.html">module:analytics.SVR</a>.</p>
               <section>
                 <h4>Properties</h4>
@@ -2082,8 +2107,7 @@ var V = result.V;</code></pre>
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>Unbalance parameter. Increasing it gives more weight to the positive examples (getting a better fit on the positive training examples gets a higher priority). Setting j=n is like adding n-1 copies of the positive training examples
-                          to the data set.</p>
+                        <p>Unbalance parameter. Increasing it gives more weight to the positive examples (getting a better fit on the positive training examples gets a higher priority). Setting j=n is like adding n-1 copies of the positive training examples to the data set.</p>
                         <p>Defaults to <code>1.0</code>.</p>
                       </td>
                     </tr>
@@ -2173,7 +2197,7 @@ var V = result.V;</code></pre>
                         <p>Yes</p>
                       </td>
                       <td>
-                        <p>The subalgorithm procedure in LIBSVM. Possible options are <code>'C_SVC'</code>, <code>'NU_SVC'</code> and <code>'ONE_CLASS'</code> for classification and <code>'EPSILON_SVR'</code>, <code>'NU_SVR'</code> and <code>'ONE_CLASS'</code>                          for regression.</p>
+                        <p>The subalgorithm procedure in LIBSVM. Possible options are <code>'C_SVC'</code>, <code>'NU_SVC'</code> and <code>'ONE_CLASS'</code> for classification and <code>'EPSILON_SVR'</code>, <code>'NU_SVR'</code> and <code>'ONE_CLASS'</code> for regression.</p>
                         <p>Defaults to <code>'C_SVC'</code>.</p>
                       </td>
                     </tr>
@@ -2302,8 +2326,9 @@ var V = result.V;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~TDigestParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">TDigestParam</span><small class="property-type">
-            &nbsp;Object</small></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~TDigestParam"><span class="symbol-name">TDigestParam</span><small class="property-type">
+                  &nbsp;Object</small></h3>
               <p>An object used for the construction of module:analytics.quantiles.TDigest.</p>
               <section>
                 <h4>Properties</h4>
@@ -2352,8 +2377,9 @@ var V = result.V;</code></pre>
               </section>
               <dl class="dl-compact">
               </dl>
-              <h3 id="~tokenizerParam"><div class="symbol-detail-labels"><span class="label label-inner">inner</span></div><span class="symbol-name">tokenizerParam</span><small class="property-type">
-            &nbsp;Object</small></h3>
+              <div class="symbol-detail-labels"><span class="label label-inner">inner</span></div>
+              <h3 id="~tokenizerParam"><span class="symbol-name">tokenizerParam</span><small class="property-type">
+                  &nbsp;Object</small></h3>
               <p>An object used for the construction of <a href="module-analytics.Tokenizer.html">module:analytics.Tokenizer</a>.</p>
               <section>
                 <h4>Property</h4>
@@ -2381,7 +2407,8 @@ var V = result.V;</code></pre>
                         <p>The type of the tokenizer. The different types are:
                           <br>1. 'simple' - Creates break on white spaces.
                           <br>2. 'html' - Creates break on white spaces and ignores html tags.
-                          <br>3. 'unicode' - Creates break on white spaces and normalizes unicode letters, e.g. o?=o?= changes to cso?=z.</p>
+                          <br>3. 'unicode' - Creates break on white spaces and normalizes unicode letters, e.g. o?=o?= changes to cso?=z.
+                        </p>
                         <p>Defaults to <code>'unicode'</code>.</p>
                       </td>
                     </tr>
@@ -2405,7 +2432,6 @@ var V = result.V;</code></pre>
     </div>
   </footer>
   <script src="scripts/jquery.min.js"></script>
-  <script src="scripts/jquery.cookie.js"></script>
   <script src="scripts/tree.jquery.js"></script>
   <script src="scripts/prettify.js"></script>
   <script src="scripts/jsdoc-toc.js"></script>
