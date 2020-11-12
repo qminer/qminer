@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.1</a>
       </div>
     </div>
   </nav>
@@ -24,7 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>~<wbr><a href="module-analytics-metrics.html">metrics</a>.<wbr></small><span class="symbol-name">ClassificationScore</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-analytics.html">analytics</a>~<wbr><a href="module-analytics-metrics.html">metrics</a>.<wbr></small><span class="symbol-name">ClassificationScore</span></h1>
             <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-3431">analyticsdoc.<wbr>js:3431</a></p>
             <div class="symbol-classdesc">
               <p>Class implements several classification measures (precision, recall, F1, accuracy).</p>
@@ -123,44 +124,45 @@
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;scores - Object with different classification socres.</p>
+                  <p><code>Object</code>B scores - Object with different classification socres.</p>
                 </dd>
                 <dd>
-                  <p><code>number</code>&nbsp;scores.count - Count.</p>
+                  <p><code>number</code>B scores.count - Count.</p>
                 </dd>
                 <dd>
-                  <p><code>number</code>&nbsp;scores.TP - Number of true positives.</p>
+                  <p><code>number</code>B scores.TP - Number of true positives.</p>
                 </dd>
                 <dd>
-                  <p><code>number</code>&nbsp;scores.TN - Number of true negative.</p>
+                  <p><code>number</code>B scores.TN - Number of true negative.</p>
                 </dd>
                 <dd>
-                  <p><code>number</code>&nbsp;scores.FP - Number of false positives.</p>
+                  <p><code>number</code>B scores.FP - Number of false positives.</p>
                 </dd>
                 <dd>
-                  <p><code>number</code>&nbsp;scores.FN - Number of false positives.</p>
+                  <p><code>number</code>B scores.FN - Number of false positives.</p>
                 </dd>
                 <dd>
-                  <p><code>number</code>&nbsp;scores.all - Number of all results.</p>
+                  <p><code>number</code>B scores.all - Number of all results.</p>
                 </dd>
                 <dd>
-                  <p><code>number</code>&nbsp;scores.accuracy - Accuracy score. Formula: <code>(tp + tn) / (tp + fp + fn + tn)</code>.</p>
+                  <p><code>number</code>B scores.accuracy - Accuracy score. Formula: <code>(tp + tn) / (tp + fp + fn + tn)</code>.</p>
                 </dd>
                 <dd>
-                  <p><code>number</code>&nbsp;scores.precision - Precision score. Formula: <code>tp / (tp + fp)</code>.</p>
+                  <p><code>number</code>B scores.precision - Precision score. Formula: <code>tp / (tp + fp)</code>.</p>
                 </dd>
                 <dd>
-                  <p><code>number</code>&nbsp;scores.recall - Recall score. Formula: <code>tp / (tp + fn)</code>.</p>
+                  <p><code>number</code>B scores.recall - Recall score. Formula: <code>tp / (tp + fn)</code>.</p>
                 </dd>
                 <dd>
-                  <p><code>number</code>&nbsp;scores.f1 - F1 score. Formula: <code>2 * (precision * recall) / (precision + recall)</code>.</p>
+                  <p><code>number</code>B scores.f1 - F1 score. Formula: <code>2 * (precision * recall) / (precision + recall)</code>.</p>
                 </dd>
               </dl>
             </section>
             <h2>Method</h2>
             <section>
               <h3 id="push"><span class="symbol-name">push</span><span class="signature"><span class="signature-params">(correct, predicted)</span></span></h3>
-              <p>Adds prediction to the current statistics. Labels can be either integers. or integer array (when there are zero or more then one lables).</p>
+              <p>Adds prediction to the current statistics. Labels can be either integers.
+                or integer array (when there are zero or more then one lables).</p>
               <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
@@ -221,7 +223,6 @@
     </div>
   </footer>
   <script src="scripts/jquery.min.js"></script>
-  <script src="scripts/jquery.cookie.js"></script>
   <script src="scripts/tree.jquery.js"></script>
   <script src="scripts/prettify.js"></script>
   <script src="scripts/jsdoc-toc.js"></script>

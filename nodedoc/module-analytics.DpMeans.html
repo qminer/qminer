@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.1</a>
       </div>
     </div>
   </nav>
@@ -24,11 +24,13 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">DpMeans</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-analytics.html">analytics</a>.<wbr></small><span class="symbol-name">DpMeans</span></h1>
             <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-1942">analyticsdoc.<wbr>js:1942</a></p>
             <div class="symbol-classdesc">
-              <p>DpMeans Clustering is an iterative, data-partitioning algorithm that assigns observations into clusters with the nearest centroid according to some metric. The number of clusters is not known in advance, but can be upper and lower bounded.
-                Rather the parameter is the maximum radius of a cluster <code>lambda</code>.</p>
+              <p>DpMeans Clustering is an iterative, data-partitioning algorithm that assigns observations into clusters with the nearest centroid according to some metric.
+                The number of clusters is not known in advance, but can be upper and lower bounded. Rather the parameter
+                is the maximum radius of a cluster <code>lambda</code>.</p>
             </div>
             <dl class="dl-compact">
             </dl>
@@ -111,21 +113,21 @@
             <p>DpMeans Clustering</p>
             <section>
               <h3>
-            Example
-        </h3>
+                Example
+              </h3>
               <div>
                 <pre class="prettyprint"><code>// import analytics and la modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a KMeans object
-var dpmeans = new analytics.DpMeans();
+var dpmeans &#x3D; new analytics.DpMeans();
 // create the matrix to be fitted
-var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+var X &#x3D; new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model
 dpmeans.fit(X);
 // predict where the columns of the matrix will be assigned
-var Y = new la.Matrix([[1, 1, 0], [-2, 3, 1]]);
-var prediction = dpmeans.predict(Y);</code></pre>
+var Y &#x3D; new la.Matrix([[1, 1, 0], [-2, 3, 1]]);
+var prediction &#x3D; dpmeans.predict(Y);</code></pre>
               </div>
             </section>
             <section>
@@ -153,7 +155,8 @@ var prediction = dpmeans.predict(Y);</code></pre>
                     <td>
                       <p>Construction arguments. There are two ways of constructing:
                         <br>1. Using the <a href="module-analytics.html#~DpMeansParam">module:analytics~DpMeansParam</a> object,
-                        <br>2. using the file input stream <a href="module-fs.FIn.html">module:fs.FIn</a>.</p>
+                        <br>2. using the file input stream <a href="module-fs.FIn.html">module:fs.FIn</a>.
+                      </p>
                     </td>
                   </tr>
                 </tbody>
@@ -169,20 +172,20 @@ var prediction = dpmeans.predict(Y);</code></pre>
               <p>The centroids created with the fit method. Type <a href="module-la.Matrix.html">module:la.Matrix</a>.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import the modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new DpMeans object
-var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+var DpMeans &#x3D; new analytics.DpMeans({ iter: 1000, lambda: 3 });
 // create a matrix to be fitted
-var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+var X &#x3D; new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model with the matrix X
 DpMeans.fit(X);
 // get the centroids
-var centroids = DpMeans.centroids;
+var centroids &#x3D; DpMeans.centroids;
 // print the first centroid
 console.log(centroids.getCol(0));</code></pre>
                 </div>
@@ -193,15 +196,15 @@ console.log(centroids.getCol(0));</code></pre>
               <p>The integer vector containing the cluster ids of the training set created with the fit method. Type <a href="module-la.IntVector.html">module:la.IntVector</a>.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import the modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a new DpMeans object
-var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+var DpMeans &#x3D; new analytics.DpMeans({ iter: 1000, lambda: 3 });
 // get the idxv
-var idxv = DpMeans.idxv;</code></pre>
+var idxv &#x3D; DpMeans.idxv;</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
@@ -210,25 +213,28 @@ var idxv = DpMeans.idxv;</code></pre>
               <p>The medoids created with the fit method. Type <a href="module-la.IntVector.html">module:la.IntVector</a>.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import the modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a new DpMeans object
-var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+var DpMeans &#x3D; new analytics.DpMeans({ iter: 1000, lambda: 3 });
 // get the centroids
-var medoids = DpMeans.medoids;</code></pre>
+var medoids &#x3D; DpMeans.medoids;</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
               </dl>
               <h3 id="relMeanCentroidDist"><span class="symbol-name">relMeanCentroidDist</span></h3>
-              <p>Returns the normalized weighted distance between the vectors and their centroids using the following formula: d = \frac{sum_i p_i*sum_j d(x_j,c_i) / n_i}{sum_{k=1}^n d(x_k, mu) / n} = \frac{sum_{i,j} d(c_i,x_j)}{sum_k d(x_k, mu)}</p>
+              <p>Returns the normalized weighted distance between the vectors and their centroids
+                using the following formula:
+                d = \frac{sum_i p_i*sum_j d(x_j,c_i) / n_i}{sum_{k=1}^n d(x_k, mu) / n}
+                = \frac{sum_{i,j} d(c_i,x_j)}{sum_k d(x_k, mu)}</p>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;relMeanDist</p>
+                  <p><code>number</code>B relMeanDist</p>
                 </dd>
               </dl>
             </section>
@@ -238,23 +244,23 @@ var medoids = DpMeans.medoids;</code></pre>
               <p>Returns the IDs of the nearest medoid for each example.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // import linear algebra module
-var la = require(&#x27;qminer&#x27;).la;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new DpMeans object
-var DpMeans = new analytics.DpMeans({ iter: 1000, k: 3 });
+var DpMeans &#x3D; new analytics.DpMeans({ iter: 1000, k: 3 });
 // create a matrix to be fitted
-var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+var X &#x3D; new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model with the matrix X using the column IDs [0,1,2]
 DpMeans.fit(X, [1234,1142,2355]);
 // create the matrix of the prediction vectors
-var test = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
+var test &#x3D; new la.Matrix([[2, -1, 1], [1, 0, -3]]);
 // predict/explain - return the closest medoids
-var explanation = DpMeans.explain(test);</code></pre>
+var explanation &#x3D; DpMeans.explain(test);</code></pre>
                 </div>
               </section>
               <section>
@@ -289,24 +295,24 @@ var explanation = DpMeans.explain(test);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Array of <a href="module-analytics.html#~DpMeansExplain">module:analytics~DpMeansExplain</a></code>&nbsp;Array containing the DpMeans explanantions.</p>
+                  <p><code>Array of <a href="module-analytics.html#~DpMeansExplain">module:analytics~DpMeansExplain</a></code>B Array containing the DpMeans explanantions.</p>
                 </dd>
               </dl>
               <h3 id="fit"><span class="symbol-name">fit</span><span class="signature"><span class="signature-params">(X)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.DpMeans.html">module:analytics.DpMeans</a></span></span></h3>
               <p>Calculates the centroids.</p>
               <section>
                 <h4>
-            Examples
-        </h4>
+                  Examples
+                </h4>
                 <div>
                   <p> Asynchronous function </p>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new DpMeans object
-var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+var DpMeans &#x3D; new analytics.DpMeans({ iter: 1000, lambda: 3 });
 // create a matrix to be fitted
-var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+var X &#x3D; new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model with the matrix X
 DpMeans.fitAsync(X, function (err) {
     if (err) console.log(err);
@@ -315,12 +321,12 @@ DpMeans.fitAsync(X, function (err) {
                 </div>
                 <div>
                   <p> Synchronous function </p>
-                  <pre class="prettyprint"><code>var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+                  <pre class="prettyprint"><code>var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new DpMeans object
-var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+var DpMeans &#x3D; new analytics.DpMeans({ iter: 1000, lambda: 3 });
 // create a matrix to be fitted
-var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+var X &#x3D; new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model with the matrix X
 DpMeans.fit(X);</code></pre>
                 </div>
@@ -357,79 +363,80 @@ DpMeans.fit(X);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.DpMeans.html">module:analytics.DpMeans</a></code>&nbsp;Self. The model has been updated.</p>
+                  <p><code><a href="module-analytics.DpMeans.html">module:analytics.DpMeans</a></code>B Self. The model has been updated.</p>
                 </dd>
               </dl>
               <h3 id="getModel"><span class="symbol-name">getModel</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
               <p>Returns the model.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create the KMeans object
-var dpmeans = new analytics.DpMeans({ iter: 1000 });
+var dpmeans &#x3D; new analytics.DpMeans({ iter: 1000 });
 // create a matrix to be fitted
-var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+var X &#x3D; new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model
 dpmeans.fit(X);
 // get the model
-var model = dpmeans.getModel();</code></pre>
+var model &#x3D; dpmeans.getModel();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;The <code>DpMeansModel</code> object containing the properites:
+                  <p><code>Object</code>B The <code>DpMeansModel</code> object containing the properites:
                     <br> 1. <code>DpMeansModel.C</code> - The <a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a> containing the centroids,
                     <br> 2. <code>DpMeansModel.medoids</code> - The <a href="module-la.IntVector.html">module:la.IntVector</a> of cluster medoids of the training data,
-                    <br> 3. <code>DpMeansModel.idxv</code> - The <a href="module-la.IntVector.html">module:la.IntVector</a> of cluster IDs of the training data.</p>
+                    <br> 3. <code>DpMeansModel.idxv</code> - The <a href="module-la.IntVector.html">module:la.IntVector</a> of cluster IDs of the training data.
+                  </p>
                 </dd>
               </dl>
               <h3 id="getParams"><span class="symbol-name">getParams</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.html#~KMeansParam">module:analytics~KMeansParam</a></span></span></h3>
               <p>Returns the parameters.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a new DpMeans object
-var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 5 });
+var DpMeans &#x3D; new analytics.DpMeans({ iter: 1000, lambda: 5 });
 // get the parameters
-var json = DpMeans.getParams();
+var json &#x3D; DpMeans.getParams();
 console.log(json.lambda);</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.html#~KMeansParam">module:analytics~KMeansParam</a></code>&nbsp;The construction parameters.</p>
+                  <p><code><a href="module-analytics.html#~KMeansParam">module:analytics~KMeansParam</a></code>B The construction parameters.</p>
                 </dd>
               </dl>
               <h3 id="permuteCentroids"><span class="symbol-name">permuteCentroids</span><span class="signature"><span class="signature-params">(mapping)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.DpMeans.html">module:analytics.DpMeans</a></span></span></h3>
               <p>Permutates the clusters, and with it <a href="module-analytics.DpMeans.html#centroids">module:analytics.DpMeans#centroids</a>, <a href="module-analytics.DpMeans.html#medoids">module:analytics.DpMeans#medoids</a> and <a href="module-analytics.DpMeans.html#idxv">module:analytics.DpMeans#idxv</a>.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import the modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new DpMeans object
-var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+var DpMeans &#x3D; new analytics.DpMeans({ iter: 1000, lambda: 3 });
 // create a matrix to be fitted
-var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+var X &#x3D; new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model with the matrix X
 DpMeans.fit(X);
 if (DpMeans.centroids.cols &gt; 1) {
     // create the mapping vector: swap first two centroids
-    var Mapping = new la.IntVector([1, 0, 2, 3, 4, 5].splice(0,DpMeans.centroids.cols));
+    var Mapping &#x3D; new la.IntVector([1, 0, 2, 3, 4, 5].splice(0,DpMeans.centroids.cols));
     console.log(DpMeans.centroids.toString());
     // permutate the clusters.
     DpMeans.permuteCentroids(Mapping);
@@ -469,29 +476,29 @@ if (DpMeans.centroids.cols &gt; 1) {
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.DpMeans.html">module:analytics.DpMeans</a></code>&nbsp;Self. The clusters have been permuted.</p>
+                  <p><code><a href="module-analytics.DpMeans.html">module:analytics.DpMeans</a></code>B Self. The clusters have been permuted.</p>
                 </dd>
               </dl>
               <h3 id="predict"><span class="symbol-name">predict</span><span class="signature"><span class="signature-params">(A)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.IntVector.html">module:la.IntVector</a></span></span></h3>
               <p>Returns an vector of cluster id assignments.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new DpMeans object
-var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+var DpMeans &#x3D; new analytics.DpMeans({ iter: 1000, lambda: 3 });
 // create a matrix to be fitted
-var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+var X &#x3D; new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model with the matrix X
 DpMeans.fit(X);
 // create the matrix of the prediction vectors
-var pred = new la.Matrix([[2, -1, 1], [1, 0, -3]]);
+var pred &#x3D; new la.Matrix([[2, -1, 1], [1, 0, -3]]);
 // predict the values
-var prediction = DpMeans.predict(pred);</code></pre>
+var prediction &#x3D; DpMeans.predict(pred);</code></pre>
                 </div>
               </section>
               <section>
@@ -526,34 +533,34 @@ var prediction = DpMeans.predict(pred);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.IntVector.html">module:la.IntVector</a></code>&nbsp;Vector of cluster assignments.</p>
+                  <p><code><a href="module-la.IntVector.html">module:la.IntVector</a></code>B Vector of cluster assignments.</p>
                 </dd>
               </dl>
               <h3 id="save"><span class="symbol-name">save</span><span class="signature"><span class="signature-params">(fout)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-fs.FOut.html">module:fs.FOut</a></span></span></h3>
               <p>Saves DpMeans internal state into (binary) file.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import the modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
-var fs = require(&#x27;qminer&#x27;).fs;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
+var fs &#x3D; require(&#x27;qminer&#x27;).fs;
 // create a new DpMeans object
-var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+var DpMeans &#x3D; new analytics.DpMeans({ iter: 1000, lambda: 3 });
 // create a matrix to be fitted
-var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+var X &#x3D; new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model with the matrix X
 DpMeans.fit(X);
 // create the file output stream
-var fout = new fs.openWrite(&#x27;DpMeans.bin&#x27;);
+var fout &#x3D; new fs.openWrite(&#x27;DpMeans.bin&#x27;);
 // save the DpMeans instance
 DpMeans.save(fout);
 fout.close();
 // load the DpMeans instance
-var fin = fs.openRead(&#x27;DpMeans.bin&#x27;);
-var KMeans2 = new analytics.DpMeans(fin);</code></pre>
+var fin &#x3D; fs.openRead(&#x27;DpMeans.bin&#x27;);
+var KMeans2 &#x3D; new analytics.DpMeans(fin);</code></pre>
                 </div>
               </section>
               <section>
@@ -588,20 +595,20 @@ var KMeans2 = new analytics.DpMeans(fin);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>&nbsp;The output stream <code>fout</code>.</p>
+                  <p><code><a href="module-fs.FOut.html">module:fs.FOut</a></code>B The output stream <code>fout</code>.</p>
                 </dd>
               </dl>
               <h3 id="setParams"><span class="symbol-name">setParams</span><span class="signature"><span class="signature-params">(params)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-analytics.DpMeans.html">module:analytics.DpMeans</a></span></span></h3>
               <p>Sets the parameters.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // create a new DpMeans object
-var DpMeans = new analytics.DpMeans();
+var DpMeans &#x3D; new analytics.DpMeans();
 // change the parameters of the DpMeans object
 DpMeans.setParams({ iter: 1000, lambda: 5 });</code></pre>
                 </div>
@@ -638,27 +645,27 @@ DpMeans.setParams({ iter: 1000, lambda: 5 });</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-analytics.DpMeans.html">module:analytics.DpMeans</a></code>&nbsp;Self. The model parameters have been updated.</p>
+                  <p><code><a href="module-analytics.DpMeans.html">module:analytics.DpMeans</a></code>B Self. The model parameters have been updated.</p>
                 </dd>
               </dl>
               <h3 id="transform"><span class="symbol-name">transform</span><span class="signature"><span class="signature-params">(A)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
               <p>Transforms the points to vectors of distances to centroids.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import modules
-var analytics = require(&#x27;qminer&#x27;).analytics;
-var la = require(&#x27;qminer&#x27;).la;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
+var la &#x3D; require(&#x27;qminer&#x27;).la;
 // create a new DpMeans object
-var DpMeans = new analytics.DpMeans({ iter: 1000, lambda: 3 });
+var DpMeans &#x3D; new analytics.DpMeans({ iter: 1000, lambda: 3 });
 // create a matrix to be fitted
-var X = new la.Matrix([[1, -2, -1], [1, 1, -3]]);
+var X &#x3D; new la.Matrix([[1, -2, -1], [1, 1, -3]]);
 // create the model with the matrix X
 DpMeans.fit(X);
 // create the matrix of the transform vectors
-var matrix = new la.Matrix([[-2, 0], [0, -3]]);
+var matrix &#x3D; new la.Matrix([[-2, 0], [0, -3]]);
 // get the transform values of matrix
 // returns the matrix
 //  10    17
@@ -699,7 +706,7 @@ DpMeans.transform(matrix);</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;Matrix where each column represents the squared distances to the centroid vectors.</p>
+                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>B Matrix where each column represents the squared distances to the centroid vectors.</p>
                 </dd>
               </dl>
             </section>
@@ -717,7 +724,6 @@ DpMeans.transform(matrix);</code></pre>
     </div>
   </footer>
   <script src="scripts/jquery.min.js"></script>
-  <script src="scripts/jquery.cookie.js"></script>
   <script src="scripts/tree.jquery.js"></script>
   <script src="scripts/prettify.js"></script>
   <script src="scripts/jsdoc-toc.js"></script>

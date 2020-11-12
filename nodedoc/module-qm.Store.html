@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.1</a>
       </div>
     </div>
   </nav>
@@ -24,7 +24,8 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Store</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">class</span>&nbsp;<span class="label label-static">static</span></div>
+            <h1><small><a href="module-qm.html">qm</a>.<wbr></small><span class="symbol-name">Store</span></h1>
             <p class="source-link">Source: <a href="qminerdoc.js.html#source-line-817">qminerdoc.<wbr>js:817</a></p>
             <dl class="dl-compact">
             </dl>
@@ -175,21 +176,21 @@
           </section>
           <section>
             <h2 id="Store"><span class="symbol-name">Store</span><span class="signature"><span class="signature-params">()</span></span></h2>
-            <p>Stores are containers of records.
-              <br>
-              <b>Factory pattern:</b> this class cannot be construced using the new keyword. This class is constructed when calling a specific method or attribute, e.g. constructing the <a href="module-qm.Base.html">module:qm.Base</a> using schema or
-              with the
-              <a href="module-qm.Base.html#createStore">module:qm.Base#createStore</a>.</p>
+            <p>Stores are containers of records. <br>
+              <b>Factory pattern:</b> this class cannot be construced using the new keyword. This class is constructed when
+              calling a specific method or attribute, e.g. constructing the <a href="module-qm.Base.html">module:qm.Base</a> using schema or with the
+              <a href="module-qm.Base.html#createStore">module:qm.Base#createStore</a>.
+            </p>
             <section>
               <h3>
-            Examples
-        </h3>
+                Examples
+              </h3>
               <div>
                 <p>Creating a store with createStore function</p>
                 <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // factory based construction using base.createStore
-var base = new qm.Base({ mode: &#x27;createClean&#x27; });
+var base &#x3D; new qm.Base({ mode: &#x27;createClean&#x27; });
 base.createStore([{
    name: &quot;People&quot;,
    fields: [
@@ -230,9 +231,9 @@ base.close();</code></pre>
               <div>
                 <p>Creating store with schema in base constructor</p>
                 <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // using the base constructor
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;Class&quot;,
@@ -274,7 +275,8 @@ base.close();</code></pre>
                 <br>3. <code>type</code> - The type of the field. Type <code>string</code>.
                 <br>4. <code>nullable</code> - If the field value can be null. Type <code>boolean</code>.
                 <br>5. <code>internal</code> - If the field is internal. Type <code>boolean</code>.
-                <br>6. <code>primary</code> - If the field is primary. Type <code>boolean</code>.</p>
+                <br>6. <code>primary</code> - If the field is primary. Type <code>boolean</code>.
+              </p>
               <dl class="dl-compact">
               </dl>
               <h3 id="first"><span class="symbol-name">first</span></h3>
@@ -292,7 +294,8 @@ base.close();</code></pre>
                 <br>2. <code>store</code> - The store the join was created in. Type <code>string</code>.
                 <br>2. <code>inverse</code> - The inverse join. Type <code>string</code>.
                 <br>3. <code>type</code> - The type of the field. Type <code>string</code>.
-                <br>4. <code>key</code> - The index key. Type <a href="module-qm.html#~DetailKeyObject">module:qm~DetailKeyObject</a>.</p>
+                <br>4. <code>key</code> - The index key. Type <a href="module-qm.html#~DetailKeyObject">module:qm~DetailKeyObject</a>.
+              </p>
               <dl class="dl-compact">
               </dl>
               <h3 id="keys"><span class="symbol-name">keys</span></h3>
@@ -341,7 +344,8 @@ base.close();</code></pre>
                       <td>
                         <p>Constructor arguments. There are two argument types:
                           <br>1. Using the <a href="module-qm.html#~StreamAggregator">module:qm~StreamAggregator</a> object,
-                          <br>2. using a function/JavaScript class. The function has defined The object containing the schema of the stream aggregate or the function object defining the operations of the stream aggregate.</p>
+                          <br>2. using a function/JavaScript class. The function has defined The object containing the schema of the stream aggregate or the function object defining the operations of the stream aggregate.
+                        </p>
                       </td>
                     </tr>
                   </tbody>
@@ -375,7 +379,8 @@ base.close();</code></pre>
                       </td>
                       <td>
                         <p>The trigger containing the method <a href="module-qm.StreamAggr.html#onAdd">module:qm.StreamAggr#onAdd</a> and optional
-                          <a href="module-qm.StreamAggr.html#onUpdate">module:qm.StreamAggr#onUpdate</a> and <a href="module-qm.StreamAggr.html#onDelete">module:qm.StreamAggr#onDelete</a>.</p>
+                          <a href="module-qm.StreamAggr.html#onUpdate">module:qm.StreamAggr#onUpdate</a> and <a href="module-qm.StreamAggr.html#onDelete">module:qm.StreamAggr#onDelete</a>.
+                        </p>
                       </td>
                     </tr>
                   </tbody>
@@ -387,13 +392,13 @@ base.close();</code></pre>
               <p>Gives the field value of a specific record.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>//import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;Festivals&quot;,
@@ -409,7 +414,7 @@ base.store(&quot;Festivals&quot;).push({ Name: &quot;Metaldays&quot;, Type: &quo
 base.store(&quot;Festivals&quot;).push({ Name: &quot;Festival de Cannes&quot;, Type: &quot;movie&quot;, Location: &quot;Cannes, France&quot; });
 base.store(&quot;Festivals&quot;).push({ Name: &quot;The Festival of Chocolate&quot;, Type: &quot;food&quot;, Location: &quot;Hillsborough, USA&quot; });
 // get the field value of the second record for field &quot;Type&quot;
-var fieldValue = base.store(&quot;Festivals&quot;).cell(1, &quot;Type&quot;); // returns &quot;movie&quot;
+var fieldValue &#x3D; base.store(&quot;Festivals&quot;).cell(1, &quot;Type&quot;); // returns &quot;movie&quot;
 base.close();</code></pre>
                 </div>
               </section>
@@ -459,20 +464,20 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(number, string, Array of number, or Array of string)</code>&nbsp;The <code>fieldName</code> value of the record with ID <code>recId</code>.</p>
+                  <p><code>(number, string, Array of number, or Array of string)</code>B The <code>fieldName</code> value of the record with ID <code>recId</code>.</p>
                 </dd>
               </dl>
               <h3 id="clear"><span class="symbol-name">clear</span><span class="signature"><span class="signature-params">([num])</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Deletes the first records in the store.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;TVSeries&quot;,
@@ -527,20 +532,20 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;The number of remaining records in the store.</p>
+                  <p><code>number</code>B The number of remaining records in the store.</p>
                 </dd>
               </dl>
               <h3 id="each"><span class="symbol-name">each</span><span class="signature"><span class="signature-params">(callback)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Store.html">module:qm.Store</a></span></span></h3>
               <p>Executes a function on each record in store.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a base containing the store Class
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;Class&quot;,
@@ -556,7 +561,7 @@ base.store(&quot;Class&quot;).push({ Name: &quot;Annie&quot;, StudyGroup: &quot;
 base.store(&quot;Class&quot;).push({ Name: &quot;Britta&quot;, StudyGroup: &quot;C&quot; });
 base.store(&quot;Class&quot;).push({ Name: &quot;Jeff&quot;, StudyGroup: &quot;A&quot; });
 // change the StudyGroup of all records of store Class to A
-base.store(&quot;Class&quot;).each(function (rec) { rec.StudyGroup = &quot;A&quot;; });   // all records in Class are now in study group A
+base.store(&quot;Class&quot;).each(function (rec) { rec.StudyGroup &#x3D; &quot;A&quot;; });   // all records in Class are now in study group A
 base.close();</code></pre>
                 </div>
               </section>
@@ -585,7 +590,8 @@ base.close();</code></pre>
                       <td>
                         <p>Function to be executed. It takes two parameters:
                           <br>1. <code>rec</code> - The current record. Type <a href="module-qm.Record.html">module:qm.Record</a>.
-                          <br>2. <code>idx</code> - The index of the current record (<i>optional</i>). Type <code>number</code>.</p>
+                          <br>2. <code>idx</code> - The index of the current record (<i>optional</i>). Type <code>number</code>.
+                        </p>
                       </td>
                     </tr>
                   </tbody>
@@ -594,20 +600,20 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.Store.html">module:qm.Store</a></code>&nbsp;Self.</p>
+                  <p><code><a href="module-qm.Store.html">module:qm.Store</a></code>B Self.</p>
                 </dd>
               </dl>
               <h3 id="field"><span class="symbol-name">field</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> object</span></span></h3>
               <p>Gets the details of the selected field.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&quot;qminer&quot;);
+var qm &#x3D; require(&quot;qminer&quot;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;People&quot;,
@@ -621,7 +627,7 @@ var base = new qm.Base({
 // get the details of the field &quot;Name&quot; of store &quot;People&quot;
 // it returns a JSON object:
 // { id: 0, name: &quot;Name&quot;, type: &quot;string&quot;, primary: true, nullable: false, internal: false }
-var details = base.store(&quot;People&quot;).field(&quot;Name&quot;);
+var details &#x3D; base.store(&quot;People&quot;).field(&quot;Name&quot;);
 base.close();</code></pre>
                 </div>
               </section>
@@ -657,26 +663,27 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>object</code>&nbsp;The object containing the details of the field. The properties are:
+                  <p><code>object</code>B The object containing the details of the field. The properties are:
                     <br>1. <code>id</code> - The ID of the field. Type B4numberB4.
                     <br>2. <code>name</code> - The name of the field. Type <code>string</code>.
                     <br>3. <code>type</code> - The type of the field. Type <code>string</code>.
                     <br>4. <code>nullable</code> - If the field value can be null. Type <code>boolean</code>.
                     <br>5. <code>internal</code> - If the field is internal. Type <code>boolean</code>.
-                    <br>6. <code>primary</code> - If the field is primary. Type <code>boolean</code>.</p>
+                    <br>6. <code>primary</code> - If the field is primary. Type <code>boolean</code>.
+                  </p>
                 </dd>
               </dl>
               <h3 id="getMatrix"><span class="symbol-name">getMatrix</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</span></span></h3>
               <p>Gives a matrix containing the field values of each record.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;ArcheryChampionship&quot;,
@@ -696,7 +703,7 @@ base.store(&quot;ArcheryChampionship&quot;).push({ Name: &quot;Legolas&quot;, Sc
 // 50  44  50
 // 48  46  50
 // 48  44  48
-var matrix = base.store(&quot;ArcheryChampionship&quot;).getMatrix(&quot;ScorePerRound&quot;);
+var matrix &#x3D; base.store(&quot;ArcheryChampionship&quot;).getMatrix(&quot;ScorePerRound&quot;);
 base.close();</code></pre>
                 </div>
               </section>
@@ -732,20 +739,20 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</code>&nbsp;The matrix containing the field values.</p>
+                  <p><code>(<a href="module-la.Matrix.html">module:la.Matrix</a> or <a href="module-la.SparseMatrix.html">module:la.SparseMatrix</a>)</code>B The matrix containing the field values.</p>
                 </dd>
               </dl>
               <h3 id="getStreamAggrNames"><span class="symbol-name">getStreamAggrNames</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Array of string</span></span></h3>
               <p>Returns an array of the stream aggregates names connected to the store.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a simple base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;Laser&quot;,
@@ -757,7 +764,7 @@ var base = new qm.Base({
 });
 
 // create a new time series window buffer stream aggregator for &#x27;Laser&#x27; store (with the JSON object)
-var wavelength = {
+var wavelength &#x3D; {
     name: &quot;WaveLengthLaser&quot;,
     type: &quot;timeSeriesWinBuf&quot;,
     store: &quot;Laser&quot;,
@@ -765,7 +772,7 @@ var wavelength = {
     value: &quot;WaveLength&quot;,
     winsize: 10000
 }
-var sa = base.store(&quot;Laser&quot;).addStreamAggr(wavelength);
+var sa &#x3D; base.store(&quot;Laser&quot;).addStreamAggr(wavelength);
 // get the stream aggregates on store &quot;Laser&quot;
 base.store(&quot;Laser&quot;).getStreamAggrNames();
 base.close();</code></pre>
@@ -774,20 +781,20 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Array of string</code>&nbsp;An array of stream aggregates names.</p>
+                  <p><code>Array of string</code>B An array of stream aggregates names.</p>
                 </dd>
               </dl>
               <h3 id="getVector"><span class="symbol-name">getVector</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Vector.html">module:la.Vector</a></span></span></h3>
               <p>Gives a vector containing the field value of each record.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;Companies&quot;,
@@ -802,7 +809,7 @@ base.store(&quot;Companies&quot;).push({ Name: &quot;DC Comics&quot;, Location: 
 base.store(&quot;Companies&quot;).push({ Name: &quot;DC Shoes&quot;, Location: &quot;Huntington Beach, California&quot; });
 base.store(&quot;Companies&quot;).push({ Name: &quot;21st Century Fox&quot;, Location: &quot;New York City, New York&quot; });
 // get the vector of company names
-var companyNames = base.store(&quot;Companies&quot;).getVector(&quot;Name&quot;); // returns a vector [&quot;DC Comics&quot;, &quot;DC Shoes&quot;, &quot;21st Century Fox&quot;]
+var companyNames &#x3D; base.store(&quot;Companies&quot;).getVector(&quot;Name&quot;); // returns a vector [&quot;DC Comics&quot;, &quot;DC Shoes&quot;, &quot;21st Century Fox&quot;]
 base.close();</code></pre>
                 </div>
               </section>
@@ -838,7 +845,7 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>&nbsp;The vector containing the field values of each record.</p>
+                  <p><code><a href="module-la.Vector.html">module:la.Vector</a></code>B The vector containing the field values of each record.</p>
                 </dd>
               </dl>
               <h3 id="inspect"><span class="symbol-name">inspect</span><span class="signature"><span class="signature-params">(depth)</span>&nbsp;&rarr; <span class="signature-returns"> string</span></span></h3>
@@ -875,20 +882,20 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>string</code>&nbsp;String representation of the store.</p>
+                  <p><code>string</code>B String representation of the store.</p>
                 </dd>
               </dl>
               <h3 id="isDate"><span class="symbol-name">isDate</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
               <p>Checks if the field is of type Date.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;BasketballPlayers&quot;,
@@ -900,9 +907,9 @@ var base = new qm.Base({
    }]
 });
 // check if the SeasonScore field is of type Date
-var isSeasonScoreDate = base.store(&quot;BasketballPlayers&quot;).isDate(&quot;SeasonScore&quot;); // returns false
+var isSeasonScoreDate &#x3D; base.store(&quot;BasketballPlayers&quot;).isDate(&quot;SeasonScore&quot;); // returns false
 // check if the FirstPlayed field is of type Date
-var isFirstPlayedDate = base.store(&quot;BasketballPlayers&quot;).isDate(&quot;DateOfBirth&quot;); // returns true
+var isFirstPlayedDate &#x3D; base.store(&quot;BasketballPlayers&quot;).isDate(&quot;DateOfBirth&quot;); // returns true
 base.close();</code></pre>
                 </div>
               </section>
@@ -938,20 +945,20 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>boolean</code>&nbsp;True, if the field is of type Date. Otherwise, false.</p>
+                  <p><code>boolean</code>B True, if the field is of type Date. Otherwise, false.</p>
                 </dd>
               </dl>
               <h3 id="isNumeric"><span class="symbol-name">isNumeric</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
               <p>Checks if the field is of numeric type.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;TVSeries&quot;,
@@ -962,9 +969,9 @@ var base = new qm.Base({
    }]
 });
 // check if the field &quot;Title&quot; is of numeric type
-var isTitleNumeric = base.store(&quot;TVSeries&quot;).isNumeric(&quot;Title&quot;); // returns false
+var isTitleNumeric &#x3D; base.store(&quot;TVSeries&quot;).isNumeric(&quot;Title&quot;); // returns false
 // check if the field &quot;NumberOfEpisodes&quot; is of numeric type
-var isNumberOfEpisodesNumeric = base.store(&quot;TVSeries&quot;).isNumeric(&quot;NumberOfEpisodes&quot;); // returns true
+var isNumberOfEpisodesNumeric &#x3D; base.store(&quot;TVSeries&quot;).isNumeric(&quot;NumberOfEpisodes&quot;); // returns true
 base.close();</code></pre>
                 </div>
               </section>
@@ -1000,20 +1007,20 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>boolean</code>&nbsp;True, if the field is of numeric type. Otherwise, false.</p>
+                  <p><code>boolean</code>B True, if the field is of numeric type. Otherwise, false.</p>
                 </dd>
               </dl>
               <h3 id="isString"><span class="symbol-name">isString</span><span class="signature"><span class="signature-params">(fieldName)</span>&nbsp;&rarr; <span class="signature-returns"> boolean</span></span></h3>
               <p>Checks if the field is of string type.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&quot;qminer&quot;);
+var qm &#x3D; require(&quot;qminer&quot;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;People&quot;,
@@ -1025,9 +1032,9 @@ var base = new qm.Base({
    }]
 });
 // check if the field &quot;Name&quot; is of string type
-var isNameString = base.store(&quot;People&quot;).isString(&quot;Name&quot;); // returns true
+var isNameString &#x3D; base.store(&quot;People&quot;).isString(&quot;Name&quot;); // returns true
 // check if the field &quot;Age&quot; is of string type
-var isAgeString = base.store(&quot;People&quot;).isString(&quot;Age&quot;); // returns false
+var isAgeString &#x3D; base.store(&quot;People&quot;).isString(&quot;Age&quot;); // returns false
 base.close();</code></pre>
                 </div>
               </section>
@@ -1063,20 +1070,20 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>boolean</code>&nbsp;True, if the field is of string type. Otherwise, false.</p>
+                  <p><code>boolean</code>B True, if the field is of string type. Otherwise, false.</p>
                 </dd>
               </dl>
               <h3 id="key"><span class="symbol-name">key</span><span class="signature"><span class="signature-params">(keyName)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.html#~DetailKeyObject">module:qm~DetailKeyObject</a></span></span></h3>
               <p>Returns the details of the selected key as a object.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;Countries&quot;,
@@ -1094,7 +1101,7 @@ var base = new qm.Base({
 // get the details of the key of the field &quot;Continent&quot;
 // returns a JSON object containing the details of the key:
 // { fq: { length: 0 }, vocabulary: { length: 0 }, name: &#x27;Continent&#x27;, store: { name: &#x27;Countries&#x27;, ... }}
-var details = base.store(&quot;Countries&quot;).key(&quot;Continent&quot;);
+var details &#x3D; base.store(&quot;Countries&quot;).key(&quot;Continent&quot;);
 base.close();</code></pre>
                 </div>
               </section>
@@ -1130,7 +1137,7 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.html#~DetailKeyObject">module:qm~DetailKeyObject</a></code>&nbsp;The object containing the details of the key.</p>
+                  <p><code><a href="module-qm.html#~DetailKeyObject">module:qm~DetailKeyObject</a></code>B The object containing the details of the key.</p>
                 </dd>
               </dl>
               <h3 id="loadJson"><span class="symbol-name">loadJson</span><span class="signature"><span class="signature-params">(file[, limit])</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
@@ -1181,20 +1188,20 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Number of records loaded from file.</p>
+                  <p><code>number</code>B Number of records loaded from file.</p>
                 </dd>
               </dl>
               <h3 id="map"><span class="symbol-name">map</span><span class="signature"><span class="signature-params">(callback)</span>&nbsp;&rarr; <span class="signature-returns"> Array of Object</span></span></h3>
               <p>Creates an array of function outputs created from the store records.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a base containing the store Class
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;Class&quot;,
@@ -1210,7 +1217,7 @@ base.store(&quot;Class&quot;).push({ Name: &quot;Troy&quot;, StudyGroup: &quot;B
 base.store(&quot;Class&quot;).push({ Name: &quot;Chang&quot;, StudyGroup: &quot;C&quot; });
 base.store(&quot;Class&quot;).push({ Name: &quot;Pierce&quot;, StudyGroup: &quot;A&quot; });
 // make an array of record names
-var arr = base.store(&quot;Class&quot;).map(function (rec) { return rec.Name; }); // returns an array [&quot;Shirley&quot;, &quot;Troy&quot;, &quot;Chang&quot;, &quot;Pierce&quot;]
+var arr &#x3D; base.store(&quot;Class&quot;).map(function (rec) { return rec.Name; }); // returns an array [&quot;Shirley&quot;, &quot;Troy&quot;, &quot;Chang&quot;, &quot;Pierce&quot;]
 base.close();</code></pre>
                 </div>
               </section>
@@ -1239,7 +1246,8 @@ base.close();</code></pre>
                       <td>
                         <p>Function that generates the array. It takes two parameters:
                           <br>1. <code>rec</code> - The current record. Type <a href="module-qm.Record.html">module:qm.Record</a>.
-                          <br>2. <code>idx</code> - The index of the current record (<i>optional</i>). Type <code>number</code>.</p>
+                          <br>2. <code>idx</code> - The index of the current record (<i>optional</i>). Type <code>number</code>.
+                        </p>
                       </td>
                     </tr>
                   </tbody>
@@ -1248,20 +1256,20 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Array of Object</code>&nbsp;The array created by the callback function.</p>
+                  <p><code>Array of Object</code>B The array created by the callback function.</p>
                 </dd>
               </dl>
               <h3 id="newRecord"><span class="symbol-name">newRecord</span><span class="signature"><span class="signature-params">(obj)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.Record.html">module:qm.Record</a></span></span></h3>
               <p>Creates a new record of given store. The record is not added to the store.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;Planets&quot;,
@@ -1275,7 +1283,7 @@ var base = new qm.Base({
 // add a new planet in the store
 base.store(&quot;Planets&quot;).push({ Name: &quot;Earth&quot;, Diameter: 299196522, NearestStars: [&quot;Sun&quot;] });
 // create a record of a planet (not added to the Planets store)
-var planet = base.store(&quot;Planets&quot;).newRecord({ Name: &quot;Tatooine&quot;, Diameter: 10465, NearestStars: [&quot;Tatoo 1&quot;, &quot;Tatoo 2&quot;] });
+var planet &#x3D; base.store(&quot;Planets&quot;).newRecord({ Name: &quot;Tatooine&quot;, Diameter: 10465, NearestStars: [&quot;Tatoo 1&quot;, &quot;Tatoo 2&quot;] });
 base.close();</code></pre>
                 </div>
               </section>
@@ -1311,20 +1319,20 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.Record.html">module:qm.Record</a></code>&nbsp;The record created by <code>obj</code> and the store.</p>
+                  <p><code><a href="module-qm.Record.html">module:qm.Record</a></code>B The record created by <code>obj</code> and the store.</p>
                 </dd>
               </dl>
               <h3 id="newRecordSet"><span class="symbol-name">newRecordSet</span><span class="signature"><span class="signature-params">(idVec)</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-qm.RecordSet.html">module:qm.RecordSet</a></span></span></h3>
               <p>Creates a new record set out of the records in store.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;Superheroes&quot;,
@@ -1340,8 +1348,8 @@ base.store(&quot;Superheroes&quot;).push({ Name: &quot;Batman&quot;, Superpowers
 base.store(&quot;Superheroes&quot;).push({ Name: &quot;Thor&quot;, Superpowers: [&quot;Superhuman strength, endurance and longevity&quot;, &quot;Abilities via Mjolnir&quot;] });
 base.store(&quot;Superheroes&quot;).push({ Name: &quot;Wonder Woman&quot;, Superpowers: [&quot;Superhuman strength, agility and endurance&quot;, &quot;Flight&quot;, &quot;Highly skilled hand-to-hand combatant&quot;] });
 // create a new record set containing only the DC Comic superheroes (those with the record ids 0, 1 and 3)
-var intVec = new qm.la.IntVector([0, 1, 3]);
-var DCHeroes = base.store(&quot;Superheroes&quot;).newRecordSet(intVec);
+var intVec &#x3D; new qm.la.IntVector([0, 1, 3]);
+var DCHeroes &#x3D; base.store(&quot;Superheroes&quot;).newRecordSet(intVec);
 base.close();</code></pre>
                 </div>
               </section>
@@ -1377,20 +1385,20 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;The record set that contains the records gained with <code>idVec</code>.</p>
+                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>B The record set that contains the records gained with <code>idVec</code>.</p>
                 </dd>
               </dl>
               <h3 id="push"><span class="symbol-name">push</span><span class="signature"><span class="signature-params">(rec[, triggerEvents])</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Adds a record to the store.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing two stores
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [
    {
@@ -1462,20 +1470,20 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;The ID of the added record.</p>
+                  <p><code>number</code>B The ID of the added record.</p>
                 </dd>
               </dl>
               <h3 id="recordByName"><span class="symbol-name">recordByName</span><span class="signature"><span class="signature-params">(recName)</span>&nbsp;&rarr; <span class="signature-returns"> (<a href="module-qm.Record.html">module:qm.Record</a> or null)</span></span></h3>
               <p>Returns a record from the store.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a base containing the store Class. Let the Name field be the primary field.
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;Class&quot;,
@@ -1491,7 +1499,7 @@ base.store(&quot;Class&quot;).push({ Name: &quot;Chang&quot;, StudyGroup: &quot;
 base.store(&quot;Class&quot;).push({ Name: &quot;Magnitude&quot;, StudyGroup: &quot;C&quot; });
 base.store(&quot;Class&quot;).push({ Name: &quot;Leonard&quot;, StudyGroup: &quot;B&quot; });
 // get the record with the name &quot;Magnitude&quot;
-var record = base.store(&quot;Class&quot;).recordByName(&quot;Magnitude&quot;);
+var record &#x3D; base.store(&quot;Class&quot;).recordByName(&quot;Magnitude&quot;);
 base.close();</code></pre>
                 </div>
               </section>
@@ -1527,20 +1535,20 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>(<a href="module-qm.Record.html">module:qm.Record</a> or null)</code>&nbsp;Returns the record. If the record doesn't exist, it returns <code>null</code>.</p>
+                  <p><code>(<a href="module-qm.Record.html">module:qm.Record</a> or null)</code>B Returns the record. If the record doesn't exist, it returns <code>null</code>.</p>
                 </dd>
               </dl>
               <h3 id="resetStreamAggregates"><span class="symbol-name">resetStreamAggregates</span><span class="signature"><span class="signature-params">()</span></span></h3>
               <p>Resets all stream aggregates.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a simple base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;Laser&quot;,
@@ -1552,7 +1560,7 @@ var base = new qm.Base({
 });
 
 // create a new time series window buffer stream aggregator for &#x27;Laser&#x27; store (with the JSON object)
-var wavelength = {
+var wavelength &#x3D; {
     name: &quot;WaveLengthLaser&quot;,
     type: &quot;timeSeriesWinBuf&quot;,
     store: &quot;Laser&quot;,
@@ -1560,7 +1568,7 @@ var wavelength = {
     value: &quot;WaveLength&quot;,
     winsize: 10000
 }
-var sa = base.store(&quot;Laser&quot;).addStreamAggr(wavelength);
+var sa &#x3D; base.store(&quot;Laser&quot;).addStreamAggr(wavelength);
 // reset the stream aggregates on store &quot;Laser&quot;
 base.store(&quot;Laser&quot;).resetStreamAggregates();
 base.close();</code></pre>
@@ -1572,13 +1580,13 @@ base.close();</code></pre>
               <p>Creates a record set containing random records from store.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;TVSeries&quot;,
@@ -1595,7 +1603,7 @@ base.store(&quot;TVSeries&quot;).push({ Title: &quot;New Girl&quot;, NumberOfEpi
 base.store(&quot;TVSeries&quot;).push({ Title: &quot;Rick and Morty&quot;, NumberOfEpisodes: 11 });
 base.store(&quot;TVSeries&quot;).push({ Title: &quot;Game of Thrones&quot;, NumberOfEpisodes: 47 });
 // create a sample record set containing 3 records
-var randomRecordSet = base.store(&quot;TVSeries&quot;).sample(3); // contains 3 random records from the TVSeries store
+var randomRecordSet &#x3D; base.store(&quot;TVSeries&quot;).sample(3); // contains 3 random records from the TVSeries store
 base.close();</code></pre>
                 </div>
               </section>
@@ -1631,20 +1639,20 @@ base.close();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>&nbsp;Returns a record set containing <code>sampleSize</code> random records.</p>
+                  <p><code><a href="module-qm.RecordSet.html">module:qm.RecordSet</a></code>B Returns a record set containing <code>sampleSize</code> random records.</p>
                 </dd>
               </dl>
               <h3 id="toJSON"><span class="symbol-name">toJSON</span><span class="signature"><span class="signature-params">()</span>&nbsp;&rarr; <span class="signature-returns"> Object</span></span></h3>
               <p>Returns the store as a JSON.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import qm module
-var qm = require(&#x27;qminer&#x27;);
+var qm &#x3D; require(&#x27;qminer&#x27;);
 // create a new base containing one store
-var base = new qm.Base({
+var base &#x3D; new qm.Base({
    mode: &quot;createClean&quot;,
    schema: [{
        name: &quot;FootballPlayers&quot;,
@@ -1658,14 +1666,14 @@ var base = new qm.Base({
 // get the store as a JSON object
 // the returned JSON object is:
 // { storeId: 0, storeName: &#x27;FootballPlayers&#x27;, storeRecords: 0, fields: [...], keys: [], joins: [] }
-var json = base.store(&quot;FootballPlayers&quot;).toJSON();
+var json &#x3D; base.store(&quot;FootballPlayers&quot;).toJSON();
 base.close();</code></pre>
                 </div>
               </section>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>Object</code>&nbsp;The store as a JSON.</p>
+                  <p><code>Object</code>B The store as a JSON.</p>
                 </dd>
               </dl>
               <h3 id="triggerOnAddCallbacks"><span class="symbol-name">triggerOnAddCallbacks</span><span class="signature"><span class="signature-params">([arg])</span></span></h3>
@@ -1694,7 +1702,8 @@ base.close();</code></pre>
                       </td>
                       <td>
                         <p>The record or record ID which will be passed to <code>onAdd</code> callbacks. If the record or record ID is not provided, the last record will be used. Throws exception if the record cannot be provided.
-                          <br>Defaults to the last <a href="module-qm.Record.html">module:qm.Record</a> in store.</p>
+                          <br>Defaults to the last <a href="module-qm.Record.html">module:qm.Record</a> in store.
+                        </p>
                       </td>
                     </tr>
                   </tbody>
@@ -1717,7 +1726,6 @@ base.close();</code></pre>
     </div>
   </footer>
   <script src="scripts/jquery.min.js"></script>
-  <script src="scripts/jquery.cookie.js"></script>
   <script src="scripts/tree.jquery.js"></script>
   <script src="scripts/prettify.js"></script>
   <script src="scripts/jsdoc-toc.js"></script>

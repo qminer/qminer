@@ -15,7 +15,7 @@
   <nav id="jsdoc-navbar" role="navigation" class="jsdoc-navbar">
     <div id="jsdoc-navbar-container">
       <div id="jsdoc-navbar-content">
-        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.0</a>
+        <a href="index.html" class="jsdoc-navbar-package-name">QMiner JavaScript API v9.3.1</a>
       </div>
     </div>
   </nav>
@@ -24,37 +24,38 @@
       <div id="jsdoc-content-container">
         <div id="jsdoc-main" role="main">
           <header class="page-header">
-            <h1><div class="symbol-detail-labels"><span class="label label-kind">namespace</span>&nbsp;<span class="label label-inner">inner</span></div><small><a href="module-analytics.html">analytics</a>~<wbr></small><span class="symbol-name">metrics</span></h1>
+            <div class="symbol-detail-labels"><span class="label label-kind">namespace</span>&nbsp;<span class="label label-inner">inner</span></div>
+            <h1><small><a href="module-analytics.html">analytics</a>~<wbr></small><span class="symbol-name">metrics</span></h1>
             <p class="source-link">Source: <a href="analyticsdoc.js.html#source-line-3417">analyticsdoc.<wbr>js:3417</a></p>
             <div class="symbol-description">
               <p>Classification and regression metrics.</p>
             </div>
             <section>
               <h2>
-            Examples
-        </h2>
+                Examples
+              </h2>
               <div>
                 <p>Batch classification example</p>
                 <pre class="prettyprint"><code>// import metrics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 
 // true and predicted lables
-var true_lables = [0, 1, 0, 0, 1];
-var pred_prob = [0.3, 0.5, 0.2, 0.5, 0.8];
+var true_lables &#x3D; [0, 1, 0, 0, 1];
+var pred_prob &#x3D; [0.3, 0.5, 0.2, 0.5, 0.8];
 
 // compute ROC curve
-var roc = analytics.metrics.rocCurve(true_lables, pred_prob);</code></pre>
+var roc &#x3D; analytics.metrics.rocCurve(true_lables, pred_prob);</code></pre>
               </div>
               <div>
                 <p>Online classification example</p>
                 <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // true and predicted lables
-var true_lables = [0, 1, 0, 0, 1];
-var pred_prob = [0.3, 0.5, 0.2, 0.5, 0.8];
+var true_lables &#x3D; [0, 1, 0, 0, 1];
+var pred_prob &#x3D; [0.3, 0.5, 0.2, 0.5, 0.8];
 
 // create predictionCurve instance
-var predictionCurve = new analytics.metrics.PredictionCurve();
+var predictionCurve &#x3D; new analytics.metrics.PredictionCurve();
 
 // simulate data flow
 for (var i in true_lables) {
@@ -62,15 +63,15 @@ for (var i in true_lables) {
    predictionCurve.push(true_lables[i], pred_prob[i]);
 }
 
-var roc = predictionCurve.roc(); // get ROC</code></pre>
+var roc &#x3D; predictionCurve.roc(); // get ROC</code></pre>
               </div>
               <div>
                 <p>Batch regression example</p>
                 <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // true and predicted data
-var true_vals = [1, 2, 3, 4, 5];
-var pred_vals = [3, 4, 5, 6, 7];
+var true_vals &#x3D; [1, 2, 3, 4, 5];
+var pred_vals &#x3D; [3, 4, 5, 6, 7];
 
 // use batch MAE method
 analytics.metrics.meanAbsoluteError(true_vals, pred_vals);</code></pre>
@@ -78,13 +79,13 @@ analytics.metrics.meanAbsoluteError(true_vals, pred_vals);</code></pre>
               <div>
                 <p>Online regression example</p>
                 <pre class="prettyprint"><code>// import analytics module
-var analytics = require(&#x27;qminer&#x27;).analytics;
+var analytics &#x3D; require(&#x27;qminer&#x27;).analytics;
 // true and predicted data
-var true_vals = [1, 2, 3, 4, 5];
-var pred_vals = [3, 4, 5, 6, 7];
+var true_vals &#x3D; [1, 2, 3, 4, 5];
+var pred_vals &#x3D; [3, 4, 5, 6, 7];
 
 // create online MAE metric instance
-var mae = new analytics.metrics.MeanAbsoluteError();
+var mae &#x3D; new analytics.metrics.MeanAbsoluteError();
 
 // simulate data flow
 for (var i in true_vals) {
@@ -223,8 +224,11 @@ mae.getError();</code></pre>
             </section>
             <h2>Methods</h2>
             <section>
-              <h3 id=".accuracyScore"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">accuracyScore</span><span class="signature"><span class="signature-params">(yTrue, yPred)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Accuracy score is the proportion of true results (both true positives and true negatives) among the total number of cases examined. Formula: <code>(tp + tn) / (tp + fp + fn + tn)</code>.</p>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".accuracyScore"><span class="symbol-name">accuracyScore</span><span class="signature"><span class="signature-params">(yTrue, yPred)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Accuracy score is the proportion of true results (both true positives and true negatives)
+                among the total number of cases examined.
+                Formula: <code>(tp + tn) / (tp + fp + fn + tn)</code>.</p>
               <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
@@ -271,10 +275,11 @@ mae.getError();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Accuracy value.</p>
+                  <p><code>number</code>B Accuracy value.</p>
                 </dd>
               </dl>
-              <h3 id=".bestF1Threshold"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">bestF1Threshold</span><span class="signature"><span class="signature-params">(yTrue, yPred)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".bestF1Threshold"><span class="symbol-name">bestF1Threshold</span><span class="signature"><span class="signature-params">(yTrue, yPred)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Gets threshold for prediction score, which results in the highest F1.</p>
               <section>
                 <h4>Parameters</h4>
@@ -322,10 +327,11 @@ mae.getError();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Threshold with highest F1 score.</p>
+                  <p><code>number</code>B Threshold with highest F1 score.</p>
                 </dd>
               </dl>
-              <h3 id=".breakEventPointScore"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">breakEventPointScore</span><span class="signature"><span class="signature-params">(yTrue, yPred)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".breakEventPointScore"><span class="symbol-name">breakEventPointScore</span><span class="signature"><span class="signature-params">(yTrue, yPred)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Get break-even point, the value where precision and recall intersect.</p>
               <section>
                 <h4>Parameters</h4>
@@ -373,10 +379,11 @@ mae.getError();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Break-even point score.</p>
+                  <p><code>number</code>B Break-even point score.</p>
                 </dd>
               </dl>
-              <h3 id=".desiredPrecisionThreshold"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">desiredPrecisionThreshold</span><span class="signature"><span class="signature-params">(yTrue, yPred, desiredPrecision)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".desiredPrecisionThreshold"><span class="symbol-name">desiredPrecisionThreshold</span><span class="signature"><span class="signature-params">(yTrue, yPred, desiredPrecision)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Gets threshold for prediction score, nearest to specified precision.</p>
               <section>
                 <h4>Parameters</h4>
@@ -438,10 +445,11 @@ mae.getError();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Threshold for prediction score, nearest to specified <code>precision</code>.</p>
+                  <p><code>number</code>B Threshold for prediction score, nearest to specified <code>precision</code>.</p>
                 </dd>
               </dl>
-              <h3 id=".desiredRecallThreshold"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">desiredRecallThreshold</span><span class="signature"><span class="signature-params">(yTrue, yPred, desiredRecall)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".desiredRecallThreshold"><span class="symbol-name">desiredRecallThreshold</span><span class="signature"><span class="signature-params">(yTrue, yPred, desiredRecall)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Gets threshold for recall score, nearest to specified recall.</p>
               <section>
                 <h4>Parameters</h4>
@@ -503,12 +511,15 @@ mae.getError();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Threshold for recall score, nearest to specified <code>recall</code>.</p>
+                  <p><code>number</code>B Threshold for recall score, nearest to specified <code>recall</code>.</p>
                 </dd>
               </dl>
-              <h3 id=".f1Score"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">f1Score</span><span class="signature"><span class="signature-params">(yTrue, yPred)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>The F1 score can be interpreted as a weighted average of the precision and recall, where an F1 score reaches its best value at 1 and worst score at 0. The relative contribution of precision and recall to the F1 score are equal. Formula:
-                <code>2 * (precision * recall) / (precision + recall)</code>.</p>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".f1Score"><span class="symbol-name">f1Score</span><span class="signature"><span class="signature-params">(yTrue, yPred)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>The F1 score can be interpreted as a weighted average of the precision and recall, where
+                an F1 score reaches its best value at 1 and worst score at 0. The relative contribution of
+                precision and recall to the F1 score are equal.
+                Formula: <code>2 * (precision * recall) / (precision + recall)</code>.</p>
               <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
@@ -555,10 +566,11 @@ mae.getError();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;F1 score.</p>
+                  <p><code>number</code>B F1 score.</p>
                 </dd>
               </dl>
-              <h3 id=".meanAbsoluteError"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">meanAbsoluteError</span><span class="signature"><span class="signature-params">(yTrueVec, yPredVec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".meanAbsoluteError"><span class="symbol-name">meanAbsoluteError</span><span class="signature"><span class="signature-params">(yTrueVec, yPredVec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Mean absolute error (MAE) regression loss.</p>
               <section>
                 <h4>Parameters</h4>
@@ -606,10 +618,11 @@ mae.getError();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Error value.</p>
+                  <p><code>number</code>B Error value.</p>
                 </dd>
               </dl>
-              <h3 id=".meanAbsolutePercentageError"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">meanAbsolutePercentageError</span><span class="signature"><span class="signature-params">(yTrueVec, yPredVec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".meanAbsolutePercentageError"><span class="symbol-name">meanAbsolutePercentageError</span><span class="signature"><span class="signature-params">(yTrueVec, yPredVec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Mean absolute percentage error (MAPE) regression loss.</p>
               <section>
                 <h4>Parameters</h4>
@@ -657,10 +670,11 @@ mae.getError();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Error value.</p>
+                  <p><code>number</code>B Error value.</p>
                 </dd>
               </dl>
-              <h3 id=".meanError"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">meanError</span><span class="signature"><span class="signature-params">(yTrueVec, yPredVec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".meanError"><span class="symbol-name">meanError</span><span class="signature"><span class="signature-params">(yTrueVec, yPredVec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Mean error (ME) regression loss.</p>
               <section>
                 <h4>Parameters</h4>
@@ -708,10 +722,11 @@ mae.getError();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Error value.</p>
+                  <p><code>number</code>B Error value.</p>
                 </dd>
               </dl>
-              <h3 id=".meanSquareError"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">meanSquareError</span><span class="signature"><span class="signature-params">(yTrueVec, yPredVec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".meanSquareError"><span class="symbol-name">meanSquareError</span><span class="signature"><span class="signature-params">(yTrueVec, yPredVec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Mean square error (MSE) regression loss.</p>
               <section>
                 <h4>Parameters</h4>
@@ -759,10 +774,11 @@ mae.getError();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Error value.</p>
+                  <p><code>number</code>B Error value.</p>
                 </dd>
               </dl>
-              <h3 id=".precisionRecallCurve"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">precisionRecallCurve</span><span class="signature"><span class="signature-params">(yTrue, yPred[, sample])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".precisionRecallCurve"><span class="symbol-name">precisionRecallCurve</span><span class="signature"><span class="signature-params">(yTrue, yPred[, sample])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
               <p>Get precision recall curve sampled on <code>sample</code> points.</p>
               <section>
                 <h4>Parameters</h4>
@@ -825,11 +841,14 @@ mae.getError();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;Precision-recall pairs.</p>
+                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>B Precision-recall pairs.</p>
                 </dd>
               </dl>
-              <h3 id=".precisionScore"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">precisionScore</span><span class="signature"><span class="signature-params">(yTrue, yPred)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Precision score is defined as the proportion of the true positives against all the positive results (both true positives and false positives). Formula: <code>tp / (tp + fp)</code>.</p>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".precisionScore"><span class="symbol-name">precisionScore</span><span class="signature"><span class="signature-params">(yTrue, yPred)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Precision score is defined as the proportion of the true positives against all the
+                positive results (both true positives and false positives).
+                Formula: <code>tp / (tp + fp)</code>.</p>
               <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
@@ -876,10 +895,11 @@ mae.getError();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Precission score.</p>
+                  <p><code>number</code>B Precission score.</p>
                 </dd>
               </dl>
-              <h3 id=".r2Score"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">r2Score</span><span class="signature"><span class="signature-params">(yTrueVec, yPredVec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".r2Score"><span class="symbol-name">r2Score</span><span class="signature"><span class="signature-params">(yTrueVec, yPredVec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>R^2 (coefficient of determination) regression score.</p>
               <section>
                 <h4>Parameters</h4>
@@ -927,11 +947,13 @@ mae.getError();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Error value.</p>
+                  <p><code>number</code>B Error value.</p>
                 </dd>
               </dl>
-              <h3 id=".recallScore"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">recallScore</span><span class="signature"><span class="signature-params">(yTrue, yPred)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
-              <p>Recall score is intuitively the ability of the classifier to find all the positive samples. Formula: <code>tp / (tp + fn)</code>.</p>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".recallScore"><span class="symbol-name">recallScore</span><span class="signature"><span class="signature-params">(yTrue, yPred)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <p>Recall score is intuitively the ability of the classifier to find all the positive samples.
+                Formula: <code>tp / (tp + fn)</code>.</p>
               <section>
                 <h4>Parameters</h4>
                 <table class="jsdoc-details-table">
@@ -978,25 +1000,26 @@ mae.getError();</code></pre>
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Recall score.</p>
+                  <p><code>number</code>B Recall score.</p>
                 </dd>
               </dl>
-              <h3 id=".rocAucScore"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">rocAucScore</span><span class="signature"><span class="signature-params">(yTrue, yPred[, sample])</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".rocAucScore"><span class="symbol-name">rocAucScore</span><span class="signature"><span class="signature-params">(yTrue, yPred[, sample])</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Get AUC of the current curve.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import metrics module
-var metrics = require(&#x27;qminer&#x27;).analytics.metrics;
+var metrics &#x3D; require(&#x27;qminer&#x27;).analytics.metrics;
 
 // true and predicted lables
-var true_lables = [0, 1, 0, 0, 1];
-var pred_prob = [0.3, 0.5, 0.2, 0.5, 0.8];
+var true_lables &#x3D; [0, 1, 0, 0, 1];
+var pred_prob &#x3D; [0.3, 0.5, 0.2, 0.5, 0.8];
 
 // compute ROC curve
-var auc = metrics.rocAucScore(true_lables, pred_prob); // output: 0.92</code></pre>
+var auc &#x3D; metrics.rocAucScore(true_lables, pred_prob); // output: 0.92</code></pre>
                 </div>
               </section>
               <section>
@@ -1060,25 +1083,26 @@ var auc = metrics.rocAucScore(true_lables, pred_prob); // output: 0.92</code></p
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Area under ROC curve.</p>
+                  <p><code>number</code>B Area under ROC curve.</p>
                 </dd>
               </dl>
-              <h3 id=".rocCurve"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">rocCurve</span><span class="signature"><span class="signature-params">(yTrue, yPred[, sample])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".rocCurve"><span class="symbol-name">rocCurve</span><span class="signature"><span class="signature-params">(yTrue, yPred[, sample])</span>&nbsp;&rarr; <span class="signature-returns"> <a href="module-la.Matrix.html">module:la.Matrix</a></span></span></h3>
               <p>Get ROC parametrization sampled on <code>sample</code> points.</p>
               <section>
                 <h4>
-            Example
-        </h4>
+                  Example
+                </h4>
                 <div>
                   <pre class="prettyprint"><code>// import metrics module
-var metrics = require(&#x27;qminer&#x27;).analytics.metrics;
+var metrics &#x3D; require(&#x27;qminer&#x27;).analytics.metrics;
 
 // true and predicted lables
-var true_lables = [0, 1, 0, 0, 1];
-var pred_prob = [0.3, 0.5, 0.2, 0.5, 0.8];
+var true_lables &#x3D; [0, 1, 0, 0, 1];
+var pred_prob &#x3D; [0.3, 0.5, 0.2, 0.5, 0.8];
 
 // compute ROC curve
-var roc = metrics.rocCurve(true_lables, pred_prob); // output: [ [ 0, 0 ], [0, 0.5], [[ 0.34, 1 ],], [ 0.67, 0 ], [ 1, 1 ] ]</code></pre>
+var roc &#x3D; metrics.rocCurve(true_lables, pred_prob); // output: [ [ 0, 0 ], [0, 0.5], [[ 0.34, 1 ],], [ 0.67, 0 ], [ 1, 1 ] ]</code></pre>
                 </div>
               </section>
               <section>
@@ -1142,10 +1166,11 @@ var roc = metrics.rocCurve(true_lables, pred_prob); // output: [ [ 0, 0 ], [0, 0
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>&nbsp;A matrix with increasing false and true positive rates.</p>
+                  <p><code><a href="module-la.Matrix.html">module:la.Matrix</a></code>B A matrix with increasing false and true positive rates.</p>
                 </dd>
               </dl>
-              <h3 id=".rootMeanSquareError"><div class="symbol-detail-labels"><span class="label label-static">static</span></div><span class="symbol-name">rootMeanSquareError</span><span class="signature"><span class="signature-params">(yTrueVec, yPredVec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
+              <div class="symbol-detail-labels"><span class="label label-static">static</span></div>
+              <h3 id=".rootMeanSquareError"><span class="symbol-name">rootMeanSquareError</span><span class="signature"><span class="signature-params">(yTrueVec, yPredVec)</span>&nbsp;&rarr; <span class="signature-returns"> number</span></span></h3>
               <p>Root mean square (RMSE) error regression loss.</p>
               <section>
                 <h4>Parameters</h4>
@@ -1193,7 +1218,7 @@ var roc = metrics.rocCurve(true_lables, pred_prob); // output: [ [ 0, 0 ], [0, 0
               <dl class="dl-compact">
                 <dt>Returns</dt>
                 <dd>
-                  <p><code>number</code>&nbsp;Error value.</p>
+                  <p><code>number</code>B Error value.</p>
                 </dd>
               </dl>
             </section>
@@ -1211,7 +1236,6 @@ var roc = metrics.rocCurve(true_lables, pred_prob); // output: [ [ 0, 0 ], [0, 0
     </div>
   </footer>
   <script src="scripts/jquery.min.js"></script>
-  <script src="scripts/jquery.cookie.js"></script>
   <script src="scripts/tree.jquery.js"></script>
   <script src="scripts/prettify.js"></script>
   <script src="scripts/jsdoc-toc.js"></script>
