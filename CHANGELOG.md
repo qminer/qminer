@@ -1,5 +1,14 @@
 # QMiner Change Log
 
+## 12 November 2020
+
+**Version 9.3.1**
+
+**Non-breaking with bug fixes**
+
+Bugfix:
+- Added Node.js 11-14 to CI
+
 
 ## 31 August 2018
 
