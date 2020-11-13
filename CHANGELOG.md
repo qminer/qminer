@@ -1,5 +1,16 @@
 # QMiner Change Log
 
+## 13 November 2020
+
+**Version 9.3.2**
+
+**Non-breaking with bug fixes**
+
+Bugfix:
+- **Removed Node.js 8 and 9 from CI (are end-of-life releases)**
+- Publishing bug fixes
+
+
 ## 12 November 2020
 
 **Version 9.3.1**
