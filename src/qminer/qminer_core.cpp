@@ -39,9 +39,9 @@ PNotify TEnv::CreateLogger(const TStr& FPath, const bool& TimestampP) {
     return Logger;
 }
 
-void TEnv::Init() {
+void TEnv::Init(const bool& ColorP) {
     // error notifications are to standard error output
-    Error = TColorNotify::New(TStdErrNotify::New(), TColorNotifyType::BoldRed);
+    Error = ColorP ? TColorNotify::New(TStdErrNotify::New(), TColorNotifyType::BoldRed) : TStdErrNotify::New();
     // default notifications are to standard output
     Logger = TStdNotify::New();
     // by default no debug notifications
@@ -73,7 +73,7 @@ void TEnv::InitExternalAggr () {
     }
 }
 
-void TEnv::InitLogger(const int& _Verbosity, const TStr& FPath, const bool& TimestampP) {
+void TEnv::InitLogger(const int& _Verbosity, const TStr& FPath, const bool& TimestampP, const bool& ColorP) {
     // check the verbosity level
     Verbosity = _Verbosity;
     if (Verbosity == 0) {
@@ -86,8 +86,12 @@ void TEnv::InitLogger(const int& _Verbosity, const TStr& FPath, const bool& Time
         TEnv::Debug = TNullNotify::New();
     } else {
         // with debug output
-        TEnv::Logger = TColorNotify::New(CreateLogger(FPath, TimestampP), TColorNotifyType::DefaultBold);
-        TEnv::Debug = TColorNotify::New(CreateLogger(FPath, TimestampP), TColorNotifyType::Default);
+        TEnv::Logger = CreateLogger(FPath, TimestampP);
+        TEnv::Debug = CreateLogger(FPath, TimestampP);
+        if (ColorP) {
+            TEnv::Logger = TColorNotify::New(TEnv::Logger, TColorNotifyType::DefaultBold);
+            TEnv::Debug = TColorNotify::New(TEnv::Debug, TColorNotifyType::Default);
+        }
     }
 }
 

@@ -201,7 +201,7 @@ public:
     static TInt ReturnCode;
 
     /// Setups QMiner static functions.
-    static void Init();
+    static void Init(const bool& ColorP = false);
     /// Checks if initialization done
     static bool IsInit() { return InitP; }
 
@@ -211,7 +211,8 @@ public:
     /// Initialize logger.
     /// @param FPath        Specify logger output (standard output `std'; No output `null')
     /// @param TimestampP   Show timestamp with each status
-    static void InitLogger(const int& _Verbosity = 1, const TStr& FPath = TStr(), const bool& TimestampP = false);
+    static void InitLogger(const int& _Verbosity = 1, const TStr& FPath = TStr(),
+        const bool& TimestampP = false, const bool& ColorP = false);
 
     /// Set return code
     static void SetReturnCode(const int& _ReturnCode) { ReturnCode = _ReturnCode; }
