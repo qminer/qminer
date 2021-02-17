@@ -23,12 +23,28 @@ PNotify TEnv::Debug;
 TInt TEnv::Verbosity = 0;
 TInt TEnv::ReturnCode = 0;
 
+PNotify TEnv::CreateLogger(const TStr& FPath, const bool& TimestampP) {
+    // direct logger to appropriate output
+    if (FPath == "null") {
+        return TNullNotify::New();  // no output
+    }
+    // create basic logger
+    PNotify Logger = (FPath == "std") ?
+        TStdNotify::New() : // standard output
+        TFPathNotify::New(FPath, "qm", true, fpnrDay); // output to rolling file
+    // wrap around timestamp if necessary
+    if (TimestampP) {
+        Logger = TLogNotify::New(Logger);
+    }
+    return Logger;
+}
+
 void TEnv::Init() {
     // error notifications are to standard error output
-    Error = TStdErrNotify::New();
+    Error = TColorNotify::New(TStdErrNotify::New(), TColorNotifyType::BoldRed);
     // default notifications are to standard output
     Logger = TStdNotify::New();
-    // by defualt no debug notifications
+    // by default no debug notifications
     Debug = TNullNotify::New();
     // read environment variable indicating QMiner folder, uses current dir if not available
     QMinerFPath = TStr::GetNrAbsFPath(::TEnv::GetVarVal("QMINER_HOME"));
@@ -57,23 +73,7 @@ void TEnv::InitExternalAggr () {
     }
 }
 
-void TEnv::InitLogger(const int& _Verbosity,
-        const TStr& FPath, const bool& TimestampP) {
-
-    // direct logger to appropriate output
-    if (FPath == "null") {
-        TEnv::Logger = TNullNotify::New();  // no output
-    } else {
-        if (FPath == "std") {
-            TEnv::Logger = TStdNotify::New(); // standard output
-        } else {
-            TEnv::Logger = TFPathNotify::New(FPath, "qm", true, fpnrDay); // output to rolling file
-        }
-        // wrap around timestamp if necessary
-        if (TimestampP) {
-            TEnv::Logger = TLogNotify::New(TEnv::Logger);
-        }
-    }
+void TEnv::InitLogger(const int& _Verbosity, const TStr& FPath, const bool& TimestampP) {
     // check the verbosity level
     Verbosity = _Verbosity;
     if (Verbosity == 0) {
@@ -82,10 +82,12 @@ void TEnv::InitLogger(const int& _Verbosity,
         TEnv::Debug = TNullNotify::New();
     } else if (Verbosity == 1) {
         // no debug output
+        TEnv::Logger = CreateLogger(FPath, TimestampP);
         TEnv::Debug = TNullNotify::New();
     } else {
-        // use same logger for debug messages
-        TEnv::Debug = TEnv::Logger;
+        // with debug output
+        TEnv::Logger = TColorNotify::New(CreateLogger(FPath, TimestampP), TColorNotifyType::DefaultBold);
+        TEnv::Debug = TColorNotify::New(CreateLogger(FPath, TimestampP), TColorNotifyType::Default);
     }
 }
 

@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -129,10 +129,43 @@ void TStdErrNotify::OnStatus(const TStr& MsgStr){
 // Log-Notify
 void TLogNotify::OnStatus(const TStr& MsgStr) {
 	TTm NowTm = TTm::GetCurLocTm();
-	Notify->OnStatus(TStr::Fmt("[%s %s] %s", 
-		NowTm.GetYMDDashStr().CStr(), 
-		NowTm.GetHMSTColonDotStr(true, false).CStr(), 
+	Notify->OnStatus(TStr::Fmt("[%s %s] %s",
+		NowTm.GetYMDDashStr().CStr(),
+		NowTm.GetHMSTColonDotStr(true, false).CStr(),
 		MsgStr.CStr()));
+}
+
+//////////////////////////////////////
+// Color-Notify
+// CODE	   COLOR
+// [0;31m	 Red
+// [1;31m	 Bold Red
+// [0;32m	 Green
+// [1;32m	 Bold Green
+// [0;33m	 Yellow
+// [01;33m	Bold Yellow
+// [0;34m	 Blue
+// [1;34m	 Bold Blue
+// [0;35m	 Magenta
+// [1;35m	 Bold Magenta
+// [0;36m	 Cyan
+// [1;36m	 Bold Cyan
+// [0m	   Reset
+
+void TColorNotify::OnStatus(const TStr& MsgStr) {
+  switch (Type) {
+    case TColorNotifyType::Default:
+      Notify->OnStatus(MsgStr);
+      break;
+    case TColorNotifyType::DefaultBold:
+      Notify->OnStatusFmt("\x1B[1m%s\033[0m", MsgStr.CStr());
+      break;
+    case TColorNotifyType::Red:
+      Notify->OnStatusFmt("\x1B[0;31m%s\033[0m", MsgStr.CStr());
+      break;
+    default:
+      Notify->OnStatus(MsgStr);
+  }
 }
 
 //////////////////////////////////////
@@ -162,13 +195,13 @@ TExcept::TOnExceptF TExcept::OnExceptF=NULL;
 
 PExcept TExcept::New(const TStr& MsgStr, const TStr& LocStr) {
 	TChA Stack = LocStr;
-	  
+
 #ifdef GLib_WIN
 	if (Stack.Len() > 0) { Stack += "\n"; }
 	Stack += "Stack trace:\n";
 	Stack += TBufferStackWalker::GetStackTrace();
 #endif
-	  
+
 	return PExcept(new TExcept(MsgStr, Stack));
 }
 
@@ -190,7 +223,7 @@ PExcept TExcept::New(const int& ErrorCode, const TStr& MsgStr, const TStr& LocSt
 void TFileStackWalker::OnOutput(LPCSTR szText) {
     //printf(szText); StackWalker::OnOutput(szText);
     if (FOut == NULL) { return; }
-    
+
     // LPCSTR can be a char or a wchar, depending on the compiler character settings
     // use the appropriate strcopy method to copy to a string buffer
     if (sizeof(TCHAR) == sizeof(char)) {
@@ -207,10 +240,10 @@ TFileStackWalker::TFileStackWalker() : StackWalker() {
     int FNmLen = GetModuleFileName(NULL, FNm, MxFNmLen); if (FNmLen == 0) { return; }
     TStr FileName = TStr(FNm);
     delete[] FNm;
-    
+
     FileName += ".ErrTrace";
     FOut = fopen(FileName.CStr(), "a+b");
-    
+
     time_t Time = time(NULL);
     fprintf(FOut, "\r\n--------\r\n%s --------\r\n", ctime(&Time));
 }
@@ -241,7 +274,7 @@ void TBufferStackWalker::OnOutput(LPCSTR szText) {
         strcpy(pCopy, szText);
         Text = szText;
         delete pCopy;
-        
+
     }
     else {
         size_t size = wcstombs(NULL, (wchar_t*) szText, 0);

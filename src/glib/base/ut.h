@@ -190,6 +190,31 @@ public:
 	void OnStatus(const TStr& MsgStr);
 };
 
+//////////////////////////////////////
+// Color-Notify
+enum class TColorNotifyType {
+  Default, DefaultBold,
+  Red, BoldRed,
+  Green, BoldGreen,
+  Yellow, BoldYellow,
+  Blue, BoldBlue,
+  Magenta, BoldMagenta,
+  Cyan, BoldCyan
+};
+
+class TColorNotify : public TNotify {
+private:
+	PNotify Notify;
+  TColorNotifyType Type;
+
+public:
+	TColorNotify(const PNotify& _Notify, const TColorNotifyType& _Type): Notify(_Notify), Type(_Type) { }
+	static PNotify New(const PNotify& Notify, const TColorNotifyType& Type) {
+    return new TColorNotify(Notify, Type); }
+
+	void OnStatus(const TStr& MsgStr);
+};
+
 /////////////////////////////////////////////////
 // String-Notifier
 class TStrNotify : public TNotify {

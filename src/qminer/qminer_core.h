@@ -174,6 +174,9 @@ typedef enum {
 class TEnv {
 private:
     static bool InitP;
+
+    static PNotify CreateLogger(const TStr& FPath, const bool& TimestampP);
+
 public:
     /// Maximal number of stores allowed, also sets the upper limit to valid store IDs
     static uint GetMxStores() { return 0x4000; } // == 16384
