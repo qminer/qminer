@@ -78,7 +78,7 @@ PNotify TNotify::StdErrNotify=TStdErrNotify::New();
 void TStdNotify::OnNotify(const TNotifyType& Type, const TStr& MsgStr){
   if (AddTimeStamp) {
     TTm NowTm = TTm::GetCurLocTm();
-	printf("[%s] ", NowTm.GetHMSTColonDotStr(true, false).CStr());
+  printf("[%s] ", NowTm.GetHMSTColonDotStr(true, false).CStr());
   }
   if (Type==ntInfo){
     printf("%s\n", MsgStr.CStr());
@@ -91,7 +91,7 @@ void TStdNotify::OnNotify(const TNotifyType& Type, const TStr& MsgStr){
 void TStdNotify::OnStatus(const TStr& MsgStr){
   if (AddTimeStamp) {
     TTm NowTm = TTm::GetCurLocTm();
-	printf("[%s] ", NowTm.GetHMSTColonDotStr(true, false).CStr());
+  printf("[%s] ", NowTm.GetHMSTColonDotStr(true, false).CStr());
   }
   printf("%s", MsgStr.CStr());
   // print '\n' if message not overlayed
@@ -104,7 +104,7 @@ void TStdNotify::OnStatus(const TStr& MsgStr){
 void TStdErrNotify::OnNotify(const TNotifyType& Type, const TStr& MsgStr){
   if (AddTimeStamp) {
     TTm NowTm = TTm::GetCurLocTm();
-	fprintf(stderr, "[%s] ", NowTm.GetHMSTColonDotStr(true, false).CStr());
+  fprintf(stderr, "[%s] ", NowTm.GetHMSTColonDotStr(true, false).CStr());
   }
   if (Type==ntInfo){
     fprintf(stderr, "%s\n", MsgStr.CStr());
@@ -117,7 +117,7 @@ void TStdErrNotify::OnNotify(const TNotifyType& Type, const TStr& MsgStr){
 void TStdErrNotify::OnStatus(const TStr& MsgStr){
   if (AddTimeStamp) {
     TTm NowTm = TTm::GetCurLocTm();
-	fprintf(stderr, "[%s] ", NowTm.GetHMSTColonDotStr(true, false).CStr());
+  fprintf(stderr, "[%s] ", NowTm.GetHMSTColonDotStr(true, false).CStr());
   }
   fprintf(stderr, "%s", MsgStr.CStr());
   // print '\n' if message not overlayed
@@ -128,29 +128,29 @@ void TStdErrNotify::OnStatus(const TStr& MsgStr){
 //////////////////////////////////////
 // Log-Notify
 void TLogNotify::OnStatus(const TStr& MsgStr) {
-	TTm NowTm = TTm::GetCurLocTm();
-	Notify->OnStatus(TStr::Fmt("[%s %s] %s",
-		NowTm.GetYMDDashStr().CStr(),
-		NowTm.GetHMSTColonDotStr(true, false).CStr(),
-		MsgStr.CStr()));
+  TTm NowTm = TTm::GetCurLocTm();
+  Notify->OnStatus(TStr::Fmt("[%s %s] %s",
+    NowTm.GetYMDDashStr().CStr(),
+    NowTm.GetHMSTColonDotStr(true, false).CStr(),
+    MsgStr.CStr()));
 }
 
 //////////////////////////////////////
 // Color-Notify
-// CODE	   COLOR
-// [0;31m	 Red
-// [1;31m	 Bold Red
-// [0;32m	 Green
-// [1;32m	 Bold Green
-// [0;33m	 Yellow
-// [01;33m	Bold Yellow
-// [0;34m	 Blue
-// [1;34m	 Bold Blue
-// [0;35m	 Magenta
-// [1;35m	 Bold Magenta
-// [0;36m	 Cyan
-// [1;36m	 Bold Cyan
-// [0m	   Reset
+// CODE     COLOR
+// [0;31m   Red
+// [1;31m   Bold Red
+// [0;32m   Green
+// [1;32m   Bold Green
+// [0;33m   Yellow
+// [01;33m  Bold Yellow
+// [0;34m   Blue
+// [1;34m   Bold Blue
+// [0;35m   Magenta
+// [1;35m   Bold Magenta
+// [0;36m   Cyan
+// [1;36m   Bold Cyan
+// [0m      Reset
 
 void TColorNotify::OnStatus(const TStr& MsgStr) {
   switch (Type) {
@@ -172,21 +172,21 @@ void TColorNotify::OnStatus(const TStr& MsgStr) {
 // Str-Notify
 void TStrNotify::OnNotify(const TNotifyType& Type, const TStr& MsgStr)
 {
-	if (Type == ntInfo) {
-		Log += MsgStr + "\n";
-	}
-	else {
-		TStr TypeStr = TNotify::GetTypeStr(Type, false);
-		Log += TypeStr + " " + MsgStr + "\n";
-	}
+  if (Type == ntInfo) {
+    Log += MsgStr + "\n";
+  }
+  else {
+    TStr TypeStr = TNotify::GetTypeStr(Type, false);
+    Log += TypeStr + " " + MsgStr + "\n";
+  }
 }
 
 void TStrNotify::OnStatus(const TStr& MsgStr)
 {
-	Log += MsgStr;
-	// print '\n' if message not overlayed
-	if ((!MsgStr.Empty()) && (MsgStr.LastCh() != '\r'))
-		Log += "\n";
+  Log += MsgStr;
+  // print '\n' if message not overlayed
+  if ((!MsgStr.Empty()) && (MsgStr.LastCh() != '\r'))
+    Log += "\n";
 }
 
 /////////////////////////////////////////////////
@@ -194,27 +194,27 @@ void TStrNotify::OnStatus(const TStr& MsgStr)
 TExcept::TOnExceptF TExcept::OnExceptF=NULL;
 
 PExcept TExcept::New(const TStr& MsgStr, const TStr& LocStr) {
-	TChA Stack = LocStr;
+  TChA Stack = LocStr;
 
 #ifdef GLib_WIN
-	if (Stack.Len() > 0) { Stack += "\n"; }
-	Stack += "Stack trace:\n";
-	Stack += TBufferStackWalker::GetStackTrace();
+  if (Stack.Len() > 0) { Stack += "\n"; }
+  Stack += "Stack trace:\n";
+  Stack += TBufferStackWalker::GetStackTrace();
 #endif
 
-	return PExcept(new TExcept(MsgStr, Stack));
+  return PExcept(new TExcept(MsgStr, Stack));
 }
 
 PExcept TExcept::New(const int& ErrorCode, const TStr& MsgStr, const TStr& LocStr) {
-	TChA Stack = LocStr;
+  TChA Stack = LocStr;
 
 #ifdef GLib_WIN
-	if (Stack.Len() > 0) { Stack += "\n"; }
-	Stack += "Stack trace:\n";
-	Stack += TBufferStackWalker::GetStackTrace();
+  if (Stack.Len() > 0) { Stack += "\n"; }
+  Stack += "Stack trace:\n";
+  Stack += TBufferStackWalker::GetStackTrace();
 #endif
 
-	return PExcept(new TExcept(ErrorCode, MsgStr, Stack));
+  return PExcept(new TExcept(ErrorCode, MsgStr, Stack));
 }
 
 #ifdef GLib_WIN
@@ -298,8 +298,8 @@ TBufferStackWalker GlobalStackWalker;
 
 // static method that generates stack trace and returns it
 TChA TBufferStackWalker::GetStackTrace() {
-	GlobalStackWalker.ClearOutput();
-	GlobalStackWalker.ShowCallstack();
+  GlobalStackWalker.ClearOutput();
+  GlobalStackWalker.ShowCallstack();
     return GlobalStackWalker.GetOutput();
 }
 #endif
