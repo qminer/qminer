@@ -145,6 +145,7 @@ public:
 
         if (Tmp.IsEmpty()) {
             Isolate->ThrowException(TryCatch.Exception());
+            return false;
         } else {
             v8::Local<v8::Value> ReturnVal = TNodeJsUtil::ToLocal(Tmp);
             EAssertR(ReturnVal->IsBoolean() || ReturnVal->IsNumber(), "Comparator callback must return a boolean or a number!");

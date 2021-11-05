@@ -3144,8 +3144,8 @@ private:
         union TBitsetConverter {
             TQmGixPosVals PosV;
             TInt Int;
-            // we have to have a nontrivial constructor, otherwise we get some compile errors
-            TBitsetConverter() { memset(this, 0, sizeof(TBitsetConverter)); };
+
+            TBitsetConverter(): Int(0) { };
         };
     private:
         /// Record Id
