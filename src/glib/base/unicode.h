@@ -2060,10 +2060,15 @@ size_t TUniCodec::DecodeUtf8(
     if (clrDest) dest.Clr();
     const size_t origSrcIdx = srcIdx;
     const size_t srcEnd = srcIdx + srcCount;
-    while (srcIdx < srcEnd)
+	using std::begin;
+	if (srcCount > 0) { src[srcIdx]; src[srcEnd - 1]; } // the debug version of e.g. TStr will cause an assertion failure here if the indexes aren't valid
+	auto pSrcIdx = begin(src) + srcIdx;
+	auto pSrcEnd = begin(src) + srcEnd;
+    while (pSrcIdx < pSrcEnd)
     {
         const size_t charSrcIdx = srcIdx;
-        uint c = src[TVecIdx(srcIdx)] & 0xff; srcIdx++;
+        //uint c = src[TVecIdx(srcIdx)] & 0xff; srcIdx++; // this is too slow with a long TStr in the debug build, as operator[] calls Len() each time in an assertion check
+		uint c = (*pSrcIdx) & 0xff; ++pSrcIdx; ++srcIdx;  // we'll use iterators instead
         if ((c & _1000_0000) == 0) {
             // c is one of the characters 0..0x7f, encoded as a single byte.
             dest.Add(TDestCh(c)); nDecoded++; continue; }
@@ -2112,7 +2117,7 @@ size_t TUniCodec::DecodeUtf8(
             bool cancel = false;
             for (uint i = 0; i < nMoreBytes && ! cancel; i++) {
                 // See if there are enough bytes left in the source vector.
-                if (! (srcIdx < srcEnd)) {
+                if (! (pSrcIdx < pSrcEnd)) {
                     switch (errorHandling) {
                     case uehThrow: throw TUnicodeException(charSrcIdx, c, TInt::GetStr(nMoreBytes) + " more bytes expected, only " + TInt::GetStr(int(srcEnd - charSrcIdx - 1)) + " available.");
                     case uehAbort: return nDecoded;
@@ -2120,7 +2125,8 @@ size_t TUniCodec::DecodeUtf8(
                     case uehIgnore: cancel = true; continue;
                     default: Fail; } }
                 // Read the next byte.
-                c = src[TVecIdx(srcIdx)] & 0xff; srcIdx++;
+                //c = src[TVecIdx(srcIdx)] & 0xff; srcIdx++;
+				c = (*pSrcIdx) & 0xff; ++pSrcIdx; ++srcIdx;
                 if ((c & _1100_0000) != _1000_0000) { // Each subsequent byte should be of the form 10xxxxxx.
                     switch (errorHandling) {
                     case uehThrow: throw TUnicodeException(charSrcIdx, c, "Byte " + TInt::GetStr(i) + " of " + TInt::GetStr(nMoreBytes) + " extra bytes should begin with 10xxxxxx.");
