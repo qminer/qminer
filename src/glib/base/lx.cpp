@@ -257,6 +257,13 @@ TILxSymSt::TILxSymSt(TILx& Lx):
   Bool(Lx.Bool), Int(Lx.Int), Flt(Lx.Flt),
   SymLnN(Lx.SymLnN), SymLnChN(Lx.SymLnChN), SymChN(Lx.SymChN){}
 
+TILxSymSt& TILxSymSt::operator=(const TILxSymSt& SymSt) {
+  Sym=SymSt.Sym;
+  Str=SymSt.Str; UcStr=SymSt.UcStr; CmtStr=SymSt.CmtStr;
+  Bool=SymSt.Bool; Int=SymSt.Int; Flt=SymSt.Flt;
+  SymLnN=SymSt.SymLnN; SymLnChN=SymSt.SymLnChN; SymChN=SymSt.SymChN;
+  return *this;}
+
 void TILxSymSt::Restore(TILx& Lx){
   Lx.Sym=Sym;
   Lx.Str=Str; Lx.UcStr=UcStr; Lx.CmtStr=CmtStr;
