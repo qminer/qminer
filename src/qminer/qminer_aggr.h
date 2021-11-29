@@ -13,7 +13,10 @@
 #include "qminer_storage.h"
 #include "qminer_ftr.h"
 
+#ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS
+#endif
+
 #include <inttypes.h>
 
 
@@ -2231,8 +2234,8 @@ private:
     /// How long ago drift was detected
     TInt DriftOffset;
 
-protected:	
-    /// Placeholder just throwing exception. 
+protected:
+    /// Placeholder just throwing exception.
     void OnTime(const uint64& TmMsec, const TWPt<TStreamAggr>& CallerAggr);
     /// Placeholder just throwing exception.
     void OnStep(const TWPt<TStreamAggr>& CallerAggr);
@@ -2241,11 +2244,11 @@ protected:
 public:
     /// Smart pointer constructor
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) { return new TPageHinkley(Base, ParamVal); }
-	
+
     /// Loads state
     void LoadState(TSIn& SIn);
     /// Saves state
-    void SaveState(TSOut& SOut) const;	
+    void SaveState(TSOut& SOut) const;
 
     /// Returns the parameters
     PJsonVal GetParams() const;

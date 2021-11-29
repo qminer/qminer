@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -142,17 +142,17 @@ public:
   explicit TStreamNGramHashKeyDat(TSIn& SIn):
     TimePrev(SIn), TimeNext(SIn), Next(SIn), HashCd(SIn), Dat(SIn){}
   void Load(TSIn& SIn){
-    TimePrev.Load(SIn); TimeNext.Load(SIn); Next.Load(SIn); 
+    TimePrev.Load(SIn); TimeNext.Load(SIn); Next.Load(SIn);
     HashCd.Load(SIn); Dat.Load(SIn);}
   void Save(TSOut& SOut) const {
-    TimePrev.Save(SOut); TimeNext.Save(SOut); Next.Save(SOut); 
+    TimePrev.Save(SOut); TimeNext.Save(SOut); Next.Save(SOut);
     HashCd.Save(SOut); Dat.Save(SOut);}
 
   bool operator==(const TStreamNGramHashKeyDat& KeyDat) const {
     return (this==&KeyDat)||(HashCd==KeyDat.HashCd);}
   TStreamNGramHashKeyDat& operator=(const TStreamNGramHashKeyDat& KeyDat){
     if (this!=&KeyDat){
-      TimePrev=KeyDat.TimePrev; TimeNext=KeyDat.TimeNext; Next=KeyDat.Next; 
+      TimePrev=KeyDat.TimePrev; TimeNext=KeyDat.TimeNext; Next=KeyDat.Next;
       HashCd=KeyDat.HashCd; Dat=KeyDat.Dat;}
     return *this;}
 };
@@ -176,35 +176,35 @@ public:
   TStreamNGramHash(TSIn& SIn):
     PortV(SIn), KeyDatV(SIn), TimeFirst(SIn), TimeLast(SIn){SIn.LoadCs();}
   void Load(TSIn& SIn){
-    PortV.Load(SIn); KeyDatV.Load(SIn); 
+    PortV.Load(SIn); KeyDatV.Load(SIn);
     TimeFirst.Load(SIn); TimeLast.Load(SIn); SIn.LoadCs();}
   void Save(TSOut& SOut) const {
-    PortV.Save(SOut); KeyDatV.Save(SOut); 
+    PortV.Save(SOut); KeyDatV.Save(SOut);
     TimeFirst.Save(SOut); TimeLast.Save(SOut); SOut.SaveCs();}
 
   TSNGHashDat& operator[](const uint& KeyId){return GetHashKeyDat(KeyId).Dat;}
-  ::TSize GetMemUsed() const {Fail; return 0;} // 
+  ::TSize GetMemUsed() const {Fail; return 0;} //
 
   void Gen(const uint& MxKeys){
     // get number of ports
-    uint PortsAsPow2=0; uint _MxKeys=MxKeys; 
+    uint PortsAsPow2=0; uint _MxKeys=MxKeys;
     while (_MxKeys!=0){_MxKeys=_MxKeys/2; PortsAsPow2++;}
     uint Ports=(uint(1) << (PortsAsPow2-1));
     // create ports & keydata
     PortV.Gen(Ports); KeyDatV.Gen(MxKeys, 0);
-    TimeFirst=0; TimeLast=0;  
+    TimeFirst=0; TimeLast=0;
     KeyDatV.Add(TStreamNGramHashKeyDat()); // zeroth element is guard
   }
 
   void Clr(){
-    PortV.PutAll(0); KeyDatV.Clr(false); 
-    TimeFirst=0; TimeLast=0; 
+    PortV.PutAll(0); KeyDatV.Clr(false);
+    TimeFirst=0; TimeLast=0;
     KeyDatV.Add(TStreamNGramHashKeyDat());}
   bool Empty() const {return Len()==0;}
   uint Len() const {return KeyDatV.Len();}
   uint GetPorts() const {return PortV.Len();}
   uint GetMxKeys() const {return KeyDatV.Reserved();}
-  
+
   uint AddKey(const TSNGHashKey& Key);
   TSNGHashDat& AddDat(const TSNGHashKey& Key){
     return GetHashKeyDat(AddKey(Key)).Dat;}
@@ -224,9 +224,6 @@ public:
   TStr Str;
 public:
   TNGramDesc(){}
-  TNGramDesc(const TNGramDesc& NGramDesc): 
-    Sig(NGramDesc.Sig), Fq(NGramDesc.Fq), Pos(NGramDesc.Pos), 
-    TokIdV(NGramDesc.TokIdV), TokStrV(NGramDesc.TokStrV), Str(NGramDesc.Str){}
   TNGramDesc(TSIn& SIn){Fail;}
   void Save(TSOut& SOut) const {Fail;}
 
@@ -245,11 +242,11 @@ private:
   TStreamNGramHash StreamNGramHash;
   UndefCopyAssign(TStreamNGramBs);
 private:
-	
+
   TVec<TIntQ> TokIdQV;
 public:
   TStreamNGramBs(const int& _MxNGramLen, const int& MxCachedNGrams):
-    MxNGramLen(_MxNGramLen), 
+    MxNGramLen(_MxNGramLen),
     TokStrH(), StreamNGramHash(MxCachedNGrams),
     TokIdQV(_MxNGramLen){
     IAssert(MxNGramLen>=1); TokStrH.AddKey("");}
@@ -267,14 +264,14 @@ public:
 
   void AddTokId(const int& TokId, const int& TokPos, const bool& OutputNGramsP,
       const int& MnOutputNGramFq, TNGramDescV& OutputNGramDescV);
-  void AddTokIdV(const TIntV& TokIdV, const int& FirstTokPos, const bool& OutputNGramsP, 
+  void AddTokIdV(const TIntV& TokIdV, const int& FirstTokPos, const bool& OutputNGramsP,
       const int& MnOutputNGramFq, TNGramDescV& OutputNGramDescV);
-  void AddTokStr(const TStr& TokStr, const int& TokPos, const bool& OutputNGramsP, 
+  void AddTokStr(const TStr& TokStr, const int& TokPos, const bool& OutputNGramsP,
       const int& MnOutputNGramFq, TNGramDescV& OutputNGramDescV);
   void BreakTokStream();
 
-  void AddDocTokIdV(const TIntV& DocTokIdV, const int& MnOutputNGramFq, 
+  void AddDocTokIdV(const TIntV& DocTokIdV, const int& MnOutputNGramFq,
       TNGramDescV& OutputNGramDescV);
   void AddDocHtmlStr(const TStr& DocHtmlStr, const int& MnOutputNGramFq,
-      TNGramDescV& OutputNGramDescV); 
+      TNGramDescV& OutputNGramDescV);
 };

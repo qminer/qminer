@@ -104,7 +104,7 @@ void ExeStop(
   if (ReasonCStr==NULL){ReasonMsgCStr[0]=0;}
   else {sprintf(ReasonMsgCStr, " [Reason:'%s']", ReasonCStr);}
   // construct full message
-  char FullMsgCStr[1000];
+  char FullMsgCStr[1100];
   if (MsgCStr==NULL){
     if (CondCStr==NULL){
       sprintf(FullMsgCStr, "Execution stopped%s!", ReasonMsgCStr);

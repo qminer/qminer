@@ -1044,12 +1044,12 @@ typedef TStrHash<TIntV> TStrToIntVSH;
 //   already exists, the trie is not modified.
 // Searching by Prefix is also supported and returns the DatV of all the keys that
 // begin with a given Prefix.  The trie does not guarantee that the DatV are
-// returned in any particular order (in the current implementation, more recently 
+// returned in any particular order (in the current implementation, more recently
 // addes sub-branches of the tree are traversed First).
 // - SearchByPrefixEx allows you to pass a callable object that gets called with each
 //   matching TDat; it should return 'true' to continue searching or 'false' to stop.
 // - SearchByPrefix returns the matching TDat's in a vector.
-// For all these functions, the KeyV (when adding) or Prefix (when searching) 
+// For all these functions, the KeyV (when adding) or Prefix (when searching)
 // can be provided as:
 // - a pair of iterators 'First' and 'Last', such that the KeyV is [First, Last);
 // - a TVec<T> or std::initializer_list<T> - if a TSym can be initialized from a T;
@@ -1071,7 +1071,7 @@ typedef TStrHash<TIntV> TStrToIntVSH;
 //    trie2.AddDat({2, 4, 6}, "even");
 //    trie2.AddDat({4, 9, 16, 25}, "squares");
 //    trie2.AddDat({2, 3, 5, 8, 13, 21}, "fib");
-//    TIntV Prefix; Prefix.Add(2); Prefix.Add(3); 
+//    TIntV Prefix; Prefix.Add(2); Prefix.Add(3);
 //    TStrV results2; trie2.SearchByPrefix(Prefix, results2);
 //    for (const TStr& s2: results2) printf("%s\n", s2.CStr()); // prints 'primes' and 'fib'
 
@@ -1115,7 +1115,7 @@ protected:
     // The following Begin/End functions are used by AddDat, AddIfNew, SearchByPrefix[Ex]
     // to convert a TKey into a pair of iterators.  Why don't we simply use begin(KeyV) and
     // end(KeyV) in every case?  Because then someone would call AddDat("foo", someDat)
-    // and be unpleasantly surprised to discover that his KeyV is a sequence of 
+    // and be unpleasantly surprised to discover that his KeyV is a sequence of
     // 4 characters, {'F', 'o', 'o', '\0'}, rather than a sequence of 3 characters.
     struct TKeyAccess
     {
@@ -1142,13 +1142,13 @@ protected:
     template<typename TIt> TNodeId GetKeyId(TIt First, TIt Last) const;
     template<typename TIt> TNodeId AddKey(TIt First, TIt Last);
 public:
-    // Returns 'true' iff the sequence [First..Last) is present and associated with a 'Dat' 
+    // Returns 'true' iff the sequence [First..Last) is present and associated with a 'Dat'
     // (as opposed to e.g. just being present in the trie because it happens to be a Prefix of some longer KeyV).
     template<typename TIt> bool IsKey(TIt First, TIt Last) const {
         auto KeyId = GetKeyId(First, Last); return KeyId >= 0 && TrieH[KeyId].DatIdx >= 0;
     }
     // If the KeyV is new, AddDat adds it, otherwise it overwrites its existing TDat.
-    // It also returns a reference to the TDat (in 'DatV').  
+    // It also returns a reference to the TDat (in 'DatV').
     // In other words, this works just like THash::AddKey.
     template<typename TIt> TDat& AddDat(TIt First, TIt Last, const TDat& Dat) {
         auto &Node = TrieH[AddKey(First, Last)];
@@ -1165,7 +1165,7 @@ public:
     }
     template<typename TKey> TDat& AddDat(const TKey &Key, const TDat& Dat) { return AddDat(TKeyAccess::Begin(Key), TKeyAccess::End(Key), Dat); }
     template<typename T> TDat& AddDat(const std::initializer_list<T> &KeyV, const TDat& Dat) { return AddDat(KeyV.begin(), KeyV.end(), Dat); }
-    // If the KeyV is new, AddIfNew function adds it and returns true; 
+    // If the KeyV is new, AddIfNew function adds it and returns true;
     // otherwise it returns false and does not change anything.
     template<typename TIt> bool AddIfNew(TIt First, TIt Last, const TDat& Dat) {
         auto &Node = TrieH[AddKey(First, Last)];
@@ -1178,7 +1178,7 @@ public:
     }
     template<typename TKey> bool AddIfNew(const TKey& Key, const TDat& Dat) { using std::begin; using std::end; return AddIfNew(begin(Key), end(Key), Dat); }
 protected:
-    // Traverses all the nodes in the subtree rooted by 'NodeId', 
+    // Traverses all the nodes in the subtree rooted by 'NodeId',
     // calling 'Sink(Dat)' for each of them that has an associated TDat.
     // The Sink should return 'false' to interrupt the traversal, 'true' to continue.
     // TraverseSubtree returns 'false' if it was interrupted by the Sink, 'true' otherwise.
@@ -1196,8 +1196,8 @@ public:
     }
     template<typename TKey, typename TSink> void SearchByPrefixEx(const TKey& Prefix, TSink&& Sink) const { SearchByPrefixEx(TKeyAccess::Begin(Prefix), TKeyAccess::End(Prefix), Sink); }
     template<typename T, typename TSink> void SearchByPrefixEx(const std::initializer_list<T> &Prefix, TSink&& Sink) const { SearchByPrefixEx(Prefix.Begin(), Prefix.End(), Sink); }
-    // SearchByPrefix() adds, to 'DestV', all the TDat's whose KeyV starts with 'Prefix'.  
-    // If MaxResults >= 0, at most MaxResults DatV are added and others are ignored.  
+    // SearchByPrefix() adds, to 'DestV', all the TDat's whose KeyV starts with 'Prefix'.
+    // If MaxResults >= 0, at most MaxResults DatV are added and others are ignored.
     // SearchByPrefix() returns the number of elements added to 'DestV'.
     template<typename TIt> int SearchByPrefix(TIt PrefixFirst, TIt PrefixLast, TDatVec& DestV, int MaxResults = -1, bool ClrDest = true) const;
     template<typename TKey> int SearchByPrefix(const TKey& Prefix, TDatVec& DestV, int MaxResults = -1, bool ClrDest = true) const { return SearchByPrefix(TKeyAccess::Begin(Prefix), TKeyAccess::End(Prefix), DestV, MaxResults, ClrDest); }

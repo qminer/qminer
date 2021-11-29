@@ -14,7 +14,9 @@
 #include "qminer_storage.h"
 #include "qminer_ftr.h"
 
+#ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS
+#endif
 #include <inttypes.h>
 
 namespace TQm {
@@ -45,9 +47,9 @@ public:
     TInt64 TimeDiff;//time difference with previous
 	TStr Accelerometer;//accelerometer data
     PJsonVal ToJson() const;
-    //Temporal hack untile we create a new aggregate caluclating the 
+    //Temporal hack untile we create a new aggregate caluclating the
     //type and avg activity (walking, running) inside a geoActivity (path).
-    //the idices are aligned with the exports.GeoActivityActivity 
+    //the idices are aligned with the exports.GeoActivityActivity
     //(shared_consts) from NextPin
 
     TIntV SensorActivities;
@@ -85,16 +87,16 @@ private:
     TFltV AvgSensorActs;
 public:
     TGeoCluster() : TGeoCluster(TGeoActivityType::Path) {};
-    TGeoCluster(TGeoActivityType _Type) : 
-        MStartIdx(-1), 
-        MEndIdx(-1), 
-        GeoType(_Type), 
+    TGeoCluster(TGeoActivityType _Type) :
+        MStartIdx(-1),
+        MEndIdx(-1),
+        GeoType(_Type),
         GeoActStatus(TGeoActivityStatus::Current),
         AvgSensorActs(TGPSMeasurement::NumOfSensorActs){};
     TGeoCluster(const PJsonVal& Rec);
     TGeoCluster(const int& StartIdx, const int& EndIdx,
         const TVec<TGPSMeasurement>& StateVec);
-    
+
     void AddPoint(const int& Idx, const TVec<TGPSMeasurement>& _GpsState);
     int64 Duration();
     int Len() const;
@@ -108,7 +110,7 @@ public:
         GeoActStatus = Status;
     }
     TGeoActivityStatus Status() const { return GeoActStatus; }
-    PJsonVal ToJson(const TVec<TGPSMeasurement>& _GpsStateVec, 
+    PJsonVal ToJson(const TVec<TGPSMeasurement>& _GpsStateVec,
                     const bool& FullLoc) const;
 };
 
@@ -162,7 +164,7 @@ public:
     static PStreamAggr New(const TWPt<TBase>& Base, const PJsonVal& ParamVal) {
         return new TStayPointDetector(Base, ParamVal);
     }
-    
+
     /// Loads state
     void LoadState(TSIn& SIn);
     /// Saves state
