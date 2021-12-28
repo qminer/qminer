@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -71,7 +71,7 @@ const TStrV& TTmInfo::GetMonthNmV(const TLoc& Loc) {
     case lUs: return UsMonthNmV;
     case lSi: return SiMonthNmV;
     default: Fail; return UsMonthNmV;
-  }   
+  }
 }
 
 int TTmInfo::GetDayOfWeekN(const TStr& DayOfWeekNm, const TLoc& Loc){
@@ -101,7 +101,7 @@ const TStrV& TTmInfo::GetDayOfWeekNmV(const TLoc& Loc) {
     case lUs: return UsDayOfWeekNmV;
     case lSi: return SiDayOfWeekNmV;
     default: Fail; return UsDayOfWeekNmV;
-  }   
+  }
 }
 
 TStr TTmInfo::GetHmFromMins(const int& Mins){
@@ -124,8 +124,8 @@ int TTmInfo::GetTmUnitSecs(const TTmUnit& TmUnit) {
     case tmu10Min : return 10*60;
     case tmu1Min : return 60;
     case tmu1Sec : return 1;
-    case tmuNodes : Fail;
-    case tmuEdges : Fail;
+    case tmuNodes : Fail; break;
+    case tmuEdges : Fail; break;
     default: Fail;
   }
   return -1;
@@ -1117,13 +1117,13 @@ uint64 TTm::GetPerfTimerTicks(){
   return TSysTm::GetPerfTimerTicks();
 }
 
-void TTm::GetDiff(const TTm& Tm1, const TTm& Tm2, int& Days, 
+void TTm::GetDiff(const TTm& Tm1, const TTm& Tm2, int& Days,
 	  int& Hours, int& Mins, int& Secs, int& MSecs) {
 
 	const uint64 DiffMSecs = TTm::GetDiffMSecs(Tm1, Tm2);
 	const uint64 DiffSecs = DiffMSecs / 1000;
 	const uint64 DiffMins = DiffSecs / 60;
-	const uint64 DiffHours = DiffMins / 60;	
+	const uint64 DiffHours = DiffMins / 60;
 
 	MSecs = int(DiffMSecs % 1000);
 	Secs = int(DiffSecs % 60);
@@ -1174,7 +1174,7 @@ TTm TTm::GetTmFromWebLogTimeStr(const TStr& TimeStr,
     ChA+=TimeStr[ChN]; ChN++;}
   TStr MSecStr=ChA;
   if (MSecStr.Len() > 3) {
-	  MSecStr = MSecStr.GetSubStr(0, 2); 
+	  MSecStr = MSecStr.GetSubStr(0, 2);
   } else if (MSecStr.Len() == 1) {
 	  MSecStr += "00";
   } else if (MSecStr.Len() == 2) {
@@ -1231,9 +1231,9 @@ TTm TTm::GetTmFromWebLogDateTimeStr(const TStr& DateTimeStr,
     ChA+=DateTimeStr[ChN]; ChN++;}
   TStr MSecStr=ChA;
   if (MSecStr.Len() > 3) {
-	  MSecStr = MSecStr.GetSubStr(0, 2); 
+	  MSecStr = MSecStr.GetSubStr(0, 2);
   } else if (MSecStr.Len() == 1) {
-	 MSecStr += "00"; 
+	 MSecStr += "00";
   } else if (MSecStr.Len() == 2) {
 	 MSecStr += "0";
   }
@@ -1295,7 +1295,7 @@ uint TTm::GetYearIntFromTm(const TTm& Tm) {
 }
 
 uint TTm::GetDateTimeIntFromTm(const TTm& Tm) {
-    return Tm.IsDef() ? 
+    return Tm.IsDef() ?
 		GetDateTimeInt(Tm.GetYear(), Tm.GetMonth(),
         Tm.GetDay(), Tm.GetHour(), Tm.GetMin(), Tm.GetSec()) : 0;
 }
@@ -1343,9 +1343,9 @@ void TTmWnd::GetTimeWnd(TTm& StartTm, TTm& EndTm) const {
 
 /////////////////////////////////////////////////
 // Time-Profiler - poor-man's profiler
-int TTmProfiler::AddTimer(const TStr& TimerNm) { 
+int TTmProfiler::AddTimer(const TStr& TimerNm) {
 	MxNmLen = TInt::GetMx(MxNmLen, TimerNm.Len());
-	return TimerH.AddKey(TimerNm); 
+	return TimerH.AddKey(TimerNm);
 }
 
 void TTmProfiler::ResetAll() {
