@@ -81,7 +81,6 @@ describe("SPD aggregate system running aggr tests", function () {
 
         it("should reject older or same age records that were already provided",
         function () {
-            console.log("HERE 0");
             var points =[
                 {
                     "latitude": 46.0423046,
@@ -122,7 +121,6 @@ describe("SPD aggregate system running aggr tests", function () {
     describe("Internal state tests", function(){
         it("Should return saveJsonState with Objects of proper values",
         function () {
-            console.log("HERE 1");
             var points =[
                 {
                     "latitude": 46.0423046,

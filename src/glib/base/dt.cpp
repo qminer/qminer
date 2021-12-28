@@ -2225,7 +2225,7 @@ TStr TStr::Fmt(const char *FmtStr, ...) {
         char* NewBf = new char[RequiredLen + 1];
         va_list valist;
         va_start(valist, FmtStr);
-        const int RequiredLen2 = vsnprintf(NewBf, RequiredLen + 1, FmtStr, valist);
+        vsnprintf(NewBf, RequiredLen + 1, FmtStr, valist);
         va_end(valist);
         return WrapCStr(NewBf);
     }

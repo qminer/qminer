@@ -68,4 +68,4 @@ This project has received funding from the European Union's Horizon 2020 researc
 [travis-mac-image]: https://img.shields.io/travis/qminer/qminer/osx-binaries.svg?label=mac
 [travis-mac-url]: https://travis-ci.org/qminer/qminer
 [appveyor-image]: https://img.shields.io/appveyor/ci/rupnikj/qminer/master.svg?label=windows
-[appveyor-url]: https://ci.appveyor.com/project/rupnikj/qminer
+[appveyor-url]: https://ci.appveyor.com/project/rupnikj/qminer-19v7t

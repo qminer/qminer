@@ -42,6 +42,8 @@ public:
     TPgBlobPgPt() { FileIndex = -1; Page = 0; }
     /// Deserialization constructor
     TPgBlobPgPt(TSIn& SIn) { SIn.Load(Page);  SIn.Load(FileIndex); }
+    /// Copy constructor
+    TPgBlobPgPt(const TPgBlobPgPt& Pt): Page(Pt.Page), FileIndex(Pt.FileIndex) { }
     // Set constructor
     TPgBlobPgPt(int16 _FileIndex, uint32 _Page) { Set(_FileIndex, _Page); }
     // Set constructor
@@ -89,6 +91,8 @@ protected:
 public:
     /// Default constructor
     TPgBlobPt() { FileIndex = -1; Page = 0; ItemIndex = 0; }
+    /// Copy constructor
+    TPgBlobPt(const TPgBlobPt& Pt): Page(Pt.Page), FileIndex(Pt.FileIndex), ItemIndex(Pt.ItemIndex) { }
 
     /// Deserialization constructor
     TPgBlobPt(TSIn& SIn) {

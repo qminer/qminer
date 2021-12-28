@@ -356,8 +356,7 @@ TSizeTy TVec<TVal, TSizeTy>::AddBackSorted(const TVal& Val, const bool& Asc){
   Add();
   TSizeTy ValN=Vals-2;
   while ((ValN>=0)&&((Asc&&(Val<ValT[ValN]))||(!Asc&&(Val>ValT[ValN])))){
-    Move(ValN, ValN+1); }
-    //ValT[ValN+1]=ValT[ValN]; ValN--;}
+    Move(ValN, ValN+1); ValN--;}
   ValT[ValN+1]=Val;
   return ValN+1;
 }

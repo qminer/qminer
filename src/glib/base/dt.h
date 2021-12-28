@@ -28,6 +28,7 @@ private:
 public:
   TRnd(const int& _Seed=1, const int& Steps=0){
     PutSeed(_Seed); Move(Steps);}
+  TRnd(const TRnd& Rnd): Seed(Rnd.Seed) {}
   explicit TRnd(TSIn& SIn){SIn.Load(Seed);}
   void Save(TSOut& SOut) const {SOut.Save(Seed);}
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
@@ -1058,6 +1059,7 @@ public:
   std::complex<double> Val;
   TNum() : Val(0){}
   TNum(std::complex<double>& _Val) : Val(_Val){}
+  TNum(const TNum<std::complex<double>>& _Val) : Val(_Val.Val){}
   operator std::complex<double>() const { return Val; }
   explicit TNum(TSIn& SIn){ double real = 0.0, imag = 0.0; SIn.Load(real); SIn.Load(imag); Val = std::complex<double>(real, imag); }
   void Load(TSIn& SIn){ double real = 0.0, imag = 0.0; SIn.Load(real); SIn.Load(imag); Val = std::complex<double>(real, imag); }
@@ -1081,6 +1083,7 @@ public:
   std::complex<float> Val;
   TNum() : Val(0){}
   TNum(std::complex<float>& _Val) : Val(_Val){}
+  TNum(const TNum<std::complex<float>>& _Val) : Val(_Val.Val){}
   operator std::complex<float>() const { return Val; }
   explicit TNum(TSIn& SIn){ float real = 0.0f; float imag = 0.0f; SIn.Load(real); SIn.Load(imag); Val = std::complex<float>(real, imag); }
   void Load(TSIn& SIn){ float real = 0.0f; float imag = 0.0f; SIn.Load(real); SIn.Load(imag); Val = std::complex<float>(real, imag); }
@@ -1101,6 +1104,7 @@ public:
 class TVoid{
 public:
   TVoid(){}
+  TVoid(const TVoid& Void) {}
   TVoid(TSIn&){}
   void Save(TSOut&) const {}
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
@@ -1132,6 +1136,7 @@ public:
 
   TBool(): Val(false){}
   TBool(const bool& _Val): Val(_Val){}
+  TBool(const TBool& Bool): Val(Bool.Val){}
   operator bool() const {return Val;}
   explicit TBool(TSIn& SIn){SIn.Load(Val);}
   void Load(TSIn& SIn){SIn.Load(Val);}
@@ -1188,6 +1193,7 @@ public:
 
   TCh(): Val(TCh::NullCh){}
   TCh(const char& _Val): Val(_Val){}
+  TCh(const TCh& Ch): Val(Ch.Val){}
   operator char() const {return Val;}
   explicit TCh(TSIn& SIn){SIn.Load(Val);}
   void Save(TSOut& SOut) const {SOut.Save(Val);}
@@ -1242,6 +1248,7 @@ public:
 
   TUCh(): Val(TCh::NullCh){}
   TUCh(const uchar& _Val): Val(_Val){}
+  TUCh(const TUCh& UCh): Val(UCh.Val){}
   operator uchar() const {return Val;}
   explicit TUCh(TSIn& SIn){SIn.Load(Val);}
   void Save(TSOut& SOut) const {SOut.Save(Val);}
@@ -1270,6 +1277,7 @@ public:
 public:
   TSInt(): Val(0){}
   TSInt(const int16& _Val): Val(_Val){}
+  TSInt(const TSInt& SInt): Val(SInt.Val) {}
   operator int16() const {return Val;}
   explicit TSInt(TSIn& SIn){SIn.Load(Val);}
   void Load(TSIn& SIn){SIn.Load(Val);}
@@ -1304,7 +1312,8 @@ public:
   uint16 Val;
 public:
   TUSInt() : Val(0) {}
-  TUSInt(const uint16& _Val) : Val(_Val) {}
+  TUSInt(const uint16& _Val): Val(_Val) {}
+  TUSInt(const TUSInt& USInt): Val(USInt.Val) {}
   operator uint16() const { return Val; }
   explicit TUSInt(TSIn& SIn) { SIn.Load(Val); }
   void Load(TSIn& SIn) { SIn.Load(Val); }
@@ -1343,6 +1352,7 @@ public:
 
   TNum(): Val(0){}
   TNum(const int& _Val): Val(_Val){}
+  TNum(const TNum<int>& Num) : Val(Num.Val){}
   operator int() const {return Val;}
   explicit TNum(TSIn& SIn){ SIn.Load(Val); }
   void Load(TSIn& SIn){SIn.Load(Val);}
@@ -1453,6 +1463,7 @@ public:
 
   TNum() : Val(0){}
   TNum(const uint& _Val) : Val(_Val){}
+  TNum(const TNum<uint>& Num) : Val(Num.Val){}
   operator uint() const {return Val;}
   explicit TNum(TSIn& SIn){SIn.Load(Val);}
   void Load(TSIn& SIn){SIn.Load(Val);}
@@ -1694,6 +1705,7 @@ public:
 
   TNum() : Val(0.0){}
   TNum(const double& _Val) : Val(_Val){}
+  TNum(const TNum<double>& Num) : Val(Num.Val){}
   operator double() const {return Val;}
   explicit TNum(TSIn& SIn){ SIn.Load(Val); }
   void Save(TSOut& SOut) const {SOut.Save(Val);}
@@ -1823,7 +1835,7 @@ public:
 
   TSFlt(): Val(0){}
   TSFlt(const sdouble& _Val): Val(sdouble(_Val)){}
-  //TSFlt(const double& _Val): Val(sdouble(_Val)){}
+  TSFlt(const TSFlt& SFlt) : Val(SFlt.Val){}
   operator sdouble() const {return Val;}
   //operator double() const {return Val;}
   explicit TSFlt(TSIn& SIn){SIn.Load(Val);}
@@ -1883,6 +1895,7 @@ public:
 
   TLFlt(): Val(0){}
   TLFlt(const ldouble& _Val): Val(_Val){}
+  TLFlt(const TLFlt& LFlt) : Val(LFlt.Val){}
   operator ldouble() const {return Val;}
   explicit TLFlt(TSIn& SIn){SIn.Load(Val);}
   void Save(TSOut& SOut) const {SOut.Save(Val);}
