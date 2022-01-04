@@ -1,5 +1,33 @@
 # QMiner Change Log
 
+## 04 January 2022
+
+**Version 9.4.0**
+
+**Non-breaking with new feature**
+
+Features:
+- Create workflows for autoamtic publishing
+
+
+## 28 December 2021
+
+**Version 9.3.4**
+
+**Non-breaking with bug fixes**
+
+Features:
+
+- **Added github action to test library on node versions 12.x, 14.x, 16.x**
+
+Bugfix:
+
+- Fix an inefficiency in TWebSrv when receiving a long request
+- Removed Node.js 10 from CI (are end-of-life releases)
+- Remove console.log from tests
+- Publishing bug fixes
+
+
 ## 13 November 2020
 
 **Version 9.3.2**
