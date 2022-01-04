@@ -63,8 +63,8 @@ jobs:
           ./node_modules/.bin/node-pre-gyp package unpublish publish
           bash ./tools/publish32.sh
         env:
-          node_pre_gyp_accessKeyId: ${{ secrets.NODE_PRE_GYP_ACCESSKEYID }}
-          node_pre_gyp_secretAccessKey: ${{ secrets.NODE_PRE_GYP_SECRETACCESSKEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.NODE_PRE_GYP_ACCESSKEYID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.NODE_PRE_GYP_SECRETACCESSKEY }}
 
   build-and-publish-macos:
     needs: [check-npm-version]
@@ -92,8 +92,8 @@ jobs:
       - name: Publish
         run: ./node_modules/.bin/node-pre-gyp package unpublish publish
         env:
-          node_pre_gyp_accessKeyId: ${{ secrets.NODE_PRE_GYP_ACCESSKEYID }}
-          node_pre_gyp_secretAccessKey: ${{ secrets.NODE_PRE_GYP_SECRETACCESSKEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.NODE_PRE_GYP_ACCESSKEYID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.NODE_PRE_GYP_SECRETACCESSKEY }}
 
   build-and-publish-windows:
     needs: [check-npm-version]
@@ -130,8 +130,8 @@ jobs:
         run: |
           ./node_modules/.bin/node-pre-gyp package unpublish publish
         env:
-          node_pre_gyp_accessKeyId: ${{ secrets.NODE_PRE_GYP_ACCESSKEYID }}
-          node_pre_gyp_secretAccessKey: ${{ secrets.NODE_PRE_GYP_SECRETACCESSKEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.NODE_PRE_GYP_ACCESSKEYID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.NODE_PRE_GYP_SECRETACCESSKEY }}
 
   publish-npm-version:
     needs:
