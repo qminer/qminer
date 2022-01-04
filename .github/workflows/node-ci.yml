@@ -1,0 +1,98 @@
+# This workflow will do a clean install of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Node.js CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [12.x, 14.x, 16.x]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+          cache: "npm"
+      - name: Set up GCC
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: 7
+
+      - name: Build library
+        run: npm install --build-from-source -std=c++0x
+
+      - name: Install test dependencies
+        run: |
+          npm install -g mocha
+          npm install -g mustache
+
+      - name: Generate the documentation example tests
+        run: ./tools/genExampleTests.sh
+        shell: bash
+
+      - name: Run unit tests
+        run: npm run test
+
+  test-macos:
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [12.x, 14.x]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+          cache: "npm"
+
+      - name: Build library
+        run: npm install --build-from-source --clang=1 --debug
+
+      - name: Install test dependencies
+        run: |
+          npm install -g mocha
+          npm install -g mustache
+
+      - name: Run unit tests
+        run: npm run test:nodejs
+
+  test-windows:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [12.x, 14.x, 16.x]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+          cache: "npm"
+
+      - name: Build library
+        run: npm install --build-from-source --msvs_version=2019
+
+      - name: Install test dependencies
+        run: |
+          npm install -g mocha
+          npm install -g mustache
+
+      - name: Generate the documentation example tests
+        run: cd ./tools && genExampleTests.bat && cd ..
+        shell: cmd
+
+      - name: Run unit tests
+        run: npm run test:nodejs
