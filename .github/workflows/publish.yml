@@ -7,7 +7,10 @@ on:
   release:
     types: [published]
   workflow_dispatch:
-      
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.NODE_PRE_GYP_ACCESSKEYID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.NODE_PRE_GYP_SECRETACCESSKEY }}
 
 jobs:
   check-npm-version:
@@ -62,9 +65,6 @@ jobs:
         run: |
           ./node_modules/.bin/node-pre-gyp package unpublish publish
           bash ./tools/publish32.sh
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.NODE_PRE_GYP_ACCESSKEYID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.NODE_PRE_GYP_SECRETACCESSKEY }}
 
   build-and-publish-macos:
     needs: [check-npm-version]
@@ -91,9 +91,6 @@ jobs:
 
       - name: Publish
         run: ./node_modules/.bin/node-pre-gyp package unpublish publish
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.NODE_PRE_GYP_ACCESSKEYID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.NODE_PRE_GYP_SECRETACCESSKEY }}
 
   build-and-publish-windows:
     needs: [check-npm-version]
@@ -129,9 +126,6 @@ jobs:
       - name: Publish
         run: |
           ./node_modules/.bin/node-pre-gyp package unpublish publish
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.NODE_PRE_GYP_ACCESSKEYID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.NODE_PRE_GYP_SECRETACCESSKEY }}
 
   publish-npm-version:
     needs:

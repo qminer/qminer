@@ -95,9 +95,6 @@
     "node-gyp": "^8.4.1",
     "@mapbox/node-pre-gyp": "^1.0.8"
   },
-  "bundledDependencies": [
-    "@mapbox/node-pre-gyp"
-  ],
   "devDependencies": {
     "async": "^3.2.2",
     "aws-sdk": "^2.1048.0",
