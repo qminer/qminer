@@ -7,6 +7,11 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      publish:
+        description: "true, publish the package to NPM. Otherwise, false."
+        required: true
+        default: "false"
 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.NODE_PRE_GYP_ACCESSKEYID }}
@@ -127,6 +132,7 @@ jobs:
           ./node_modules/.bin/node-pre-gyp package unpublish publish
 
   publish-npm-version:
+    if: ${{ github.event.inputs.publish == 'true' }}
     needs:
       [
         build-and-publish-linux,
