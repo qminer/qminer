@@ -1,19 +1,20 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
-
-var pathQmBinary = __dirname + '/out/qm.node';
+var path = require('path');
+var binary = require('@mapbox/node-pre-gyp');
+var pathQmBinary = binary.find(path.resolve(path.join(__dirname, './package.json')));
 var foundBinary = require('fs').existsSync(pathQmBinary);
+
 
 if (foundBinary) {
     // we're not in tonic environment
     process.env['QMINER_HOME'] = __dirname + "/src/glib/bin/";
-    var pathQmBinary = __dirname + '/out/qm.node';
 
     module.exports = exports = require('./src/nodejs/scripts/qm.js')(pathQmBinary);
     exports.path = require('path').normalize(pathQmBinary);
