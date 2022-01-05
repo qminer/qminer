@@ -64,7 +64,6 @@ jobs:
       - name: Publish
         run: |
           ./node_modules/.bin/node-pre-gyp package unpublish publish
-          bash ./tools/publish32.sh
 
   build-and-publish-macos:
     needs: [check-npm-version]
