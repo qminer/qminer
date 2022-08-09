@@ -488,11 +488,36 @@ void THash<TKey, TDat, THashFunc>::GetKeyV(TVec<TKey>& KeyV) const {
     KeyV.Add(GetKey(KeyId));}
 }
 
+template<class TVal>
+struct HashKeyToStr {
+  static TStr GetStr(const TVal& Val) { return GetTypeNm(Val); }
+};
+
+template<>
+struct HashKeyToStr<TStr> {
+  static TStr GetStr(const TStr& Val) { return Val; }
+};
+
+template<>
+struct HashKeyToStr<TInt> {
+  static TStr GetStr(const TInt& Val) { return Val.GetStr(); }
+};
+
+template<>
+struct HashKeyToStr<TIntPr> {
+  static TStr GetStr(const TIntPr& Val) { return Val.GetStr(); }
+};
+
+template<>
+struct HashKeyToStr<TStrIntIntTr> {
+  static TStr GetStr(const TStrIntIntTr& Val) { return Val.GetStr(); }
+};
+
 template<class TKey, class TDat, class THashFunc>
 TDat& THash<TKey, TDat, THashFunc>::GetDat(const TKey& Key) {
     int KeyId = GetKeyId(Key);
     // in case key is not found, ensure we don't try to access the data
-    EAssertR(KeyId >= 0, "Specified key does not exist");
+    EAssertR(KeyId >= 0, TStr::Fmt("Specified key does not exist '%s'", HashKeyToStr<TKey>::GetStr(Key).CStr()));
     return KeyDatV[KeyId].Dat;
 }
 
@@ -500,7 +525,7 @@ template<class TKey, class TDat, class THashFunc>
 const TDat& THash<TKey, TDat, THashFunc>::GetDat(const TKey& Key) const {
   int KeyId = GetKeyId(Key);
   // in case key is not found, ensure we don't try to access the data
-  EAssertR(KeyId >= 0, "Specified key does not exist");
+  EAssertR(KeyId >= 0, TStr::Fmt("Specified key does not exist '%s'", HashKeyToStr<TKey>::GetStr(Key).CStr()));
   return KeyDatV[KeyId].Dat;
 }
 
