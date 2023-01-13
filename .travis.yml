@@ -36,6 +36,11 @@ jobs:
       dist: trusty
       env: CXXFLAGS=-std=c++0x CC=gcc-7 CXX=g++-7
       node_js: 16
+      
+    - os: linux
+      dist: trusty
+      env: CXXFLAGS=-std=c++0x CC=gcc-7 CXX=g++-7
+      node_js: 18     
 
     - os: osx
       osx_image: xcode10.1
