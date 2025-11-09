@@ -92,9 +92,7 @@
   "main": "./index.js",
   "dependencies": {
     "@mapbox/node-pre-gyp": "^1.0.4",
-    "nan": "^2.23.1",
-    "node-gyp": "^10.2.0",
-    "node-pre-gyp": "^0.17.0"
+    "nan": "^2.23.1"
   },
   "devDependencies": {
     "async": "^3.2.2",
