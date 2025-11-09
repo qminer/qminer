@@ -725,7 +725,7 @@ namespace TClustering {
         EAssertR(MnClusts <= MxClusts, "Minimum number of cluster should be less than the maximum.");
         EAssertR(InitCentVV.Empty() || TBase::GetDataCount(InitCentVV) >= MnClusts, "Invalid number of initial clusters when compred to the minimum number!");
 
-        Notify->OnNotifyFmt(TNotifyType::ntInfo, "Executing DPMeans with paramters r=%.3f, minK=%d, maxK=%d ...", Lambda, MnClusts, MxClusts);
+        Notify->OnNotifyFmt(TNotifyType::ntInfo, "Executing DPMeans with paramters r=%.3f, minK=%d, maxK=%d ...", (double)Lambda, (int)MnClusts, (int)MxClusts);
 
         const double LambdaSq = Lambda*Lambda;
 
@@ -831,9 +831,9 @@ namespace TClustering {
     template<>
     inline void TDpMeans<TFltVV>::AddCentroid(const TVec<TIntFltKdV>& FtrVV, TFltVV& ClustDistVV,
             TFltV& NormC2, TFltV& TempK, TFltVV& TempDxK, TFltVV& TempDxK2, const int& InstN) {
-        TIntFltKdV FtrV; this->GetCol(FtrVV, InstN, FtrV); 
-        TFltV DenseFtrV; TLinAlgTransform::ToVec(FtrV, DenseFtrV, this->GetDataDim(FtrVV)); 
-        this->CentroidVV.AddCol(DenseFtrV); 
+        TIntFltKdV FtrV; this->GetCol(FtrVV, InstN, FtrV);
+        TFltV DenseFtrV; TLinAlgTransform::ToVec(FtrV, DenseFtrV, this->GetDataDim(FtrVV));
+        this->CentroidVV.AddCol(DenseFtrV);
         ClustDistVV.AddXDim();
         NormC2.Add(0);
         TempK.Add(0);
@@ -848,7 +848,7 @@ namespace TClustering {
             const int& InstN) {
         TFltV FtrV; FtrVV.GetCol(InstN, FtrV);
         TIntFltKdV SparseFtrV; TLinAlgTransform::ToSpVec(FtrV, SparseFtrV);
-        this->CentroidVV.Add(SparseFtrV); 
+        this->CentroidVV.Add(SparseFtrV);
         ClustDistVV.AddXDim();
         NormC2.Add(0);
         TempK.Add(0);
@@ -862,7 +862,7 @@ namespace TClustering {
             TFltVV& ClustDistVV, TFltV& NormC2, TFltV& TempK, TVec<TIntFltKdV>& TempDxK,
             TVec<TIntFltKdV>& TempDxK2, const int& InstN) {
         const TIntFltKdV& FtrV = FtrVV[InstN];
-        this->CentroidVV.Add(FtrV); 
+        this->CentroidVV.Add(FtrV);
         ClustDistVV.AddXDim();
         NormC2.Add(0);
         TempK.Add(0);

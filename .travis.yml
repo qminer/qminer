@@ -32,6 +32,16 @@ jobs:
       env: CXXFLAGS=-std=c++0x CC=gcc-7 CXX=g++-7
       node_js: 14
 
+    - os: linux
+      dist: trusty
+      env: CXXFLAGS=-std=c++0x CC=gcc-7 CXX=g++-7
+      node_js: 16
+      
+    - os: linux
+      dist: trusty
+      env: CXXFLAGS=-std=c++0x CC=gcc-7 CXX=g++-7
+      node_js: 18     
+
     - os: osx
       osx_image: xcode10.1
       env: NPMOPT=--clang=1 QMDEBUG=--debug
@@ -47,6 +57,11 @@ jobs:
       env: NPMOPT=--clang=1 QMDEBUG=--debug
       node_js: 14
 
+    - os: osx
+      osx_image: xcode10.1
+      env: NPMOPT=--clang=1 QMDEBUG=--debug
+      node_js: 16
+
 install:
   - npm install --build-from-source $NPMOPT $QMDEBUG
 
@@ -54,10 +69,10 @@ script:
   - npm install -g mocha@6.2.3
   - npm install -g mustache
   - if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
-      ./tools/genExampleTests.sh;
-      npm test;
+    ./tools/genExampleTests.sh;
+    npm test;
     else
-      npm run test:nodejs;
+    npm run test:nodejs;
     fi
 
 notifications:
