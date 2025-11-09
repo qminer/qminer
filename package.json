@@ -1,9 +1,9 @@
 {
   "name": "qminer",
-  "version": "9.3.2",
+  "version": "9.4.0",
   "description": "A C++ based data analytics platform for processing large-scale real-time streams containing structured and unstructured data",
   "engines": {
-    "node": ">=8"
+    "node": ">=12"
   },
   "license": "BSD-2-Clause-FreeBSD",
   "author": "Blaz Fortuna <blaz@blazfortuna.com>",
@@ -92,19 +92,15 @@
   "main": "./index.js",
   "dependencies": {
     "nan": "^2.23.1",
-    "node-gyp": "^7.1.2",
-    "node-pre-gyp": "^0.15.0"
+    "@mapbox/node-pre-gyp": "^1.0.4"
   },
-  "bundledDependencies": [
-    "node-pre-gyp"
-  ],
   "devDependencies": {
-    "async": "^3.2.0",
-    "aws-sdk": "^2.767.0",
+    "async": "^3.2.2",
+    "aws-sdk": "^2.1048.0",
     "jsdoc": "^3.6.6",
     "jsdoc-baseline": "^0.1.5",
-    "mocha": "^6.2.3",
-    "mustache": "^4.0.1"
+    "mocha": "^9.1.3",
+    "mustache": "^4.2.0"
   },
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build",

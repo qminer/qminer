@@ -1,0 +1,17 @@
+name: Documentation request
+description: Create a report about a missing documentation
+title: "[DOC]: "
+labels: ["documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this document request!
+  - type: textarea
+    id: missing-doc
+    attributes:
+      label: Describe the missing documentation
+      description: Provide a detailed description of the issue you faced.
+      placeholder: Describe the issue with a part of the documentation (missing, unclear, at the wrong place).
+    validations:
+      required: true

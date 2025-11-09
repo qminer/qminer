@@ -1,0 +1,160 @@
+# This workflow will do a clean install of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Build and Publish to NPM
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "true, publish the package to NPM. Otherwise, false."
+        required: true
+        default: "false"
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.NODE_PRE_GYP_ACCESSKEYID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.NODE_PRE_GYP_SECRETACCESSKEY }}
+
+jobs:
+  check-npm-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16.x
+
+      - name: Current version checkout
+        run: npm -s run env echo '$npm_package_version'
+
+  build-and-publish-linux:
+    needs: [check-npm-version]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        node: [12.x, 13.x, 14.x, 15.x, 16.x]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Set up GCC
+        uses: egor-tensin/setup-gcc@v1
+        with:
+          version: 7
+
+      - name: Build library
+        run: npm install --build-from-source
+
+      - name: Install test dependencies
+        run: |
+          npm install -g mocha
+          npm install -g mustache
+          echo "module.exports = require('../index');" > ./node_modules/qminer.js
+
+      - name: Generate the documentation example tests
+        run: ./tools/genExampleTests.sh
+        shell: bash
+
+      - name: Run unit tests
+        run: npm run test
+
+      - name: Publish
+        run: |
+          ./node_modules/.bin/node-pre-gyp package unpublish publish
+
+  build-and-publish-macos:
+    needs: [check-npm-version]
+    runs-on: macos-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        node: [12.x, 13.x, 14.x]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Build library
+        run: npm install --build-from-source --verbose
+
+      - name: Install test dependencies
+        run: |
+          npm install -g mocha
+          npm install -g mustache
+          echo "module.exports = require('../index');" > ./node_modules/qminer.js
+
+      - name: Publish
+        run: ./node_modules/.bin/node-pre-gyp package unpublish publish
+
+  build-and-publish-windows:
+    needs: [check-npm-version]
+    runs-on: windows-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        node: [12.x, 13.x, 14.x, 15.x, 16.x]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+
+      - name: Build library
+        run: npm install --build-from-source --msvs_version=2019 --release
+
+      - name: Install test dependencies
+        run: |
+          npm install -g mocha
+          npm install -g mustache
+          echo "module.exports = require('../index');" > ./node_modules/qminer.js
+
+      - name: Generate the documentation example tests
+        run: cd ./tools && genExampleTests.bat && cd ..
+        shell: cmd
+
+      - name: Run unit tests
+        run: ./test/nodejs/test.bat
+        shell: cmd
+
+      - name: Publish
+        run: |
+          ./node_modules/.bin/node-pre-gyp package unpublish publish
+
+  publish-npm-version:
+    if: ${{ github.event.inputs.publish == 'true' }}
+    needs:
+      [
+        build-and-publish-linux,
+        build-and-publish-macos,
+        build-and-publish-windows,
+      ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16.x
+
+      - name: Sleep for 60 minutes
+        uses: jakejarvis/wait-action@master
+        with:
+          time: "60m"
+
+      - name: Publish to NPM
+        uses: JS-DevTools/npm-publish@v1
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
