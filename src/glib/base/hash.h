@@ -718,20 +718,20 @@ private:
 public:
   THash<TKey, TDat> H;
 public:
-  PHash<TKey, TDat>(): H(){}
+  PHash(): H(){}
   static TPt<PHash<TKey, TDat> > New(){
     return new PHash<TKey, TDat>();}
-  PHash<TKey, TDat>(const int& MxVals, const int& Vals): H(MxVals, Vals){}
+  PHash(const int& MxVals, const int& Vals): H(MxVals, Vals){}
   static TPt<PHash<TKey, TDat> > New(const int& MxVals, const int& Vals){
     return new PHash<TKey, TDat>(MxVals, Vals);}
-  PHash<TKey, TDat>(const THash<TKey, TDat>& _V): H(_V){}
+  PHash(const THash<TKey, TDat>& _V): H(_V){}
   static TPt<PHash<TKey, TDat> > New(const THash<TKey, TDat>& H){
     return new PHash<TKey, TDat>(H);}
-  explicit PHash<TKey, TDat>(TSIn& SIn): H(SIn){}
+  explicit PHash(TSIn& SIn): H(SIn){}
   static TPt<PHash<TKey, TDat> > Load(TSIn& SIn){return new PHash<TKey, TDat>(SIn);}
   void Save(TSOut& SOut) const {H.Save(SOut);}
 
-  PHash<TKey, TDat>& operator=(const PHash<TKey, TDat>& Vec){
+  PHash& operator=(const PHash<TKey, TDat>& Vec){
     if (this!=&Vec){H=Vec.H;} return *this;}
   bool operator==(const PHash<TKey, TDat>& Vec) const {return H==Vec.H;}
   bool operator<(const PHash<TKey, TDat>& Vec) const {return H<Vec.H;}

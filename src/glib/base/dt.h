@@ -335,9 +335,11 @@ public:
   TChA& operator=(const TStr& Str);
   TChA& operator=(const char* CStr);
   bool operator==(const TChA& ChA) const {return strcmp(CStr(), ChA.CStr())==0;}
+  bool operator==(const TStr& Str) const;
   bool operator==(const char* _CStr) const {return strcmp(CStr(), _CStr)==0;}
   bool operator==(const char& Ch) const {return (BfL==1)&&(Bf[0]==Ch);}
   bool operator!=(const TChA& ChA) const {return strcmp(CStr(), ChA.CStr())!=0;}
+  bool operator!=(const TStr& Str) const;
   bool operator!=(const char* _CStr) const {return strcmp(CStr(), _CStr)!=0;}
   bool operator!=(const char& Ch) const {return !((BfL==1)&&(Bf[0]==Ch));}
   bool operator<(const TChA& ChA) const {return strcmp(CStr(), ChA.CStr())<0;}
