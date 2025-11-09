@@ -9,7 +9,6 @@
 #include "qm_nodejs.h"
 #include "qm_param.h"
 #include "../la/la_nodejs.h"
-
 #include <node_buffer.h>
 
 ///////////////////////////////
