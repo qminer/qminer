@@ -91,7 +91,7 @@
   },
   "main": "./index.js",
   "dependencies": {
-    "nan": "^2.14.2",
+    "nan": "^2.23.1",
     "node-gyp": "^7.1.2",
     "node-pre-gyp": "^0.15.0"
   },
