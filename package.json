@@ -3,7 +3,7 @@
   "version": "9.4.0",
   "description": "A C++ based data analytics platform for processing large-scale real-time streams containing structured and unstructured data",
   "engines": {
-    "node": ">=12"
+    "node": ">=12 <=22"
   },
   "license": "BSD-2-Clause-FreeBSD",
   "author": "Blaz Fortuna <blaz@blazfortuna.com>",
@@ -92,9 +92,7 @@
   "main": "./index.js",
   "dependencies": {
     "@mapbox/node-pre-gyp": "^1.0.4",
-    "nan": "^2.23.1",
-    "node-gyp": "^10.2.0",
-    "node-pre-gyp": "^0.17.0"
+    "nan": "^2.23.1"
   },
   "devDependencies": {
     "async": "^3.2.2",
