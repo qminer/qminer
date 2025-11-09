@@ -56,7 +56,7 @@ jobs:
           cache: "npm"
 
       - name: Build library
-        run: npm install --build-from-source --clang=1 --debug
+        run: npm install --build-from-source
 
       - name: Run unit tests
         run: npm run test:nodejs
