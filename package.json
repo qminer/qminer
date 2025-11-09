@@ -91,15 +91,15 @@
   },
   "main": "./index.js",
   "dependencies": {
-    "nan": "^2.15.0",
-    "@mapbox/node-pre-gyp": "^1.0.4"
+    "@mapbox/node-pre-gyp": "^1.0.4",
+    "nan": "^2.23.1"
   },
   "devDependencies": {
     "async": "^3.2.2",
     "aws-sdk": "^2.1048.0",
     "jsdoc": "^3.6.6",
     "jsdoc-baseline": "^0.1.5",
-    "mocha": "^9.1.3",
+    "mocha": "^11.7.5",
     "mustache": "^4.2.0"
   },
   "scripts": {
