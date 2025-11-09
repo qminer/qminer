@@ -58,9 +58,6 @@ jobs:
       - name: Build library
         run: npm install --build-from-source --clang=1 --debug
 
-      - name: Install test dependencies
-        run: npm install -g mustache
-
       - name: Run unit tests
         run: npm run test:nodejs
 
