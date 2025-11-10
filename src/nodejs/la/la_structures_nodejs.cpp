@@ -1125,8 +1125,15 @@ void TNodeJsSpMat::Init(v8::Local<v8::Object> exports) {
 
     // Properties
 #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
-    tpl->InstanceTemplate()->SetHandler(v8::IndexedPropertyHandlerConfiguration(_indexGet, _indexSet));
-    child->InstanceTemplate()->SetHandler(v8::IndexedPropertyHandlerConfiguration(_indexGet, _indexSet));
+    // Explicitly cast to resolve ambiguity between void and v8::Intercepted overloads
+    tpl->InstanceTemplate()->SetHandler(v8::IndexedPropertyHandlerConfiguration(
+        static_cast<v8::Intercepted (*)(uint32_t, const v8::PropertyCallbackInfo<v8::Value>&)>(_indexGet),
+        static_cast<v8::Intercepted (*)(uint32_t, v8::Local<v8::Value>, const v8::PropertyCallbackInfo<v8::Value>&)>(_indexSet)
+    ));
+    child->InstanceTemplate()->SetHandler(v8::IndexedPropertyHandlerConfiguration(
+        static_cast<v8::Intercepted (*)(uint32_t, const v8::PropertyCallbackInfo<v8::Value>&)>(_indexGet),
+        static_cast<v8::Intercepted (*)(uint32_t, v8::Local<v8::Value>, const v8::PropertyCallbackInfo<v8::Value>&)>(_indexSet)
+    ));
 #else
     tpl->InstanceTemplate()->SetIndexedPropertyHandler(_indexGet, _indexSet);
     child->InstanceTemplate()->SetIndexedPropertyHandler(_indexGet, _indexSet);
