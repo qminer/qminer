@@ -154,7 +154,7 @@ inline void TNodeJsNode<TNEGraph>::eachEdge(const v8::FunctionCallbackInfo<v8::V
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     v8::TryCatch TryCatch(Isolate);
-    TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
+    TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(JS_GET_HOLDER(Args));
 
     v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
     const unsigned Argc = 2;
@@ -171,7 +171,7 @@ inline void TNodeJsNode<TNEGraph>::eachEdge(const v8::FunctionCallbackInfo<v8::V
         Count++;
     }
 
-    Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }
 
 template <>
@@ -179,7 +179,7 @@ inline void TNodeJsNode<TNEGraph>::eachInEdge(const v8::FunctionCallbackInfo<v8:
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     v8::TryCatch TryCatch(Isolate);
-    TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
+    TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(JS_GET_HOLDER(Args));
 
     v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
     const unsigned Argc = 2;
@@ -196,7 +196,7 @@ inline void TNodeJsNode<TNEGraph>::eachInEdge(const v8::FunctionCallbackInfo<v8:
         Count++;
     }
 
-    Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }
 
 template <>
@@ -204,7 +204,7 @@ inline void TNodeJsNode<TNEGraph>::eachOutEdge(const v8::FunctionCallbackInfo<v8
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     v8::TryCatch TryCatch(Isolate);
-    TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
+    TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(JS_GET_HOLDER(Args));
 
     v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
     const unsigned Argc = 2;
@@ -221,5 +221,5 @@ inline void TNodeJsNode<TNEGraph>::eachOutEdge(const v8::FunctionCallbackInfo<v8
         Count++;
     }
 
-    Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }
