@@ -1204,6 +1204,7 @@ public:
 
   TCh& operator=(const TCh& Ch){Val=Ch.Val; return *this;}
   bool operator==(const TCh& Ch) const {return Val==Ch.Val;}
+  bool operator==(const char& Ch) const {return Val==Ch;}
   bool operator<(const TCh& Ch) const {return Val<Ch.Val;}
   char operator()() const {return Val;}
   int GetMemUsed() const {return sizeof(TCh);}
