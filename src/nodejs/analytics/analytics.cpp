@@ -365,8 +365,16 @@ void TNodeJsSVC::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
 
     // properties
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("weights")), _weights);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("weights")), _weights);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("bias")), _bias);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("bias")), _bias);
+    #endif
 
     Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New("SVC")), TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
 }
@@ -436,8 +444,16 @@ void TNodeJsSVR::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "fit", _fit);
 
     // properties
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("weights")), _weights);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("weights")), _weights);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("bias")), _bias);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("bias")), _bias);
+    #endif
 
     Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New("SVR")), TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
 }
@@ -507,7 +523,11 @@ void TNodeJsRidgeReg::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // properties
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("weights")), _weights);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("weights")), _weights);
+    #endif
     Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(GetClassId().CStr())), TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
 }
 
@@ -803,7 +823,11 @@ void TNodeJsNNAnomalies::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "predict", _predict);
     NODE_SET_PROTOTYPE_METHOD(tpl, "explain", _explain);
 
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("init")), _init);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("init")), _init);
+    #endif
 
     Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(GetClassId().CStr())), TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
 }
@@ -1040,8 +1064,16 @@ void TNodeJsRecLinReg::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // properties
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("weights")), _weights);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("weights")), _weights);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("dim")), _dim);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("dim")), _dim);
+    #endif
 
     Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(GetClassId().CStr())),
         TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
@@ -1255,7 +1287,11 @@ void TNodeJsLogReg::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // properties
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("weights")), _weights);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("weights")), _weights);
+    #endif
     Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(GetClassId().CStr())),
         TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
 }
@@ -1409,7 +1445,11 @@ void TNodeJsPropHaz::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // properties
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("weights")), _weights);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("weights")), _weights);
+    #endif
     Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(GetClassId().CStr())),
         TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
 }
@@ -1591,8 +1631,16 @@ void TNodeJsNNet::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // properties
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    //tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("weights")), _weights);
+    #else
     //tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("weights")), _weights);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    //tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("dim")), _dim);
+    #else
     //tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("dim")), _dim);
+    #endif
 
 #ifndef MODULE_INCLUDE_ANALYTICS
     Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New("NNet")),
@@ -2301,10 +2349,26 @@ void TNodeJsKMeans::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "permuteCentroids", _permuteCentroids);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("centroids")), _centroids);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("centroids")), _centroids);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("medoids")), _medoids);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("medoids")), _medoids);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("idxv")), _idxv);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("idxv")), _idxv);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("relMeanCentroidDist")), _relMeanCentroidDist);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("relMeanCentroidDist")), _relMeanCentroidDist);
+    #endif
 
     // properties
     Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(GetClassId().CStr())), TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
@@ -3169,10 +3233,26 @@ void TNodeJsDpMeans::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "permuteCentroids", _permuteCentroids);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("centroids")), _centroids);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("centroids")), _centroids);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("medoids")), _medoids);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("medoids")), _medoids);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("idxv")), _idxv);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("idxv")), _idxv);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("relMeanCentroidDist")), _relMeanCentroidDist);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("relMeanCentroidDist")), _relMeanCentroidDist);
+    #endif
 
     // properties
     Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(GetClassId().CStr())), TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
@@ -3898,9 +3978,21 @@ void TNodeJsTDigest::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "quantile", _quantile);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("init")), _init);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("init")), _init);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("size")), _size);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("size")), _size);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("memory")), _memory);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("memory")), _memory);
+    #endif
 
     // properties
     Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(GetClassId().CStr())), TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
@@ -4081,9 +4173,21 @@ void TNodeJsBuffTDigest::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "flush", _flush);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("init")), _init);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("init")), _init);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("size")), _size);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("size")), _size);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("memory")), _memory);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("memory")), _memory);
+    #endif
 
     // properties
     Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(GetClassId().CStr())), TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
@@ -4255,10 +4359,26 @@ void TNodeJsGk::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // properties
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("init")), _init);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("init")), _init);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("size")), _size);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("size")), _size);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("samples")), _samples);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("samples")), _samples);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("memory")), _memory);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("memory")), _memory);
+    #endif
 
     Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(GetClassId().CStr())), TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
 }
@@ -4493,10 +4613,26 @@ void TNodeJsBiasedGk::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // properties
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("init")), _init);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("init")), _init);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("size")), _size);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("size")), _size);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("samples")), _samples);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("samples")), _samples);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("memory")), _memory);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("memory")), _memory);
+    #endif
 
     Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New(GetClassId().CStr())), TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
 }

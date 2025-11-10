@@ -868,10 +868,26 @@ void TNodeJsNode<T>::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "eachOutEdge", _eachOutEdge);
 
     // Properties
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("id")), _id);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("id")), _id);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("deg")), _deg);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("deg")), _deg);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("inDeg")), _inDeg);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("inDeg")), _inDeg);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("outDeg")), _outDeg);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("outDeg")), _outDeg);
+    #endif
 
     Constructor.Reset(Isolate, TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
     Nan::Set(exports, TNodeJsUtil::ToLocal(Nan::New("Node")),
@@ -1080,8 +1096,16 @@ void TNodeJsEdge<T>::Init(v8::Local<v8::Object> exports) {
     // ObjectWrap uses the first internal field to store the wrapped pointer.
     tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("srcId")), _srcId);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("srcId")), _srcId);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("dstId")), _dstId);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("dstId")), _dstId);
+    #endif
     NODE_SET_PROTOTYPE_METHOD(tpl, "next", _next);
 
     Constructor.Reset(Isolate, TNodeJsUtil::ToLocal(tpl->GetFunction(context)));

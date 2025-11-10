@@ -820,7 +820,11 @@ void TNodeJsVec<TVal, TAux>::Init(v8::Local<v8::Object> exports) {
 #else
     tpl->InstanceTemplate()->SetIndexedPropertyHandler(_indexGet, _indexSet);
 #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("length")), _length);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("length")), _length);
+    #endif
 
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript.

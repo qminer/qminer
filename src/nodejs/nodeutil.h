@@ -40,6 +40,23 @@
         } \
     };
 
+// Node.js 24+ uses different callback signatures for indexed property handlers
+#if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+#define JsDeclIndexedProperty(Function) \
+    static void Function(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info); \
+    static v8::Intercepted _ ## Function(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
+        v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
+        v8::HandleScope HandleScope(Isolate); \
+        try { \
+            Function(Index, Info); \
+            return v8::Intercepted::kYes; \
+        } catch(const PExcept& Except) { \
+            Isolate->ThrowException(v8::Exception::TypeError(\
+            TNodeJsUtil::ToLocal(Nan::New(TStr("[addon] Exception: " + Except->GetStr()).CStr())))); \
+            return v8::Intercepted::kNo; \
+        } \
+    }
+#else
 #define JsDeclIndexedProperty(Function) \
     static void Function(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info); \
     static void _ ## Function(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
@@ -52,6 +69,8 @@
             TNodeJsUtil::ToLocal(Nan::New(TStr("[addon] Exception: " + Except->GetStr()).CStr())))); \
         } \
     }
+#endif
+
 
 // Node.js 24+ uses different callback signatures for indexed property handlers
 #if NODE_MODULE_VERSION >= 134 // Node.js >= 24

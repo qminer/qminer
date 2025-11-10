@@ -70,8 +70,16 @@ void TNodeJsFltVV::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "loadascii", _loadascii);
 
     // Properties
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("rows")), _rows);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("rows")), _rows);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("cols")), _cols);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("cols")), _cols);
+    #endif
 
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript.
@@ -755,8 +763,16 @@ void TNodeJsSpVec::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "toString", _toString);
 
     // Properties
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("dim")), _dim);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("dim")), _dim);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("nnz")), _nnz);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("nnz")), _nnz);
+    #endif
 
     // This has to be last, otherwise the properties won't show up on the object in JavaScript
     // Constructor is used when creating the object from C++
@@ -1116,8 +1132,16 @@ void TNodeJsSpMat::Init(v8::Local<v8::Object> exports) {
     child->InstanceTemplate()->SetIndexedPropertyHandler(_indexGet, _indexSet);
 #endif
 
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("rows")), _rows);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("rows")), _rows);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("cols")), _cols);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("cols")), _cols);
+    #endif
 
     // This has to be last, otherwise the properties won't show up on the object in JavaScript
     // Constructor is used when creating the object from C++

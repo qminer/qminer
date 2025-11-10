@@ -848,13 +848,37 @@ void TNodeJsStore::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "triggerOnAddCallbacks", _triggerOnAddCallbacks);
 
     // Properties
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("name")), _name);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("name")), _name);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("empty")), _empty);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("empty")), _empty);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("length")), _length);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("length")), _length);
+    #endif
     tpl->InstanceTemplate()->SetAccessorProperty(TNodeJsUtil::ToLocal(Nan::New("allRecords")), v8::FunctionTemplate::New(Isolate, _allRecords));
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("fields")), _fields);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("fields")), _fields);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("joins")), _joins);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("joins")), _joins);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("keys")), _keys);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("keys")), _keys);
+    #endif
     tpl->InstanceTemplate()->SetAccessorProperty(TNodeJsUtil::ToLocal(Nan::New("first")), v8::FunctionTemplate::New(Isolate, _first));
     tpl->InstanceTemplate()->SetAccessorProperty(TNodeJsUtil::ToLocal(Nan::New("last")), v8::FunctionTemplate::New(Isolate, _last));
     tpl->InstanceTemplate()->SetAccessorProperty(TNodeJsUtil::ToLocal(Nan::New("forwardIter")), v8::FunctionTemplate::New(Isolate, _forwardIter));
@@ -2010,9 +2034,21 @@ void TNodeJsRec::Init(const TWPt<TQm::TStore>& Store) {
         NODE_SET_PROTOTYPE_METHOD(tpl, "toJSON", _toJSON);
 
         // Properties
+        #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+        tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("$id")), _id);
+        #else
         tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("$id")), _id);
+        #endif
+        #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+        tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("$name")), _name);
+        #else
         tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("$name")), _name);
+        #endif
+        #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+        tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("$fq")), _fq);
+        #else
         tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("$fq")), _fq);
+        #endif
         tpl->InstanceTemplate()->SetAccessorProperty(
             TNodeJsUtil::ToLocal(Nan::New("$store")),
             v8::FunctionTemplate::New(Isolate, _store)
@@ -2021,7 +2057,11 @@ void TNodeJsRec::Init(const TWPt<TQm::TStore>& Store) {
         // register all the fields
         for (int FieldN = 0; FieldN < Store->GetFields(); FieldN++) {
             TStr FieldNm = Store->GetFieldDesc(FieldN).GetFieldNm();
+            #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+            tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New(FieldNm.CStr())), _getField, _setField);
+            #else
             tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New(FieldNm.CStr())), _getField, _setField);
+            #endif
         }
 
         for (int JoinId = 0; JoinId < Store->GetJoins(); JoinId++) {
@@ -2459,7 +2499,11 @@ void TNodeJsRecByValV::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "push", _push);
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("length")), _length);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("length")), _length);
+    #endif
 #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
     tpl->InstanceTemplate()->SetHandler(v8::IndexedPropertyHandlerConfiguration(_indexId));
 #else
@@ -2601,9 +2645,21 @@ void TNodeJsRecSet::Init(v8::Local<v8::Object> exports) {
 
     // Properties
     tpl->InstanceTemplate()->SetAccessorProperty(TNodeJsUtil::ToLocal(Nan::New("store")), v8::FunctionTemplate::New(Isolate, _store));
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("length")), _length);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("length")), _length);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("empty")), _empty);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("empty")), _empty);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("weighted")), _weighted);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("weighted")), _weighted);
+    #endif
 #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
     tpl->InstanceTemplate()->SetHandler(v8::IndexedPropertyHandlerConfiguration(_indexId));
 #else
@@ -3752,9 +3808,21 @@ void TNodeJsIndexKey::Init(v8::Local<v8::Object> exports) {
 
     // Properties
     tpl->InstanceTemplate()->SetAccessorProperty(TNodeJsUtil::ToLocal(Nan::New("store")), v8::FunctionTemplate::New(Isolate, _store));
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("name")), _name);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("name")), _name);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("vocabulary")), _vocabulary);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("vocabulary")), _vocabulary);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("fq")), _fq);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("fq")), _fq);
+    #endif
 
     // This has to be last, otherwise the properties won't show up on the object in JavaScript.
     Constructor.Reset(Isolate, TNodeJsUtil::ToLocal(tpl->GetFunction(context)));
@@ -3982,8 +4050,16 @@ void TNodeJsFtrSpace::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "extractStrings", _extractStrings);
 
     // properties
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("dim")), _dim);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("dim")), _dim);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("dims")), _dims);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("dims")), _dims);
+    #endif
 
     // This has to be last, otherwise the properties won't show up on the object in JavaScript
     // Constructor is used when creating the object from C++
