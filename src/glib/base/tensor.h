@@ -356,8 +356,9 @@ public:
 		TTmStopWatch Sw;
 
 		Sw.Start();
+		const int R_int = R; // Convert TInt to int for OpenMP C++20 compatibility
 		#pragma omp parallel for num_threads(nThreads)
-		for (int ColN = 0; ColN < R; ColN++) {
+		for (int ColN = 0; ColN < R_int; ColN++) {
 			for (TSizeNzTy ElN = 0; ElN < NNZ; ElN++) {
 				TVal Temp = X.GetValues().GetVal(ElN);
 				for (int ModeN = 0; ModeN < Modes; ModeN++) {
