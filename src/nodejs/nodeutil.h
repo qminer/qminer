@@ -88,8 +88,8 @@
             return v8::Intercepted::kNo; \
         } \
     } \
-    static void FunctionSetter(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<v8::Value>& Info); \
-    static v8::Intercepted _ ## FunctionSetter(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
+    static void FunctionSetter(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info); \
+    static v8::Intercepted _ ## FunctionSetter(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info) { \
         v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
         v8::HandleScope HandleScope(Isolate); \
         try { \

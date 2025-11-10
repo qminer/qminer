@@ -1126,13 +1126,14 @@ void TNodeJsSpMat::Init(v8::Local<v8::Object> exports) {
     // Properties
 #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
     // Explicitly cast to resolve ambiguity between void and v8::Intercepted overloads
+    // Note: Setter uses PropertyCallbackInfo<void> in Node.js 24+
     tpl->InstanceTemplate()->SetHandler(v8::IndexedPropertyHandlerConfiguration(
         static_cast<v8::Intercepted (*)(uint32_t, const v8::PropertyCallbackInfo<v8::Value>&)>(_indexGet),
-        static_cast<v8::Intercepted (*)(uint32_t, v8::Local<v8::Value>, const v8::PropertyCallbackInfo<v8::Value>&)>(_indexSet)
+        static_cast<v8::Intercepted (*)(uint32_t, v8::Local<v8::Value>, const v8::PropertyCallbackInfo<void>&)>(_indexSet)
     ));
     child->InstanceTemplate()->SetHandler(v8::IndexedPropertyHandlerConfiguration(
         static_cast<v8::Intercepted (*)(uint32_t, const v8::PropertyCallbackInfo<v8::Value>&)>(_indexGet),
-        static_cast<v8::Intercepted (*)(uint32_t, v8::Local<v8::Value>, const v8::PropertyCallbackInfo<v8::Value>&)>(_indexSet)
+        static_cast<v8::Intercepted (*)(uint32_t, v8::Local<v8::Value>, const v8::PropertyCallbackInfo<void>&)>(_indexSet)
     ));
 #else
     tpl->InstanceTemplate()->SetIndexedPropertyHandler(_indexGet, _indexSet);
@@ -1335,7 +1336,11 @@ void TNodeJsSpMat::indexGet(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         new TNodeJsSpVec(JsSpMat->Mat[Index], JsSpMat->Rows)));
 }
 
+#if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+void TNodeJsSpMat::indexSet(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info) {
+#else
 void TNodeJsSpMat::indexSet(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+#endif
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
@@ -1343,7 +1348,9 @@ void TNodeJsSpMat::indexSet(uint32_t Index, v8::Local<v8::Value> Value, const v8
     // EAssertR(Index < (uint32_t)JsSpMat->Mat.Len(), "Sparse matrix index set: index out of bounds");
     v8::Local<v8::Object> ValObj = v8::Local<v8::Object>::Cast(Value);
     JsSpMat->Mat[Index] = ObjectWrap::Unwrap<TNodeJsSpVec>(ValObj)->Vec;
+#if NODE_MODULE_VERSION < 134
     Info.GetReturnValue().Set(Nan::Undefined());
+#endif
 }
 
 void TNodeJsSpMat::indexSet(const v8::FunctionCallbackInfo<v8::Value>& Args) {

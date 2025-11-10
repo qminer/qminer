@@ -1231,7 +1231,11 @@ void TNodeJsVec<TVal, TAux>::indexGet(uint32_t Index, const v8::PropertyCallback
 }
 
 template<typename TVal, typename TAux>
+#if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+void TNodeJsVec<TVal, TAux>::indexSet(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info) {
+#else
 void TNodeJsVec<TVal, TAux>::indexSet(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+#endif
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     v8::Local<v8::Context> Context = Isolate->GetCurrentContext();
@@ -1239,7 +1243,9 @@ void TNodeJsVec<TVal, TAux>::indexSet(uint32_t Index, v8::Local<v8::Value> Value
     TNodeJsVec<TVal, TAux>* JsVec = ObjectWrap::Unwrap<TNodeJsVec<TVal, TAux> >(JS_GET_HOLDER(Info));
     EAssertR(Index < static_cast<uint32_t>(JsVec->Vec.Len()), "Index out of bounds.");
     JsVec->Vec[Index] = TAux::CastVal(Context, Value);
+#if NODE_MODULE_VERSION < 134
     Info.GetReturnValue().Set(Nan::Undefined());
+#endif
 }
 
 // Returns the sum of the vectors elements (only make sense for numeric values)
