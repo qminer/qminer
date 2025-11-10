@@ -335,9 +335,11 @@ public:
   TChA& operator=(const TStr& Str);
   TChA& operator=(const char* CStr);
   bool operator==(const TChA& ChA) const {return strcmp(CStr(), ChA.CStr())==0;}
+  bool operator==(const TStr& Str) const;
   bool operator==(const char* _CStr) const {return strcmp(CStr(), _CStr)==0;}
   bool operator==(const char& Ch) const {return (BfL==1)&&(Bf[0]==Ch);}
   bool operator!=(const TChA& ChA) const {return strcmp(CStr(), ChA.CStr())!=0;}
+  bool operator!=(const TStr& Str) const;
   bool operator!=(const char* _CStr) const {return strcmp(CStr(), _CStr)!=0;}
   bool operator!=(const char& Ch) const {return !((BfL==1)&&(Bf[0]==Ch));}
   bool operator<(const TChA& ChA) const {return strcmp(CStr(), ChA.CStr())<0;}
@@ -1147,9 +1149,15 @@ public:
   TBool& operator=(const TBool& Bool){Val=Bool.Val; return *this;}
   TBool& operator+=(const TBool& Bool) {Val |= Bool.Val; return *this;}
   bool operator==(const TBool& Bool) const {return Val==Bool.Val;}
+  bool operator==(const bool& b) const {return Val==b;}
+  bool operator!=(const bool& b) const {return Val!=b;}
   bool operator<(const TBool& Bool) const {//return Val<Bool.Val;
     return (Val==false)&&(Bool.Val==true);}
   bool operator()() const {return Val;}
+
+  // Friend operators for C++20 compatibility - avoid ambiguity with implicit conversions
+  friend bool operator==(const bool& b, const TBool& Bool) { return b == Bool.Val; }
+  friend bool operator!=(const bool& b, const TBool& Bool) { return b != Bool.Val; }
   int GetMemUsed() const {return sizeof(TBool);}
 
   int GetPrimHashCd() const {return Val;}
@@ -1202,6 +1210,7 @@ public:
 
   TCh& operator=(const TCh& Ch){Val=Ch.Val; return *this;}
   bool operator==(const TCh& Ch) const {return Val==Ch.Val;}
+  bool operator==(const char& Ch) const {return Val==Ch;}
   bool operator<(const TCh& Ch) const {return Val<Ch.Val;}
   char operator()() const {return Val;}
   int GetMemUsed() const {return sizeof(TCh);}
@@ -1367,6 +1376,12 @@ public:
   bool operator!=(const int& Int) const {return Val!=Int;}
   bool operator<(const TNum& Int) const { return Val<Int.Val; }
   bool operator<(const int& Int) const {return Val<Int;}
+
+  // Friend operators for C++20 compatibility - avoid ambiguity with implicit conversions
+  friend bool operator==(const int& i, const TNum& n) { return i == n.Val; }
+  friend bool operator!=(const int& i, const TNum& n) { return i != n.Val; }
+  friend bool operator<(const int& i, const TNum& n) { return i < n.Val; }
+  friend bool operator<(const double& d, const TNum& n) { return d < n.Val; }
   int operator()() const {return Val;}
   TNum& operator+=(const int& Int){ Val += Int; return *this; }
   TNum& operator-=(const int& Int){ Val -= Int; return *this; }
@@ -1724,6 +1739,10 @@ public:
   bool operator==(const TNum& Flt) const _CMPWARN{ return Val == Flt.Val; }
   bool operator==(const double& Flt) const _CMPWARN {return Val==Flt;}
   bool operator!=(const double& Flt) const _CMPWARN {return Val!=Flt;}
+
+  // Friend operators for C++20 compatibility - avoid ambiguity with implicit conversions
+  friend bool operator==(const double& d, const TNum& n) _CMPWARN { return d == n.Val; }
+  friend bool operator!=(const double& d, const TNum& n) _CMPWARN { return d != n.Val; }
   double operator()() const {return Val;}
   TNum& operator+=(const double& Flt){ Val += Flt; return *this; }
   TNum& operator-=(const double& Flt){ Val -= Flt; return *this; }

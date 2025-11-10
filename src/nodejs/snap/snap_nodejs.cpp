@@ -55,8 +55,16 @@ void TNodeJsGraph<TUNGraph>::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // Properties
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("nodes")), _nodes);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("nodes")), _nodes);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("edges")), _edges);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("edges")), _edges);
+    #endif
 
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript.
@@ -97,8 +105,16 @@ void TNodeJsGraph<TNGraph>::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // Properties
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("nodes")), _nodes);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("nodes")), _nodes);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("edges")), _edges);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("edges")), _edges);
+    #endif
 
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript.
@@ -139,8 +155,16 @@ void TNodeJsGraph<TNEGraph>::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "save", _save);
 
     // Properties
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("nodes")), _nodes);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("nodes")), _nodes);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("edges")), _edges);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("edges")), _edges);
+    #endif
 
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript.
@@ -154,7 +178,7 @@ inline void TNodeJsNode<TNEGraph>::eachEdge(const v8::FunctionCallbackInfo<v8::V
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     v8::TryCatch TryCatch(Isolate);
-    TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
+    TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(JS_GET_HOLDER(Args));
 
     v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
     const unsigned Argc = 2;
@@ -171,7 +195,7 @@ inline void TNodeJsNode<TNEGraph>::eachEdge(const v8::FunctionCallbackInfo<v8::V
         Count++;
     }
 
-    Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }
 
 template <>
@@ -179,7 +203,7 @@ inline void TNodeJsNode<TNEGraph>::eachInEdge(const v8::FunctionCallbackInfo<v8:
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     v8::TryCatch TryCatch(Isolate);
-    TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
+    TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(JS_GET_HOLDER(Args));
 
     v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
     const unsigned Argc = 2;
@@ -196,7 +220,7 @@ inline void TNodeJsNode<TNEGraph>::eachInEdge(const v8::FunctionCallbackInfo<v8:
         Count++;
     }
 
-    Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }
 
 template <>
@@ -204,7 +228,7 @@ inline void TNodeJsNode<TNEGraph>::eachOutEdge(const v8::FunctionCallbackInfo<v8
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     v8::TryCatch TryCatch(Isolate);
-    TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(Args.Holder());
+    TNodeJsNode* JsNode = ObjectWrap::Unwrap<TNodeJsNode>(JS_GET_HOLDER(Args));
 
     v8::Local<v8::Function> Callback = v8::Local<v8::Function>::Cast(Args[0]);
     const unsigned Argc = 2;
@@ -221,5 +245,5 @@ inline void TNodeJsNode<TNEGraph>::eachOutEdge(const v8::FunctionCallbackInfo<v8
         Count++;
     }
 
-    Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }

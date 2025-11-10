@@ -175,7 +175,7 @@ TNodeJsStreamStory::TFitTask::TFitTask(const v8::FunctionCallbackInfo<v8::Value>
 
     EAssertR(Args.Length() > 0, "ss.fitAsync expects at least one argument!");
 
-    JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
     v8::Local<v8::Object> ArgObj = TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0]));
 
     EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "observations", TNodeJsFltVV::GetClassId()), "Missing field observations or invalid class!");
@@ -231,7 +231,7 @@ void TNodeJsStreamStory::update(const v8::FunctionCallbackInfo<v8::Value>& Args)
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     TNodeJsFltV* JsObsFtrV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltV>(Args, 0);
     TNodeJsFltV* JsContrFtrV = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFltV>(Args, 1);
@@ -245,7 +245,7 @@ void TNodeJsStreamStory::futureStates(const v8::FunctionCallbackInfo<v8::Value>&
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const double Level = TNodeJsUtil::GetArgFlt(Args, 0);
     const int StartState = TNodeJsUtil::GetArgInt32(Args, 1);
@@ -277,7 +277,7 @@ void TNodeJsStreamStory::pastStates(const v8::FunctionCallbackInfo<v8::Value>& A
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const double Level = TNodeJsUtil::GetArgFlt(Args, 0);
     const int StartState = TNodeJsUtil::GetArgInt32(Args, 1);
@@ -309,7 +309,7 @@ void TNodeJsStreamStory::predictNextState(const v8::FunctionCallbackInfo<v8::Val
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
     const bool UserFtrP = ParamVal->GetObjBool("useFtrV");
@@ -368,7 +368,7 @@ void TNodeJsStreamStory::probsAtTime(const v8::FunctionCallbackInfo<v8::Value>& 
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const int StartStateId = TNodeJsUtil::GetArgInt32(Args, 0);
     const double Level = TNodeJsUtil::GetArgFlt(Args, 1);
@@ -395,7 +395,7 @@ void TNodeJsStreamStory::histStates(const v8::FunctionCallbackInfo<v8::Value>& A
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const double Level = TNodeJsUtil::GetArgFlt(Args, 0);
 
@@ -413,7 +413,7 @@ void TNodeJsStreamStory::getHistoricalStates(const v8::FunctionCallbackInfo<v8::
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const double RelOffset = TNodeJsUtil::GetArgFlt(Args, 0);
     const double RelLen = TNodeJsUtil::GetArgFlt(Args, 1);
@@ -485,7 +485,7 @@ void TNodeJsStreamStory::toJSON(const v8::FunctionCallbackInfo<v8::Value>& Args)
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
     Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsStreamStory->StreamStory->GetJson()));
 }
 
@@ -493,7 +493,7 @@ void TNodeJsStreamStory::getSubModelJson(const v8::FunctionCallbackInfo<v8::Valu
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
     const PJsonVal ModelJson = JsStreamStory->StreamStory->GetSubModelJson(StateId);
@@ -505,7 +505,7 @@ void TNodeJsStreamStory::getStatePath(const v8::FunctionCallbackInfo<v8::Value>&
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
     const double Height = TNodeJsUtil::GetArgFlt(Args, 1);
@@ -521,7 +521,7 @@ void TNodeJsStreamStory::getTransitionModel(const v8::FunctionCallbackInfo<v8::V
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const double Level = TNodeJsUtil::GetArgFlt(Args, 0);
 
@@ -543,7 +543,7 @@ void TNodeJsStreamStory::currState(const v8::FunctionCallbackInfo<v8::Value>& Ar
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     if (Args.Length() > 0 && !Args[0]->IsNull() && !Args[0]->IsUndefined()) {
         double Height = TNodeJsUtil::GetArgFlt(Args, 0);
@@ -574,7 +574,7 @@ void TNodeJsStreamStory::fullCoords(const v8::FunctionCallbackInfo<v8::Value>& A
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
     const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
     const int FtrSpaceN = TNodeJsUtil::GetArgInt32(Args, 1);
 
@@ -592,7 +592,7 @@ void TNodeJsStreamStory::getStateCentroids(const v8::FunctionCallbackInfo<v8::Va
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
     const int StateId = TNodeJsUtil::GetArgInt32(Args, 0, -1);  // -1 for all the states
 
     TVec<TFltV> FtrVV;
@@ -617,7 +617,7 @@ void TNodeJsStreamStory::histogram(const v8::FunctionCallbackInfo<v8::Value>& Ar
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const int FtrId = TNodeJsUtil::GetArgInt32(Args, 0);
     const int StateId = TNodeJsUtil::IsArgNullOrUndef(Args, 1) ? -1 : TNodeJsUtil::GetArgInt32(Args, 1);
@@ -636,7 +636,7 @@ void TNodeJsStreamStory::transitionHistogram(const v8::FunctionCallbackInfo<v8::
 
     EAssertR(Args.Length() == 3, "ss.transitionHistogram: expects 3 arguments!");
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const int SourceId = TNodeJsUtil::GetArgInt32(Args, 0);
     const int TargetId = TNodeJsUtil::GetArgInt32(Args, 1);
@@ -654,7 +654,7 @@ void TNodeJsStreamStory::timeHistogram(const v8::FunctionCallbackInfo<v8::Value>
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
     const TStr HistTypeStr = TNodeJsUtil::GetArgStr(Args, 1);
@@ -702,7 +702,7 @@ void TNodeJsStreamStory::getFtrBounds(const v8::FunctionCallbackInfo<v8::Value>&
 
     EAssertR(Args.Length() == 1, "hmc.getFtrBounds: expects 1 argument!");
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const int FtrId = TNodeJsUtil::GetArgInt32(Args, 0);
     const TFltPr FtrBounds = JsStreamStory->StreamStory->GetFtrBounds(FtrId);
@@ -718,7 +718,7 @@ void TNodeJsStreamStory::stateIds(const v8::FunctionCallbackInfo<v8::Value>& Arg
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const double Height = TNodeJsUtil::GetArgFlt(Args, 0);
 
@@ -737,7 +737,7 @@ void TNodeJsStreamStory::getWeights(const v8::FunctionCallbackInfo<v8::Value>& A
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
     const PJsonVal WgtJson = JsMChain->StreamStory->GetStateWgtV(StateId);
@@ -749,7 +749,7 @@ void TNodeJsStreamStory::getClassifyTree(const v8::FunctionCallbackInfo<v8::Valu
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
     const PJsonVal TreeJson = JsStreamStory->StreamStory->GetStateClassifyTree(StateId);
@@ -761,7 +761,7 @@ void TNodeJsStreamStory::explainState(const v8::FunctionCallbackInfo<v8::Value>&
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
     const PJsonVal ExplainJson = JsStreamStory->StreamStory->GetStateExplain(StateId);
@@ -773,7 +773,7 @@ void TNodeJsStreamStory::setActivity(const v8::FunctionCallbackInfo<v8::Value>& 
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const TStr ActName = TNodeJsUtil::GetArgStr(Args, 0);
     TVec<TIntV> StateIdSeqVV;   TNodeJsUtil::GetArgIntVV(Args, 1, StateIdSeqVV);
@@ -787,7 +787,7 @@ void TNodeJsStreamStory::removeActivity(const v8::FunctionCallbackInfo<v8::Value
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const TStr ActNm = TNodeJsUtil::GetArgStr(Args, 0);
 
@@ -800,7 +800,7 @@ void TNodeJsStreamStory::getActivities(const v8::FunctionCallbackInfo<v8::Value>
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     TStrV ActNmV;
     TIntV ActStepsV;
@@ -826,7 +826,7 @@ void TNodeJsStreamStory::onStateChanged(const v8::FunctionCallbackInfo<v8::Value
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     if (TNodeJsUtil::IsArgNullOrUndef(Args, 0)) {
         JsStreamStory->StateChangedCallback.Reset();
@@ -843,7 +843,7 @@ void TNodeJsStreamStory::onAnomaly(const v8::FunctionCallbackInfo<v8::Value>& Ar
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     if (TNodeJsUtil::IsArgNullOrUndef(Args, 0)) {
         JsStreamStory->AnomalyCallback.Reset();
@@ -860,7 +860,7 @@ void TNodeJsStreamStory::onOutlier(const v8::FunctionCallbackInfo<v8::Value>& Ar
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     if (TNodeJsUtil::IsArgNullOrUndef(Args, 0)) {
         JsStreamStory->OutlierCallback.Reset();
@@ -877,7 +877,7 @@ void TNodeJsStreamStory::onProgress(const v8::FunctionCallbackInfo<v8::Value>& A
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     if (TNodeJsUtil::IsArgNullOrUndef(Args, 0)) {
         JsStreamStory->ProgressCallback.Reset();
@@ -894,7 +894,7 @@ void TNodeJsStreamStory::onPrediction(const v8::FunctionCallbackInfo<v8::Value>&
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     if (TNodeJsUtil::IsArgNullOrUndef(Args, 0)) {
         JsStreamStory->PredictionCallback.Reset();
@@ -911,7 +911,7 @@ void TNodeJsStreamStory::onActivity(const v8::FunctionCallbackInfo<v8::Value>& A
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     if (TNodeJsUtil::IsArgNullOrUndef(Args, 0)) {
         JsStreamStory->ActivityCallback.Reset();
@@ -930,7 +930,7 @@ void TNodeJsStreamStory::rebuildHistograms(const v8::FunctionCallbackInfo<v8::Va
 
     EAssertR(Args.Length() == 1, "hmc.rebuildHistograms: expects 1 argument!");
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
     v8::Local<v8::Object> ArgObj = TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0]));
 
     EAssertR(TNodeJsUtil::IsFldClass(ArgObj, "observations", TNodeJsFltVV::GetClassId()), "Missing field observations!");
@@ -965,7 +965,7 @@ void TNodeJsStreamStory::getStateLabel(const v8::FunctionCallbackInfo<v8::Value>
 
     EAssertR(Args.Length() == 1, "ss.getStateName: expects 1 argument!");
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
     const TStr& StateNm = JsStreamStory->StreamStory->GetStateLabel(StateId);
@@ -977,7 +977,7 @@ void TNodeJsStreamStory::getStateAutoName(const v8::FunctionCallbackInfo<v8::Val
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
     const TMc::TUiHelper::PAutoNmDesc& StateAutoNm = JsStreamStory->StreamStory->GetStateAutoNm(StateId);
@@ -990,7 +990,7 @@ void TNodeJsStreamStory::narrateState(const v8::FunctionCallbackInfo<v8::Value>&
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
 
@@ -1010,7 +1010,7 @@ void TNodeJsStreamStory::getStateTypTimes(const v8::FunctionCallbackInfo<v8::Val
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
 
@@ -1037,7 +1037,7 @@ void TNodeJsStreamStory::getStateName(const v8::FunctionCallbackInfo<v8::Value>&
 
     EAssertR(Args.Length() == 1, "ss.getStateName: expects 1 argument!");
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
     const TStr& StateNm = JsStreamStory->StreamStory->GetStateNm(StateId);
@@ -1051,7 +1051,7 @@ void TNodeJsStreamStory::setStateName(const v8::FunctionCallbackInfo<v8::Value>&
 
     EAssertR(Args.Length() == 2, "ss.setStateName: expects 2 arguments!");
 
-    TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
     const TStr StateNm = TNodeJsUtil::GetArgStr(Args, 1);
@@ -1065,7 +1065,7 @@ void TNodeJsStreamStory::setStateCoords(const v8::FunctionCallbackInfo<v8::Value
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const PJsonVal PosJsonArr = TNodeJsUtil::GetArgJson(Args, 0);
 
@@ -1091,7 +1091,7 @@ void TNodeJsStreamStory::clearStateName(const v8::FunctionCallbackInfo<v8::Value
 
     EAssertR(Args.Length() == 1, "ss.clearStateName: expects 1 argument!");
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
     JsStreamStory->StreamStory->SetStateNm(StateId, "");
@@ -1103,7 +1103,7 @@ void TNodeJsStreamStory::isTarget(const v8::FunctionCallbackInfo<v8::Value>& Arg
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
 
@@ -1115,7 +1115,7 @@ void TNodeJsStreamStory::setTarget(const v8::FunctionCallbackInfo<v8::Value>& Ar
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
     const bool IsTarget = TNodeJsUtil::GetArgBool(Args, 1);
@@ -1129,7 +1129,7 @@ void TNodeJsStreamStory::isLeaf(const v8::FunctionCallbackInfo<v8::Value>& Args)
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
     const int StateId = TNodeJsUtil::GetArgInt32(Args, 0);
 
     Args.GetReturnValue().Set(v8::Boolean::New(Isolate, JsStreamStory->StreamStory->IsLeaf(StateId)));
@@ -1139,7 +1139,7 @@ void TNodeJsStreamStory::getTimeUnit(const v8::FunctionCallbackInfo<v8::Value>& 
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     const uint64 TimeUnit = JsStreamStory->StreamStory->GetTimeUnit();
 
@@ -1166,7 +1166,7 @@ void TNodeJsStreamStory::setControlVal(const v8::FunctionCallbackInfo<v8::Value>
 
     EAssertR(Args.Length() == 1, "TNodeJsStreamStory::setControlVal: expecting 1 argument!");
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
     v8::Local<v8::Object> ArgsObj = TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0]));
 
     const int FtrId = TNodeJsUtil::GetFldInt(ArgsObj, "ftrId");
@@ -1188,7 +1188,7 @@ void TNodeJsStreamStory::resetControlVal(const v8::FunctionCallbackInfo<v8::Valu
 
     EAssertR(Args.Length() == 1, "TNodeJsStreamStory::setControlVal: expecting 1 argument!");
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
     v8::Local<v8::Object> ArgsObj = TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0]));
 
     if (TNodeJsUtil::IsFldInt(ArgsObj, "stateId")) {
@@ -1210,7 +1210,7 @@ void TNodeJsStreamStory::isAnyControlFtrSet(const v8::FunctionCallbackInfo<v8::V
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
     Args.GetReturnValue().Set(v8::Boolean::New(Isolate, JsStreamStory->StreamStory->IsAnyControlFtrSet()));
 }
 
@@ -1218,7 +1218,7 @@ void TNodeJsStreamStory::isActivityDetector(const v8::FunctionCallbackInfo<v8::V
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
     Args.GetReturnValue().Set(v8::Boolean::New(Isolate, JsStreamStory->StreamStory->IsDetectingActivities()));
 }
 
@@ -1226,7 +1226,7 @@ void TNodeJsStreamStory::isPredictor(const v8::FunctionCallbackInfo<v8::Value>& 
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsStreamStory = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
     Args.GetReturnValue().Set(v8::Boolean::New(Isolate, JsStreamStory->StreamStory->IsPredictingStates()));
 }
 
@@ -1236,12 +1236,12 @@ void TNodeJsStreamStory::setParams(const v8::FunctionCallbackInfo<v8::Value>& Ar
 
     EAssertR(Args.Length() > 0, "hmc.setParams: Expects one argument!");
 
-    TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
     PJsonVal ParamVal = TNodeJsUtil::GetArgJson(Args, 0);
 
     JsMChain->SetParams(ParamVal);
 
-    Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }
 
 void TNodeJsStreamStory::getParam(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -1250,7 +1250,7 @@ void TNodeJsStreamStory::getParam(const v8::FunctionCallbackInfo<v8::Value>& Arg
 
     EAssertR(Args.Length() == 1, "hmc.getParam: Expects one argument!");
 
-    TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
     const TStr ParamNm = TNodeJsUtil::GetArgStr(Args, 0);
 
     if (ParamNm == "verbose") {
@@ -1274,7 +1274,7 @@ void TNodeJsStreamStory::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 
     EAssertR(Args.Length() == 1, "Should have 1 argument!");
 
-    TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(Args.Holder());
+    TNodeJsStreamStory* JsMChain = ObjectWrap::Unwrap<TNodeJsStreamStory>(JS_GET_HOLDER(Args));
 
     PSOut SOut;
     if (TNodeJsUtil::IsArgStr(Args, 0)) {
