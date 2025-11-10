@@ -1381,6 +1381,7 @@ public:
   friend bool operator==(const int& i, const TNum& n) { return i == n.Val; }
   friend bool operator!=(const int& i, const TNum& n) { return i != n.Val; }
   friend bool operator<(const int& i, const TNum& n) { return i < n.Val; }
+  friend bool operator<(const double& d, const TNum& n) { return d < n.Val; }
   int operator()() const {return Val;}
   TNum& operator+=(const int& Int){ Val += Int; return *this; }
   TNum& operator-=(const int& Int){ Val -= Int; return *this; }
