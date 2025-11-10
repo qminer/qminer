@@ -28,8 +28,15 @@ void TNodeJsQm::Init(v8::Local<v8::Object> exports) {
     NODE_SET_METHOD(exports, "stats", _stats);
 
     // Add properties
+#if NODE_MODULE_VERSION >= 134  // Node.js >= 24
+    // In Node.js 24+, Object::SetAccessor was removed. Since flags returns static
+    // compile-time information, we call BuildFlagsObject() and set it as a regular property.
+    v8::Maybe<bool> SuccessP = exports->Set(Isolate->GetCurrentContext(),
+        TNodeJsUtil::ToLocal(Nan::New("flags")), BuildFlagsObject());
+#else
     v8::Maybe<bool> SuccessP = exports->SetAccessor(Isolate->GetCurrentContext(),
       TNodeJsUtil::ToLocal(Nan::New("flags")), _flags);
+#endif
     QmAssert(!SuccessP.IsNothing() && SuccessP.FromJust());
 
     // initialize QMiner environment
@@ -214,10 +221,9 @@ void TNodeJsQm::stats(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     Args.GetReturnValue().Set(Result);
 }
 
-void TNodeJsQm::flags(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+// Helper function to build the flags object (used by both accessor and direct property setting)
+v8::Local<v8::Object> TNodeJsQm::BuildFlagsObject() {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
-    v8::HandleScope HandleScope(Isolate);
-
     v8::Local<v8::Object> JsObj = v8::Object::New(Isolate);
 
     TStr BuildTime = TStr(__DATE__) + " " + TStr(__TIME__);
@@ -346,7 +352,13 @@ void TNodeJsQm::flags(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v
     Nan::Set(JsObj, TNodeJsUtil::ToLocal(Nan::New("sizeof(TFtrExt)")), v8::Integer::New(Isolate, sizeof(TQm::TFtrExt)));
     Nan::Set(JsObj, TNodeJsUtil::ToLocal(Nan::New("sizeof(TFtrSpace)")), v8::Integer::New(Isolate, sizeof(TQm::TFtrSpace)));
 
-    Info.GetReturnValue().Set(JsObj);
+    return JsObj;
+}
+
+void TNodeJsQm::flags(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
+    v8::Isolate* Isolate = v8::Isolate::GetCurrent();
+    v8::HandleScope HandleScope(Isolate);
+    Info.GetReturnValue().Set(BuildFlagsObject());
 }
 
 ///////////////////////////////
