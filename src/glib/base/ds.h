@@ -857,12 +857,12 @@ protected:
     TSizeTy start;
     TSizeTy stride;
 public:
-    TSIter<TVal, TSizeTy>(){
+    TSIter(){
         Vector = NULL;
         start = 0;
         stride = 1;
     }
-    TSIter<TVal, TSizeTy>(TVec<TVal, TSizeTy>* Vec, TSizeTy _start = 0, TSizeTy _stride = 1){
+    TSIter(TVec<TVal, TSizeTy>* Vec, TSizeTy _start = 0, TSizeTy _stride = 1){
         Vector = Vec;
         start = _start;
         stride = _stride;
@@ -1337,21 +1337,21 @@ private:
 public:
   TVec<TVal> V;
 public:
-  PVec<TVal>(): V(){}
-  PVec<TVal>(const PVec<TVal>& Vec): V(Vec.V){}
+  PVec(): V(){}
+  PVec(const PVec<TVal>& Vec): V(Vec.V){}
   static TPt<PVec<TVal> > New(){
     return new PVec<TVal>();}
-  PVec<TVal>(const int& MxVals, const int& Vals): V(MxVals, Vals){}
+  PVec(const int& MxVals, const int& Vals): V(MxVals, Vals){}
   static TPt<PVec<TVal> > New(const int& MxVals, const int& Vals){
     return new PVec<TVal>(MxVals, Vals);}
-  PVec<TVal>(const TVec<TVal>& _V): V(_V){}
+  PVec(const TVec<TVal>& _V): V(_V){}
   static TPt<PVec<TVal> > New(const TVec<TVal>& V){
     return new PVec<TVal>(V);}
-  explicit PVec<TVal>(TSIn& SIn): V(SIn){}
+  explicit PVec(TSIn& SIn): V(SIn){}
   static TPt<PVec<TVal> > Load(TSIn& SIn){return new PVec<TVal>(SIn);}
   void Save(TSOut& SOut) const {V.Save(SOut);}
 
-  PVec<TVal>& operator=(const PVec<TVal>& Vec){
+  PVec& operator=(const PVec<TVal>& Vec){
     if (this!=&Vec){V=Vec.V;} return *this;}
   bool operator==(const PVec<TVal>& Vec) const {return V==Vec.V;}
   bool operator<(const PVec<TVal>& Vec) const {return V<Vec.V;}

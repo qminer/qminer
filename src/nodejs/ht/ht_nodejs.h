@@ -472,7 +472,11 @@ void TNodeJsHash<TKey, TDat, TAux>::Init(v8::Local<v8::Object> exports) {
 	NODE_SET_PROTOTYPE_METHOD(tpl, "sortKey", _sortKey);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "sortDat", _sortDat);
 
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("length")), _length);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("length")), _length);
+    #endif
 
     // This has to be last, otherwise the properties won't show up on the
     // object in JavaScript
@@ -494,9 +498,9 @@ void TNodeJsHash<TKey, TDat, TAux>::New(const v8::FunctionCallbackInfo<v8::Value
     			ObjectWrap::Unwrap<TNodeJsFIn>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])))->SIn :
 				TFIn::New(TNodeJsUtil::GetArgStr(Args, 0));
 
-    	Args.GetReturnValue().Set(WrapInst(Args.Holder(), *SIn));
+    	Args.GetReturnValue().Set(WrapInst(JS_GET_HOLDER(Args), *SIn));
     } else {
-    	Args.GetReturnValue().Set(WrapInst(Args.Holder()));
+    	Args.GetReturnValue().Set(WrapInst(JS_GET_HOLDER(Args)));
     }
 }
 
@@ -506,7 +510,7 @@ void TNodeJsHash<TKey, TDat, TAux>::get(const v8::FunctionCallbackInfo<v8::Value
     v8::HandleScope HandleScope(Isolate);
 
     EAssertR(Args.Length() == 1, "Expected a key as the argument.");
-    TNodeJsHash<TKey, TDat>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat> >(Args.Holder());
+    TNodeJsHash<TKey, TDat>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat> >(JS_GET_HOLDER(Args));
     TKey Key = TAux::GetArgKey(Args, 0);
     TDat Dat;
     if (JsMap->Map.IsKeyGetDat(Key, Dat)) {
@@ -522,11 +526,11 @@ void TNodeJsHash<TKey, TDat, TAux>::put(const v8::FunctionCallbackInfo<v8::Value
     v8::HandleScope HandleScope(Isolate);
 
     EAssertR(Args.Length() == 2, "Expected two arguments: a key and a datum.");
-    TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Args.Holder());
+    TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(JS_GET_HOLDER(Args));
     TKey Key = TAux::GetArgKey(Args, 0);
     TDat Dat = TAux::GetArgDat(Args, 1);
     JsMap->Map.AddDat(Key, Dat);
-    Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }
 
 template<class TKey, class TDat, class TAux>
@@ -535,7 +539,7 @@ void TNodeJsHash<TKey, TDat, TAux>::hasKey(const v8::FunctionCallbackInfo<v8::Va
     v8::HandleScope HandleScope(Isolate);
 
     EAssertR(Args.Length() == 1, "Expected a key as the argument.");
-    TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Args.Holder());
+    TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(JS_GET_HOLDER(Args));
     TKey Key = TAux::GetArgKey(Args, 0);
     Args.GetReturnValue().Set(Nan::New(JsMap->Map.IsKey(Key)));
 }
@@ -546,7 +550,7 @@ void TNodeJsHash<TKey, TDat, TAux>::key(const v8::FunctionCallbackInfo<v8::Value
     v8::HandleScope HandleScope(Isolate);
 
     EAssertR(Args.Length() == 1, "Expected an index as the argument.");
-    TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Args.Holder());
+    TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(JS_GET_HOLDER(Args));
 
     const int Idx = TNodeJsUtil::GetArgInt32(Args, 0);
     EAssertR(JsMap->Map.IsKeyId(Idx), TStr::Fmt("%s::key Incorrect KeyId:%d", TAux::ClassId.CStr(), Idx));
@@ -559,7 +563,7 @@ void TNodeJsHash<TKey, TDat, TAux>::keyId(const v8::FunctionCallbackInfo<v8::Val
     v8::HandleScope HandleScope(Isolate);
 
     EAssertR(Args.Length() == 1, "Expected key as the argument.");
-    TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Args.Holder());
+    TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(JS_GET_HOLDER(Args));
 
     TKey Key = TAux::GetArgKey(Args, 0);
     int Idx = -1;
@@ -575,7 +579,7 @@ void TNodeJsHash<TKey, TDat, TAux>::dat(const v8::FunctionCallbackInfo<v8::Value
     v8::HandleScope HandleScope(Isolate);
 
     EAssertR(Args.Length() == 1, "Expected an index as the argument.");
-    TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Args.Holder());
+    TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(JS_GET_HOLDER(Args));
 
     const int Idx = TNodeJsUtil::GetArgInt32(Args, 0);
     EAssertR(JsMap->Map.IsKeyId(Idx), TStr::Fmt("%s::dat Incorrect KeyId:%d", TAux::ClassId.CStr(), Idx));
@@ -592,11 +596,11 @@ void TNodeJsHash<TKey, TDat, TAux>::load(const v8::FunctionCallbackInfo<v8::Valu
 
     EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
         "Expected a TFIn object as the argument.");
-    TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Args.Holder());
+    TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(JS_GET_HOLDER(Args));
     TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
     PSIn SIn = JsFIn->SIn;
     JsMap->Map.Load(*SIn);
-    Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }
 
 template<class TKey, class TDat, class TAux>
@@ -606,7 +610,7 @@ void TNodeJsHash<TKey, TDat, TAux>::save(const v8::FunctionCallbackInfo<v8::Valu
 
     EAssertR(Args.Length() == 1 && Args[0]->IsObject(),
         "Expected a TFOut object as the argument.");
-    TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Args.Holder());
+    TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(JS_GET_HOLDER(Args));
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
     EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     PSOut SOut = JsFOut->SOut;
@@ -618,27 +622,27 @@ template<class TKey, class TDat, class TAux>
 void TNodeJsHash<TKey, TDat, TAux>::sortKey(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Args.Holder());
+	TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(JS_GET_HOLDER(Args));
 	bool Asc = TNodeJsUtil::GetArgBool(Args, 0, true);
 	JsMap->Map.SortByKey(Asc);
-	Args.GetReturnValue().Set(Args.Holder());
+	Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }
 
 template<class TKey, class TDat, class TAux>
 void TNodeJsHash<TKey, TDat, TAux>::sortDat(const v8::FunctionCallbackInfo<v8::Value>& Args) {
 	v8::Isolate* Isolate = v8::Isolate::GetCurrent();
 	v8::HandleScope HandleScope(Isolate);
-	TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Args.Holder());
+	TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(JS_GET_HOLDER(Args));
 	bool Asc = TNodeJsUtil::GetArgBool(Args, 0, true);
 	JsMap->Map.SortByDat(Asc);
-	Args.GetReturnValue().Set(Args.Holder());
+	Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }
 
 template<class TKey, class TDat, class TAux>
 void TNodeJsHash<TKey, TDat, TAux>::length(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info) {
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
-    TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(Info.Holder());
+    TNodeJsHash<TKey, TDat, TAux>* JsMap = ObjectWrap::Unwrap<TNodeJsHash<TKey, TDat, TAux> >(JS_GET_HOLDER(Info));
     Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsMap->Map.Len()));
 }
 

@@ -90,7 +90,7 @@ void TNodeJsBoundsChecker::predict(const v8::FunctionCallbackInfo<v8::Value>& Ar
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     // Unwrap model
-    TNodeJsBoundsChecker* JsModel = ObjectWrap::Unwrap<TNodeJsBoundsChecker>(Args.Holder());
+    TNodeJsBoundsChecker* JsModel = ObjectWrap::Unwrap<TNodeJsBoundsChecker>(JS_GET_HOLDER(Args));
     // Unwrap input value
     double Val = TNodeJsUtil::GetArgFlt(Args, 0);
     // Run model
