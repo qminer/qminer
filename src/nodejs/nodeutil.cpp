@@ -924,7 +924,7 @@ TNodeTask::TNodeTask(const v8::FunctionCallbackInfo<v8::Value>& Args, const bool
     for (int ArgN = 0; ArgN < Args.Length(); ArgN++) {
         Nan::Set(ArgsArr, ArgN, Args[ArgN]);
     }
-    Nan::Set(ArgsArr, Args.Length(), Args.Holder());
+    Nan::Set(ArgsArr, Args.Length(), JS_GET_HOLDER(Args));
 
     ArgPersist.Reset(Isolate, ArgsArr);
 }

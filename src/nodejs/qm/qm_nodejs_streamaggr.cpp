@@ -71,9 +71,21 @@ void TNodeJsStreamAggr::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "getFeatureSpace", _getFeatureSpace);
 
     // Properties
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("name")), _name);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("name")), _name);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("val")), _val);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("val")), _val);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("init")), _init);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("init")), _init);
+    #endif
 
     // This has to be last, otherwise the properties won't show up on the object in JavaScript
     // Constructor is used when creating the object from C++
@@ -165,10 +177,10 @@ void TNodeJsStreamAggr::reset(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
     JsSA->SA->Reset();
 
-    Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }
 
 void TNodeJsStreamAggr::onStep(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -176,7 +188,7 @@ void TNodeJsStreamAggr::onStep(const v8::FunctionCallbackInfo<v8::Value>& Args) 
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
     // if arg 1 exists, get the caller stream aggregate
     if (Args.Length() >= 1) {
         EAssertR(TNodeJsUtil::IsClass(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])), TNodeJsStreamAggr::GetClassId()), "Argument expected to be a stream aggregate!");
@@ -186,7 +198,7 @@ void TNodeJsStreamAggr::onStep(const v8::FunctionCallbackInfo<v8::Value>& Args) 
         JsSA->SA->OnStep(NULL);
     }
 
-    Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }
 
 void TNodeJsStreamAggr::onTime(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -194,7 +206,7 @@ void TNodeJsStreamAggr::onTime(const v8::FunctionCallbackInfo<v8::Value>& Args) 
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
     QmAssertR(Args.Length() >= 1, "sa.onTime should take one argument of type TUInt64");
     const uint64 Time = TNodeJsUtil::GetArgTmMSecs(Args, 0);
     // if arg 1 exists, get the caller stream aggregate
@@ -206,7 +218,7 @@ void TNodeJsStreamAggr::onTime(const v8::FunctionCallbackInfo<v8::Value>& Args) 
         JsSA->SA->OnTime(Time, NULL);
     }
 
-    Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }
 
 void TNodeJsStreamAggr::onAdd(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -214,7 +226,7 @@ void TNodeJsStreamAggr::onAdd(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
 
     QmAssertR(Args.Length() >= 1 && Args[0]->IsObject(), "sa.onAdd should take one argument of type TNodeJsRec");
     TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
@@ -227,7 +239,7 @@ void TNodeJsStreamAggr::onAdd(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         JsSA->SA->OnAddRec(JsRec->Rec, NULL);
     }
 
-    Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }
 
 void TNodeJsStreamAggr::onUpdate(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -235,7 +247,7 @@ void TNodeJsStreamAggr::onUpdate(const v8::FunctionCallbackInfo<v8::Value>& Args
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
     QmAssertR(Args.Length() >= 1 && Args[0]->IsObject(), "sa.onUpdate should take one argument of type TNodeJsRec");
     TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
     // if arg 1 exists, get the caller stream aggregate
@@ -247,7 +259,7 @@ void TNodeJsStreamAggr::onUpdate(const v8::FunctionCallbackInfo<v8::Value>& Args
         JsSA->SA->OnUpdateRec(JsRec->Rec, NULL);
     }
 
-    Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }
 
 void TNodeJsStreamAggr::onDelete(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -255,7 +267,7 @@ void TNodeJsStreamAggr::onDelete(const v8::FunctionCallbackInfo<v8::Value>& Args
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
     QmAssertR(Args.Length() >= 1 && Args[0]->IsObject(), "sa.onDelete should take one argument of type TNodeJsRec");
     TNodeJsRec* JsRec = TNodeJsUtil::UnwrapCheckWatcher<TNodeJsRec>(TNodeJsUtil::ToLocal(Nan::To<v8::Object>(Args[0])));
     // if arg 1 exists, get the caller stream aggregate
@@ -267,7 +279,7 @@ void TNodeJsStreamAggr::onDelete(const v8::FunctionCallbackInfo<v8::Value>& Args
         JsSA->SA->OnDeleteRec(JsRec->Rec, NULL);
     }
 
-    Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }
 
 void TNodeJsStreamAggr::saveJson(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -275,7 +287,7 @@ void TNodeJsStreamAggr::saveJson(const v8::FunctionCallbackInfo<v8::Value>& Args
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
 
     const TInt Limit = TNodeJsUtil::GetArgInt32(Args, 0, -1);
     PJsonVal Json = JsSA->SA->SaveJson(Limit);
@@ -289,7 +301,7 @@ void TNodeJsStreamAggr::save(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
     TNodeJsFOut* JsFOut = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFOut>(Args, 0);
     EAssertR(!JsFOut->SOut.Empty(), "Output stream closed!");
     // save
@@ -303,13 +315,13 @@ void TNodeJsStreamAggr::load(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
     TNodeJsFIn* JsFIn = TNodeJsUtil::GetArgUnwrapObj<TNodeJsFIn>(Args, 0);
 
     // load
     JsSA->SA->LoadState(*JsFIn->SIn);
 
-    Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }
 
 void TNodeJsStreamAggr::saveStateJson(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -317,7 +329,7 @@ void TNodeJsStreamAggr::saveStateJson(const v8::FunctionCallbackInfo<v8::Value>&
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
 
     // save
     PJsonVal StateJson = JsSA->SA->SaveStateJson();
@@ -330,13 +342,13 @@ void TNodeJsStreamAggr::loadStateJson(const v8::FunctionCallbackInfo<v8::Value>&
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
     PJsonVal StateJson = TNodeJsUtil::GetArgJson(Args, 0);
 
     // load
     JsSA->SA->LoadStateJson(StateJson);
 
-    Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }
 
 void TNodeJsStreamAggr::getParams(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -344,7 +356,7 @@ void TNodeJsStreamAggr::getParams(const v8::FunctionCallbackInfo<v8::Value>& Arg
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
 
     Args.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsSA->SA->GetParams()));
 }
@@ -355,7 +367,7 @@ void TNodeJsStreamAggr::setParams(const v8::FunctionCallbackInfo<v8::Value>& Arg
 
     EAssertR(Args.Length() > 0, "TNodeJsStreamAggr::setParams: takes one argument!");
 
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
 
     const PJsonVal ParamVal = TNodeJsUtil::GetObjToNmJson(Args[0]);
     JsSA->SA->SetParams(ParamVal);
@@ -367,7 +379,7 @@ void TNodeJsStreamAggr::getInteger(const v8::FunctionCallbackInfo<v8::Value>& Ar
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
     if (Args.Length() == 0) {
         // try to cast as IInt
         TWPt<TQm::TStreamAggrOut::IInt> Aggr = dynamic_cast<TQm::TStreamAggrOut::IInt*>(JsSA->SA());
@@ -397,7 +409,7 @@ void TNodeJsStreamAggr::getFloat(const v8::FunctionCallbackInfo<v8::Value>& Args
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
     if (Args.Length() == 0) {
         // try to cast as IFlt
         TWPt<TQm::TStreamAggrOut::IFlt> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFlt*>(JsSA->SA());
@@ -428,7 +440,7 @@ void TNodeJsStreamAggr::getTimestamp(const v8::FunctionCallbackInfo<v8::Value>& 
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
     // try to cast as ITm
     TWPt<TQm::TStreamAggrOut::ITm> Aggr = dynamic_cast<TQm::TStreamAggrOut::ITm*>(JsSA->SA());
     if (Aggr.Empty()) {
@@ -446,7 +458,7 @@ void TNodeJsStreamAggr::getFloatLength(const v8::FunctionCallbackInfo<v8::Value>
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
     // try to cast as IFltVec
     TWPt<TQm::TStreamAggrOut::IFltVec> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltVec*>(JsSA->SA());
     if (Aggr.Empty()) {
@@ -461,7 +473,7 @@ void TNodeJsStreamAggr::getFloatAt(const v8::FunctionCallbackInfo<v8::Value>& Ar
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
     // try to cast as IFltVec
     int ElN = TNodeJsUtil::GetArgInt32(Args, 0);
     TWPt<TQm::TStreamAggrOut::IFltVec> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltVec*>(JsSA->SA());
@@ -479,7 +491,7 @@ void TNodeJsStreamAggr::getFloatVector(const v8::FunctionCallbackInfo<v8::Value>
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
     // try to cast as IFltVec
     TWPt<TQm::TStreamAggrOut::IFltVec> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltVec*>(JsSA->SA());
     if (Aggr.Empty()) {
@@ -495,7 +507,7 @@ void TNodeJsStreamAggr::getTimestampLength(const v8::FunctionCallbackInfo<v8::Va
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
 
     // try to cast as ITmVec
     TWPt<TQm::TStreamAggrOut::ITmVec> Aggr = dynamic_cast<TQm::TStreamAggrOut::ITmVec*>(JsSA->SA());
@@ -511,7 +523,7 @@ void TNodeJsStreamAggr::getTimestampAt(const v8::FunctionCallbackInfo<v8::Value>
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
 
     // try to cast as ITmVec
     int ElN = TNodeJsUtil::GetArgInt32(Args, 0);
@@ -532,7 +544,7 @@ void TNodeJsStreamAggr::getTimestampVector(const v8::FunctionCallbackInfo<v8::Va
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
     // try to cast as ITmVec
     TWPt<TQm::TStreamAggrOut::ITmVec> Aggr = dynamic_cast<TQm::TStreamAggrOut::ITmVec*>(JsSA->SA());
     if (Aggr.Empty()) {
@@ -555,7 +567,7 @@ void TNodeJsStreamAggr::getInFloatVector(const v8::FunctionCallbackInfo<v8::Valu
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
     // try to cast as IFltIO
     TWPt<TQm::TStreamAggrOut::IFltIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltIO*>(JsSA->SA());
     if (Aggr.Empty()) {
@@ -572,7 +584,7 @@ void TNodeJsStreamAggr::getInTimestampVector(const v8::FunctionCallbackInfo<v8::
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
     // try to cast as ITmIO
     TWPt<TQm::TStreamAggrOut::ITmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::ITmIO*>(JsSA->SA());
     if (Aggr.Empty()) {
@@ -595,7 +607,7 @@ void TNodeJsStreamAggr::getOutFloatVector(const v8::FunctionCallbackInfo<v8::Val
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
     // try to cast as IFltIO
     TWPt<TQm::TStreamAggrOut::IFltIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::IFltIO*>(JsSA->SA());
     if (Aggr.Empty()) {
@@ -612,7 +624,7 @@ void TNodeJsStreamAggr::getOutTimestampVector(const v8::FunctionCallbackInfo<v8:
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
     // try to cast as ITmIO
     TWPt<TQm::TStreamAggrOut::ITmIO> Aggr = dynamic_cast<TQm::TStreamAggrOut::ITmIO*>(JsSA->SA());
     if (Aggr.Empty()) {
@@ -635,7 +647,7 @@ void TNodeJsStreamAggr::getNumberOfRecords(const v8::FunctionCallbackInfo<v8::Va
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
     // try to cast as ITmIO
     TWPt<TQm::TStreamAggrOut::ITmVec> Aggr = dynamic_cast<TQm::TStreamAggrOut::ITmVec*>(JsSA->SA());
     if (Aggr.Empty()) {
@@ -649,7 +661,7 @@ void TNodeJsStreamAggr::getInValueVector(const v8::FunctionCallbackInfo<v8::Valu
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
 
     // try to cast as IValIO
     TWPt<TQm::TStreamAggrOut::IValIO<TFlt> > AggrFlt = dynamic_cast<TQm::TStreamAggrOut::IValIO<TFlt> *>(JsSA->SA());
@@ -676,7 +688,7 @@ void TNodeJsStreamAggr::getOutValueVector(const v8::FunctionCallbackInfo<v8::Val
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
 
     // try to cast as IValTmIO
     TWPt<TQm::TStreamAggrOut::IValIO<TFlt> > AggrFlt = dynamic_cast<TQm::TStreamAggrOut::IValIO<TFlt> *>(JsSA->SA());
@@ -702,7 +714,7 @@ void TNodeJsStreamAggr::getFeatureSpace(const v8::FunctionCallbackInfo<v8::Value
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
 
     // try to cast as IFtrSpace
     TWPt<TQm::TStreamAggrOut::IFtrSpace > Aggr = dynamic_cast<TQm::TStreamAggrOut::IFtrSpace *>(JsSA->SA());
@@ -721,7 +733,7 @@ void TNodeJsStreamAggr::getValueVector(const v8::FunctionCallbackInfo<v8::Value>
     v8::HandleScope HandleScope(Isolate);
 
     // unwrap
-    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Args.Holder());
+    TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(JS_GET_HOLDER(Args));
 
     // try to cast as IValTmIO
     TWPt<TQm::TStreamAggrOut::IFltVec > AggrFlt = dynamic_cast<TQm::TStreamAggrOut::IFltVec *>(JsSA->SA());
@@ -751,7 +763,7 @@ void TNodeJsStreamAggr::name(v8::Local<v8::Name> Name, const v8::PropertyCallbac
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    v8::Local<v8::Object> Self = Info.Holder();
+    v8::Local<v8::Object> Self = JS_GET_HOLDER(Info);
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Self);
     Info.GetReturnValue().Set(TNodeJsUtil::ToLocal(Nan::New(JsSA->SA->GetAggrNm().CStr())));
 }
@@ -761,7 +773,7 @@ void TNodeJsStreamAggr::val(v8::Local<v8::Name> Name, const v8::PropertyCallback
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    v8::Local<v8::Object> Self = Info.Holder();
+    v8::Local<v8::Object> Self = JS_GET_HOLDER(Info);
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Self);
     Info.GetReturnValue().Set(TNodeJsUtil::ParseJson(Isolate, JsSA->SA->SaveJson(-1)));
 }
@@ -770,7 +782,7 @@ void TNodeJsStreamAggr::init(v8::Local<v8::Name> Name, const v8::PropertyCallbac
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    v8::Local<v8::Object> Self = Info.Holder();
+    v8::Local<v8::Object> Self = JS_GET_HOLDER(Info);
     TNodeJsStreamAggr* JsSA = ObjectWrap::Unwrap<TNodeJsStreamAggr>(Self);
     Info.GetReturnValue().Set(JsSA->SA->IsInit());
 }
