@@ -97,10 +97,17 @@
   "devDependencies": {
     "async": "^3.2.2",
     "aws-sdk": "^2.1048.0",
-    "jsdoc": "^3.6.6",
+    "jsdoc": "^4.0.5",
     "jsdoc-baseline": "^0.1.5",
     "mocha": "^11.7.5",
     "mustache": "^4.2.0"
+  },
+  "overrides": {
+    "minimatch": "^10.2.6",
+    "serialize-javascript": "^7.0.7",
+    "jsdoc-baseline": {
+      "jsdoc": "$jsdoc"
+    }
   },
   "scripts": {
     "install": "node-pre-gyp install --fallback-to-build",
