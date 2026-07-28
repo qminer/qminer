@@ -5,8 +5,8 @@
 		"test": "mocha"
 	},
 	"dependencies": {
-		"express": "4.22.2",
-		"socket.io":  "2.5.0",
+		"express": "5.2.1",
+		"socket.io":  "4.8.3",
 		"supertest": "^7.1.4"
 	}
 }
