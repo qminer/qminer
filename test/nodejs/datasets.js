@@ -7,7 +7,7 @@
  */
 
 // console.log(__filename)
-var qm = require('qminer');
+var qm = require('../../index.js');
 var assert = require('assert')
 var datasets = qm.datasets;
 
@@ -41,11 +41,11 @@ describe('qm.datasets', function () {
         });
 
         it('it should return store with name Iris', function () {
-            assert.equal(Iris.name, "Iris");
+            assert.strictEqual(Iris.name, "Iris");
         });
 
         it('it should return store with 150 records', function () {
-            assert.equal(Iris.length, 150);
+            assert.strictEqual(Iris.length, 150);
         });
 
     })
@@ -76,11 +76,11 @@ describe('qm.datasets', function () {
         });
 
         it('it should return store with name Iris', function () {
-            assert.equal(Iris.name, "Iris");
+            assert.strictEqual(Iris.name, "Iris");
         });
 
         it('it should return store with 150 records', function () {
-            assert.equal(Iris.length, 150);
+            assert.strictEqual(Iris.length, 150);
         });
 
     });

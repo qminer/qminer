@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -172,7 +172,7 @@ TFullColMatrix::TFullColMatrix(const TStr& MatlabMatrixFNm): TMatrix() {
     TLinAlgIO::LoadMatlabTFltVV(MatlabMatrixFNm, ColV);
     RowN=ColV[0].Len(); ColN=ColV.Len();
     for (int i = 0; i < ColN; i++) {
-        EAssertR(ColV[i].Len() == RowN, TStr::Fmt("%d != %d", ColV[i].Len(), RowN));
+        EAssertR(ColV[i].Len() == RowN, TStr::Fmt("%d != %d", ColV[i].Len(), (int)RowN));
     }
 }
 
@@ -223,15 +223,15 @@ void TStructuredCovarianceMatrix::PMultiply(const TFltVV& B, TFltVV& Result) con
 	TLinAlg::MultiplyT(Y, B, YtB);
 	TLinAlg::Multiply(X, YtB, Result); YtB.Clr();
 
-	TFltV MeanYtB(BCols); // MeanY' B the same TFltV as  B' MeanY	
+	TFltV MeanYtB(BCols); // MeanY' B the same TFltV as  B' MeanY
 	TLinAlg::MultiplyT(B, MeanY, MeanYtB);
-	// Result := 1/SampleN Result - MeanX MeanY' B	
+	// Result := 1/SampleN Result - MeanX MeanY' B
 	for (int RowN = 0; RowN < XRows; RowN++) {
 		for (int ColN = 0; ColN < BCols; ColN++) {
 			Result.At(RowN, ColN) = 1.0/Samples * Result.At(RowN, ColN) - MeanX[RowN]*MeanYtB[ColN];
 		}
 	}
-}; 
+};
 
 void TStructuredCovarianceMatrix::PMultiply(const TFltV& Vec, TFltV& Result) const {FailR("Not implemented yet");} // TODO
 
@@ -248,7 +248,7 @@ void TStructuredCovarianceMatrix::PMultiplyT(const TFltVV& B, TFltVV& Result) co
 
 	TFltV MeanXtB(BCols); // MeanX' B the same TFltV as  B' MeanX
 	TLinAlg::MultiplyT(B, MeanX, MeanXtB);
-	// Result := 1/SampleN Result - MeanY MeanX' B	
+	// Result := 1/SampleN Result - MeanY MeanX' B
 	for (int RowN = 0; RowN < YRows; RowN++) {
 		for (int ColN = 0; ColN < BCols; ColN++) {
 			Result.At(RowN, ColN) = 1.0/Samples * Result.At(RowN, ColN) - MeanY[RowN]*MeanXtB[ColN];
@@ -1432,7 +1432,7 @@ void TNumericalStuff::LeastSquares(const TFltVV& A, const TFltV& b, const double
 
 void TNumericalStuff::PrimalLeastSquares(const TFltVV& A, const TFltV& b, const double& Gamma, TFltV& x) {
 	EAssertR(A.GetCols() == b.Len(), "TNumericalStuff::LeastSquares: number of columns (examples) does not match the number of targets (length of b)");
-	if (x.Empty()) { 
+	if (x.Empty()) {
 		x.Gen(A.GetRows());
 	} else {
 		EAssertR(x.Len() == A.GetRows(), "TNumericalStuff::LeastSquares: solution dimension does not match the number of rows of A (features)");
@@ -1440,7 +1440,7 @@ void TNumericalStuff::PrimalLeastSquares(const TFltVV& A, const TFltV& b, const 
 	// x = (A * A' + Gamma^2 * I)^{-1} A * b
 	int Feats = A.GetRows();
 	// A'
-	TFltVV At = TFltVV(A.GetCols(), A.GetRows()); 
+	TFltVV At = TFltVV(A.GetCols(), A.GetRows());
 	TLinAlg::Transpose(A, At);
 	// A * A'
 	TFltVV B = TFltVV(Feats, Feats);
@@ -1459,7 +1459,7 @@ void TNumericalStuff::PrimalLeastSquares(const TFltVV& A, const TFltV& b, const 
 
 void TNumericalStuff::DualLeastSquares(const TFltVV& A, const TFltV& b, const double& Gamma, TFltV& x) {
 	EAssertR(A.GetCols() == b.Len(), "TNumericalStuff::LeastSquares: number of columns (examples) does not match the number of targets (length of b)");
-	if (x.Empty()) { 
+	if (x.Empty()) {
 		x.Gen(A.GetRows());
 	} else {
 		EAssertR(x.Len() == A.GetRows(), "TNumericalStuff::DualLeastSquares: solution dimension does not match the number of rows of A (features)");
@@ -1480,7 +1480,7 @@ void TNumericalStuff::DualLeastSquares(const TFltVV& A, const TFltV& b, const do
 	TFltV InvBb = TFltV(N);
 	TNumericalStuff::SolveLinearSystem(B, b, InvBb);
 	// x = A * InvB
-	TLinAlg::Multiply(A, InvBb, x);	
+	TLinAlg::Multiply(A, InvBb, x);
 }
 
 void TNumericalStuff::GetKernelVec(const TFltVV& A, TFltV& x) {
@@ -1592,18 +1592,18 @@ void TSparseSVD::OrtoIterSVD(const TMatrix& Matrix,
 	int Cols = Matrix.GetCols();
 	EAssert(k <= Rows && k <= Cols);
 	TFltVV Q, R;
-	
+
 	if (S.Empty()) {S.Gen(k);}
 	if (U.Empty()) {U.Gen(Rows, k); TLinAlgTransform::FillRnd(U);}
 	if (V.Empty()) {V.Gen(Cols, k);}
 
 
-	TFltV SOld = S;	
+	TFltV SOld = S;
     for (int IterN = 0; IterN < Iters; IterN++) {
 		Matrix.MultiplyT(U, V);
 		for (int i = 0; i < k; i++) {
 			S[i] = TLinAlg::Norm(V,i);
-		}		
+		}
 		Matrix.Multiply(V, U);
 		//U = GS(AA'U)
 		// orthogonalization
@@ -2251,7 +2251,7 @@ TVector::TVector(const TVector&& Vector) {
 	IsColVector = Vector.IsColVector;
 	Vec = std::move(Vector.Vec);
 }
-#endif 
+#endif
 
 TVector& TVector::operator=(TVector Vector) {
 	std::swap(IsColVector, Vector.IsColVector);
@@ -3023,7 +3023,7 @@ void TFullMatrix::Load(TSIn& SIn) {
 	Mat->Load(SIn);
 	IsWrapper = false;
 }
- 
+
 //#if defined(LAPACKE) && defined(EIGEN)
 ////no need to reserve memory for the matrices, all will be done internaly
 ////Set k to 500
@@ -3252,7 +3252,7 @@ int TLinAlg::ComputeThinSVD(const TMatrix& XYt, const int& k, TFltVV& U, TFltV& 
 		 TTmStopWatch Time;
 		 if (m >= n){
 
-			 //H is used for intermediate result and should be of the size n times l!			 
+			 //H is used for intermediate result and should be of the size n times l!
 			 TFltVV H(n,l); TLinAlgTransform::FillRnd(H);
 			 //TFltVV RSample; RSample.GenRandom(n, l);
 			 TFltVV F, F0, F1, F2; F0.Gen(m, l); F1.Gen(m, l); F2.Gen(m, l);

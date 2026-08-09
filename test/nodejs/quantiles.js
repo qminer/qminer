@@ -7,7 +7,7 @@
  */
 
 // JavaScript source code
-var qm = require('qminer');
+var qm = require('../../index.js');
 var quants = qm.analytics.quantiles;
 var fs = qm.fs;
 var assert = require("../../src/nodejs/scripts/assert.js");
@@ -19,19 +19,19 @@ describe("TDigest test", function () {
             var tdigest = new quants.TDigest();
             var params = tdigest.getParams();
 
-            assert.equal(params.seed, 0, "invalid seed");
-            assert.equal(params.clusters, 100, "invalid number of clusters");
-            assert.equal(params.minEps, 1e-4, "invalid max accuracy");
-            assert.equal(params.compression, "never", "invalid compression");
+            assert.strictEqual(params.seed, 0, "invalid seed");
+            assert.strictEqual(params.clusters, 100, "invalid number of clusters");
+            assert.strictEqual(params.minEps, 1e-4, "invalid max accuracy");
+            assert.strictEqual(params.compression, "never", "invalid compression");
             assert(tdigest.init === false); });
         it("should construct using provided parameters", function () {
             var tdigest = new quants.TDigest({ seed: 1, clusters: 50, minEps: 1e-5, compression: "periodic" });
             var params = tdigest.getParams();
 
-            assert.equal(params.seed, 1, "invalid seed");
-            assert.equal(params.clusters, 50, "invalid number of clusters");
-            assert.equal(params.minEps, 1e-5, "invalid max accuracy");
-            assert.equal(params.compression, "periodic", "invalid compression");
+            assert.strictEqual(params.seed, 1, "invalid seed");
+            assert.strictEqual(params.clusters, 50, "invalid number of clusters");
+            assert.strictEqual(params.minEps, 1e-5, "invalid max accuracy");
+            assert.strictEqual(params.compression, "periodic", "invalid compression");
             assert(tdigest.init === false);
         });
     });
@@ -56,9 +56,9 @@ describe("TDigest test", function () {
             tdigest.save(fs.openWrite('tdigest.bin')).close();
             var tdigest2 = new quants.TDigest(fs.openRead('tdigest.bin'));
             var params = tdigest2.getParams();
-            assert.equal(params.seed, 1, "invalid seed");
-            assert.equal(params.clusters, 50, "invalid number of clusters");
-            assert.equal(params.minEps, 1e-5, "invalid max accuracy");
+            assert.strictEqual(params.seed, 1, "invalid seed");
+            assert.strictEqual(params.clusters, 50, "invalid number of clusters");
+            assert.strictEqual(params.minEps, 1e-5, "invalid max accuracy");
             assert(tdigest.init === false);
         })
     });
@@ -70,9 +70,9 @@ describe("BufferedTDigest test", function () {
             var tdigest = new quants.BufferedTDigest();
             var params = tdigest.getParams();
 
-            assert.equal(params.seed, 0, "invalid seed");
-            assert.equal(params.delta, 100, "invalid delta");
-            assert.equal(params.bufferLen, 1000, "invalid buffer length: " + params.bufferLen);
+            assert.strictEqual(params.seed, 0, "invalid seed");
+            assert.strictEqual(params.delta, 100, "invalid delta");
+            assert.strictEqual(params.bufferLen, 1000, "invalid buffer length: " + params.bufferLen);
             assert(tdigest.init === false);
         });
         it("should construct using provided parameters", function () {
@@ -83,9 +83,9 @@ describe("BufferedTDigest test", function () {
             });
             var params = tdigest.getParams();
 
-            assert.equal(params.seed, 1, "invalid seed");
-            assert.equal(params.delta, 50, "invalid delta");
-            assert.equal(params.bufferLen, 500, "invalid buffer length: " + params.bufferLen);
+            assert.strictEqual(params.seed, 1, "invalid seed");
+            assert.strictEqual(params.delta, 50, "invalid delta");
+            assert.strictEqual(params.bufferLen, 500, "invalid buffer length: " + params.bufferLen);
             assert(tdigest.init === false);
         });
     });
@@ -100,9 +100,9 @@ describe("BufferedTDigest test", function () {
             tdigest.save(fs.openWrite('bufftdigest.bin')).close();
             var tdigest2 = new quants.BufferedTDigest(fs.openRead('bufftdigest.bin'));
             var params = tdigest2.getParams();
-            assert.equal(params.seed, 1, "invalid seed");
-            assert.equal(params.delta, 50, "invalid delta");
-            assert.equal(params.bufferLen, 500, "invalid buffer length: " + params.bufferLen);
+            assert.strictEqual(params.seed, 1, "invalid seed");
+            assert.strictEqual(params.delta, 50, "invalid delta");
+            assert.strictEqual(params.bufferLen, 500, "invalid buffer length: " + params.bufferLen);
             assert(tdigest.init === false);
         })
     });
@@ -119,7 +119,7 @@ describe("BufferedTDigest test", function () {
             for (var i = 0; i < buffLen-1; ++i) {
                 tdigest.insert(3 + Math.random());
                 var val = tdigest.quantile(0);
-                assert.equal(val, 0);
+                assert.strictEqual(val, 0);
             }
 
             tdigest.insert(3 + Math.random());
@@ -137,7 +137,7 @@ describe("BufferedTDigest test", function () {
             for (var i = 0; i < 100; ++i) {
                 tdigest.insert(3 + Math.random());
                 var val = tdigest.quantile(0);
-                assert.equal(val, 0);
+                assert.strictEqual(val, 0);
             }
 
             tdigest.flush();
@@ -156,9 +156,9 @@ describe('Gk test', function () {
             assert(params.autoCompress != null);
             assert(params.useBands != null);
 
-            assert.equal(params.eps, 0.01);
-            assert.equal(params.autoCompress, true);
-            assert.equal(params.useBands, true);
+            assert.strictEqual(params.eps, 0.01);
+            assert.strictEqual(params.autoCompress, true);
+            assert.strictEqual(params.useBands, true);
         })
         it('should set correct parameters', function () {
             var gk = new quants.Gk({
@@ -172,9 +172,9 @@ describe('Gk test', function () {
             assert(params.autoCompress != null);
             assert(params.useBands != null);
 
-            assert.equal(params.eps, 0.1);
-            assert.equal(params.autoCompress, false);
-            assert.equal(params.useBands, false);
+            assert.strictEqual(params.eps, 0.1);
+            assert.strictEqual(params.autoCompress, false);
+            assert.strictEqual(params.useBands, false);
         })
     })
 
@@ -216,7 +216,7 @@ describe('Gk test', function () {
             for (var targetN = 0; targetN < targets.length; targetN++) {
                 var prob = targets[targetN];
                 var quant = gk.quantile(prob);
-                assert.equal(quant, quantiles[targetN]);
+                assert.strictEqual(quant, quantiles[targetN]);
                 assert(Math.floor((prob - maxRelErr)*batchSize) <= quant);
                 assert(Math.ceil((prob + maxRelErr)*batchSize) >= quant);
             }
@@ -232,7 +232,7 @@ describe('Gk test', function () {
         }
     })
 
-    
+
     describe('CDF test', function () {
         var gk = new quants.Gk({
             eps: 0.01
@@ -240,11 +240,11 @@ describe('Gk test', function () {
         for (var i = 0; i < 100; i++) {
             gk.insert(Math.floor(Math.random()*100));
         }
-        
+
         it('values should be bounded between 0 and 1', function () {
-            assert.equal(gk.cdf(100), 1);
-            assert.equal(gk.cdf(-1),0);
-            assert.equal(gk.cdf(1000), 1);
+            assert.strictEqual(gk.cdf(100), 1);
+            assert.strictEqual(gk.cdf(-1),0);
+            assert.strictEqual(gk.cdf(1000), 1);
         })
 
         it('function should be non-decreasing', function () {
@@ -273,10 +273,10 @@ describe('BiasedGk test', function () {
             assert(params.compression != null);
             assert(params.useBands != null);
 
-            assert.equal(params.eps, 0.1);
-            assert.equal(params.targetProb, 0.01);
-            assert.equal(params.compression, "periodic");
-            assert.equal(params.useBands, true);
+            assert.strictEqual(params.eps, 0.1);
+            assert.strictEqual(params.targetProb, 0.01);
+            assert.strictEqual(params.compression, "periodic");
+            assert.strictEqual(params.useBands, true);
         })
         it('should set correct parameters', function () {
             var gk = new quants.BiasedGk({
@@ -292,10 +292,10 @@ describe('BiasedGk test', function () {
             assert(params.compression != null);
             assert(params.useBands != null);
 
-            assert.equal(params.eps, 0.05);
-            assert.equal(params.targetProb, 0.99);
-            assert.equal(params.compression, "aggressive");
-            assert.equal(params.useBands, false);
+            assert.strictEqual(params.eps, 0.05);
+            assert.strictEqual(params.targetProb, 0.99);
+            assert.strictEqual(params.compression, "aggressive");
+            assert.strictEqual(params.useBands, false);
         })
     })
 
@@ -362,8 +362,8 @@ describe('BiasedGk test', function () {
                 var quantLow = gkLow.quantile(prob);
                 var quantHigh = gkHigh.quantile(prob);
 
-                assert.equal(quantLow, quantsLow[targetN]);
-                assert.equal(quantHigh, quantsHigh[targetN]);
+                assert.strictEqual(quantLow, quantsLow[targetN]);
+                assert.strictEqual(quantHigh, quantsHigh[targetN]);
 
                 assert(isErrorInRangeLow(prob, quantLow));
                 assert(isErrorInRangeHigh(prob, quantHigh));
@@ -390,9 +390,9 @@ describe('BiasedGk test', function () {
         assert(params.compression != null);
         assert(params.useBands != null);
 
-        assert.equal(params.eps, 0.1);
-        assert.equal(params.targetProb, 0.01);
-        assert.equal(params.compression, "periodic");
-        assert.equal(params.useBands, true);
+        assert.strictEqual(params.eps, 0.1);
+        assert.strictEqual(params.targetProb, 0.01);
+        assert.strictEqual(params.compression, "periodic");
+        assert.strictEqual(params.useBands, true);
     })
 })

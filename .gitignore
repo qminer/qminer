@@ -154,3 +154,6 @@ test*.txt
 # GIT FILES
 *.orig
 /TestStore
+
+# VSCODE
+.vscode

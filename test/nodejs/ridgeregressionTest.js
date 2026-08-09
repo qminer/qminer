@@ -7,8 +7,8 @@
  */
 
 var assert = require('../../src/nodejs/scripts/assert.js');
-var analytics = require('qminer').analytics;
-var la = require('qminer').la;
+var analytics = require('../../index.js').analytics;
+var la = require('../../index.js').la;
 
 describe('Ridge Regression Tests', function () {
 
@@ -21,7 +21,7 @@ describe('Ridge Regression Tests', function () {
         it('should create a new default ridge regression model', function () {
             var RR = new analytics.RidgeReg();
             var param = RR.getParams();
-            assert.equal(param.gamma, 0);
+            assert.strictEqual(param.gamma, 0);
         })
         it('should not throw an exception, json parameter', function () {
             assert.doesNotThrow(function () {
@@ -31,12 +31,12 @@ describe('Ridge Regression Tests', function () {
         it('should create a new ridge regression, json parameter', function () {
             var RR = new analytics.RidgeReg({ gamma: 5 });
             var param = RR.getParams();
-            assert.equal(param.gamma, 5);
+            assert.strictEqual(param.gamma, 5);
         })
         it('should create a default ridge regression if json doesn\'t have the gamma key', function () {
             var RR = new analytics.RidgeReg({ alpha: 5 });
             var param = RR.getParams();
-            assert.equal(param.gamma, 0);
+            assert.strictEqual(param.gamma, 0);
         })
         it('should throw an exception if the parameter is not valid', function () {
             assert.throws(function () {
@@ -55,7 +55,7 @@ describe('Ridge Regression Tests', function () {
         it('should return the parameters of the model', function () {
             var RR = new analytics.RidgeReg();
             var param = RR.getParams();
-            assert.equal(param.gamma, 0);
+            assert.strictEqual(param.gamma, 0);
         })
         it('should throw an exception if parameters are given', function () {
             var RR = new analytics.RidgeReg();
@@ -83,7 +83,7 @@ describe('Ridge Regression Tests', function () {
             var RR = new analytics.RidgeReg();
             RR.setParams({ gamma: 5 });
             var param = RR.getParams();
-            assert.equal(param.gamma, 5);
+            assert.strictEqual(param.gamma, 5);
         })
         it('should throw an exception if the parameter is not valid', function () {
             var RR = new analytics.RidgeReg();
@@ -137,7 +137,7 @@ describe('Ridge Regression Tests', function () {
 
             RR.fit(A, b);
             var weights = RR.weights;
-            assert.equal(weights.length, 2);
+            assert.strictEqual(weights.length, 2);
             assert.eqtol(weights[0], 1.588235294117647);
             assert.eqtol(weights[1], 0.529411764705883);
         })
@@ -208,7 +208,7 @@ describe('Ridge Regression Tests', function () {
 
             RR.fit(A, b);
             var model = RR.getModel();
-            assert.equal(model.weights.length, 2);
+            assert.strictEqual(model.weights.length, 2);
             assert.eqtol(model.weights[0], 1.588235294117647);
             assert.eqtol(model.weights[1], 0.529411764705883);
         })
@@ -261,8 +261,8 @@ describe('Ridge Regression Tests', function () {
             var A = new la.Matrix([[1, 2], [1, -1]]);
             var b = new la.Vector([3, 3]);
             RR.fit(A, b);
-            RR.save(require('qminer').fs.openWrite('ridgereg_test.bin')).close();
-            var RR2 = new analytics.RidgeReg(require('qminer').fs.openRead('ridgereg_test.bin'));
+            RR.save(require('../../index.js').fs.openWrite('ridgereg_test.bin')).close();
+            var RR2 = new analytics.RidgeReg(require('../../index.js').fs.openRead('ridgereg_test.bin'));
             assert.deepEqual(RR.getParams(), RR2.getParams());
             assert.eqtol(RR.weights.minus(RR2.weights).norm(), 0, 1e-8);
         })

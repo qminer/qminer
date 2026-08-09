@@ -7,7 +7,7 @@
  */
 
 var assert = require('../../src/nodejs/scripts/assert.js');     //adds assert.run function
-var qm = require('qminer');
+var qm = require('../../index.js');
 var fs = qm.fs;
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -68,15 +68,15 @@ describe('JSON field-type tests ', function () {
                 vals.push(val);
             }
             var rs = db.base.store(store_name).allRecords;
-            assert.equal(rs.length, records);
+            assert.strictEqual(rs.length, records);
             for (var i = 0; i < rs.length; i++) {
                 var rec = rs[i];
                 if (i % 2 == 0) {
-                    assert.equal(rec.val.a, vals[i]);
+                    assert.strictEqual(rec.val.a, vals[i]);
                 } else {
-                    assert.equal(rec.val.b, vals[i]);
-                    assert.equal(rec.val.c, i);
-                    assert.equal(rec.val.d, "rec" + i);
+                    assert.strictEqual(rec.val.b, vals[i]);
+                    assert.strictEqual(rec.val.c, i);
+                    assert.strictEqual(rec.val.d, "rec" + i);
                 }
             }
         } finally {

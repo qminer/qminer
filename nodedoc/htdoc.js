@@ -14,12 +14,12 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 /**
-	* String-string hashmap. 
+	* String-string hashmap.
 	* @classdesc Used for storing key/data pairs, wraps an efficient C++ implementation.
 	* @class
 	* @example
@@ -34,7 +34,7 @@
 	* h.get('dog'); // returns 'tisa'
 	* h.key(1); // returns 'dog'
 	* h.dat(1); // returns 'tisa'
-	* h.length; // returns 2	
+	* h.length; // returns 2
 	* // Saving and loading:
 	* var fs = require('qminer').fs;
 	* fout = fs.openWrite('map.dat'); // open write stream
@@ -77,7 +77,7 @@
  exports.StrStrMap.prototype.put = function(key, data) { return this; }
 /**
 	* Returns true if the map has a given key.
-	* @param {string} key - Hashmap key.	
+	* @param {string} key - Hashmap key.
 	* @returns {boolean} True if the map contains key. Otherwise, false.
     * @example
     * // import modules
@@ -105,7 +105,7 @@
  exports.StrStrMap.prototype.length = 0;
 /**
 	* Returns n-th key.
-	* @param {number} n - Hashmap key index number. Should be between 0 and length-1.	
+	* @param {number} n - Hashmap key index number. Should be between 0 and length-1.
 	* @returns {string} The n-th key.
     * @example
     * // import modules
@@ -118,7 +118,7 @@
     * // get the first key
     * var key = h.key(0); // returns 'foo'
 	*/
- exports.StrStrMap.prototype.key = function(n) { return ; }	
+ exports.StrStrMap.prototype.key = function(n) { return ; }
 /**
     * Returns the ID of the key provided as parameter.
     * @param {string} key - Hashmap key.
@@ -131,10 +131,10 @@
     * var h = new ht.StrStrMap();
     * // add a key/dat pair
     * h.put('foo', 'bar');
-    * // get key id of 'foo' 
+    * // get key id of 'foo'
     * var key = h.keyId('foo'); // returns 0
     */
- exports.StrStrMap.prototype.keyId = function(n) { return ; }	
+ exports.StrStrMap.prototype.keyId = function(n) { return ; }
 /**
 	* Returns n-th dat.
 	* @param {number} n - Hashmap dat index number. Should be between 0 and length-1.
@@ -153,7 +153,7 @@
  exports.StrStrMap.prototype.dat = function(n) { return ; }
 /**
 	* Loads the hashtable from input stream.
-	* @param {module:fs.FIn} fin - Input stream.	
+	* @param {module:fs.FIn} fin - Input stream.
 	* @returns {module:ht.StrStrMap} Self.
     * @example
     * // import modules
@@ -171,7 +171,7 @@
  exports.StrStrMap.prototype.load = function(fin) { return this; }
 /**
 	* Saves the hashtable to output stream.
-	* @param {module:fs.FOut} fout - Output stream.	
+	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} fout.
     * @example
     * // import modules
@@ -220,12 +220,12 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 /**
-	* String-Integer hashmap. 
+	* String-Integer hashmap.
 	* @classdesc Used for storing key/data pairs, wraps an efficient C++ implementation.
 	* @class
 	* @example
@@ -240,7 +240,7 @@
 	* h.get('bar'); // returns 20
 	* h.key(1); // returns 'bar'
 	* h.dat(1); // returns 20
-	* h.length; // returns 2	
+	* h.length; // returns 2
 	* // Saving and loading:
 	* var fs = require('qminer').fs;
 	* fout = fs.openWrite('map.dat'); // open write stream
@@ -283,7 +283,7 @@
  exports.StrIntMap.prototype.put = function(key, data) { return this; }
 /**
 	* Returns true if the map has a given key.
-	* @param {string} key - Hashmap key.	
+	* @param {string} key - Hashmap key.
 	* @returns {boolean} True if the map contains key. Otherwise, false.
     * @example
     * // import modules
@@ -311,7 +311,7 @@
  exports.StrIntMap.prototype.length = 0;
 /**
 	* Returns n-th key.
-	* @param {number} n - Hashmap key index number. Should be between 0 and length-1.	
+	* @param {number} n - Hashmap key index number. Should be between 0 and length-1.
 	* @returns {string} The n-th key.
     * @example
     * // import modules
@@ -324,7 +324,7 @@
     * // get the first key
     * var key = h.key(0); // returns 'foo'
 	*/
- exports.StrIntMap.prototype.key = function(n) { return ; }	
+ exports.StrIntMap.prototype.key = function(n) { return ; }
 /**
     * Returns the ID of the key provided as parameter.
     * @param {string} key - Hashmap key.
@@ -337,10 +337,10 @@
     * var h = new ht.StrIntMap();
     * // add a key/dat pair
     * h.put('foo', 10);
-    * // get key id of 'foo' 
+    * // get key id of 'foo'
     * var key = h.keyId('foo'); // returns 0
     */
- exports.StrIntMap.prototype.keyId = function(n) { return ; }	
+ exports.StrIntMap.prototype.keyId = function(n) { return ; }
 /**
 	* Returns n-th dat.
 	* @param {number} n - Hashmap dat index number. Should be between 0 and length-1.
@@ -359,7 +359,7 @@
  exports.StrIntMap.prototype.dat = function(n) { return 0; }
 /**
 	* Loads the hashtable from input stream.
-	* @param {module:fs.FIn} fin - Input stream.	
+	* @param {module:fs.FIn} fin - Input stream.
 	* @returns {module:ht.StrIntMap} Self.
     * @example
     * // import modules
@@ -377,7 +377,7 @@
  exports.StrIntMap.prototype.load = function(fin) { return this; }
 /**
 	* Saves the hashtable to output stream.
-	* @param {module:fs.FOut} fout - Output stream.	
+	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} fout.
     * @example
     * // import modules
@@ -426,12 +426,12 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 /**
-	* String-Float hashmap. 
+	* String-Float hashmap.
 	* @classdesc Used for storing key/data pairs, wraps an efficient C++ implementation.
 	* @class
 	* @example
@@ -446,7 +446,7 @@
 	* h.get('bar'); // returns 20.2
 	* h.key(1); // returns 'bar'
 	* h.dat(1); // returns 20.2
-	* h.length; // returns 2	
+	* h.length; // returns 2
 	* // Saving and loading:
 	* var fs = require('qminer').fs;
 	* fout = fs.openWrite('map.dat'); // open write stream
@@ -489,7 +489,7 @@
  exports.StrFltMap.prototype.put = function(key, data) { return this; }
 /**
 	* Returns true if the map has a given key.
-	* @param {string} key - Hashmap key.	
+	* @param {string} key - Hashmap key.
 	* @returns {boolean} True if the map contains key. Otherwise, false.
     * @example
     * // import modules
@@ -517,7 +517,7 @@
  exports.StrFltMap.prototype.length = 0;
 /**
 	* Returns n-th key.
-	* @param {number} n - Hashmap key index number. Should be between 0 and length-1.	
+	* @param {number} n - Hashmap key index number. Should be between 0 and length-1.
 	* @returns {string} The n-th key.
     * @example
     * // import modules
@@ -530,7 +530,7 @@
     * // get the first key
     * var key = h.key(0); // returns 'foo'
 	*/
- exports.StrFltMap.prototype.key = function(n) { return ; }	
+ exports.StrFltMap.prototype.key = function(n) { return ; }
 /**
     * Returns the ID of the key provided as parameter.
     * @param {string} key - Hashmap key.
@@ -543,10 +543,10 @@
     * var h = new ht.StrFltMap();
     * // add a key/dat pair
     * h.put('foo', 10.5);
-    * // get key id of 'foo' 
+    * // get key id of 'foo'
     * var key = h.keyId('foo'); // returns 0
     */
- exports.StrFltMap.prototype.keyId = function(n) { return ; }	
+ exports.StrFltMap.prototype.keyId = function(n) { return ; }
 /**
 	* Returns n-th dat.
 	* @param {number} n - Hashmap dat index number. Should be between 0 and length-1.
@@ -565,7 +565,7 @@
  exports.StrFltMap.prototype.dat = function(n) { return 0; }
 /**
 	* Loads the hashtable from input stream.
-	* @param {module:fs.FIn} fin - Input stream.	
+	* @param {module:fs.FIn} fin - Input stream.
 	* @returns {module:ht.StrFltMap} Self.
     * @example
     * // import modules
@@ -583,7 +583,7 @@
  exports.StrFltMap.prototype.load = function(fin) { return this; }
 /**
 	* Saves the hashtable to output stream.
-	* @param {module:fs.FOut} fout - Output stream.	
+	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} fout.
     * @example
     * // import modules
@@ -632,12 +632,12 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 /**
-	* Int-string hashmap. 
+	* Int-string hashmap.
 	* @classdesc Used for storing key/data pairs, wraps an efficient C++ implementation.
 	* @class
 	* @example
@@ -652,7 +652,7 @@
 	* h.get(20); // returns 'bar'
 	* h.key(1); // returns 20
 	* h.dat(1); // returns 'bar'
-	* h.length; // returns 2	
+	* h.length; // returns 2
 	* // Saving and loading:
 	* var fs = require('qminer').fs;
 	* fout = fs.openWrite('map.dat'); // open write stream
@@ -695,7 +695,7 @@
  exports.IntStrMap.prototype.put = function(key, data) { return this; }
 /**
 	* Returns true if the map has a given key.
-	* @param {number} key - Hashmap key.	
+	* @param {number} key - Hashmap key.
 	* @returns {boolean} True if the map contains key. Otherwise, false.
     * @example
     * // import modules
@@ -723,7 +723,7 @@
  exports.IntStrMap.prototype.length = 0;
 /**
 	* Returns n-th key.
-	* @param {number} n - Hashmap key index number. Should be between 0 and length-1.	
+	* @param {number} n - Hashmap key index number. Should be between 0 and length-1.
 	* @returns {number} The n-th key.
     * @example
     * // import modules
@@ -736,7 +736,7 @@
     * // get the first key
     * var key = h.key(0); // returns 10
 	*/
- exports.IntStrMap.prototype.key = function(n) { return 0; }	
+ exports.IntStrMap.prototype.key = function(n) { return 0; }
 /**
     * Returns the ID of the key provided as parameter.
     * @param {number} key - Hashmap key.
@@ -749,10 +749,10 @@
     * var h = new ht.IntStrMap();
     * // add a key/dat pair
     * h.put(10, 'foo');
-    * // get key id of 10 
+    * // get key id of 10
     * var key = h.keyId(10); // returns 0
     */
- exports.IntStrMap.prototype.keyId = function(n) { return 0; }	
+ exports.IntStrMap.prototype.keyId = function(n) { return 0; }
 /**
 	* Returns n-th dat.
 	* @param {number} n - Hashmap dat index number. Should be between 0 and length-1.
@@ -771,7 +771,7 @@
  exports.IntStrMap.prototype.dat = function(n) { return ; }
 /**
 	* Loads the hashtable from input stream.
-	* @param {module:fs.FIn} fin - Input stream.	
+	* @param {module:fs.FIn} fin - Input stream.
 	* @returns {module:ht.IntStrMap} Self.
     * @example
     * // import modules
@@ -789,7 +789,7 @@
  exports.IntStrMap.prototype.load = function(fin) { return this; }
 /**
 	* Saves the hashtable to output stream.
-	* @param {module:fs.FOut} fout - Output stream.	
+	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} fout.
     * @example
     * // import modules
@@ -838,12 +838,12 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 /**
-	* Integer-Integer hashmap. 
+	* Integer-Integer hashmap.
 	* @classdesc Used for storing key/data pairs, wraps an efficient C++ implementation.
 	* @class
 	* @example
@@ -858,7 +858,7 @@
 	* h.get(15); // returns 20
 	* h.key(1); // returns 15
 	* h.dat(1); // returns 20
-	* h.length; // returns 2	
+	* h.length; // returns 2
 	* // Saving and loading:
 	* var fs = require('qminer').fs;
 	* fout = fs.openWrite('map.dat'); // open write stream
@@ -901,7 +901,7 @@
  exports.IntIntMap.prototype.put = function(key, data) { return this; }
 /**
 	* Returns true if the map has a given key.
-	* @param {number} key - Hashmap key.	
+	* @param {number} key - Hashmap key.
 	* @returns {boolean} True if the map contains key. Otherwise, false.
     * @example
     * // import modules
@@ -929,7 +929,7 @@
  exports.IntIntMap.prototype.length = 0;
 /**
 	* Returns n-th key.
-	* @param {number} n - Hashmap key index number. Should be between 0 and length-1.	
+	* @param {number} n - Hashmap key index number. Should be between 0 and length-1.
 	* @returns {number} The n-th key.
     * @example
     * // import modules
@@ -942,7 +942,7 @@
     * // get the first key
     * var key = h.key(0); // returns 5
 	*/
- exports.IntIntMap.prototype.key = function(n) { return 0; }	
+ exports.IntIntMap.prototype.key = function(n) { return 0; }
 /**
     * Returns the ID of the key provided as parameter.
     * @param {number} key - Hashmap key.
@@ -955,10 +955,10 @@
     * var h = new ht.IntIntMap();
     * // add a key/dat pair
     * h.put(5, 10);
-    * // get key id of 5 
+    * // get key id of 5
     * var key = h.keyId(5); // returns 0
     */
- exports.IntIntMap.prototype.keyId = function(n) { return 0; }	
+ exports.IntIntMap.prototype.keyId = function(n) { return 0; }
 /**
 	* Returns n-th dat.
 	* @param {number} n - Hashmap dat index number. Should be between 0 and length-1.
@@ -977,7 +977,7 @@
  exports.IntIntMap.prototype.dat = function(n) { return 0; }
 /**
 	* Loads the hashtable from input stream.
-	* @param {module:fs.FIn} fin - Input stream.	
+	* @param {module:fs.FIn} fin - Input stream.
 	* @returns {module:ht.IntIntMap} Self.
     * @example
     * // import modules
@@ -995,7 +995,7 @@
  exports.IntIntMap.prototype.load = function(fin) { return this; }
 /**
 	* Saves the hashtable to output stream.
-	* @param {module:fs.FOut} fout - Output stream.	
+	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} fout.
     * @example
     * // import modules
@@ -1044,12 +1044,12 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 /**
-	* Integer-Float hashmap. 
+	* Integer-Float hashmap.
 	* @classdesc Used for storing key/data pairs, wraps an efficient C++ implementation.
 	* @class
 	* @example
@@ -1064,7 +1064,7 @@
 	* h.get(15); // returns 20.2
 	* h.key(1); // returns 15
 	* h.dat(1); // returns 20.2
-	* h.length; // returns 2	
+	* h.length; // returns 2
 	* // Saving and loading:
 	* var fs = require('qminer').fs;
 	* fout = fs.openWrite('map.dat'); // open write stream
@@ -1107,7 +1107,7 @@
  exports.IntFltMap.prototype.put = function(key, data) { return this; }
 /**
 	* Returns true if the map has a given key.
-	* @param {number} key - Hashmap key.	
+	* @param {number} key - Hashmap key.
 	* @returns {boolean} True if the map contains key. Otherwise, false.
     * @example
     * // import modules
@@ -1135,7 +1135,7 @@
  exports.IntFltMap.prototype.length = 0;
 /**
 	* Returns n-th key.
-	* @param {number} n - Hashmap key index number. Should be between 0 and length-1.	
+	* @param {number} n - Hashmap key index number. Should be between 0 and length-1.
 	* @returns {number} The n-th key.
     * @example
     * // import modules
@@ -1148,7 +1148,7 @@
     * // get the first key
     * var key = h.key(0); // returns 5
 	*/
- exports.IntFltMap.prototype.key = function(n) { return 0; }	
+ exports.IntFltMap.prototype.key = function(n) { return 0; }
 /**
     * Returns the ID of the key provided as parameter.
     * @param {number} key - Hashmap key.
@@ -1161,10 +1161,10 @@
     * var h = new ht.IntFltMap();
     * // add a key/dat pair
     * h.put(5, 10.5);
-    * // get key id of 5 
+    * // get key id of 5
     * var key = h.keyId(5); // returns 0
     */
- exports.IntFltMap.prototype.keyId = function(n) { return 0; }	
+ exports.IntFltMap.prototype.keyId = function(n) { return 0; }
 /**
 	* Returns n-th dat.
 	* @param {number} n - Hashmap dat index number. Should be between 0 and length-1.
@@ -1183,7 +1183,7 @@
  exports.IntFltMap.prototype.dat = function(n) { return 0; }
 /**
 	* Loads the hashtable from input stream.
-	* @param {module:fs.FIn} fin - Input stream.	
+	* @param {module:fs.FIn} fin - Input stream.
 	* @returns {module:ht.IntFltMap} Self.
     * @example
     * // import modules
@@ -1201,7 +1201,7 @@
  exports.IntFltMap.prototype.load = function(fin) { return this; }
 /**
 	* Saves the hashtable to output stream.
-	* @param {module:fs.FOut} fout - Output stream.	
+	* @param {module:fs.FOut} fout - Output stream.
 	* @returns {module:fs.FOut} fout.
     * @example
     * // import modules

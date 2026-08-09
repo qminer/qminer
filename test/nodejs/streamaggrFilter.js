@@ -7,7 +7,7 @@
  */
 
 var assert = require('../../src/nodejs/scripts/assert.js');
-var qm = require('qminer');
+var qm = require('../../index.js');
 var async = require('async');
 
 function assertUpdateSequence(recField, recValArr, updatesArr, store, aggr) {
@@ -17,11 +17,11 @@ function assertUpdateSequence(recField, recValArr, updatesArr, store, aggr) {
         recJson[recField] = recValArr[i];
         recJsonArr.push(recJson);
     }
-    assert.equal(aggr.saveJson().val, 0); // should be 0 at start!
+    assert.strictEqual(aggr.saveJson().val, 0); // should be 0 at start!
     for (var i in recJsonArr) {
         store.push(recJsonArr[i]);
-        assert.equal(aggr.saveJson().val, updatesArr[i]);
-    }    
+        assert.strictEqual(aggr.saveJson().val, updatesArr[i]);
+    }
 }
 
 function JsAggr() {
@@ -73,7 +73,7 @@ describe('Stream aggregate filter', function () {
                 this.saveJson = function (limit) {
                     return { val: updates };
                 }
-            });  
+            });
 
             var OKInput = [{ type: "recordFilterAggr", aggr: aggr.name, filters: [{ type: "trivial" }] }];
             OKInput.push({ type: "recordFilterAggr", aggr: aggr.name, filters: [{ type: "field", store: "RecordTest", field: "Int", minValue: 5 }] });
@@ -96,7 +96,7 @@ describe('Stream aggregate filter', function () {
             BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filters: [{ type: "field", store: null, field: "Int", minValue: 5 }] });
             BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filters: [{ type: "field", store: "RecordTest", field: null, minValue: 5 }] });
             BADInput.push({ type: "recordFilterAggr", aggr: aggr.name, filters: [{ type: "field", store: "RecordTest", field: "Int", minValue: null }] });
-            
+
             for (key in OKInput) {
                 assert.doesNotThrow(function () {
                     store.addStreamAggr(OKInput[key]);
@@ -356,9 +356,9 @@ describe('Stream aggregate filter', function () {
             assertUpdateSequence("Str", ["a", "b", "c"], [1, 2, 3], store, aggr);
             var rec = store.newRecord({ Str: "test" }); //not pushed to store
             filt.onAdd(rec); // should not pass
-            assert.equal(aggr.saveJson().val, 3);
+            assert.strictEqual(aggr.saveJson().val, 3);
             filt.onAdd(store[0]); // should pass
-            assert.equal(aggr.saveJson().val, 4);
+            assert.strictEqual(aggr.saveJson().val, 4);
             done();
         });
     });
@@ -441,15 +441,15 @@ describe('Stream aggregate filter', function () {
             store[0].$addJoin("joinTest", 3, 7);
             store[0].$addJoin("joinTest", 4, 1);
 
-            assert.equal(aggr.saveJson().val, 0);
+            assert.strictEqual(aggr.saveJson().val, 0);
             filt.onAdd(store[0].joinTest[0]);
-            assert.equal(aggr.saveJson().val, 1);
+            assert.strictEqual(aggr.saveJson().val, 1);
             filt.onAdd(store[0].joinTest[1]);
-            assert.equal(aggr.saveJson().val, 2);
+            assert.strictEqual(aggr.saveJson().val, 2);
             filt.onAdd(store[0].joinTest[2]);
-            assert.equal(aggr.saveJson().val, 2);
+            assert.strictEqual(aggr.saveJson().val, 2);
             filt.onAdd(store[0].joinTest[3]);
-            assert.equal(aggr.saveJson().val, 2);
+            assert.strictEqual(aggr.saveJson().val, 2);
             done();
         });
     });
@@ -488,17 +488,17 @@ describe('Stream aggregate filter', function () {
             // store[3] NOT OK
             store[3].$addJoin("joinTest", 4);
 
-            assert.equal(aggr.saveJson().val, 0);
+            assert.strictEqual(aggr.saveJson().val, 0);
             filt.onAdd(store[0]);
-            assert.equal(aggr.saveJson().val, 1);
+            assert.strictEqual(aggr.saveJson().val, 1);
             filt.onAdd(store[1]);
-            assert.equal(aggr.saveJson().val, 1);
+            assert.strictEqual(aggr.saveJson().val, 1);
             filt.onAdd(store[2]);
-            assert.equal(aggr.saveJson().val, 2);
+            assert.strictEqual(aggr.saveJson().val, 2);
             filt.onAdd(store[3]);
-            assert.equal(aggr.saveJson().val, 2);
+            assert.strictEqual(aggr.saveJson().val, 2);
             filt.onAdd(store[4]);
-            assert.equal(aggr.saveJson().val, 2);
+            assert.strictEqual(aggr.saveJson().val, 2);
 
             done();
         });

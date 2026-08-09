@@ -188,6 +188,22 @@ public:
   void AssertObjKeyNum(const TStr& Key, const TStr& Fun);
   void AssertObjKeyBool(const TStr& Key, const TStr& Fun);
 
+  // asserted getters
+  ///valid input: ObjJson = { Property: ... }
+  PJsonVal AssertGetObjKey(const TStr& Property, const TStr& ObjNm);
+  ///valid input: ObjJson = { Property: "foo" }
+  TStr AssertGetObjStr(const TStr& Property, const TStr& ObjNm);
+  ///valid input: ObjJson = { Property: 10.5 }
+  double AssertGetObjNum(const TStr& Property, const TStr& ObjNm);
+  ///valid input: ObjJson = { Property: 10 }
+  int AssertGetObjInt(const TStr& Property, const TStr& ObjNm);
+  ///valid input: ObjJson = { Property: false }
+  bool AssertGetObjBool(const TStr& Property, const TStr& ObjNm);
+  ///valid input: ObjJson = { Property: [ ... ] }
+  PJsonVal AssertGetObjArr(const TStr& Property, const TStr& ObjNm);
+  ///valid input: ObjJson = { Property: { ... } }
+  PJsonVal AssertGetObjObj(const TStr& Property, const TStr& ObjNm);
+
   /// debugging
   uint64 GetMemUsed() const;
 

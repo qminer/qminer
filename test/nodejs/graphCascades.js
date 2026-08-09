@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-var qm = require('qminer');
+var qm = require('../../index.js');
 var assert = require("../../src/nodejs/scripts/assert.js");
 
 var testPrecision = 0.05;
@@ -35,18 +35,20 @@ describe("Graph cascades", function () {
             };
 
             var graphPred = new qm.analytics.GraphCascade(pred);
-            
+            console.log("should return the correct posterior after observing s", 1);
             var obs = pred.observations;
+            console.log("should return the correct posterior after observing s",2);
             var obsArr = Object.keys(obs).map(function (x) { return { node: x, date: obs[x] } });
             obsArr = obsArr.filter(function (x) { return x.date > 0 });
             obsArr.sort(function (x, y) { return x.date - y.date });
-
+            console.log("should return the correct posterior after observing s",3);
             var observSeen = 1; // just 's'
             for (var i = 0; i < observSeen; i++) {
                 graphPred.observeNode(obsArr[i].node, obsArr[i].date);
             }
+            console.log("should return the correct posterior after observing s",4);
             graphPred.computePosterior(obsArr[observSeen - 1].date, numSamples);
-
+            console.log("should return the correct posterior after observing s",5);
             var psum = [0, 0, 0, 0, 0]; // sum is 0, 1, 2, 3, or 4
             for (var i = 0; i < 3; i++) {
                 for (var j = 0; j < 3; j++) {
@@ -55,6 +57,7 @@ describe("Graph cascades", function () {
                     psum[sum] += p;
                 }
             }
+            console.log("should return the correct posterior after observing s",6);
             var cumsum = 0.0;
             // test that cdf jumps at the predicted places
             for (var i = 0; i < psum.length - 1; i++) {
@@ -70,7 +73,7 @@ describe("Graph cascades", function () {
                 // posterior.b after jump should be i+1 time units after start
                 assert(posterior.b[1] - obs.s == i + 1);
             }
-
+            console.log("should return the correct posterior after observing s",7);
         });
         it("should return the correct posterior after observing s and a", function () {
             var pred = {
@@ -93,7 +96,7 @@ describe("Graph cascades", function () {
             };
 
             var graphPred = new qm.analytics.GraphCascade(pred);
-            
+            console.log("should return the correct posterior after observing s and a", 1);
             var obs = pred.observations;
             var obsArr = Object.keys(obs).map(function (x) { return { node: x, date: obs[x] } });
             obsArr = obsArr.filter(function (x) { return x.date > 0 });
@@ -223,7 +226,7 @@ describe("Graph cascades", function () {
             var posterior = graphPred.getPosterior({
                     quantiles: [0.01, 0.32, 0.34, 0.99]
             });
-            // since t = 1, b can be s + 1 (p = 1/3) or s + 2 (p = 2/3). 
+            // since t = 1, b can be s + 1 (p = 1/3) or s + 2 (p = 2/3).
             // c is always b + 1
             assert(posterior.c[0] == obs.s + 2);
             assert(posterior.c[1] == obs.s + 2);

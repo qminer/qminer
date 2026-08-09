@@ -1,14 +1,14 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
 // JavaScript source code
-var la = require("qminer").la;
-var analytics = require("qminer").analytics;
+var la = require('../../index.js').la;
+var analytics = require('../../index.js').analytics;
 var assert = require("../../src/nodejs/scripts/assert.js");
 
 //Unit test for LIBSVM SVR
@@ -19,85 +19,85 @@ describe("LIBSVM SVR test", function () {
         it("It should return a default constructor", function () {
             var SVR = new analytics.SVR({ algorithm: "LIBSVM" });
             var SVRjSon = SVR.getParams();
-            assert.equal(SVRjSon.kernel, "LINEAR");
-            assert.equal(SVRjSon.svmType, "default");
-            assert.equal(SVRjSon.c, 1);
-            assert.equal(SVRjSon.j, 1);
-            assert.equal(SVRjSon.eps, 0.001);
-            assert.equal(SVRjSon.gamma, 1);
-            assert.equal(SVRjSon.p, 0.1);
-            assert.equal(SVRjSon.degree, 1);
-            assert.equal(SVRjSon.nu, 0.01);
-            assert.equal(SVRjSon.coef0, 1);
-            assert.equal(SVRjSon.cacheSize, 100);
-            assert.equal(SVRjSon.verbose, false);
+            assert.strictEqual(SVRjSon.kernel, "LINEAR");
+            assert.strictEqual(SVRjSon.svmType, "default");
+            assert.strictEqual(SVRjSon.c, 1);
+            assert.strictEqual(SVRjSon.j, 1);
+            assert.strictEqual(SVRjSon.eps, 0.001);
+            assert.strictEqual(SVRjSon.gamma, 1);
+            assert.strictEqual(SVRjSon.p, 0.1);
+            assert.strictEqual(SVRjSon.degree, 1);
+            assert.strictEqual(SVRjSon.nu, 0.01);
+            assert.strictEqual(SVRjSon.coef0, 1);
+            assert.strictEqual(SVRjSon.cacheSize, 100);
+            assert.strictEqual(SVRjSon.verbose, false);
         });
         it("It should return a SVR created by Json", function () {
             var SVR = new analytics.SVR({ algorithm: "LIBSVM", c: 5, eps: 5, batchSize: 5, maxIterations: 5, maxTime: 1, minDiff: 1e-10, verbose: true });
             var SVRjSon = SVR.getParams();
-            assert.equal(SVRjSon.kernel, "LINEAR");
-            assert.equal(SVRjSon.svmType, "default");
-            assert.equal(SVRjSon.c, 5);
-            assert.equal(SVRjSon.j, 1);
-            assert.equal(SVRjSon.eps, 5);
-            assert.equal(SVRjSon.gamma, 1);
-            assert.equal(SVRjSon.p, 0.1);
-            assert.equal(SVRjSon.degree, 1);
-            assert.equal(SVRjSon.nu, 0.01);
-            assert.equal(SVRjSon.coef0, 1);
-            assert.equal(SVRjSon.cacheSize, 100);
-            assert.equal(SVRjSon.verbose, true);
+            assert.strictEqual(SVRjSon.kernel, "LINEAR");
+            assert.strictEqual(SVRjSon.svmType, "default");
+            assert.strictEqual(SVRjSon.c, 5);
+            assert.strictEqual(SVRjSon.j, 1);
+            assert.strictEqual(SVRjSon.eps, 5);
+            assert.strictEqual(SVRjSon.gamma, 1);
+            assert.strictEqual(SVRjSon.p, 0.1);
+            assert.strictEqual(SVRjSon.degree, 1);
+            assert.strictEqual(SVRjSon.nu, 0.01);
+            assert.strictEqual(SVRjSon.coef0, 1);
+            assert.strictEqual(SVRjSon.cacheSize, 100);
+            assert.strictEqual(SVRjSon.verbose, true);
         });
 
         it("It should return a SVR created by Json, not all key values are given", function () {
             var SVR = new analytics.SVR({ algorithm: "LIBSVM", c: 5, batchSize: 5, maxTime: 1, verbose: true });
             var SVRjSon = SVR.getParams();
-            assert.equal(SVRjSon.kernel, "LINEAR");
-            assert.equal(SVRjSon.svmType, "default");
-            assert.equal(SVRjSon.c, 5);
-            assert.equal(SVRjSon.j, 1);
-            assert.equal(SVRjSon.eps, 0.001);
-            assert.equal(SVRjSon.gamma, 1);
-            assert.equal(SVRjSon.p, 0.1);
-            assert.equal(SVRjSon.degree, 1);
-            assert.equal(SVRjSon.nu, 0.01);
-            assert.equal(SVRjSon.coef0, 1);
-            assert.equal(SVRjSon.cacheSize, 100);
-            assert.equal(SVRjSon.verbose, true);
+            assert.strictEqual(SVRjSon.kernel, "LINEAR");
+            assert.strictEqual(SVRjSon.svmType, "default");
+            assert.strictEqual(SVRjSon.c, 5);
+            assert.strictEqual(SVRjSon.j, 1);
+            assert.strictEqual(SVRjSon.eps, 0.001);
+            assert.strictEqual(SVRjSon.gamma, 1);
+            assert.strictEqual(SVRjSon.p, 0.1);
+            assert.strictEqual(SVRjSon.degree, 1);
+            assert.strictEqual(SVRjSon.nu, 0.01);
+            assert.strictEqual(SVRjSon.coef0, 1);
+            assert.strictEqual(SVRjSon.cacheSize, 100);
+            assert.strictEqual(SVRjSon.verbose, true);
         });
 
         it("It should return a SVR created by an empty Json", function () {
             var SVR = new analytics.SVR({ algorithm: "LIBSVM" });
             var SVRjSon = SVR.getParams();
-            assert.equal(SVRjSon.kernel, "LINEAR");
-            assert.equal(SVRjSon.svmType, "default");
-            assert.equal(SVRjSon.c, 1);
-            assert.equal(SVRjSon.j, 1);
-            assert.equal(SVRjSon.eps, 0.001);
-            assert.equal(SVRjSon.gamma, 1);
-            assert.equal(SVRjSon.p, 0.1);
-            assert.equal(SVRjSon.degree, 1);
-            assert.equal(SVRjSon.nu, 0.01);
-            assert.equal(SVRjSon.coef0, 1);
-            assert.equal(SVRjSon.cacheSize, 100);
-            assert.equal(SVRjSon.verbose, false);
+            assert.strictEqual(SVRjSon.kernel, "LINEAR");
+            assert.strictEqual(SVRjSon.svmType, "default");
+            assert.strictEqual(SVRjSon.c, 1);
+            assert.strictEqual(SVRjSon.j, 1);
+            assert.strictEqual(SVRjSon.eps, 0.001);
+            assert.strictEqual(SVRjSon.gamma, 1);
+            assert.strictEqual(SVRjSon.p, 0.1);
+            assert.strictEqual(SVRjSon.degree, 1);
+            assert.strictEqual(SVRjSon.nu, 0.01);
+            assert.strictEqual(SVRjSon.coef0, 1);
+            assert.strictEqual(SVRjSon.cacheSize, 100);
+            assert.strictEqual(SVRjSon.verbose, false);
         });
 
         it("It should return a SVR created by Json, with added key values", function () {
             var SVR = new analytics.SVR({ algorithm: "LIBSVM", alpha: 5, beta: 10, s: 3, batchSize: 10000, verbose: true });
             var SVRjSon = SVR.getParams();
-            assert.equal(SVRjSon.kernel, "LINEAR");
-            assert.equal(SVRjSon.svmType, "default");
-            assert.equal(SVRjSon.c, 1);
-            assert.equal(SVRjSon.j, 1);
-            assert.equal(SVRjSon.eps, 0.001);
-            assert.equal(SVRjSon.gamma, 1);
-            assert.equal(SVRjSon.p, 0.1);
-            assert.equal(SVRjSon.degree, 1);
-            assert.equal(SVRjSon.nu, 0.01);
-            assert.equal(SVRjSon.coef0, 1);
-            assert.equal(SVRjSon.cacheSize, 100);
-            assert.equal(SVRjSon.verbose, true);
+            assert.strictEqual(SVRjSon.kernel, "LINEAR");
+            assert.strictEqual(SVRjSon.svmType, "default");
+            assert.strictEqual(SVRjSon.c, 1);
+            assert.strictEqual(SVRjSon.j, 1);
+            assert.strictEqual(SVRjSon.eps, 0.001);
+            assert.strictEqual(SVRjSon.gamma, 1);
+            assert.strictEqual(SVRjSon.p, 0.1);
+            assert.strictEqual(SVRjSon.degree, 1);
+            assert.strictEqual(SVRjSon.nu, 0.01);
+            assert.strictEqual(SVRjSon.coef0, 1);
+            assert.strictEqual(SVRjSon.cacheSize, 100);
+            assert.strictEqual(SVRjSon.verbose, true);
         });
     });
 
@@ -105,52 +105,52 @@ describe("LIBSVM SVR test", function () {
         it("should return the parameters of the default SVR model as Json", function () {
             var SVR = new analytics.SVR({ algorithm: "LIBSVM" });
             var SVRjSon = SVR.getParams();
-            assert.equal(SVRjSon.kernel, "LINEAR");
-            assert.equal(SVRjSon.svmType, "default");
-            assert.equal(SVRjSon.c, 1);
-            assert.equal(SVRjSon.j, 1);
-            assert.equal(SVRjSon.eps, 0.001);
-            assert.equal(SVRjSon.gamma, 1);
-            assert.equal(SVRjSon.p, 0.1);
-            assert.equal(SVRjSon.degree, 1);
-            assert.equal(SVRjSon.nu, 0.01);
-            assert.equal(SVRjSon.coef0, 1);
-            assert.equal(SVRjSon.cacheSize, 100);
-            assert.equal(SVRjSon.verbose, false);
+            assert.strictEqual(SVRjSon.kernel, "LINEAR");
+            assert.strictEqual(SVRjSon.svmType, "default");
+            assert.strictEqual(SVRjSon.c, 1);
+            assert.strictEqual(SVRjSon.j, 1);
+            assert.strictEqual(SVRjSon.eps, 0.001);
+            assert.strictEqual(SVRjSon.gamma, 1);
+            assert.strictEqual(SVRjSon.p, 0.1);
+            assert.strictEqual(SVRjSon.degree, 1);
+            assert.strictEqual(SVRjSon.nu, 0.01);
+            assert.strictEqual(SVRjSon.coef0, 1);
+            assert.strictEqual(SVRjSon.cacheSize, 100);
+            assert.strictEqual(SVRjSon.verbose, false);
         })
 
         it("should return the parameters of the default SVR model as Json, without some key values", function () {
             var SVR = new analytics.SVR({ algorithm: "LIBSVM", c: 3, eps: 2, maxTime: 1 });
             var SVRjSon = SVR.getParams();
-            assert.equal(SVRjSon.kernel, "LINEAR");
-            assert.equal(SVRjSon.svmType, "default");
-            assert.equal(SVRjSon.c, 3);
-            assert.equal(SVRjSon.j, 1);
-            assert.equal(SVRjSon.eps, 2);
-            assert.equal(SVRjSon.gamma, 1);
-            assert.equal(SVRjSon.p, 0.1);
-            assert.equal(SVRjSon.degree, 1);
-            assert.equal(SVRjSon.nu, 0.01);
-            assert.equal(SVRjSon.coef0, 1);
-            assert.equal(SVRjSon.cacheSize, 100);
-            assert.equal(SVRjSon.verbose, false);
+            assert.strictEqual(SVRjSon.kernel, "LINEAR");
+            assert.strictEqual(SVRjSon.svmType, "default");
+            assert.strictEqual(SVRjSon.c, 3);
+            assert.strictEqual(SVRjSon.j, 1);
+            assert.strictEqual(SVRjSon.eps, 2);
+            assert.strictEqual(SVRjSon.gamma, 1);
+            assert.strictEqual(SVRjSon.p, 0.1);
+            assert.strictEqual(SVRjSon.degree, 1);
+            assert.strictEqual(SVRjSon.nu, 0.01);
+            assert.strictEqual(SVRjSon.coef0, 1);
+            assert.strictEqual(SVRjSon.cacheSize, 100);
+            assert.strictEqual(SVRjSon.verbose, false);
         })
 
         it("should return the parameters of the default SVR model as Json, with added key values", function () {
             var SVR = new analytics.SVR({ algorithm: "LIBSVM", alpha: 3, beta: 3, z: 3 });
             var SVRjSon = SVR.getParams();
-            assert.equal(SVRjSon.kernel, "LINEAR");
-            assert.equal(SVRjSon.svmType, "default");
-            assert.equal(SVRjSon.c, 1);
-            assert.equal(SVRjSon.j, 1);
-            assert.equal(SVRjSon.eps, 0.001);
-            assert.equal(SVRjSon.gamma, 1);
-            assert.equal(SVRjSon.p, 0.1);
-            assert.equal(SVRjSon.degree, 1);
-            assert.equal(SVRjSon.nu, 0.01);
-            assert.equal(SVRjSon.coef0, 1);
-            assert.equal(SVRjSon.cacheSize, 100);
-            assert.equal(SVRjSon.verbose, false);
+            assert.strictEqual(SVRjSon.kernel, "LINEAR");
+            assert.strictEqual(SVRjSon.svmType, "default");
+            assert.strictEqual(SVRjSon.c, 1);
+            assert.strictEqual(SVRjSon.j, 1);
+            assert.strictEqual(SVRjSon.eps, 0.001);
+            assert.strictEqual(SVRjSon.gamma, 1);
+            assert.strictEqual(SVRjSon.p, 0.1);
+            assert.strictEqual(SVRjSon.degree, 1);
+            assert.strictEqual(SVRjSon.nu, 0.01);
+            assert.strictEqual(SVRjSon.coef0, 1);
+            assert.strictEqual(SVRjSon.cacheSize, 100);
+            assert.strictEqual(SVRjSon.verbose, false);
         })
     });
 
@@ -159,35 +159,35 @@ describe("LIBSVM SVR test", function () {
             var SVR = new analytics.SVR({ algorithm: "LIBSVM" });
             SVR.setParams({ eps: 3, maxTime: 2 });
             var SVRjSon = SVR.getParams();
-            assert.equal(SVRjSon.kernel, "LINEAR");
-            assert.equal(SVRjSon.svmType, "default");
-            assert.equal(SVRjSon.c, 1);
-            assert.equal(SVRjSon.j, 1);
-            assert.equal(SVRjSon.eps, 3);
-            assert.equal(SVRjSon.gamma, 1);
-            assert.equal(SVRjSon.p, 0.1);
-            assert.equal(SVRjSon.degree, 1);
-            assert.equal(SVRjSon.nu, 0.01);
-            assert.equal(SVRjSon.coef0, 1);
-            assert.equal(SVRjSon.cacheSize, 100);
-            assert.equal(SVRjSon.verbose, false);
+            assert.strictEqual(SVRjSon.kernel, "LINEAR");
+            assert.strictEqual(SVRjSon.svmType, "default");
+            assert.strictEqual(SVRjSon.c, 1);
+            assert.strictEqual(SVRjSon.j, 1);
+            assert.strictEqual(SVRjSon.eps, 3);
+            assert.strictEqual(SVRjSon.gamma, 1);
+            assert.strictEqual(SVRjSon.p, 0.1);
+            assert.strictEqual(SVRjSon.degree, 1);
+            assert.strictEqual(SVRjSon.nu, 0.01);
+            assert.strictEqual(SVRjSon.coef0, 1);
+            assert.strictEqual(SVRjSon.cacheSize, 100);
+            assert.strictEqual(SVRjSon.verbose, false);
         })
         it("should return the existing SVR with the changed, added values", function () {
             var SVR = new analytics.SVR({ algorithm: "LIBSVM" });
             SVR.setParams({ eps: 3, maxTime: 2, alpha: 5, z: 10 });
             var SVRjSon = SVR.getParams();
-            assert.equal(SVRjSon.kernel, "LINEAR");
-            assert.equal(SVRjSon.svmType, "default");
-            assert.equal(SVRjSon.c, 1);
-            assert.equal(SVRjSon.j, 1);
-            assert.equal(SVRjSon.eps, 3);
-            assert.equal(SVRjSon.gamma, 1);
-            assert.equal(SVRjSon.p, 0.1);
-            assert.equal(SVRjSon.degree, 1);
-            assert.equal(SVRjSon.nu, 0.01);
-            assert.equal(SVRjSon.coef0, 1);
-            assert.equal(SVRjSon.cacheSize, 100);
-            assert.equal(SVRjSon.verbose, false);
+            assert.strictEqual(SVRjSon.kernel, "LINEAR");
+            assert.strictEqual(SVRjSon.svmType, "default");
+            assert.strictEqual(SVRjSon.c, 1);
+            assert.strictEqual(SVRjSon.j, 1);
+            assert.strictEqual(SVRjSon.eps, 3);
+            assert.strictEqual(SVRjSon.gamma, 1);
+            assert.strictEqual(SVRjSon.p, 0.1);
+            assert.strictEqual(SVRjSon.degree, 1);
+            assert.strictEqual(SVRjSon.nu, 0.01);
+            assert.strictEqual(SVRjSon.coef0, 1);
+            assert.strictEqual(SVRjSon.cacheSize, 100);
+            assert.strictEqual(SVRjSon.verbose, false);
         })
         it("should throw an exception if the argument is not Json", function () {
             var SVR = new analytics.SVR({ algorithm: "LIBSVM" });
@@ -207,44 +207,44 @@ describe("LIBSVM SVR test", function () {
         it("should return an empty vector", function () {
             var SVR = new analytics.SVR({ algorithm: "LIBSVM" });
             var Vec = SVR.weights;
-            assert.equal(Vec.length, 0);
+            assert.strictEqual(Vec.length, 0);
         })
         it("should return an empty vector even if the parameters have been changed", function () {
             var SVR = new analytics.SVR({ algorithm: "LIBSVM" });
             SVR.setParams({ j: 3, maxTime: 2 });
             var Vec = SVR.weights;
-            assert.equal(Vec.length, 0);
+            assert.strictEqual(Vec.length, 0);
         })
 
     });
-    
+
     describe("Bias tests", function () {
         it("should return zero", function () {
             var SVR = new analytics.SVR({ algorithm: "LIBSVM" });
             var num = SVR.bias;
-            assert.equal(num, 0);
+            assert.strictEqual(num, 0);
         })
         it("should return zero even if the parameters have been changed", function () {
             var SVR = new analytics.SVR({ algorithm: "LIBSVM" });
             SVR.setParams({ j: 3, maxTime: 2 });
             var num = SVR.bias;
-            assert.equal(num, 0);
+            assert.strictEqual(num, 0);
         })
 
     });
-    
+
     describe("getModel tests", function () {
         it("should return parameters of the model", function () {
             var SVR = new analytics.SVR({ algorithm: "LIBSVM" });
             var Model = SVR.getModel();
-            assert.equal(Model.weights.length, 0);
-            assert.equal(Model.bias, 0);
+            assert.strictEqual(Model.weights.length, 0);
+            assert.strictEqual(Model.bias, 0);
         })
         it("should ignore extra parameters given to the function", function () {
             var SVR = new analytics.SVR({ algorithm: "LIBSVM" });
             var Model = SVR.getModel(1);
-            assert.equal(Model.weights.length, 0);
-            assert.equal(Model.bias, 0);
+            assert.strictEqual(Model.weights.length, 0);
+            assert.strictEqual(Model.bias, 0);
         })
     });
 
@@ -256,7 +256,7 @@ describe("LIBSVM SVR test", function () {
 
             assert.doesNotThrow(function () {
                 SVR.fit(matrix, vector);
-            });         
+            });
         })
         //degenerated example
         it("should return a fitted model for the degenerated example", function () {
@@ -286,7 +286,7 @@ describe("LIBSVM SVR test", function () {
             var vector = new la.Vector([1, -1]);
             var SVR = new analytics.SVR({ algorithm: "LIBSVM", c: 10 });
             SVR.fit(matrix, vector);
-            
+
             var weights = SVR.weights;
             assert.eqtol(weights[0], 1, 3e-1);
         })
@@ -544,8 +544,8 @@ describe("LIBSVM SVR test", function () {
             var vec = new la.Vector([1, -1]);
             var SVR = new analytics.SVR({ algorithm: "LIBSVM" });
             SVR.fit(matrix, vec);
-            SVR.save(require('qminer').fs.openWrite('svc_test.bin')).close();
-            var SVR2 = new analytics.SVR(require('qminer').fs.openRead('svc_test.bin'));
+            SVR.save(require('../../index.js').fs.openWrite('svc_test.bin')).close();
+            var SVR2 = new analytics.SVR(require('../../index.js').fs.openRead('svc_test.bin'));
             assert.deepEqual(SVR.getParams(), SVR2.getParams());
             assert.eqtol(SVR.weights.minus(SVR2.weights).norm(), 0, 1e-8);
         })
@@ -560,7 +560,7 @@ describe("LIBSVM SVR test", function () {
                   [2],
                   [3]];
              var y = [9, 4, 1, 0, 4, 1, 9];
-             
+
              var matrix = new la.Matrix(X);
              matrix = matrix.transpose();
              var vec = new la.Vector(y);
@@ -579,7 +579,7 @@ describe("LIBSVM SVR test", function () {
                   [-2, 0],
                   [0, -2]];
              var y = [1, 1, 1, 1, 2, 2, 2, 2];
-             
+
              var matrix = new la.Matrix(X);
              matrix = matrix.transpose();
              var vec = new la.Vector(y);

@@ -326,8 +326,8 @@ void TStayPointDetector::OnAddRec(const TRec& Rec,
         Plocs.DownShiftIdx(NumOfRecordsToForget + 1);
     }
     TGPSMeasurement* NewRec = PrepareGPSRecord(Rec);
-    if (NewRec == NULL) {//rejected record
-    printf("REJECTED RECORD\n");
+    if (NewRec == NULL) { //rejected record
+        printf("REJECTED RECORD\n");
         return;
     }
     TInt CurrStateIdx = StateGpsMeasurementsV.Len() - 1;

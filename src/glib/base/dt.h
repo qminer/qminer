@@ -28,6 +28,7 @@ private:
 public:
   TRnd(const int& _Seed=1, const int& Steps=0){
     PutSeed(_Seed); Move(Steps);}
+  TRnd(const TRnd& Rnd): Seed(Rnd.Seed) {}
   explicit TRnd(TSIn& SIn){SIn.Load(Seed);}
   void Save(TSOut& SOut) const {SOut.Save(Seed);}
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
@@ -334,9 +335,11 @@ public:
   TChA& operator=(const TStr& Str);
   TChA& operator=(const char* CStr);
   bool operator==(const TChA& ChA) const {return strcmp(CStr(), ChA.CStr())==0;}
+  bool operator==(const TStr& Str) const;
   bool operator==(const char* _CStr) const {return strcmp(CStr(), _CStr)==0;}
   bool operator==(const char& Ch) const {return (BfL==1)&&(Bf[0]==Ch);}
   bool operator!=(const TChA& ChA) const {return strcmp(CStr(), ChA.CStr())!=0;}
+  bool operator!=(const TStr& Str) const;
   bool operator!=(const char* _CStr) const {return strcmp(CStr(), _CStr)!=0;}
   bool operator!=(const char& Ch) const {return !((BfL==1)&&(Bf[0]==Ch));}
   bool operator<(const TChA& ChA) const {return strcmp(CStr(), ChA.CStr())<0;}
@@ -1058,6 +1061,7 @@ public:
   std::complex<double> Val;
   TNum() : Val(0){}
   TNum(std::complex<double>& _Val) : Val(_Val){}
+  TNum(const TNum<std::complex<double>>& _Val) : Val(_Val.Val){}
   operator std::complex<double>() const { return Val; }
   explicit TNum(TSIn& SIn){ double real = 0.0, imag = 0.0; SIn.Load(real); SIn.Load(imag); Val = std::complex<double>(real, imag); }
   void Load(TSIn& SIn){ double real = 0.0, imag = 0.0; SIn.Load(real); SIn.Load(imag); Val = std::complex<double>(real, imag); }
@@ -1081,6 +1085,7 @@ public:
   std::complex<float> Val;
   TNum() : Val(0){}
   TNum(std::complex<float>& _Val) : Val(_Val){}
+  TNum(const TNum<std::complex<float>>& _Val) : Val(_Val.Val){}
   operator std::complex<float>() const { return Val; }
   explicit TNum(TSIn& SIn){ float real = 0.0f; float imag = 0.0f; SIn.Load(real); SIn.Load(imag); Val = std::complex<float>(real, imag); }
   void Load(TSIn& SIn){ float real = 0.0f; float imag = 0.0f; SIn.Load(real); SIn.Load(imag); Val = std::complex<float>(real, imag); }
@@ -1101,6 +1106,7 @@ public:
 class TVoid{
 public:
   TVoid(){}
+  TVoid(const TVoid& Void) {}
   TVoid(TSIn&){}
   void Save(TSOut&) const {}
   void LoadXml(const PXmlTok& XmlTok, const TStr& Nm);
@@ -1132,6 +1138,7 @@ public:
 
   TBool(): Val(false){}
   TBool(const bool& _Val): Val(_Val){}
+  TBool(const TBool& Bool): Val(Bool.Val){}
   operator bool() const {return Val;}
   explicit TBool(TSIn& SIn){SIn.Load(Val);}
   void Load(TSIn& SIn){SIn.Load(Val);}
@@ -1142,9 +1149,15 @@ public:
   TBool& operator=(const TBool& Bool){Val=Bool.Val; return *this;}
   TBool& operator+=(const TBool& Bool) {Val |= Bool.Val; return *this;}
   bool operator==(const TBool& Bool) const {return Val==Bool.Val;}
+  bool operator==(const bool& b) const {return Val==b;}
+  bool operator!=(const bool& b) const {return Val!=b;}
   bool operator<(const TBool& Bool) const {//return Val<Bool.Val;
     return (Val==false)&&(Bool.Val==true);}
   bool operator()() const {return Val;}
+
+  // Friend operators for C++20 compatibility - avoid ambiguity with implicit conversions
+  friend bool operator==(const bool& b, const TBool& Bool) { return b == Bool.Val; }
+  friend bool operator!=(const bool& b, const TBool& Bool) { return b != Bool.Val; }
   int GetMemUsed() const {return sizeof(TBool);}
 
   int GetPrimHashCd() const {return Val;}
@@ -1188,6 +1201,7 @@ public:
 
   TCh(): Val(TCh::NullCh){}
   TCh(const char& _Val): Val(_Val){}
+  TCh(const TCh& Ch): Val(Ch.Val){}
   operator char() const {return Val;}
   explicit TCh(TSIn& SIn){SIn.Load(Val);}
   void Save(TSOut& SOut) const {SOut.Save(Val);}
@@ -1196,6 +1210,7 @@ public:
 
   TCh& operator=(const TCh& Ch){Val=Ch.Val; return *this;}
   bool operator==(const TCh& Ch) const {return Val==Ch.Val;}
+  bool operator==(const char& Ch) const {return Val==Ch;}
   bool operator<(const TCh& Ch) const {return Val<Ch.Val;}
   char operator()() const {return Val;}
   int GetMemUsed() const {return sizeof(TCh);}
@@ -1242,6 +1257,7 @@ public:
 
   TUCh(): Val(TCh::NullCh){}
   TUCh(const uchar& _Val): Val(_Val){}
+  TUCh(const TUCh& UCh): Val(UCh.Val){}
   operator uchar() const {return Val;}
   explicit TUCh(TSIn& SIn){SIn.Load(Val);}
   void Save(TSOut& SOut) const {SOut.Save(Val);}
@@ -1270,6 +1286,7 @@ public:
 public:
   TSInt(): Val(0){}
   TSInt(const int16& _Val): Val(_Val){}
+  TSInt(const TSInt& SInt): Val(SInt.Val) {}
   operator int16() const {return Val;}
   explicit TSInt(TSIn& SIn){SIn.Load(Val);}
   void Load(TSIn& SIn){SIn.Load(Val);}
@@ -1304,7 +1321,8 @@ public:
   uint16 Val;
 public:
   TUSInt() : Val(0) {}
-  TUSInt(const uint16& _Val) : Val(_Val) {}
+  TUSInt(const uint16& _Val): Val(_Val) {}
+  TUSInt(const TUSInt& USInt): Val(USInt.Val) {}
   operator uint16() const { return Val; }
   explicit TUSInt(TSIn& SIn) { SIn.Load(Val); }
   void Load(TSIn& SIn) { SIn.Load(Val); }
@@ -1343,6 +1361,7 @@ public:
 
   TNum(): Val(0){}
   TNum(const int& _Val): Val(_Val){}
+  TNum(const TNum<int>& Num) : Val(Num.Val){}
   operator int() const {return Val;}
   explicit TNum(TSIn& SIn){ SIn.Load(Val); }
   void Load(TSIn& SIn){SIn.Load(Val);}
@@ -1357,6 +1376,12 @@ public:
   bool operator!=(const int& Int) const {return Val!=Int;}
   bool operator<(const TNum& Int) const { return Val<Int.Val; }
   bool operator<(const int& Int) const {return Val<Int;}
+
+  // Friend operators for C++20 compatibility - avoid ambiguity with implicit conversions
+  friend bool operator==(const int& i, const TNum& n) { return i == n.Val; }
+  friend bool operator!=(const int& i, const TNum& n) { return i != n.Val; }
+  friend bool operator<(const int& i, const TNum& n) { return i < n.Val; }
+  friend bool operator<(const double& d, const TNum& n) { return d < n.Val; }
   int operator()() const {return Val;}
   TNum& operator+=(const int& Int){ Val += Int; return *this; }
   TNum& operator-=(const int& Int){ Val -= Int; return *this; }
@@ -1453,6 +1478,7 @@ public:
 
   TNum() : Val(0){}
   TNum(const uint& _Val) : Val(_Val){}
+  TNum(const TNum<uint>& Num) : Val(Num.Val){}
   operator uint() const {return Val;}
   explicit TNum(TSIn& SIn){SIn.Load(Val);}
   void Load(TSIn& SIn){SIn.Load(Val);}
@@ -1635,6 +1661,10 @@ public:
   uint GetLsVal() const {
     return (uint)(Val & 0xffffffff);}
 
+  static uint64 GetMn(const uint64& Int1, const uint64& Int2){
+    return Int1<Int2?Int1:Int2;}
+  static uint64 GetMx(const uint64& Int1, const uint64& Int2){
+    return Int1>Int2?Int1:Int2;}
 
   #ifdef GLib_WIN
   TStr GetStr() const {return TStr::Fmt("%I64u", Val);}
@@ -1690,6 +1720,7 @@ public:
 
   TNum() : Val(0.0){}
   TNum(const double& _Val) : Val(_Val){}
+  TNum(const TNum<double>& Num) : Val(Num.Val){}
   operator double() const {return Val;}
   explicit TNum(TSIn& SIn){ SIn.Load(Val); }
   void Save(TSOut& SOut) const {SOut.Save(Val);}
@@ -1708,6 +1739,10 @@ public:
   bool operator==(const TNum& Flt) const _CMPWARN{ return Val == Flt.Val; }
   bool operator==(const double& Flt) const _CMPWARN {return Val==Flt;}
   bool operator!=(const double& Flt) const _CMPWARN {return Val!=Flt;}
+
+  // Friend operators for C++20 compatibility - avoid ambiguity with implicit conversions
+  friend bool operator==(const double& d, const TNum& n) _CMPWARN { return d == n.Val; }
+  friend bool operator!=(const double& d, const TNum& n) _CMPWARN { return d != n.Val; }
   double operator()() const {return Val;}
   TNum& operator+=(const double& Flt){ Val += Flt; return *this; }
   TNum& operator-=(const double& Flt){ Val -= Flt; return *this; }
@@ -1819,7 +1854,7 @@ public:
 
   TSFlt(): Val(0){}
   TSFlt(const sdouble& _Val): Val(sdouble(_Val)){}
-  //TSFlt(const double& _Val): Val(sdouble(_Val)){}
+  TSFlt(const TSFlt& SFlt) : Val(SFlt.Val){}
   operator sdouble() const {return Val;}
   //operator double() const {return Val;}
   explicit TSFlt(TSIn& SIn){SIn.Load(Val);}
@@ -1879,6 +1914,7 @@ public:
 
   TLFlt(): Val(0){}
   TLFlt(const ldouble& _Val): Val(_Val){}
+  TLFlt(const TLFlt& LFlt) : Val(LFlt.Val){}
   operator ldouble() const {return Val;}
   explicit TLFlt(TSIn& SIn){SIn.Load(Val);}
   void Save(TSOut& SOut) const {SOut.Save(Val);}

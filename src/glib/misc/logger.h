@@ -75,6 +75,9 @@ public:
     void NotifyFmt(const TNotifyType& Type, const char *FmtStr, va_list Argptr);
     void Notify(const TNotifyType& Type, const char *Str);
 
+    void StatusFmt(const char *FmtStr, ...);
+    void Status(const char *Str);
+
     static void PrintInfo(const TStr& Str);
     static void PrintWarning(const TStr& Str);
     static void PrintError(const TStr& Str);

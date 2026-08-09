@@ -128,7 +128,7 @@ void TLinModel::SolveClassification(const TVecV& VecV, const int& Dims, const in
     // hide output if not verbose
     PNotify LogNotify = Param.Verbose ? _LogNotify : TNotify::NullNotify;
 
-    LogNotify->OnStatusFmt("SVM parameters: c=%.2f, j=%.2f", Param.Cost, Param.Unbalance);
+    LogNotify->OnStatusFmt("SVM parameters: c=%.2f, j=%.2f", (double)Param.Cost, (double)Param.Unbalance);
 
     // initialization
     TRnd Rnd(1);
@@ -161,7 +161,7 @@ void TLinModel::SolveClassification(const TVecV& VecV, const int& Dims, const in
 
     TTmTimer Timer(Param.MxTime); int Iters = 0; double Diff = 1.0;
     LogNotify->OnStatusFmt("Limits: %d iterations, %.3f seconds, %.8f weight difference",
-        Param.MxIter, (double)Param.MxTime /1000.0, Param.MnDiff);
+        (int)Param.MxIter, (double)Param.MxTime /1000.0, (double)Param.MnDiff);
     // initialize profiler
     TTmProfiler Profiler;
     const int ProfilerPre = Profiler.AddTimer("Pre");
@@ -232,7 +232,7 @@ void TLinModel::SolveClassification(const TVecV& VecV, const int& Dims, const in
         // check stopping criteria with respect to result difference
         //if (DiffCount > 0 && (1.0 - DiffCos) < MnDiff) {
         if (DiffCount > 0 && Diff < Param.MnDiff) {
-            LogNotify->OnStatusFmt("Finishing due to reached difference limit of %g", Param.MnDiff);
+            LogNotify->OnStatusFmt("Finishing due to reached difference limit of %g", (double)Param.MnDiff);
             break;
         }
     }
@@ -277,7 +277,7 @@ void TLinModel::SolveRegression(const TVecV& VecV, const int& Dims, const int& V
 
     TTmTimer Timer(Param.MxTime); int Iters = 0; double Diff = 1.0;
     LogNotify->OnStatusFmt("Limits: %d iterations, %.3f seconds, %.8f weight difference",
-        Param.MxIter, (double)Param.MxTime / 1000.0, Param.MnDiff);
+        (int)Param.MxIter, (double)Param.MxTime / 1000.0, (double)Param.MnDiff);
     // initialize profiler
     TTmProfiler Profiler;
     const int ProfilerPre = Profiler.AddTimer("Pre");
@@ -366,7 +366,7 @@ void TLinModel::SolveRegression(const TVecV& VecV, const int& Dims, const int& V
         }
         // check stopping criteria with respect to result difference
         if (Diff < Param.MnDiff) {
-            LogNotify->OnStatusFmt("Finishing due to reached difference limit of %g", Param.MnDiff);
+            LogNotify->OnStatusFmt("Finishing due to reached difference limit of %g", (double)Param.MnDiff);
             break;
         }
     }
@@ -731,8 +731,6 @@ double TLibSvmModel::Predict(const TFltVV& Mat, const int& ColN) const {
 
 void TLibSvmModel::FitClassification(const TVec<TIntFltKdV>& VecV, const int& DimsA, const int& VecsA,
     const TFltV& TargetV, const PNotify& _LogNotify, const PNotify& ErrorNotify) {
-
-    printf("inside FitClassification\n");
 
     if (Param.Type == DEFAULT) { Param.Type = LIBSVM_CSVC; }
 

@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -23,6 +23,7 @@ public:
     MsVal(_MsVal), LsVal(_LsVal){}
   TWCh(const int& _MsVal, const int& _LsVal):
     MsVal(uchar(_MsVal)), LsVal(uchar(_LsVal)){}
+  TWCh(const TWCh& WCh): MsVal(WCh.MsVal), LsVal(WCh.LsVal){}
   operator char() const {return LsVal;}
   TWCh(TSIn& SIn){SIn.Load(MsVal); SIn.Load(LsVal);}
   void Save(TSOut& SOut) const {SOut.Save(MsVal); SOut.Save(MsVal);}

@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -39,7 +39,7 @@
 	* Calculates the standard deviation(s).
 	* @param {(module:la.Vector | module:la.Matrix)} X - The input the method is used on.
 	* @param {number} [flag=0] - If set to to 0, it normalizes X by n-1; If set to 1 to, it normalizes by n.
-	* @param {number} [dim=1] - Computes the standard deviations along the dimension of X specified by parameter `dim`. 
+	* @param {number} [dim=1] - Computes the standard deviations along the dimension of X specified by parameter `dim`.
     * If set to 1, calculates the column standard deviation. If set to 2, calculates the row standard deviation.
 	* @returns {(number | module:la.Vector)}
 	* <br>1. If X is {@link module:la.Vector}, returns standard deviation of the vector.
@@ -52,14 +52,14 @@
     * // create a matrix
     * var mat = new la.Matrix([[1, 2, 1], [-1, 2, -1], [3, 2, 3]]);
     * // calculate the standard deviation of the matrix columns
-    * var mean = statistics.std(mat); 
+    * var mean = statistics.std(mat);
 	*/
  exports.std = function (X, flag, dim) { return input instanceof Object.create(require('qminer').la.Vector) ? 0.0 : Object.create(require('qminer').la.Vector.prototype); }
 /**
 	* Returns an object containing the standard deviation of each column of matrix, mean vector and z-score matrix.
 	* @param {module:la.Matrix} mat - The matrix.
 	* @param {number} [flag=0] - If set to 0, it normalizes mat by n-1; if set to 1, it normalizes by n.
-	* @param {number} [dim=1] - Computes the standard deviations along the dimension of mat specified by parameter `dim`. 
+	* @param {number} [dim=1] - Computes the standard deviations along the dimension of mat specified by parameter `dim`.
     * If set to 1, calculates the column standard deviation. If set to 2, calculates the row standard deviation.
 	* @returns {Object} The object `zscoreResult` containing:
 	* <br>`zscoreResult.sigma` - {@link module:la.Vector} of standard deviations of mat used to compute the z-scores.

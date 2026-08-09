@@ -1,5 +1,5 @@
 var assert = require('../../src/nodejs/scripts/assert.js');
-var qm = require('qminer');
+var qm = require('../../index.js');
 var analytics = qm.analytics;
 var la = qm.la;
 
@@ -15,7 +15,7 @@ describe('HazardModel Tests', function () {
         it('should create a model with default parameters', function () {
             var hazard = new analytics.PropHazards();
             var params = hazard.getParams();
-            assert.equal(params.lambda, 0);
+            assert.strictEqual(params.lambda, 0);
         })
 
         it('should not throw an exception, custom parameters', function () {
@@ -27,7 +27,7 @@ describe('HazardModel Tests', function () {
         it('should create a model with custom parameters', function () {
             var hazard = new analytics.PropHazards({ lambda: 2 });
             var params = hazard.getParams();
-            assert.equal(params.lambda, 2);
+            assert.strictEqual(params.lambda, 2);
         })
         it('should throw an exception if any other object is given', function () {
             assert.throws(function () {
@@ -46,7 +46,7 @@ describe('HazardModel Tests', function () {
         it('should return the parameters of the model, default parameters', function () {
             var hazard = new analytics.PropHazards();
             var params = hazard.getParams();
-            assert.equal(params.lambda, 0);
+            assert.strictEqual(params.lambda, 0);
         })
         it('should not throw an exception, custom parameters', function () {
             var hazard = new analytics.PropHazards({ lambda: 10 });
@@ -57,14 +57,14 @@ describe('HazardModel Tests', function () {
         it('should return the parameters of the model, custom parameters', function () {
             var hazard = new analytics.PropHazards({ lambda: 10 });
             var params = hazard.getParams();
-            assert.equal(params.lambda, 10);
+            assert.strictEqual(params.lambda, 10);
         })
         it('should get the same object for construction of a copy', function () {
             var hazard1 = new analytics.PropHazards({ lambda: 5 });
             var params1 = hazard1.getParams();
             var hazard2 = new analytics.PropHazards(params1);
             var params2 = hazard2.getParams();
-            assert.equal(params1.lambda, params2.lambda);
+            assert.strictEqual(params1.lambda, params2.lambda);
         })
     });
 
@@ -79,7 +79,7 @@ describe('HazardModel Tests', function () {
             var hazard = new analytics.PropHazards();
             hazard.setParams({ lambda: 5 });
             var params = hazard.getParams();
-            assert.equal(params.lambda, 5);
+            assert.strictEqual(params.lambda, 5);
         })
         it('should throw an exception if no parameter is given', function () {
             var hazard = new analytics.PropHazards();
@@ -99,7 +99,7 @@ describe('HazardModel Tests', function () {
         it('should return an empty vector', function () {
             var hazard = new analytics.PropHazards();
             var weights = hazard.weights;
-            assert.equal(weights.length, 0);
+            assert.strictEqual(weights.length, 0);
         })
     });
 
@@ -189,8 +189,8 @@ describe('HazardModel Tests', function () {
                 var mat = new la.Matrix([[1, 1], [1, -1]]);
                 var vec = new la.Vector([3, 3]);
                 hazard.fit(mat, vec);
-                hazard.save(require('qminer').fs.openWrite('hazard_test.bin')).close();
-                var hazard2 = new analytics.PropHazards(require('qminer').fs.openRead('hazard_test.bin'));
+                hazard.save(require('../../index.js').fs.openWrite('hazard_test.bin')).close();
+                var hazard2 = new analytics.PropHazards(require('../../index.js').fs.openRead('hazard_test.bin'));
                 assert.deepEqual(hazard.getParams(), hazard.getParams());
                 assert.eqtol(hazard.weights.minus(hazard2.weights).norm(), 0, 1e-8);
             })

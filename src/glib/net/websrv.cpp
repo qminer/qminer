@@ -60,6 +60,45 @@ TWebSrv::~TWebSrv(){
   TNotify::OnNotify(Notify, ntInfo, "Web-Server: Stopped.");
 }
 
+// Returns 'false' if the given HTTP request is not worth parsing because
+// we can tell from the Content-Length value in its headers that the body 
+// of the request is not yet complete.
+bool IsHttpRqWorthParsing(TChA& HttpRqChA)
+{
+  // Find the end of the headers.
+  char *pStart = HttpRqChA.CStr();
+  size_t requestLength = (size_t) HttpRqChA.Len();
+  char *pEndOfHeader = strstr(pStart, "\x0d\x0a\x0d\x0a");
+  if (! pEndOfHeader) return true;
+  // Find the Content-Length header.
+  const char contentLengthStr[] = "\x0d\x0a" "Content-Length:";
+  constexpr size_t nContentLengthStr = sizeof(contentLengthStr) - 1;
+  char backup = *pEndOfHeader; *pEndOfHeader = 0;
+  char *pContentLength = strstr(pStart, contentLengthStr);
+  *pEndOfHeader = backup;
+  if (! pContentLength) return true;
+  // Skip any whitespace following the colon.
+  const char *p = pContentLength + nContentLengthStr;
+  while (p < pEndOfHeader && isspace((int) (uchar) *p)) ++p;
+  // Parse the content-length value.
+  int nDigits = 0; size_t contentLength = 0;
+  const size_t maxQuot = std::numeric_limits<size_t>::max() / 10, maxRem = std::numeric_limits<size_t>::max() % 10;
+  while (p < pEndOfHeader)
+  {
+    char c = *p; if (c < '0' || c > '9') break;
+    int newDigit = c - '0'; ++nDigits; ++p;
+    // We must verify that 10 * contentLength + newDigit <= max.
+    if (contentLength > maxQuot || (contentLength == maxQuot && newDigit > maxRem))
+      return true; // overflow - we can't check contentLength
+    contentLength *= 10; contentLength += newDigit;
+  }
+  if (nDigits <= 0) return true; // error - the Content-Length value is empty
+  size_t headerLength = pEndOfHeader - pStart + 4;
+  size_t goalRequestLength = headerLength + contentLength;
+  //fprintf(stderr, "IsHttpRqWorthParsing: header length %zu, Content-Length %zu, goal request length %zu, actual %zu\n", headerLength, contentLength, goalRequestLength, requestLength);
+  return requestLength >= goalRequestLength;	
+}
+
 void TWebSrv::OnRead(const uint64& SockId, const PSIn& SIn){
   // take packet contents
   TChA PckChA; TChA::LoadTxt(SIn, PckChA);
@@ -68,6 +107,8 @@ void TWebSrv::OnRead(const uint64& SockId, const PSIn& SIn){
   // save packet to request string
   TChA& HttpRqChA=GetConn(SockId)->GetHttpRqChA();
   HttpRqChA+=PckChA;
+  if (! IsHttpRqWorthParsing(HttpRqChA)) return;
+  //fprintf(stderr, "TWebSrv::OnRead: %d bytes read, now %d in request\n", int(PckChA.Len()), int(HttpRqChA.Len()));
   // test if the request is ok
   PSIn HttpRqSIn=TMIn::New(HttpRqChA);
   PHttpRq HttpRq=THttpRq::New(HttpRqSIn);

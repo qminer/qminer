@@ -12,12 +12,20 @@
     #define BUILDING_NODE_EXTENSION
 #endif
 
+#include <nan.h>
 #include <node.h>
 #include <node_object_wrap.h>
 #include <node_buffer.h>
 #include <uv.h>
 #include "base.h"
 #include "thread.h"
+
+// Node.js 24+ compatibility: Holder() was removed, use This() instead
+#if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+#define JS_GET_HOLDER(args) (args).This()
+#else
+#define JS_GET_HOLDER(args) (args).Holder()
+#endif
 
 #define JsDeclareProperty(Function) \
     static void Function(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
@@ -28,10 +36,27 @@
             Function(Name, Info); \
         } catch (const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError( \
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
+            TNodeJsUtil::ToLocal(Nan::New(TStr("[addon] Exception: " + Except->GetStr()).CStr())))); \
         } \
     };
 
+// Node.js 24+ uses different callback signatures for indexed property handlers
+#if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+#define JsDeclIndexedProperty(Function) \
+    static void Function(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info); \
+    static v8::Intercepted _ ## Function(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
+        v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
+        v8::HandleScope HandleScope(Isolate); \
+        try { \
+            Function(Index, Info); \
+            return v8::Intercepted::kYes; \
+        } catch(const PExcept& Except) { \
+            Isolate->ThrowException(v8::Exception::TypeError(\
+            TNodeJsUtil::ToLocal(Nan::New(TStr("[addon] Exception: " + Except->GetStr()).CStr())))); \
+            return v8::Intercepted::kNo; \
+        } \
+    }
+#else
 #define JsDeclIndexedProperty(Function) \
     static void Function(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info); \
     static void _ ## Function(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
@@ -41,10 +66,42 @@
             Function(Index, Info); \
         } catch(const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError(\
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
+            TNodeJsUtil::ToLocal(Nan::New(TStr("[addon] Exception: " + Except->GetStr()).CStr())))); \
         } \
     }
+#endif
 
+
+// Node.js 24+ uses different callback signatures for indexed property handlers
+#if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+#define JsDeclareSetIndexedProperty(FunctionGetter, FunctionSetter) \
+    static void FunctionGetter(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info); \
+    static v8::Intercepted _ ## FunctionGetter(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
+        v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
+        v8::HandleScope HandleScope(Isolate); \
+        try { \
+            FunctionGetter(Index, Info); \
+            return v8::Intercepted::kYes; \
+        } catch(const PExcept& Except) { \
+            Isolate->ThrowException(v8::Exception::TypeError(\
+            TNodeJsUtil::ToLocal(Nan::New(TStr("[addon] Exception: " + Except->GetStr()).CStr())))); \
+            return v8::Intercepted::kNo; \
+        } \
+    } \
+    static void FunctionSetter(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info); \
+    static v8::Intercepted _ ## FunctionSetter(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info) { \
+        v8::Isolate* Isolate = v8::Isolate::GetCurrent(); \
+        v8::HandleScope HandleScope(Isolate); \
+        try { \
+            FunctionSetter(Index, Value, Info); \
+            return v8::Intercepted::kYes; \
+        } catch(const PExcept& Except) { \
+            Isolate->ThrowException(v8::Exception::TypeError(\
+            TNodeJsUtil::ToLocal(Nan::New(TStr("[addon] Exception: " + Except->GetStr()).CStr())))); \
+            return v8::Intercepted::kNo; \
+        } \
+    }
+#else
 #define JsDeclareSetIndexedProperty(FunctionGetter, FunctionSetter) \
     static void FunctionGetter(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info); \
     static void _ ## FunctionGetter(uint32_t Index, const v8::PropertyCallbackInfo<v8::Value>& Info) { \
@@ -54,7 +111,7 @@
             FunctionGetter(Index, Info); \
         } catch(const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError(\
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
+            TNodeJsUtil::ToLocal(Nan::New(TStr("[addon] Exception: " + Except->GetStr()).CStr())))); \
         } \
     } \
     static void FunctionSetter(uint32_t Index, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<v8::Value>& Info); \
@@ -65,9 +122,10 @@
             FunctionSetter(Index, Value, Info); \
         } catch(const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError(\
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
+            TNodeJsUtil::ToLocal(Nan::New(TStr("[addon] Exception: " + Except->GetStr()).CStr())))); \
         } \
     }
+#endif
 
 #define JsDeclareSetProperty(GetFunction, SetFunction) \
     static void GetFunction(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8::Value>& Info); \
@@ -78,7 +136,7 @@
             GetFunction(Name, Info); \
         } catch (const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError( \
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
+            TNodeJsUtil::ToLocal(Nan::New(TStr("[addon] Exception: " + Except->GetStr()).CStr())))); \
       } \
     } \
     static void SetFunction(v8::Local<v8::Name> Name, v8::Local<v8::Value> Value, const v8::PropertyCallbackInfo<void>& Info); \
@@ -89,7 +147,7 @@
             SetFunction(Name, Value, Info); \
         } catch (const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError( \
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
+            TNodeJsUtil::ToLocal(Nan::New(TStr("[addon] Exception: " + Except->GetStr()).CStr())))); \
         } \
     };
 
@@ -101,7 +159,7 @@
             Function(Args); \
         } catch (const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError(\
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
+            TNodeJsUtil::ToLocal(Nan::New(TStr("[addon] Exception: " + Except->GetStr()).CStr())))); \
         } \
     };
 
@@ -118,7 +176,7 @@
             Function(Args); \
         } catch (const PExcept& Except) { \
             Isolate->ThrowException(v8::Exception::TypeError(\
-            v8::String::NewFromUtf8(Isolate, TStr("[addon] Exception: " + Except->GetStr()).CStr()))); \
+            TNodeJsUtil::ToLocal(Nan::New(TStr("[addon] Exception: " + Except->GetStr()).CStr())))); \
         } \
     };
 
@@ -129,7 +187,7 @@
         TTask* Task = new TTask(Args, true);  \
         Task->ExtractCallback(Args);    \
         TNodeJsAsyncUtil::ExecuteOnWorker(Task);    \
-        Args.GetReturnValue().Set(v8::Undefined(Isolate));  \
+        Args.GetReturnValue().Set(Nan::Undefined());  \
     };  \
     JsDeclareInternalFunction(Function);
 
@@ -172,6 +230,12 @@ public:
 
     /// Checks if TryCatch caught an error, extracts the message and throws a PExcept
     static void CheckJSExcept(const v8::TryCatch& TryCatch);
+    /// Checks if the MaybeLocal object is empty, and throws an exception if it is
+    template <class TClass>
+    static void CheckObjEmpty(v8::Isolate* Isolate, const v8::TryCatch& TryCatch, const v8::MaybeLocal<TClass>& Obj);
+    // converts the maybe local values to local values
+    template <class TClass>
+    static v8::Local<TClass> ToLocal(Nan::MaybeLocal<TClass> Obj);
     /// Convert v8 Json to GLib Json (PJsonVal). Is parameter IgnoreFunc is set to true the method will
     /// ignore functions otherwise an exception will be thrown when a function is encountered
     static PJsonVal GetObjJson(const v8::Local<v8::Value>& Val, const bool& IgnoreFunc=false, const bool& IgnoreWrappedObj=false);
@@ -349,7 +413,7 @@ public:
     static v8::Local<v8::Object> NewInstance(TClass* Obj);
 
     static v8::Local<v8::Value> V8JsonToV8Str(const v8::Local<v8::Value>& Json);
-    static TStr JSONStringify(const v8::Local<v8::Value>& Json) { return GetStr(V8JsonToV8Str(Json)->ToString()); }
+    static TStr JSONStringify(const v8::Local<v8::Value>& Json) { return GetStr(TNodeJsUtil::ToLocal(Nan::To<v8::String>(V8JsonToV8Str(Json)))); }
 
     /// TStrV -> v8 string array
     static v8::Local<v8::Value> GetStrArr(const TStrV& StrV);

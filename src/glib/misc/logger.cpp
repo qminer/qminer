@@ -3,21 +3,23 @@
  * All rights reserved.
  *
  * This source code is licensed under the FreeBSD license found in the
- * LICENSE file in the root directory of this source tree.
+ * LICENSE file in the Root directory of this source tree.
  */
 
 #include "logger.h"
 
 void TLogger::NotifyVerbose(const int& VerbosityLevel, const char *Str)
 {
-    if (this->VerbosityLevel >= VerbosityLevel)
+    if (this->VerbosityLevel >= VerbosityLevel) {
         Notify(ntInfo, Str);
+    }
 }
 
 void TLogger::NotifyVerbose(const int& VerbosityLevel, const TNotifyType& Type, const char *Str)
 {
-    if (this->VerbosityLevel >= VerbosityLevel)
+    if (this->VerbosityLevel >= VerbosityLevel) {
         Notify(Type, Str);
+    }
 }
 
 void TLogger::NotifyVerboseFmt(const int& VerbosityLevel, const char *FmtStr, ...)
@@ -79,7 +81,9 @@ void TLogger::NotifyErr(const char *Str, const PExcept& Except)
 void TLogger::NotifyFmt(const TNotifyType& Type, const char *FmtStr, va_list argptr)
 {
     const int RetVal=vsnprintf(NotifyBuff, NOTIFY_BUFF_SIZE-2, FmtStr, argptr);
-    if (RetVal < 0) return;
+    if (RetVal < 0) {
+        return;
+    }
     Notify(Type, NotifyBuff);
 }
 
@@ -91,8 +95,9 @@ void TLogger::Notify(const TNotifyType& Type, const char *Str)
         FullStr.AddChTo(' ', StartingSpaces);
         FullStr += Str;
         for (int N = 0; N < NotifyInstV.Len(); N++) {
-            if (!NotifyInstV[N].Empty())
+            if (!NotifyInstV[N].Empty()) {
                 NotifyInstV[N]->OnNotify(Type, FullStr);
+            }
         }
     }
     catch (PExcept ex) {
@@ -102,6 +107,41 @@ void TLogger::Notify(const TNotifyType& Type, const char *Str)
         TNotify::StdNotify->OnNotify(ntErr, "Notify error.");
     }
 }
+
+// status methods (does not add the type prefix)
+
+void TLogger::StatusFmt(const char *FmtStr, ...)
+{
+    va_list valist; va_start(valist, FmtStr);
+    const int RetVal = vsnprintf(NotifyBuff, NOTIFY_BUFF_SIZE - 2, FmtStr, valist);
+    va_end(valist);
+    if (RetVal < 0) {
+        return;
+    }
+    Status(NotifyBuff);
+}
+
+void TLogger::Status(const char *Str)
+{
+    try {
+        TChA FullStr;
+        // prepend spaces if necessary
+        FullStr.AddChTo(' ', StartingSpaces);
+        FullStr += Str;
+        for (int N = 0; N < NotifyInstV.Len(); N++) {
+            if (!NotifyInstV[N].Empty()) {
+                NotifyInstV[N]->OnStatus(FullStr);
+            }
+        }
+    }
+    catch (PExcept ex) {
+        TNotify::StdNotify->OnNotifyFmt(ntErr, "Notify error: %s", ex->GetMsgStr().CStr());
+    }
+    catch (...) {
+        TNotify::StdNotify->OnNotify(ntErr, "Notify error.");
+    }
+}
+
 void TLogger::PrintInfo(const TStr& Str)
 {
     PrintInfo(Str.CStr());

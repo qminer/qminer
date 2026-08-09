@@ -54,7 +54,7 @@ class TNodeJsHelloModel: public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
     /// Sets up the prototype
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     /// Returns the class ID
     static const TStr GetClassId() { return "HelloModel"; }
     /// Counts the number of times this object was destructed
@@ -103,7 +103,7 @@ class TNodeJsBoundsChecker: public node::ObjectWrap {
     friend class TNodeJsUtil;
 public:
     /// Sets up the prototype
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     /// Returns the class ID
     static const TStr GetClassId() { return "BoundsChecker"; }
     /// Simple constructor
@@ -136,9 +136,9 @@ private:
 // Initialization-And-Registration
 
 /// Initializes all models
-void InitExternalAnalyticsModel(v8::Handle<v8::Object> ExportsQm);
+void InitExternalAnalyticsModel(v8::Local<v8::Object> ExportsQm);
 
-/// This will register the function InitExternalAnalyticsModel. It will be 
+/// This will register the function InitExternalAnalyticsModel. It will be
 /// executed in modinit.h (InitExternalQmAddons)
 INIT_EXTERN_QM_ADDON(InitExternalAnalyticsModel);
 

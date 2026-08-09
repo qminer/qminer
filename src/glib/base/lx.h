@@ -123,6 +123,8 @@ public:
   TILxSymSt(TSIn&){Fail;}
   void Save(TSOut&){Fail;}
 
+  TILxSymSt& operator=(const TILxSymSt& SymSt);
+
   void Restore(TILx& Lx);
 };
 

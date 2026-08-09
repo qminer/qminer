@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -132,7 +132,7 @@ public:
   static PBowSpV Load(TSIn& SIn){return new TBowSpV(SIn);}
   void Save(TSOut& SOut) const {
     DId.Save(SOut); Norm.Save(SOut); WIdWgtKdV.Save(SOut);}
-  int64 GetMemUsed() const { 
+  int64 GetMemUsed() const {
 	return int64(sizeof(TInt) + sizeof(TFlt) + WIdWgtKdV.GetMemUsed()); }
   // general
   void Clr(){DId=-1; WIdWgtKdV.Clr();}
@@ -162,14 +162,14 @@ public:
   // word-id/weights
   void AddWIdWgt(const int& WId, const double& Wgt){
 	  if (IsWId(WId)) { UpdateWIdWgt(WId, Wgt); }
-	  else WIdWgtKdV.Add(TBowWIdWgtKd(WId, (sdouble)Wgt)); 
+	  else WIdWgtKdV.Add(TBowWIdWgtKd(WId, (sdouble)Wgt));
   }
   void DelWId(const int& WId);
-  void UpdateWIdWgt(const int& WId, const double& Wgt){ 
+  void UpdateWIdWgt(const int& WId, const double& Wgt){
 	  EAssert(IsWId(WId)); int WIdN = GetWIdN(WId); WIdWgtKdV[WIdN].Dat = (sdouble) Wgt; }
   void IncreaseWIdWgt(const int& WId, const double& Wgt) {
 	  if (!IsWId(WId)) { AddWIdWgt(WId, Wgt); }
-	  else { int WIdN = GetWIdN(WId); WIdWgtKdV[WIdN].Dat += (sdouble) Wgt; } 
+	  else { int WIdN = GetWIdN(WId); WIdWgtKdV[WIdN].Dat += (sdouble) Wgt; }
   }
   void DecreaseWIdWgt(const int& WId, const double& Wgt) {
 	EAssert(IsWId(WId)); int WIdN = GetWIdN(WId); WIdWgtKdV[WIdN].Dat -= (sdouble) Wgt; }
@@ -446,9 +446,6 @@ public:
   void Save(TSOut& SOut) const {
     Fq.Save(SOut); MnVal.Save(SOut); MxVal.Save(SOut);}
 
-  TBowWordDesc& operator=(const TBowWordDesc& BowWordDesc){
-    Fq=BowWordDesc.Fq; MnVal=BowWordDesc.MnVal; MxVal=BowWordDesc.MxVal;
-    return *this;}
   bool operator==(const TBowWordDesc& BowWordDesc) const {
     return Fq==BowWordDesc.Fq;}
   bool operator<(const TBowWordDesc& BowWordDesc) const {
@@ -707,7 +704,7 @@ public:
     TFOut SOut(FNm); Save(SOut);}
 
   int64 GetMemUsed() {
-	  return DocNmToDescStrH.GetMemUsed(true) + WordStrToDescH.GetMemUsed(true) + CatNmToFqH.GetMemUsed(true) + DocSpVV.GetMemUsed() + 
+	  return DocNmToDescStrH.GetMemUsed(true) + WordStrToDescH.GetMemUsed(true) + CatNmToFqH.GetMemUsed(true) + DocSpVV.GetMemUsed() +
 		  DocStrV.GetMemUsed() + DocCIdVV.GetMemUsed() + TrainDIdV.GetMemUsed() + TestDIdV.GetMemUsed();
   }
   friend class TBowFl;

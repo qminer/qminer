@@ -7,8 +7,8 @@
  */
 
 // JavaScript source code
-var la = require("qminer").la;
-var analytics = require("qminer").analytics;
+var la = require('../../index.js').la;
+var analytics = require('../../index.js').analytics;
 var assert = require("../../src/nodejs/scripts/assert.js");
 //Unit test for PCA
 
@@ -22,27 +22,27 @@ describe("PCA test", function () {
         it("should return default values of parameters", function () {
             var pca = new analytics.PCA();
             var params = pca.getParams();
-            assert.equal(params.iter, 100);
-            assert.equal(params.k, undefined);
+            assert.strictEqual(params.iter, 100);
+            assert.strictEqual(params.k, undefined);
         });
         it("should return values of parameters", function () {
             var pca = new analytics.PCA({ iter: 100, k: 50 });
             var params = pca.getParams();
-            assert.equal(params.iter, 100);
-            assert.equal(params.k, 50);
+            assert.strictEqual(params.iter, 100);
+            assert.strictEqual(params.k, 50);
         });
         it("should return values of parameters and added keys", function () {
             var pca = new analytics.PCA({ iter: 30, alpha: 3 });
             var params = pca.getParams();
-            assert.equal(params.iter, 30);
-            assert.equal(params.alpha, undefined);
+            assert.strictEqual(params.iter, 30);
+            assert.strictEqual(params.alpha, undefined);
         });
         it("should return empty model parameters", function () {
             var pca = new analytics.PCA();
             var model = pca.getModel();
-            assert.equal(model.P, undefined);
-            assert.equal(model.lambda, undefined);
-            assert.equal(model.mu, undefined);
+            assert.strictEqual(model.P, undefined);
+            assert.strictEqual(model.lambda, undefined);
+            assert.strictEqual(model.mu, undefined);
         });
     });
     describe("testing setParams", function () {
@@ -50,15 +50,15 @@ describe("PCA test", function () {
             var pca = new analytics.PCA();
             pca.setParams({ iter: 10, k: 5 });
             var params = pca.getParams();
-            assert.equal(params.iter, 10);
-            assert.equal(params.k, 5);
+            assert.strictEqual(params.iter, 10);
+            assert.strictEqual(params.k, 5);
         });
         it("should return changed values of parameters, ignoring added key values", function () {
             var pca = new analytics.PCA();
             pca.setParams({ iter: 10, beta: 30 });
             var params = pca.getParams();
-            assert.equal(params.iter, 10);
-            assert.equal(params.beta, undefined);
+            assert.strictEqual(params.iter, 10);
+            assert.strictEqual(params.beta, undefined);
         });
     });
     describe("Fit testing", function () {
@@ -190,8 +190,8 @@ describe("PCA test", function () {
             pca.fit(matrix);
             var model = pca.getModel();
             var tran = pca.transform(matrix);
-            pca.save(require('qminer').fs.openWrite('pca_test.bin')).close();
-            var pca2 = new analytics.PCA(require('qminer').fs.openRead('pca_test.bin'));
+            pca.save(require('../../index.js').fs.openWrite('pca_test.bin')).close();
+            var pca2 = new analytics.PCA(require('../../index.js').fs.openRead('pca_test.bin'));
             var model2 = pca2.getModel();
             assert.deepEqual(pca.getParams(), pca2.getParams());
             assert.eqtol(model.mu.minus(model2.mu).norm(), 0);

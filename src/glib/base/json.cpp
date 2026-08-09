@@ -316,6 +316,49 @@ void TJsonVal::AssertObjKeyBool(const TStr& Key, const TStr& Fun) {
   if (!GetObjKey(Key)->IsBool()) { throw TExcept::New("Exception in function `" + Fun + "`: JSON property:`" + Key + "` is not a boolean."); }
 }
 
+PJsonVal TJsonVal::AssertGetObjKey(const TStr& Property, const TStr& ObjNm) {
+    EAssertR(IsObj(), ObjNm + " should be an object");
+    EAssertR(IsObjKey(Property), ObjNm + " should have `" + Property + "` property");
+    PJsonVal Result = GetObjKey(Property);
+    return Result;
+}
+
+TStr TJsonVal::AssertGetObjStr(const TStr& Property, const TStr& ObjNm) {
+    PJsonVal Result = AssertGetObjKey(Property, ObjNm);
+    EAssertR(Result->IsStr(), ObjNm + "." + Property + " must be a string");
+    return Result->GetStr();
+}
+
+double TJsonVal::AssertGetObjNum( const TStr& Property, const TStr& ObjNm) {
+    PJsonVal Result = AssertGetObjKey(Property, ObjNm);
+    EAssertR(Result->IsNum(), ObjNm + "." + Property + " must be a number");
+    return Result->GetNum();
+}
+
+int TJsonVal::AssertGetObjInt(const TStr& Property, const TStr& ObjNm) {
+    double Result = AssertGetObjNum(Property, ObjNm);
+    EAssertR(Result == floor(Result), ObjNm + "." + Property + " must be an integer");
+    return (int)Result;
+}
+
+bool TJsonVal::AssertGetObjBool(const TStr& Property, const TStr& ObjNm) {
+    PJsonVal Result = AssertGetObjKey(Property, ObjNm);
+    EAssertR(Result->IsBool(), ObjNm + "." + Property + " must be a boolean");
+    return Result->GetBool();
+}
+
+PJsonVal TJsonVal::AssertGetObjArr(const TStr& Property, const TStr& ObjNm) {
+    PJsonVal Result = AssertGetObjKey(Property, ObjNm);
+    EAssertR(Result->IsArr(), ObjNm + "." + Property + " must be an array");
+    return Result;
+}
+
+PJsonVal TJsonVal::AssertGetObjObj(const TStr& Property, const TStr& ObjNm) {
+    PJsonVal Result = AssertGetObjKey(Property, ObjNm);
+    EAssertR(Result->IsObj(), ObjNm + "." + Property + " must be an object");
+    return Result;
+}
+
 uint64 TJsonVal::GetMemUsed() const {
   return sizeof(TJsonVal) +
     // JsonValType is an enum and is already counted

@@ -1,13 +1,13 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
 var assert = require('../../src/nodejs/scripts/assert.js');
-var qm = require('qminer');
+var qm = require('../../index.js');
 var analytics = qm.analytics;
 
 describe('Classification Metrics Tests', function () {
@@ -33,16 +33,16 @@ describe('Classification Metrics Tests', function () {
 
         var true_lables2 = [0, 1, 0, 0 ,1];
         var pred_lables2 = [1, 0, 0, 1, 0];
-        
+
         var true_lables3 = [0, 1, 0, 0 ,1];
         var pred_lables3 = [0, 1, 0, 0 ,0];
 
         describe('Acuracy Score', function () {
             it('true_lables = [0, 0, 0, 0, 0], pred_lables = [0, 0, 0, 0, 0], AccuracyScore should be 1', function () {
-                assert.equal(1, analytics.metrics.accuracyScore(true_lables, pred_lables));
+                assert.strictEqual(1, analytics.metrics.accuracyScore(true_lables, pred_lables));
             });
             it('true_lables = [0, 1, 0, 0 ,1], pred_lables = [1, 0, 0, 1, 0], AccuracyScore should be 0.2', function () {
-                assert.equal(0.2, analytics.metrics.accuracyScore(true_lables2, pred_lables2));
+                assert.strictEqual(0.2, analytics.metrics.accuracyScore(true_lables2, pred_lables2));
             });
             it('true_lables = [0, 1, 0, 0 ,1], pred_lables = [0, 1, 0, 0, 0], AccuracyScore should be 0.8', function () {
                 assert.eqtol(0.8, analytics.metrics.accuracyScore(true_lables3, pred_lables3), 1e-2);
@@ -51,22 +51,22 @@ describe('Classification Metrics Tests', function () {
 
         describe('Precision Score', function () {
             it('true_lables = [0, 0, 0, 0, 0], pred_lables = [0, 0, 0, 0, 0], PrecisionScore should be 1', function () {
-                assert.equal(1, analytics.metrics.precisionScore(true_lables, pred_lables));
+                assert.strictEqual(1, analytics.metrics.precisionScore(true_lables, pred_lables));
             });
             it('true_lables = [0, 1, 0, 0 ,1], pred_lables = [1, 0, 0, 1, 0], PrecisionScore should be 0', function () {
-                assert.equal(0, analytics.metrics.precisionScore(true_lables2, pred_lables2));
+                assert.strictEqual(0, analytics.metrics.precisionScore(true_lables2, pred_lables2));
             });
             it('true_lables = [0, 1, 0, 0 ,1], pred_lables = [0, 1, 0, 0, 0], PrecisionScore should be 1', function () {
-                assert.equal(1, analytics.metrics.precisionScore(true_lables3, pred_lables3));
+                assert.strictEqual(1, analytics.metrics.precisionScore(true_lables3, pred_lables3));
             });
         });
 
         describe('Recall Score', function () {
             it('true_lables = [0, 0, 0, 0, 0], pred_lables = [0, 0, 0, 0, 0], RecallScore should be 1', function () {
-                assert.equal(1, analytics.metrics.recallScore(true_lables, pred_lables));
+                assert.strictEqual(1, analytics.metrics.recallScore(true_lables, pred_lables));
             });
             it('true_lables = [0, 1, 0, 0 ,1], pred_lables = [1, 0, 0, 1, 0], RecallScore should be 0', function () {
-                assert.equal(0, analytics.metrics.recallScore(true_lables2, pred_lables2));
+                assert.strictEqual(0, analytics.metrics.recallScore(true_lables2, pred_lables2));
             });
             it('true_lables = [0, 1, 0, 0 ,1], pred_lables = [0, 1, 0, 0, 0], RecallScore should be 0.5', function () {
                 assert.eqtol(0.5, analytics.metrics.recallScore(true_lables3, pred_lables3), 1e-2);
@@ -75,10 +75,10 @@ describe('Classification Metrics Tests', function () {
 
         describe('F1 Score', function () {
             it('true_lables = [0, 0, 0, 0, 0], pred_lables = [0, 0, 0, 0, 0], F1 should be 1', function () {
-                assert.equal(1, analytics.metrics.f1Score(true_lables, pred_lables));
+                assert.strictEqual(1, analytics.metrics.f1Score(true_lables, pred_lables));
             });
             it('true_lables = [0, 1, 0, 0 ,1], pred_lables = [1, 0, 0, 1, 0], F1 should be 0', function () {
-                assert.equal(0, analytics.metrics.f1Score(true_lables2, pred_lables2));
+                assert.strictEqual(0, analytics.metrics.f1Score(true_lables2, pred_lables2));
             });
             it('true_lables = [0, 1, 0, 0 ,1], pred_lables = [0, 1, 0, 0, 0], F1 should be 0.66', function () {
                 assert.eqtol(0.66, analytics.metrics.f1Score(true_lables3, pred_lables3), 1e-2);
@@ -115,20 +115,20 @@ describe('Regression Metrics Tests', function () {
             var mape = new analytics.metrics.MeanAbsolutePercentageError();
             var r2 = new analytics.metrics.R2Score();
 
-            assert.equal(me.getError(), -1);
-            assert.equal(mae.getError(), -1);
-            assert.equal(mse.getError(), -1);
-            assert.equal(rmse.getError(), -1);
-            assert.equal(mape.getError(), -1);
-            assert.equal(r2.getError(), -1);
+            assert.strictEqual(me.getError(), -1);
+            assert.strictEqual(mae.getError(), -1);
+            assert.strictEqual(mse.getError(), -1);
+            assert.strictEqual(rmse.getError(), -1);
+            assert.strictEqual(mape.getError(), -1);
+            assert.strictEqual(r2.getError(), -1);
         });
         it('should sucessfully create two different ME objects', function () {
             var me = new analytics.metrics.MeanError();
             var me2 = new analytics.metrics.MeanError();
 
             me.push(1, 1);
-            assert.equal(me.getError(), 0);
-            assert.equal(me2.getError(), -1);
+            assert.strictEqual(me.getError(), 0);
+            assert.strictEqual(me2.getError(), -1);
         });
         it('should sucessfully load identical state as it was saved', function () {
             var me = new analytics.metrics.MeanError();
@@ -149,8 +149,8 @@ describe('Regression Metrics Tests', function () {
             var me3 = new analytics.metrics.MeanError(fin);
             fin.close();
 
-            assert.equal(me.getError(), me2.getError());
-            assert.equal(me.getError(), me3.getError())
+            assert.strictEqual(me.getError(), me2.getError());
+            assert.strictEqual(me.getError(), me3.getError())
         });
         it('should throw an exception if input parameters are not of type number', function () {
             var me = new analytics.metrics.MeanError()
@@ -191,29 +191,29 @@ describe('Regression Metrics Tests', function () {
             // tests
             it('true_val=1, pred_val=1, ME should be 0', function () {
                 error.push(2, 2);
-                assert.equal(error.getError(), 0);
+                assert.strictEqual(error.getError(), 0);
             });
             it('true_val=3, pred_val=5, ME should be -2', function () {
                 error.push(3, 5);
-                assert.equal(error.getError(), -2);
+                assert.strictEqual(error.getError(), -2);
             });
             it('true_vals = [2, 3, 4, 5, 6], pred_vals = [1, 2, 3, 4, 5], ME should be 1', function () {
                 for (var i in true_vals) {
                     error.push(true_vals[i], pred_vals[i]);
                 }
-                assert.equal(error.getError(), 1);
+                assert.strictEqual(error.getError(), 1);
                 // test batch version
-                assert.equal(analytics.metrics.meanError(true_vals, pred_vals), 1);
-                assert.equal(analytics.metrics.meanError(new qm.la.Vector(true_vals), new qm.la.Vector(pred_vals)), 1);
+                assert.strictEqual(analytics.metrics.meanError(true_vals, pred_vals), 1);
+                assert.strictEqual(analytics.metrics.meanError(new qm.la.Vector(true_vals), new qm.la.Vector(pred_vals)), 1);
             });
             it('true_vals = [1, 2, 3, 4, 5], pred_vals = [3, 4, 5, 6, 7], ME should be -2', function () {
                 for (var i in true_vals2) {
                     error.push(true_vals2[i], pred_vals2[i]);
                 }
-                assert.equal(error.getError(), -2);
+                assert.strictEqual(error.getError(), -2);
                 // test batch version
-                assert.equal(analytics.metrics.meanError(true_vals2, pred_vals2), -2);
-                assert.equal(analytics.metrics.meanError(new qm.la.Vector(true_vals2), new qm.la.Vector(pred_vals2)), -2);
+                assert.strictEqual(analytics.metrics.meanError(true_vals2, pred_vals2), -2);
+                assert.strictEqual(analytics.metrics.meanError(new qm.la.Vector(true_vals2), new qm.la.Vector(pred_vals2)), -2);
             });
         });
 
@@ -229,29 +229,29 @@ describe('Regression Metrics Tests', function () {
             // tests
             it('true_val=1, pred_val=1, MAE should be 0', function () {
                 error.push(2, 2);
-                assert.equal(error.getError(), 0);
+                assert.strictEqual(error.getError(), 0);
             });
             it('true_val=3, pred_val=5, MAE should be 2', function () {
                 error.push(3, 5);
-                assert.equal(error.getError(), 2);
+                assert.strictEqual(error.getError(), 2);
             });
             it('true_vals = [2, 3, 4, 5, 6], pred_vals = [1, 2, 3, 4, 5], MAE should be 1', function () {
                 for (var i in true_vals) {
                     error.push(true_vals[i], pred_vals[i]);
                 }
-                assert.equal(error.getError(), 1);
+                assert.strictEqual(error.getError(), 1);
                 // test batch version
-                assert.equal(analytics.metrics.meanAbsoluteError(true_vals, pred_vals), 1);
-                assert.equal(analytics.metrics.meanAbsoluteError(new qm.la.Vector(true_vals), new qm.la.Vector(pred_vals)), 1);
+                assert.strictEqual(analytics.metrics.meanAbsoluteError(true_vals, pred_vals), 1);
+                assert.strictEqual(analytics.metrics.meanAbsoluteError(new qm.la.Vector(true_vals), new qm.la.Vector(pred_vals)), 1);
             });
             it('true_vals = [1, 2, 3, 4, 5], pred_vals = [3, 4, 5, 6, 7], MAE should be 2', function () {
                 for (var i in true_vals2) {
                     error.push(true_vals2[i], pred_vals2[i]);
                 }
-                assert.equal(error.getError(), 2);
+                assert.strictEqual(error.getError(), 2);
                 // test batch version
-                assert.equal(analytics.metrics.meanAbsoluteError(true_vals2, pred_vals2), 2);
-                assert.equal(analytics.metrics.meanAbsoluteError(new qm.la.Vector(true_vals2), new qm.la.Vector(pred_vals2)), 2);
+                assert.strictEqual(analytics.metrics.meanAbsoluteError(true_vals2, pred_vals2), 2);
+                assert.strictEqual(analytics.metrics.meanAbsoluteError(new qm.la.Vector(true_vals2), new qm.la.Vector(pred_vals2)), 2);
             });
         });
 
@@ -267,29 +267,29 @@ describe('Regression Metrics Tests', function () {
             // tests
             it('true_val=1, pred_val=1, MSE should be 0', function () {
                 error.push(2, 2);
-                assert.equal(error.getError(), 0);
+                assert.strictEqual(error.getError(), 0);
             });
             it('true_val=3, pred_val=5, MSE should be 2', function () {
                 error.push(3, 5);
-                assert.equal(error.getError(), 4);
+                assert.strictEqual(error.getError(), 4);
             });
             it('true_vals = [2, 3, 4, 5, 6], pred_vals = [1, 2, 3, 4, 5], MSE should be 1', function () {
                 for (var i in true_vals) {
                     error.push(true_vals[i], pred_vals[i]);
                 }
-                assert.equal(error.getError(), 1);
+                assert.strictEqual(error.getError(), 1);
                 // test batch version
-                assert.equal(analytics.metrics.meanSquareError(true_vals, pred_vals), 1);
-                assert.equal(analytics.metrics.meanSquareError(new qm.la.Vector(true_vals), new qm.la.Vector(pred_vals)), 1);
+                assert.strictEqual(analytics.metrics.meanSquareError(true_vals, pred_vals), 1);
+                assert.strictEqual(analytics.metrics.meanSquareError(new qm.la.Vector(true_vals), new qm.la.Vector(pred_vals)), 1);
             });
             it('true_vals = [1, 2, 3, 4, 5], pred_vals = [3, 4, 5, 6, 7], MSE should be 4', function () {
                 for (var i in true_vals2) {
                     error.push(true_vals2[i], pred_vals2[i]);
                 }
-                assert.equal(error.getError(), 4);
+                assert.strictEqual(error.getError(), 4);
                 // test batch version
-                assert.equal(analytics.metrics.meanSquareError(true_vals2, pred_vals2), 4);
-                assert.equal(analytics.metrics.meanSquareError(new qm.la.Vector(true_vals2), new qm.la.Vector(pred_vals2)), 4);
+                assert.strictEqual(analytics.metrics.meanSquareError(true_vals2, pred_vals2), 4);
+                assert.strictEqual(analytics.metrics.meanSquareError(new qm.la.Vector(true_vals2), new qm.la.Vector(pred_vals2)), 4);
             });
         });
 
@@ -305,29 +305,29 @@ describe('Regression Metrics Tests', function () {
             // tests
             it('true_val=1, pred_val=1, RMSE should be 0', function () {
                 error.push(2, 2);
-                assert.equal(error.getError(), 0);
+                assert.strictEqual(error.getError(), 0);
             });
             it('true_val=3, pred_val=5, RMSE should be 2', function () {
                 error.push(3, 5);
-                assert.equal(error.getError(), 2);
+                assert.strictEqual(error.getError(), 2);
             });
             it('true_vals = [2, 3, 4, 5, 6], pred_vals = [1, 2, 3, 4, 5], RMSE should be 1', function () {
                 for (var i in true_vals) {
                     error.push(true_vals[i], pred_vals[i]);
                 }
-                assert.equal(error.getError(), 1);
+                assert.strictEqual(error.getError(), 1);
                 // test batch version
-                assert.equal(analytics.metrics.rootMeanSquareError(true_vals, pred_vals), 1);
-                assert.equal(analytics.metrics.rootMeanSquareError(new qm.la.Vector(true_vals), new qm.la.Vector(pred_vals)), 1);
+                assert.strictEqual(analytics.metrics.rootMeanSquareError(true_vals, pred_vals), 1);
+                assert.strictEqual(analytics.metrics.rootMeanSquareError(new qm.la.Vector(true_vals), new qm.la.Vector(pred_vals)), 1);
             });
             it('true_vals = [1, 2, 3, 4, 5], pred_vals = [3, 4, 5, 6, 7], RMSE should be 2', function () {
                 for (var i in true_vals2) {
                     error.push(true_vals2[i], pred_vals2[i]);
                 }
-                assert.equal(error.getError(), 2);
+                assert.strictEqual(error.getError(), 2);
                 // test batch version
-                assert.equal(analytics.metrics.rootMeanSquareError(true_vals2, pred_vals2), 2);
-                assert.equal(analytics.metrics.rootMeanSquareError(new qm.la.Vector(true_vals2), new qm.la.Vector(pred_vals2)), 2);
+                assert.strictEqual(analytics.metrics.rootMeanSquareError(true_vals2, pred_vals2), 2);
+                assert.strictEqual(analytics.metrics.rootMeanSquareError(new qm.la.Vector(true_vals2), new qm.la.Vector(pred_vals2)), 2);
             });
         });
 
@@ -343,7 +343,7 @@ describe('Regression Metrics Tests', function () {
             // tests
             it('true_val=1, pred_val=1, MAPE should be 0', function () {
                 error.push(2, 2);
-                assert.equal(error.getError(), 0);
+                assert.strictEqual(error.getError(), 0);
             });
             it('true_val=3, pred_val=5, MAPE should be 66.67', function () {
                 error.push(3, 5);
@@ -381,29 +381,29 @@ describe('Regression Metrics Tests', function () {
             // tests
             it('true_val=1, pred_val=1, R2 should be 1', function () {
                 error.push(2, 2);
-                assert.equal(error.getError(), 1);
+                assert.strictEqual(error.getError(), 1);
             });
             it('true_val=3, pred_val=5, R2 should be 0', function () {
                 error.push(3, 5);
-                assert.equal(error.getError(), 0);
+                assert.strictEqual(error.getError(), 0);
             });
             it('true_vals = [2, 3, 4, 5, 6], pred_vals = [1, 2, 3, 4, 5], R2 should be 0.5', function () {
                 for (var i in true_vals) {
                     error.push(true_vals[i], pred_vals[i]);
                 }
-                assert.equal(error.getError(), 0.5);
+                assert.strictEqual(error.getError(), 0.5);
                 // test batch version
-                assert.equal(analytics.metrics.r2Score(true_vals, pred_vals), 0.5);
-                assert.equal(analytics.metrics.r2Score(new qm.la.Vector(true_vals), new qm.la.Vector(pred_vals)), 0.5)
+                assert.strictEqual(analytics.metrics.r2Score(true_vals, pred_vals), 0.5);
+                assert.strictEqual(analytics.metrics.r2Score(new qm.la.Vector(true_vals), new qm.la.Vector(pred_vals)), 0.5)
             });
             it('true_vals = [1, 2, 3, 4, 5], pred_vals = [3, 4, 5, 6, 7], R2 should be -1', function () {
                 for (var i in true_vals2) {
                     error.push(true_vals2[i], pred_vals2[i]);
                 }
-                assert.equal(error.getError(), -1);
+                assert.strictEqual(error.getError(), -1);
                 // test batch version
-                assert.equal(analytics.metrics.r2Score(true_vals2, pred_vals2), -1);
-                assert.equal(analytics.metrics.r2Score(new qm.la.Vector(true_vals2), new qm.la.Vector(pred_vals2)), -1);
+                assert.strictEqual(analytics.metrics.r2Score(true_vals2, pred_vals2), -1);
+                assert.strictEqual(analytics.metrics.r2Score(new qm.la.Vector(true_vals2), new qm.la.Vector(pred_vals2)), -1);
             });
         });
 

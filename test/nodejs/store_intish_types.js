@@ -8,7 +8,7 @@
 
 // console.log(__filename)
 var assert = require('../../src/nodejs/scripts/assert.js');     //adds assert.run function
-var qm = require('qminer');
+var qm = require('../../index.js');
 var fs = qm.fs;
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -64,10 +64,10 @@ function PerformTest(field_type, min, max, do_round) {
                     vals.push(val);
                 }
                 var rs = db.base.store(store_name).allRecords;
-                assert.equal(rs.length, records);
+                assert.strictEqual(rs.length, records);
                 for (var i = 0; i < rs.length; i++) {
                     var rec = rs[i];
-                    assert.equal(rec.val, vals[i]);
+                    assert.strictEqual(rec.val, vals[i]);
                 }
             } finally {
                 db.close();
@@ -84,18 +84,18 @@ function PerformTest(field_type, min, max, do_round) {
                     }
                     db.base.store(store_name).push({ name: "name" + val, val: val });
                 }
-                assert.equal(db.base.store(store_name).allRecords.length, records);
+                assert.strictEqual(db.base.store(store_name).allRecords.length, records);
                 // make some queries
                 var result = db.base.search({ $from: store_name, val: { $gt: min} });
-                assert.equal(result.length, records);
+                assert.strictEqual(result.length, records);
                 result = db.base.search({ $from: store_name, val: { $gt: max} });
-                assert.equal(result.length, 0);
+                assert.strictEqual(result.length, 0);
                 result = db.base.search({ $from: store_name, val: { $lt: min} });
-                assert.equal(result.length, 1);
+                assert.strictEqual(result.length, 1);
                 result = db.base.search({ $from: store_name, val: min });
-                assert.equal(result.length, 1);
+                assert.strictEqual(result.length, 1);
                 result = db.base.search({ $from: store_name, val: { $lt: max} });
-                assert.equal(result.length, records);
+                assert.strictEqual(result.length, records);
             } finally {
                 db.close();
             }

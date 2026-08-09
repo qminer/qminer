@@ -34,7 +34,6 @@ public:
   public:
     TNode() : Id(-1), NIdV() { }
     TNode(const int& NId) : Id(NId), NIdV() { }
-    TNode(const TNode& Node) : Id(Node.Id), NIdV(Node.NIdV) { }
     TNode(TSIn& SIn) : Id(SIn), NIdV(SIn) { }
     void Save(TSOut& SOut) const { Id.Save(SOut); NIdV.Save(SOut); }
     int GetId() const { return Id; }
@@ -141,7 +140,7 @@ public:
   bool HasFlag(const TGraphFlag& Flag) const;
   TUNGraph& operator = (const TUNGraph& Graph) {
     if (this!=&Graph) { MxNId=Graph.MxNId; NEdges=Graph.NEdges; NodeH=Graph.NodeH; } return *this; }
-  
+
   /// Returns the number of nodes in the graph.
   int GetNodes() const { return NodeH.Len(); }
   /// Adds a node of ID NId to the graph. ##TUNGraph::AddNode
@@ -230,7 +229,6 @@ public:
   public:
     TNode() : Id(-1), InNIdV(), OutNIdV() { }
     TNode(const int& NId) : Id(NId), InNIdV(), OutNIdV() { }
-    TNode(const TNode& Node) : Id(Node.Id), InNIdV(Node.InNIdV), OutNIdV(Node.OutNIdV) { }
     TNode(TSIn& SIn) : Id(SIn), InNIdV(SIn), OutNIdV(SIn) { }
     void Save(TSOut& SOut) const { Id.Save(SOut); InNIdV.Save(SOut); OutNIdV.Save(SOut); }
     int GetId() const { return Id; }
@@ -335,7 +333,7 @@ public:
   bool HasFlag(const TGraphFlag& Flag) const;
   TNGraph& operator = (const TNGraph& Graph) {
     if (this!=&Graph) { MxNId=Graph.MxNId; NodeH=Graph.NodeH; }  return *this; }
-  
+
   /// Returns the number of nodes in the graph.
   int GetNodes() const { return NodeH.Len(); }
   /// Adds a node of ID NId to the graph. ##TNGraph::AddNode
@@ -433,7 +431,6 @@ public:
   public:
     TNode() : Id(-1), InEIdV(), OutEIdV() { }
     TNode(const int& NId) : Id(NId), InEIdV(), OutEIdV() { }
-    TNode(const TNode& Node) : Id(Node.Id), InEIdV(Node.InEIdV), OutEIdV(Node.OutEIdV) { }
     TNode(TSIn& SIn) : Id(SIn), InEIdV(SIn), OutEIdV(SIn) { }
     void Save(TSOut& SOut) const { Id.Save(SOut); InEIdV.Save(SOut); OutEIdV.Save(SOut); }
     int GetId() const { return Id; }
@@ -453,7 +450,6 @@ public:
   public:
     TEdge() : Id(-1), SrcNId(-1), DstNId(-1) { }
     TEdge(const int& EId, const int& SourceNId, const int& DestNId) : Id(EId), SrcNId(SourceNId), DstNId(DestNId) { }
-    TEdge(const TEdge& Edge) : Id(Edge.Id), SrcNId(Edge.SrcNId), DstNId(Edge.DstNId) { }
     TEdge(TSIn& SIn) : Id(SIn), SrcNId(SIn), DstNId(SIn) { }
     void Save(TSOut& SOut) const { Id.Save(SOut); SrcNId.Save(SOut); DstNId.Save(SOut); }
     int GetId() const { return Id; }
@@ -669,7 +665,6 @@ public:
   public:
     TNode() : Id(-1), NIdV(), NodeTy(bgsUndef) { }
     TNode(const int& NId) : Id(NId), NIdV(), NodeTy(true?bgsLeft:bgsRight) { }
-    TNode(const TNode& Node) : Id(Node.Id), NIdV(Node.NIdV), NodeTy(Node.NodeTy) { }
     TNode(TSIn& SIn) : Id(SIn), NIdV(SIn), NodeTy(bgsUndef) { TInt Ty(SIn); NodeTy=(TNodeTy)Ty.Val; }
     void Save(TSOut& SOut) const { Id.Save(SOut); NIdV.Save(SOut); TInt(NodeTy).Save(SOut); }
     int GetId() const { return Id; }
@@ -699,11 +694,11 @@ public:
     TNodeI(const TNodeI& NodeI) : LeftHI(NodeI.LeftHI), RightHI(NodeI.RightHI) { }
     TNodeI& operator = (const TNodeI& NodeI) { LeftHI = NodeI.LeftHI; RightHI=NodeI.RightHI; return *this; }
     /// Increment iterator.
-    TNodeI& operator++ (int) { 
-      if (! LeftHI.IsEnd()) { 
-        LeftHI++; } 
-      else if (! RightHI.IsEnd()) { 
-        RightHI++; } 
+    TNodeI& operator++ (int) {
+      if (! LeftHI.IsEnd()) {
+        LeftHI++; }
+      else if (! RightHI.IsEnd()) {
+        RightHI++; }
       return *this; }
     bool operator < (const TNodeI& NodeI) const { return LeftHI < NodeI.LeftHI || (LeftHI==NodeI.LeftHI && RightHI < NodeI.RightHI); }
     bool operator == (const TNodeI& NodeI) const { return LeftHI==NodeI.LeftHI && RightHI==NodeI.RightHI; }
@@ -787,7 +782,7 @@ public:
   bool HasFlag(const TGraphFlag& Flag) const;
   TBPGraph& operator = (const TBPGraph& BPGraph) {
     if (this!=&BPGraph) { MxNId=BPGraph.MxNId; LeftH=BPGraph.LeftH; RightH=BPGraph.RightH; }  return *this; }
-  
+
   /// Returns the total number of nodes in the graph.
   int GetNodes() const { return GetLNodes() + GetRNodes(); }
   /// Returns the number of nodes on the 'left' side of the biparite graph.
@@ -810,7 +805,7 @@ public:
   bool IsRNode(const int& NId) const { return RightH.IsKey(NId); }
   /// Returns the maximum id of a any node in the graph.
   int GetMxNId() const { return MxNId; }
-    
+
   /// Returns an iterator referring to the first node in the graph.
   TNodeI BegNI() const { return TNodeI(LeftH.BegI(), RightH.BegI()); }
   /// Returns an iterator referring to the past-the-end node in the graph.
@@ -844,7 +839,7 @@ public:
   TEdgeI GetEI(const int& EId) const;
   /// Returns an iterator referring to edge (LeftNId, RightNId) in the graph. ##TBPGraph::GetEI
   TEdgeI GetEI(const int& LeftNId, const int& RightNId) const;
-    
+
   /// Returns an ID of a random node in the graph.
   int GetRndNId(TRnd& Rnd=TInt::Rnd);
   /// Returns an ID of a random 'left' node in the graph.

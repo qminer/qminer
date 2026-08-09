@@ -760,14 +760,14 @@ TStr TRecSerializator::GetErrorMsg(const TMem& RecMem, const TFieldSerialDesc& F
         FixedPartOffset.Val, VarIndexPartOffset.Val, VarContentPartOffset.Val,
         RecMem.Len(), FieldSerialDesc.FieldId.Val, (int)FieldSerialDesc.NullMapByte.Val,
         (int)FieldSerialDesc.NullMapMask.Val, FieldSerialDesc.FixedPartP ? "T" : "F",
-        FieldSerialDesc.Offset);
+        (int)FieldSerialDesc.Offset);
 }
 TStr TRecSerializator::GetErrorMsg(const char* Bf, const int& BfL, const TFieldSerialDesc& FieldSerialDesc) const {
     return TStr::Fmt("FPO:%d VIPO:%d VCPO:%d|L:%d|FID:%d NMP:%d NMM:%d FP:%s O:%d",
         FixedPartOffset.Val, VarIndexPartOffset.Val, VarContentPartOffset.Val,
         BfL, FieldSerialDesc.FieldId.Val, (int)FieldSerialDesc.NullMapByte.Val,
         (int)FieldSerialDesc.NullMapMask.Val, FieldSerialDesc.FixedPartP ? "T" : "F",
-        FieldSerialDesc.Offset);
+        (int)FieldSerialDesc.Offset);
 }
 const TRecSerializator::TFieldSerialDesc& TRecSerializator::GetFieldSerialDesc(const int& FieldId) const {
     QmAssertR(FieldIdToSerialDescIdH.IsKey(FieldId),

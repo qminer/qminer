@@ -104,7 +104,7 @@ public:
 private:
     // parameters
     TStr Algorithm; /// SGD, LIBSVM
-    
+
     // model
     TSvm::TSvmModel* Model = NULL;
 
@@ -3026,7 +3026,7 @@ private:
 class TNodeJsBuffTDigest : public node::ObjectWrap {
     friend class ::TNodeJsUtil;
 public:
-    static void Init(v8::Handle<v8::Object> exports);
+    static void Init(v8::Local<v8::Object> exports);
     static const TStr GetClassId() { return "BufferedTDigest"; }
 
 private:

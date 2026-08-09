@@ -1,7 +1,7 @@
 /**
  * Copyright (c) 2015, Jozef Stefan Institute, Quintelligence d.o.o. and contributors
  * All rights reserved.
- * 
+ *
  * This source code is licensed under the FreeBSD license found in the
  * LICENSE file in the root directory of this source tree.
  */
@@ -35,7 +35,7 @@ PJsonVal TBackupLogInfo::GetJson() const
 
 //
 // TBackupProfile
-// 
+//
 TBackupProfile::TBackupProfile(const PJsonVal& SettingsJson, const TStr& Destination_, const TStr& ProfileName_)
 {
     Destination = Destination_;
@@ -44,7 +44,7 @@ TBackupProfile::TBackupProfile(const PJsonVal& SettingsJson, const TStr& Destina
     ProfileName = ProfileName_;
     if (!TDir::Exists(Destination))
         TDir::GenDir(Destination);
-    
+
     VersionsToKeep = SettingsJson->GetObjInt("versionsToKeep", 1);
     PJsonVal FoldersJson = SettingsJson->GetObjKey("folders");
     EAssertR(FoldersJson->IsArr(), "Expected to get an array of folders");
@@ -61,7 +61,7 @@ TBackupProfile::TBackupProfile(const PJsonVal& SettingsJson, const TStr& Destina
             FolderJson->GetObjStrV("skipIfContaining", FolderInfo.SkipIfContainingV);
         FolderV.Add(FolderInfo);
     }
-    
+
     // load logs of the previous backups
     ProfileLogFile = Destination + ProfileName + "/backupInfo.json";
     if (TFile::Exists(ProfileLogFile)) {
@@ -109,7 +109,7 @@ TBackupLogInfo TBackupProfile::CreateBackup(const bool& ReportP)
         }
         const double Sec = StopWatch.GetSec();
         TStr OutText = ErrMsgs.Len() > 0 ? ErrMsgs : "Backup finished successfully.";
-        
+
         // add a new log
         TBackupLogInfo BackupLogInfo(DateFolderName, Sec, OutText, ErrDetails);
         LogV.Add(BackupLogInfo);
@@ -121,7 +121,7 @@ TBackupLogInfo TBackupProfile::CreateBackup(const bool& ReportP)
                 TDir::DelNonEmptyDir(FolderToDelete);
             LogV.Del(0);    // remove the first log item
         }
-        
+
         // save the logs
         SaveLogs();
 
@@ -135,7 +135,15 @@ TBackupLogInfo TBackupProfile::CreateBackup(const bool& ReportP)
     }
 }
 
-// copy files for a particular folder info
+// copy the folder SourceFolder into BaseTargetFolder
+// @param BaseTargetFolder: name of an existing destination target folder
+// @param SourceFolder: path to the source folder to copy
+// @param Extensions: vector of extensions to use (just extensions, without ., i.e. "*")
+// @param SkipIfContainingV: vector of name parts - if the file will contain any of them, it will not be copied (case sensitive)
+// @param IncludeSubFolders: should we also copy subfolders?
+// @param ReportP: should we report progress in the console?
+// @param ErrMsg: output error message (if any)
+// @param ErrDetails: details of the error (if any)
 void TBackupProfile::CopyFolder(const TStr& BaseTargetFolder, const TStr& SourceFolder, const TStrV& Extensions, const TStrV& SkipIfContainingV, const bool& IncludeSubfolders, const bool& ReportP, TStr& ErrMsg, TStr& ErrDetails)
 {
     try {
@@ -262,7 +270,7 @@ void TFolderBackup::ParseSettings(const PJsonVal& SettingsJson)
 {
     // name of the file that holds all backups
     DestinationDirNm = SettingsJson->GetObjStr("destination");
-    
+
     // load profiles for which we wish to make backups
     PJsonVal ProfilesJson = SettingsJson->GetObjKey("profiles");
     if (!ProfilesJson->IsObj()) {

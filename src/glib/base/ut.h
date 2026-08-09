@@ -154,7 +154,7 @@ public:
     AddTimeStamp = _AddTimeStamp;
   }
   static PNotify New(const bool& AddTimeStamp = false){
-	  return PNotify(new TStdNotify(AddTimeStamp));
+    return PNotify(new TStdNotify(AddTimeStamp));
   }
 
   void OnNotify(const TNotifyType& Type, const TStr& MsgStr);
@@ -170,7 +170,7 @@ public:
     AddTimeStamp = _AddTimeStamp;
   }
   static PNotify New(const bool& AddTimeStamp = false){
-	  return PNotify(new TStdErrNotify(AddTimeStamp));
+    return PNotify(new TStdErrNotify(AddTimeStamp));
   }
 
   void OnNotify(const TNotifyType& Type, const TStr& MsgStr);
@@ -181,25 +181,50 @@ public:
 // Log-Notify
 class TLogNotify : public TNotify {
 private:
-	PNotify Notify;
+  PNotify Notify;
 
 public:
-	TLogNotify(const PNotify& _Notify): Notify(_Notify) { }
-	static PNotify New(const PNotify& Notify) { return new TLogNotify(Notify); }
+  TLogNotify(const PNotify& _Notify): Notify(_Notify) { }
+  static PNotify New(const PNotify& Notify) { return new TLogNotify(Notify); }
 
-	void OnStatus(const TStr& MsgStr);
+  void OnStatus(const TStr& MsgStr);
+};
+
+//////////////////////////////////////
+// Color-Notify
+enum class TColorNotifyType {
+  Default, DefaultBold,
+  Red, BoldRed,
+  Green, BoldGreen,
+  Yellow, BoldYellow,
+  Blue, BoldBlue,
+  Magenta, BoldMagenta,
+  Cyan, BoldCyan
+};
+
+class TColorNotify : public TNotify {
+private:
+  PNotify Notify;
+  TColorNotifyType Type;
+
+public:
+  TColorNotify(const PNotify& _Notify, const TColorNotifyType& _Type): Notify(_Notify), Type(_Type) { }
+  static PNotify New(const PNotify& Notify, const TColorNotifyType& Type) {
+    return new TColorNotify(Notify, Type); }
+
+  void OnStatus(const TStr& MsgStr);
 };
 
 /////////////////////////////////////////////////
 // String-Notifier
 class TStrNotify : public TNotify {
 public:
-	TChA Log;
-	TStrNotify(){}
-	static PNotify New(){ return new TStrNotify(); }
+  TChA Log;
+  TStrNotify(){}
+  static PNotify New(){ return new TStrNotify(); }
 
-	void OnNotify(const TNotifyType& Type, const TStr& MsgStr);
-	void OnStatus(const TStr& MsgStr);
+  void OnNotify(const TNotifyType& Type, const TStr& MsgStr);
+  void OnStatus(const TStr& MsgStr);
 };
 
 /////////////////////////////////////////////////
@@ -214,7 +239,7 @@ public:
   TExcept(const TStr& _MsgStr): MsgStr(_MsgStr), LocStr(){}
   TExcept(const TStr& _MsgStr, const TStr& _LocStr): MsgStr(_MsgStr), LocStr(_LocStr){}
   TExcept(const int& _ErrorCode, const TStr& _MsgStr, const TStr& _LocStr) :
-	  MsgStr(_MsgStr), LocStr(_LocStr), ErrorCode(_ErrorCode) {}
+    MsgStr(_MsgStr), LocStr(_LocStr), ErrorCode(_ErrorCode) {}
   static PExcept New(const TStr& MsgStr, const TStr& LocStr = TStr());
   static PExcept New(const int& ErrorCode, const TStr& MsgStr, const TStr& LocStr = TStr());
   virtual ~TExcept(){}
@@ -283,12 +308,12 @@ protected:
 
     void OnOutput(LPCSTR szText);
 public:
-	TBufferStackWalker();
-	TChA GetOutput();
-	void ClearOutput() { Output = ""; }
+  TBufferStackWalker();
+  TChA GetOutput();
+  void ClearOutput() { Output = ""; }
 
-	// static method that generates stack trace and returns it
-	static TChA GetStackTrace();
+  // static method that generates stack trace and returns it
+  static TChA GetStackTrace();
 };
 
 extern TBufferStackWalker GlobalStackWalker;
