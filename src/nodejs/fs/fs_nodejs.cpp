@@ -308,8 +308,16 @@ void TNodeJsFIn::Init(v8::Local<v8::Object> exports) {
     NODE_SET_PROTOTYPE_METHOD(tpl, "isClosed", _isClosed);
 
     // Add properties
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("eof")), _eof);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("eof")), _eof);
+    #endif
+    #if NODE_MODULE_VERSION >= 134 // Node.js >= 24
+    tpl->InstanceTemplate()->SetNativeDataProperty(TNodeJsUtil::ToLocal(Nan::New("length")), _length);
+    #else
     tpl->InstanceTemplate()->SetAccessor(TNodeJsUtil::ToLocal(Nan::New("length")), _length);
+    #endif
 
     // This has to be last, otherwise the properties won't show up on the object in JavaScript
     // Constructor is used when creating the object from C++
@@ -401,7 +409,7 @@ void TNodeJsFIn::eof(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo<v8
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Info.Holder());
+    TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(JS_GET_HOLDER(Info));
 
     Info.GetReturnValue().Set(Nan::New(JsFIn->SIn->Eof()));
 }
@@ -410,7 +418,7 @@ void TNodeJsFIn::length(v8::Local<v8::Name> Name, const v8::PropertyCallbackInfo
     v8::Isolate* Isolate = v8::Isolate::GetCurrent();
     v8::HandleScope HandleScope(Isolate);
 
-    TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(Info.Holder());
+    TNodeJsFIn* JsFIn = ObjectWrap::Unwrap<TNodeJsFIn>(JS_GET_HOLDER(Info));
 
     Info.GetReturnValue().Set(v8::Integer::New(Isolate, JsFIn->SIn->Len()));
 }
@@ -481,7 +489,7 @@ void TNodeJsFOut::write(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         EFailR("Invalid type passed to fout.write() function.");
     }
 
-    Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }
 
 void TNodeJsFOut::writeBinary(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -502,7 +510,7 @@ void TNodeJsFOut::writeBinary(const v8::FunctionCallbackInfo<v8::Value>& Args) {
         EFailR("Invalid type passed to fout.write() function.");
     }
 
-    Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }
 
 void TNodeJsFOut::writeLine(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -515,7 +523,7 @@ void TNodeJsFOut::writeLine(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     EAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
     JsFOut->SOut->PutLn();
 
-    Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }
 
 void TNodeJsFOut::flush(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -525,7 +533,7 @@ void TNodeJsFOut::flush(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     TNodeJsFOut* JsFOut = ObjectWrap::Unwrap<TNodeJsFOut>(Args.This());
     EAssertR(!JsFOut->SOut.Empty(), "Output stream already closed!");
     JsFOut->SOut->Flush();
-    Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }
 
 void TNodeJsFOut::close(const v8::FunctionCallbackInfo<v8::Value>& Args) {
@@ -538,5 +546,5 @@ void TNodeJsFOut::close(const v8::FunctionCallbackInfo<v8::Value>& Args) {
     JsFOut->SOut->Flush();
     JsFOut->SOut.Clr();
 
-    Args.GetReturnValue().Set(Args.Holder());
+    Args.GetReturnValue().Set(JS_GET_HOLDER(Args));
 }

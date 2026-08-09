@@ -637,6 +637,14 @@ TChA& TChA::operator=(const char* CStr){
   return *this;
 }
 
+bool TChA::operator==(const TStr& Str) const {
+  return strcmp(CStr(), Str.CStr()) == 0;
+}
+
+bool TChA::operator!=(const TStr& Str) const {
+  return strcmp(CStr(), Str.CStr()) != 0;
+}
+
 TChA& TChA::operator+=(const TMem& Mem) {
   Resize(BfL+Mem.Len());
   strcpy(Bf+BfL, Mem.GetBf()); BfL+=Mem.Len(); return *this;
