@@ -105,6 +105,11 @@
   "overrides": {
     "minimatch": "^10.2.6",
     "serialize-javascript": "^7.0.7",
+    "js-yaml": "^3.15.1",
+    "brace-expansion": "^5.0.9",
+    "mocha": {
+      "js-yaml": "^4.3.1"
+    },
     "jsdoc-baseline": {
       "jsdoc": "$jsdoc"
     }
